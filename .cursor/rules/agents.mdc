@@ -1,0 +1,3 @@
+All agents inherit from BaseAgent.
+Only orchestrator calls other agents.
+ApplyAgent must require approved status before outbound actions.
