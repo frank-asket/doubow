@@ -554,7 +554,7 @@ CELERY_RESULT_BACKEND=redis://localhost:6379/1
 
 **Goal:** Monorepo boots, auth works, resume uploads.
 
-- **TASK-001** Init Turborepo monorepo with `apps/web` and `apps/api`
+- **TASK-001** Init Turborepo monorepo with `frontend` and `baseline/api_gateway`
 - **TASK-002** Scaffold Next.js 14 App Router with Tailwind + shadcn/ui
 - **TASK-003** Scaffold FastAPI app with pydantic-settings, async SQLAlchemy, Alembic
 - **TASK-004** `docker-compose.yml` with Postgres 16, Redis 7, API, Celery worker

@@ -1,1 +1,1 @@
-export * from '../../../apps/web/types'
+export * from '../../../frontend/types'

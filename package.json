@@ -1,7 +1,8 @@
 {
   "name": "doubow",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "packageManager": "npm@9.6.4",
+  "workspaces": ["frontend", "packages/*"],
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",

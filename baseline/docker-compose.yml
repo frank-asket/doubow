@@ -1,0 +1,51 @@
+services:
+  api_gateway:
+    build: ./api_gateway
+    container_name: baseline_api_gateway
+    env_file:
+      - ./.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./api_gateway:/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    depends_on:
+      model_service:
+        condition: service_healthy
+      worker_service:
+        condition: service_started
+
+  model_service:
+    build: ./model_service
+    container_name: baseline_model_service
+    env_file:
+      - ./.env
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./model_service:/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  worker_service:
+    build: ./worker_service
+    container_name: baseline_worker_service
+    env_file:
+      - ./.env
+    volumes:
+      - ./worker_service:/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('ok')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
