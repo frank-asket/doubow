@@ -4,12 +4,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
+from db.session import init_models
 from routers import agents, applications, approvals, auth, autopilot, jobs, prep, resume, users
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     # Startup/shutdown hooks live here once DB + Redis are wired.
+    await init_models()
     yield
 
 

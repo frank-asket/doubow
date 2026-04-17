@@ -1,16 +1,16 @@
-from datetime import datetime, timezone
-from uuid import uuid4
-
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from db.session import get_session
+from dependencies import get_current_user_id
 from dependencies import require_idempotency_key
 from schemas.autopilot import (
     AutopilotRunRequest,
     AutopilotRunResponse,
     IdempotencyConflictResponse,
 )
-from services.idempotency import get_record, payload_fingerprint, save_record
+from services.autopilot_service import run_autopilot as run_autopilot_service
 
 router = APIRouter(prefix="/me/autopilot", tags=["autopilot"])
 
@@ -24,35 +24,22 @@ router = APIRouter(prefix="/me/autopilot", tags=["autopilot"])
 async def run_autopilot(
     payload: AutopilotRunRequest,
     idempotency_key: str = Depends(require_idempotency_key),
+    session: AsyncSession = Depends(get_session),
+    user_id: str = Depends(get_current_user_id),
 ) -> AutopilotRunResponse:
-    payload_data = payload.model_dump()
-    prior = get_record(idempotency_key)
-    current_fingerprint = payload_fingerprint(payload_data)
-
-    if prior:
-        if prior.payload_fingerprint != current_fingerprint:
-            body = IdempotencyConflictResponse(
-                detail="Key already used with a different payload fingerprint",
-                prior_run_id=prior.run_id,
-            )
-            return JSONResponse(status_code=status.HTTP_409_CONFLICT, content=body.model_dump())
-        return AutopilotRunResponse(
-            run_id=prior.run_id,
-            status="done",
-            replayed=True,
-            scope=payload.scope,
-            item_results=[],
-            started_at=datetime.now(timezone.utc),
-            completed_at=datetime.now(timezone.utc),
+    try:
+        response, replayed = await run_autopilot_service(
+            session=session,
+            user_id=user_id,
+            idempotency_key=idempotency_key,
+            payload=payload,
         )
-
-    run_id = str(uuid4())
-    save_record(idempotency_key, run_id=run_id, payload=payload_data)
-    return AutopilotRunResponse(
-        run_id=run_id,
-        status="queued",
-        replayed=False,
-        scope=payload.scope,
-        item_results=[],
-        started_at=datetime.now(timezone.utc),
-    )
+        if replayed:
+            return response
+        return response
+    except ValueError as exc:
+        body = IdempotencyConflictResponse(
+            detail="Key already used with a different payload fingerprint",
+            prior_run_id=str(exc),
+        )
+        return JSONResponse(status_code=status.HTTP_409_CONFLICT, content=body.model_dump())
