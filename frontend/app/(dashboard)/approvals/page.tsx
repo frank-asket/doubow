@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, X, Edit3, Mail, Linkedin, Loader2, ShieldCheck, AlertCircle } from 'lucide-react'
+import { Check, X, Edit3, Mail, LinkIcon, Loader2, ShieldCheck, AlertCircle } from 'lucide-react'
 import { cn, channelLabel, relativeTime } from '@/lib/utils'
 import { useApprovals } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approvalStore'
@@ -10,7 +10,7 @@ import type { Approval } from '@/types'
 
 function ChannelIcon({ channel }: { channel: Approval['channel'] }) {
   if (channel === 'email') return <Mail size={12} />
-  if (channel === 'linkedin') return <Linkedin size={12} />
+  if (channel === 'linkedin') return <LinkIcon size={12} />
   return null
 }
 

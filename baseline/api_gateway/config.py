@@ -6,7 +6,7 @@ class Settings(BaseSettings):
 
     app_name: str = "Doubow API"
     environment: str = "development"
-    database_url: str = "postgresql+asyncpg://daubo:daubo@localhost:5432/daubo"
+    database_url: str = "postgresql+asyncpg://doubow:doubow@localhost:5432/doubow"
     redis_url: str = "redis://localhost:6379"
     cors_origins: list[str] = ["http://localhost:3000"]
     clerk_issuer: str | None = None

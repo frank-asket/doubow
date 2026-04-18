@@ -9,7 +9,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Daubo brand — forest green system
+        // Doubow brand — forest green system
         brand: {
           50:  '#E1F5EE',
           100: '#9FE1CB',

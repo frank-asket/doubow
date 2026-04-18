@@ -3,9 +3,9 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: daubo
-      POSTGRES_USER: daubo
-      POSTGRES_PASSWORD: daubo
+      POSTGRES_DB: doubow
+      POSTGRES_USER: doubow
+      POSTGRES_PASSWORD: doubow
     ports:
       - '5432:5432'
   redis:

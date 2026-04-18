@@ -2,35 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: #000000;
+  --foreground: #fafafa;
+  --mint: #4ade80;
+  --mint-bright: #34d399;
+  --cyan: #22d3ee;
+  --card: #0a0a0a;
+  --border: #27272a;
+  --muted: #a1a1aa;
+  --surface-2: #111113;
+  --sidebar-width: 224px;
+  --header-height: 56px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+}
+
+::selection {
+  background: rgba(74, 222, 128, 0.25);
+  color: var(--foreground);
+}
+
 @layer base {
-  :root {
-    --sidebar-width: 224px;
-    --header-height: 56px;
-  }
-
   * {
-    @apply border-surface-200;
-  }
-
-  body {
-    @apply bg-surface-50 text-surface-800 antialiased;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    border-color: var(--border);
   }
 
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { @apply bg-transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-surface-300 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-surface-400; }
+  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #52525b; }
 }
 
 @layer components {
   /* Card */
   .card {
-    @apply bg-white rounded-lg border border-surface-200 shadow-card;
+    background: var(--card);
+    color: var(--foreground);
+    @apply rounded-lg border shadow-card;
   }
   .card-hover {
-    @apply card transition-shadow duration-200 hover:shadow-card-hover hover:border-surface-300;
+    @apply card transition-shadow duration-200 hover:shadow-card-hover;
+    border-color: color-mix(in oklab, var(--border), white 8%);
   }
 
   /* Fit score colors */
@@ -54,31 +76,52 @@
 
   /* Buttons */
   .btn {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium
-           border border-surface-200 bg-white text-surface-700
-           hover:bg-surface-50 hover:border-surface-300
-           active:scale-[0.98] transition-all duration-150
-           focus:outline-none focus:ring-2 focus:ring-brand-400/20;
+    @apply inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium
+           active:scale-[0.98] transition-all duration-150 focus:outline-none focus:ring-2;
+    background: var(--surface-2);
+    color: var(--foreground);
+    border-color: var(--border);
+    --tw-ring-color: color-mix(in oklab, var(--mint), transparent 78%);
+  }
+  .btn:hover {
+    background: color-mix(in oklab, var(--surface-2), white 5%);
+    border-color: color-mix(in oklab, var(--border), white 10%);
   }
   .btn-primary {
-    @apply bg-brand-400 text-white border-brand-400
-           hover:bg-brand-600 hover:border-brand-600;
+    background: var(--mint);
+    color: var(--background);
+    border-color: var(--mint);
+  }
+  .btn-primary:hover {
+    background: var(--mint-bright);
+    border-color: var(--mint-bright);
   }
   .btn-danger {
     @apply border-danger-border text-danger-text
            hover:bg-danger-bg;
   }
   .btn-ghost {
-    @apply border-transparent bg-transparent
-           hover:bg-surface-100 hover:border-surface-200;
+    @apply border-transparent bg-transparent;
+  }
+  .btn-ghost:hover {
+    background: color-mix(in oklab, var(--surface-2), white 4%);
+    border-color: var(--border);
   }
 
   /* Input */
   .field {
-    @apply w-full px-3 py-2 text-sm rounded-md border border-surface-200 bg-white
-           text-surface-800 placeholder-surface-400
-           focus:outline-none focus:ring-2 focus:ring-brand-400/20 focus:border-brand-400
-           transition-colors duration-150;
+    @apply w-full rounded-md border px-3 py-2 text-sm transition-colors duration-150
+           focus:outline-none focus:ring-2;
+    background: var(--card);
+    color: var(--foreground);
+    border-color: var(--border);
+    --tw-ring-color: color-mix(in oklab, var(--mint), transparent 78%);
+  }
+  .field::placeholder {
+    color: var(--muted);
+  }
+  .field:focus {
+    border-color: var(--mint);
   }
 
   /* Shimmer skeleton */

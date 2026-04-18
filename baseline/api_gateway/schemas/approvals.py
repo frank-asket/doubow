@@ -33,3 +33,9 @@ class ApproveApprovalResponse(BaseModel):
     status: ApprovalStatus
     queued_send: bool
     send_task_id: str | None = None
+
+
+class ApprovalIdempotencyConflictResponse(BaseModel):
+    error: Literal["idempotency_conflict"] = "idempotency_conflict"
+    detail: str
+    prior_approval_id: str

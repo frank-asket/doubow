@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from functools import lru_cache
 
 import jwt
@@ -34,6 +33,14 @@ def _decode_clerk_token(token: str) -> dict:
 
 
 def get_current_user_id(authorization: str | None = Header(default=None, alias="Authorization")) -> str:
+    claims = get_current_user_claims(authorization=authorization)
+    user_id = claims.get("sub")
+    if not isinstance(user_id, str) or not user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing subject")
+    return user_id
+
+
+def get_current_user_claims(authorization: str | None = Header(default=None, alias="Authorization")) -> dict:
     if not authorization:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing Authorization header")
     if not authorization.startswith("Bearer "):
@@ -48,10 +55,7 @@ def get_current_user_id(authorization: str | None = Header(default=None, alias="
     except InvalidTokenError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc
 
-    user_id = claims.get("sub")
-    if not isinstance(user_id, str) or not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing subject")
-    return user_id
+    return claims
 
 
 def require_idempotency_key(idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")) -> str:

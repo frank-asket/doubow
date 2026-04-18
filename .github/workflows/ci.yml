@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run -w frontend lint
+      - run: npm run -w frontend type-check
+      - run: npm run -w frontend build
+
+  backend-migration-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r baseline/api_gateway/requirements.txt psycopg2-binary pytest pytest-asyncio httpx aiosqlite
+      - name: Verify Alembic migration chain compiles
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/postgres
+          ALEMBIC_DATABASE_URL: postgresql://user:pass@localhost:5432/postgres
+          PYTHONPATH: baseline/api_gateway
+        run: |
+          python -m alembic -c baseline/api_gateway/alembic.ini upgrade head --sql > /tmp/alembic.sql
+          test -s /tmp/alembic.sql
+      - name: Run backend test suite
+        env:
+          PYTHONPATH: baseline/api_gateway
+        run: |
+          python -m pytest -q baseline/api_gateway/tests

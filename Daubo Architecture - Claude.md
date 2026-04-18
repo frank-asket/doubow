@@ -6,7 +6,7 @@
 
 ## 1. System Overview
 
-Daubo is a **multi-agent job search platform** composed of:
+Doubow is a **multi-agent job search platform** composed of:
 
 - A **React + TypeScript frontend** (Next.js App Router)
 - A **Python FastAPI backend** with async task queues
@@ -23,7 +23,7 @@ The core principle: **AI drafts, user approves, system executes.** No outbound a
 ## 2. Directory Structure
 
 ```
-daubo/
+doubow/
 ├── apps/
 │   ├── web/                          # Next.js 14 App Router frontend
 │   │   ├── app/
@@ -528,7 +528,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 ANTHROPIC_API_KEY=
 
 # Database
-DATABASE_URL=postgresql+asyncpg://daubo:daubo@localhost:5432/daubo
+DATABASE_URL=postgresql+asyncpg://doubow:doubow@localhost:5432/doubow
 REDIS_URL=redis://localhost:6379
 
 # Auth (NextAuth)
@@ -734,4 +734,4 @@ Gmail UI elements are conditionally rendered — only show when channel === 'ema
 
 ---
 
-*End of Daubo Architecture & Roadmap Document*
+*End of Doubow Architecture & Roadmap Document*

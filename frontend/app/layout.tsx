@@ -1,13 +1,19 @@
 import type { Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
+import { Inter } from 'next/font/google'
 import ClerkApiAuthBridge from '@/components/auth/ClerkApiAuthBridge'
 import './globals.css'
 
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
-  title: { default: 'Daubo', template: '%s · Daubo' },
-  description: 'AI-powered job search assistant',
+  title: 'Doubow — The platform for your next job or venture',
+  description:
+    "Doubow builds your professional profile and automates tailored drafts, pipeline tracking, and interview prep—whether you're chasing a dream job or starting something of your own. You review and submit on official channels; nothing goes out without you.",
   icons: { icon: '/favicon.ico' },
 }
 
@@ -16,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans`}>
+      <body className={`${inter.variable} flex min-h-full flex-col bg-black font-sans text-zinc-50 antialiased`}>
         {clerkPublishableKey ? (
           <ClerkProvider publishableKey={clerkPublishableKey}>
             <ClerkApiAuthBridge />

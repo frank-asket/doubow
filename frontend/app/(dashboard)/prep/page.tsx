@@ -162,7 +162,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
           model: 'claude-sonnet-4-20250514',
           max_tokens: 700,
           stream: true,
-          system: 'You are Daubo, an AI job search assistant. Generate a specific, concrete STAR-R interview story. Be precise and quantitative.',
+          system: 'You are Doubow, an AI job search assistant. Generate a specific, concrete STAR-R interview story. Be precise and quantitative.',
           messages: [{
             role: 'user',
             content: `Generate a STAR-R story for an AI/ML engineer interviewing at ${session.application.job.company} for ${session.application.job.title}. Demonstrate building a production system. Include: Situation, Task, Action, Result (with metrics), and Reflection. Format with clear labels.`,
@@ -202,7 +202,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
           model: 'claude-sonnet-4-20250514',
           max_tokens: 500,
           stream: true,
-          system: 'You are Daubo. Create a concise company brief for interview preparation.',
+          system: 'You are Doubow. Create a concise company brief for interview preparation.',
           messages: [{
             role: 'user',
             content: `Company brief for ${session.application.job.company} — ${session.application.job.title} role. Cover: (1) what the company does and recent news, (2) tech stack signals from public info, (3) culture and engineering values, (4) 2 smart questions to ask interviewers. Be specific and concise.`,

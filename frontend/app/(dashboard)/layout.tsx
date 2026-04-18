@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="w-7 h-7 rounded-md bg-brand-400 flex items-center justify-center">
               <ChevronRight size={14} className="text-white" strokeWidth={3} />
             </div>
-            <span className="text-base font-semibold text-surface-800 tracking-tight">Daubo</span>
+            <span className="text-base font-semibold text-surface-800 tracking-tight">Doubow</span>
           </div>
           <p className="text-2xs text-surface-400 mt-1 ml-9">Job search AI</p>
         </div>

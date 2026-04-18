@@ -13,6 +13,12 @@ from schemas.applications import Application as ApplicationSchema
 from schemas.jobs import DimensionScores, Job as JobSchema, JobScore
 
 
+class ApprovalIdempotencyConflictError(Exception):
+    def __init__(self, prior_approval_id: str):
+        super().__init__(prior_approval_id)
+        self.prior_approval_id = prior_approval_id
+
+
 def _approval_to_schema(approval: Approval, app: Application, job: Job) -> ApprovalSchema:
     now = datetime.now(timezone.utc)
     app_schema = ApplicationSchema(
@@ -76,7 +82,7 @@ async def list_approvals(session: AsyncSession, user_id: str) -> list[ApprovalSc
 
 
 async def approve_approval(
-    session: AsyncSession, user_id: str, approval_id: str, edited_body: str | None
+    session: AsyncSession, user_id: str, approval_id: str, edited_body: str | None, idempotency_key: str
 ) -> ApproveApprovalResponse:
     approval = (
         await session.execute(
@@ -85,6 +91,18 @@ async def approve_approval(
     ).scalar_one_or_none()
     if not approval:
         raise ValueError("Approval not found")
+
+    if approval.idempotency_key:
+        if approval.idempotency_key != idempotency_key:
+            raise ApprovalIdempotencyConflictError(approval.id)
+        return ApproveApprovalResponse(
+            approval_id=approval.id,
+            status=approval.status,  # type: ignore[arg-type]
+            queued_send=False,
+            send_task_id=None,
+        )
+
+    approval.idempotency_key = idempotency_key
     if edited_body is not None:
         approval.draft_body = edited_body
         approval.status = "edited"

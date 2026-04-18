@@ -23,8 +23,8 @@ export default clerkMiddleware(async (auth, req) => {
   const hasSubscription =
     metadata?.subscriptionStatus === 'active' || (!!metadata?.plan && metadata.plan !== 'free')
 
-  if (!hasSubscription && req.nextUrl.pathname !== '/subscribe') {
-    return NextResponse.redirect(new URL('/subscribe', req.url))
+  if (!hasSubscription && req.nextUrl.pathname !== '/auth/sign-in') {
+    return NextResponse.redirect(new URL('/auth/sign-in', req.url))
   }
 })
 
