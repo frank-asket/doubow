@@ -6,28 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.job import Job
 from models.job_score import JobScore
-from schemas.jobs import Channel, DimensionScores, JobScore as JobScoreSchema, JobsListResponse, JobWithScore
-
-
-def _dimension_scores(raw: dict) -> DimensionScores:
-    return DimensionScores(
-        tech=float(raw.get("tech", 3.0)),
-        culture=float(raw.get("culture", 3.0)),
-        seniority=float(raw.get("seniority", 3.0)),
-        comp=float(raw.get("comp", 3.0)),
-        location=float(raw.get("location", 3.0)),
-    )
-
-
-def _channel(raw: dict) -> Channel:
-    ch = raw.get("channel_recommendation", "email")
-    if ch in ("email", "linkedin", "company_site"):
-        return ch  # type: ignore[return-value]
-    return "email"
+from schemas.jobs import JobsListResponse, JobWithScore
+from services.job_score_mapping import job_score_to_api
 
 
 def _row_to_schema(job: Job, score_row: JobScore) -> JobWithScore:
-    dims_raw = score_row.dimension_scores if isinstance(score_row.dimension_scores, dict) else {}
+    score = job_score_to_api(job.id, score_row)
+    assert score is not None
     return JobWithScore(
         id=job.id,
         source=job.source,  # type: ignore[arg-type]
@@ -40,15 +25,7 @@ def _row_to_schema(job: Job, score_row: JobScore) -> JobWithScore:
         url=job.url or "",
         posted_at=job.posted_at,
         discovered_at=job.discovered_at,
-        score=JobScoreSchema(
-            job_id=job.id,
-            fit_score=float(score_row.fit_score),
-            fit_reasons=list(score_row.fit_reasons or []),
-            risk_flags=list(score_row.risk_flags or []),
-            dimension_scores=_dimension_scores(dims_raw),
-            channel_recommendation=_channel(dims_raw),
-            scored_at=score_row.scored_at,
-        ),
+        score=score,
     )
 
 

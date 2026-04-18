@@ -7,10 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.application import Application
 from models.approval import Approval
 from models.job import Job
+from models.job_score import JobScore as JobScoreRow
 from schemas.approvals import Approval as ApprovalSchema
 from schemas.approvals import ApproveApprovalResponse
 from schemas.applications import Application as ApplicationSchema
-from schemas.jobs import DimensionScores, Job as JobSchema, JobScore
+from schemas.jobs import Job as JobSchema
+from services.job_score_mapping import job_score_to_api
 
 
 class ApprovalIdempotencyConflictError(Exception):
@@ -19,8 +21,9 @@ class ApprovalIdempotencyConflictError(Exception):
         self.prior_approval_id = prior_approval_id
 
 
-def _approval_to_schema(approval: Approval, app: Application, job: Job) -> ApprovalSchema:
-    now = datetime.now(timezone.utc)
+def _approval_to_schema(
+    approval: Approval, app: Application, job: Job, score_row: JobScoreRow | None
+) -> ApprovalSchema:
     app_schema = ApplicationSchema(
         id=app.id,
         user_id=app.user_id,
@@ -37,15 +40,7 @@ def _approval_to_schema(approval: Approval, app: Application, job: Job) -> Appro
             posted_at=job.posted_at,
             discovered_at=job.discovered_at,
         ),
-        score=JobScore(
-            job_id=job.id,
-            fit_score=4.2,
-            fit_reasons=["Profile and role share relevant stack"],
-            risk_flags=[],
-            dimension_scores=DimensionScores(tech=4.2, culture=4.0, seniority=4.3, comp=4.1, location=4.4),
-            channel_recommendation=app.channel,
-            scored_at=now,
-        ),
+        score=job_score_to_api(job.id, score_row),
         status=app.status,
         channel=app.channel,
         applied_at=app.applied_at,
@@ -72,13 +67,17 @@ def _approval_to_schema(approval: Approval, app: Application, job: Job) -> Appro
 
 async def list_approvals(session: AsyncSession, user_id: str) -> list[ApprovalSchema]:
     stmt = (
-        select(Approval, Application, Job)
+        select(Approval, Application, Job, JobScoreRow)
         .join(Application, Application.id == Approval.application_id)
         .join(Job, Job.id == Application.job_id)
+        .outerjoin(
+            JobScoreRow,
+            (JobScoreRow.job_id == Job.id) & (JobScoreRow.user_id == Application.user_id),
+        )
         .where(Approval.user_id == user_id)
     )
     rows = (await session.execute(stmt.order_by(Approval.created_at.desc()))).all()
-    return [_approval_to_schema(approval, app, job) for approval, app, job in rows]
+    return [_approval_to_schema(approval, app, job, score_row) for approval, app, job, score_row in rows]
 
 
 async def approve_approval(
