@@ -16,7 +16,7 @@ class PrepSession(Base):
     __tablename__ = "prep_sessions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id", ondelete="CASCADE"), index=True)
     application_id: Mapped[str] = mapped_column(String(36), ForeignKey("applications.id"), index=True)
     questions: Mapped[list | None] = mapped_column(JSON, nullable=True)
     star_stories: Mapped[list | None] = mapped_column(JSON, nullable=True)

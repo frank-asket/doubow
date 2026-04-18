@@ -1,10 +1,14 @@
 from functools import lru_cache
 
 import jwt
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from jwt import InvalidTokenError, PyJWKClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
+from db.session import get_session
+from models.user import User
+from services.users_service import ensure_user
 
 
 @lru_cache(maxsize=4)
@@ -56,6 +60,16 @@ def get_current_user_claims(authorization: str | None = Header(default=None, ali
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc
 
     return claims
+
+
+async def get_authenticated_user(
+    claims: dict = Depends(get_current_user_claims),
+    session: AsyncSession = Depends(get_session),
+) -> User:
+    user_id = claims.get("sub")
+    if not isinstance(user_id, str) or not user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing subject")
+    return await ensure_user(session, user_id, claims)
 
 
 def require_idempotency_key(idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")) -> str:

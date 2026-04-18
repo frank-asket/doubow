@@ -12,7 +12,7 @@ class JobScore(Base):
     __table_args__ = (UniqueConstraint("user_id", "job_id", name="uq_job_scores_user_job"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id", ondelete="CASCADE"), index=True)
     job_id: Mapped[str] = mapped_column(String(36), ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
     fit_score: Mapped[float] = mapped_column(Numeric(3, 1))
     fit_reasons: Mapped[list[str]] = mapped_column(JSON, default=list)

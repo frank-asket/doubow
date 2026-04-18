@@ -5,6 +5,35 @@ from models.user import User
 from schemas.users import MeResponse
 
 
+async def ensure_user(session: AsyncSession, user_id: str, claims: dict) -> User:
+    """Upsert the users row from Clerk claims and persist. Call on every authenticated request."""
+    user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+    email = _extract_email(claims, user_id)
+    name = _extract_name(claims)
+    plan = _extract_plan(claims)
+
+    if user is None:
+        user = User(id=user_id, email=email, name=name, plan=plan)
+        session.add(user)
+    else:
+        user.email = email
+        user.name = name
+        user.plan = plan
+
+    await session.commit()
+    await session.refresh(user)
+    return user
+
+
+def user_to_me_response(user: User) -> MeResponse:
+    return MeResponse(
+        id=user.id,
+        email=user.email,
+        name=user.name or "Doubow User",
+        plan="pro" if user.plan == "pro" else "free",
+    )
+
+
 def _extract_email(claims: dict, user_id: str) -> str:
     email = claims.get("email")
     if isinstance(email, str) and email:
@@ -45,26 +74,5 @@ def _extract_plan(claims: dict) -> str:
 
 
 async def get_me(session: AsyncSession, user_id: str, claims: dict) -> MeResponse:
-    user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
-    email = _extract_email(claims, user_id)
-    name = _extract_name(claims)
-    plan = _extract_plan(claims)
-
-    if user is None:
-        user = User(id=user_id, email=email, name=name, plan=plan)
-        session.add(user)
-    else:
-        # Keep user profile synchronized with Clerk claims.
-        user.email = email
-        user.name = name
-        user.plan = plan
-
-    await session.commit()
-    await session.refresh(user)
-
-    return MeResponse(
-        id=user.id,
-        email=user.email,
-        name=user.name or "Doubow User",
-        plan="pro" if user.plan == "pro" else "free",
-    )
+    user = await ensure_user(session, user_id, claims)
+    return user_to_me_response(user)

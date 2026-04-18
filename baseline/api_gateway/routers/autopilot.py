@@ -3,7 +3,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session import get_session
-from dependencies import get_current_user_id
+from dependencies import get_authenticated_user
+from models.user import User
 from dependencies import require_idempotency_key
 from schemas.autopilot import (
     AutopilotRunRequest,
@@ -25,12 +26,12 @@ async def run_autopilot(
     payload: AutopilotRunRequest,
     idempotency_key: str = Depends(require_idempotency_key),
     session: AsyncSession = Depends(get_session),
-    user_id: str = Depends(get_current_user_id),
+    user: User = Depends(get_authenticated_user),
 ) -> AutopilotRunResponse:
     try:
         response, replayed = await run_autopilot_service(
             session=session,
-            user_id=user_id,
+            user_id=user.id,
             idempotency_key=idempotency_key,
             payload=payload,
         )

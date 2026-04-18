@@ -3,12 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.approval import Approval
 from models.autopilot_run import AutopilotRun
-from models.job import Job
+from models.job_score import JobScore
 from schemas.agents import AgentStatusResponse
 
 
 async def list_agent_status(session: AsyncSession, user_id: str) -> list[AgentStatusResponse]:
-    total_jobs = (await session.execute(select(func.count(Job.id)))).scalar_one()
+    total_jobs = (
+        await session.execute(select(func.count(JobScore.id)).where(JobScore.user_id == user_id))
+    ).scalar_one()
     pending_approvals = (
         await session.execute(
             select(func.count(Approval.id)).where(Approval.user_id == user_id, Approval.status == "pending")

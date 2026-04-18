@@ -9,7 +9,8 @@ from sqlalchemy.pool import StaticPool
 
 from db.session import get_session
 from db.session import Base
-from dependencies import get_current_user_id
+from dependencies import get_authenticated_user
+from models.user import User
 import models  # noqa: F401
 from routers import approvals, autopilot
 
@@ -29,8 +30,8 @@ async def _override_session() -> AsyncGenerator[_DummySession, None]:
     yield _DummySession()
 
 
-def _override_user_id() -> str:
-    return "user_test_123"
+async def _override_authenticated_user() -> User:
+    return User(id="user_test_123", email="test@example.com", name="Test User", plan="free")
 
 
 @pytest.fixture
@@ -39,7 +40,7 @@ def client() -> TestClient:
     app.include_router(autopilot.router, prefix="/v1")
     app.include_router(approvals.router, prefix="/v1")
     app.dependency_overrides[get_session] = _override_session
-    app.dependency_overrides[get_current_user_id] = _override_user_id
+    app.dependency_overrides[get_authenticated_user] = _override_authenticated_user
     return TestClient(app)
 
 

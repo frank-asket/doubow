@@ -14,7 +14,12 @@ async def run_autopilot(
 ) -> tuple[AutopilotRunResponse, bool]:
     fingerprint = payload_fingerprint(payload.model_dump())
     existing = (
-        await session.execute(select(AutopilotRun).where(AutopilotRun.idempotency_key == idempotency_key))
+        await session.execute(
+            select(AutopilotRun).where(
+                AutopilotRun.user_id == user_id,
+                AutopilotRun.idempotency_key == idempotency_key,
+            )
+        )
     ).scalar_one_or_none()
 
     if existing:

@@ -3,7 +3,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session import get_session
-from dependencies import get_current_user_id
+from dependencies import get_authenticated_user
+from models.user import User
 from dependencies import require_idempotency_key
 from schemas.approvals import (
     Approval,
@@ -24,9 +25,9 @@ router = APIRouter(prefix="/me/approvals", tags=["approvals"])
 @router.get("", response_model=list[Approval])
 async def list_approvals_route(
     session: AsyncSession = Depends(get_session),
-    user_id: str = Depends(get_current_user_id),
+    user: User = Depends(get_authenticated_user),
 ) -> list[Approval]:
-    return await list_approvals_service(session=session, user_id=user_id)
+    return await list_approvals_service(session=session, user_id=user.id)
 
 
 @router.post(
@@ -39,12 +40,12 @@ async def approve_approval(
     payload: ApproveApprovalRequest,
     idempotency_key: str = Depends(require_idempotency_key),
     session: AsyncSession = Depends(get_session),
-    user_id: str = Depends(get_current_user_id),
+    user: User = Depends(get_authenticated_user),
 ) -> ApproveApprovalResponse:
     try:
         return await approve_approval_service(
             session=session,
-            user_id=user_id,
+            user_id=user.id,
             approval_id=approval_id,
             edited_body=payload.edited_body,
             idempotency_key=idempotency_key,
@@ -63,9 +64,9 @@ async def approve_approval(
 async def reject_approval_route(
     approval_id: str,
     session: AsyncSession = Depends(get_session),
-    user_id: str = Depends(get_current_user_id),
+    user: User = Depends(get_authenticated_user),
 ) -> None:
     try:
-        await reject_approval_service(session=session, user_id=user_id, approval_id=approval_id)
+        await reject_approval_service(session=session, user_id=user.id, approval_id=approval_id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

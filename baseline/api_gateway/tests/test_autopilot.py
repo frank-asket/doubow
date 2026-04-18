@@ -57,3 +57,21 @@ async def test_autopilot_conflict_on_same_key_different_payload(db_session):
         assert False, "Expected ValueError for idempotency payload conflict"
     except ValueError as exc:
         assert str(exc)
+
+
+@pytest.mark.asyncio
+async def test_autopilot_same_idempotency_key_different_users(db_session):
+    payload = AutopilotRunRequest(scope="all", application_ids=["app_1"])
+    key = "idem_shared_across_users_12"
+
+    a, replay_a = await run_autopilot(
+        session=db_session, user_id="user_a", idempotency_key=key, payload=payload
+    )
+    b, replay_b = await run_autopilot(
+        session=db_session, user_id="user_b", idempotency_key=key, payload=payload
+    )
+    assert replay_a is False and replay_b is False
+    assert a.run_id != b.run_id
+
+    rows = (await db_session.execute(select(AutopilotRun))).scalars().all()
+    assert len(rows) == 2

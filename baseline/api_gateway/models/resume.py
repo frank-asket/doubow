@@ -15,7 +15,7 @@ class Resume(Base):
     __tablename__ = "resumes"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id", ondelete="CASCADE"), index=True)
     storage_path: Mapped[str] = mapped_column(String(500))
     parsed_profile: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     preferences: Mapped[dict | None] = mapped_column(JSON, nullable=True)
