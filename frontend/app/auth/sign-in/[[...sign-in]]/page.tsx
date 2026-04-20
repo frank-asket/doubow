@@ -5,11 +5,11 @@ export default function AuthSignInPage() {
   return (
     <SignIn
       appearance={clerkAppearance}
-      path="/sign-in"
+      path="/auth/sign-in"
       routing="path"
-      signUpUrl="/sign-up"
-      fallbackRedirectUrl="/discover"
-      forceRedirectUrl="/discover"
+      signUpUrl="/auth/sign-up"
+      fallbackRedirectUrl="/dashboard"
+      forceRedirectUrl="/dashboard"
     />
   );
 }
