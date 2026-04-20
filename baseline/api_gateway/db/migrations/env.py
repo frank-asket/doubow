@@ -50,7 +50,13 @@ def resolve_database_url() -> str:
     ]
     for candidate in candidates:
         if candidate:
-            return normalize_db_url(candidate)
+            url = normalize_db_url(candidate)
+            # Alembic uses a synchronous engine; strip async drivers from the same DATABASE_URL as the app.
+            if url.startswith("postgresql+asyncpg://"):
+                url = "postgresql://" + url.removeprefix("postgresql+asyncpg://")
+            elif url.startswith("postgres+asyncpg://"):
+                url = "postgresql://" + url.removeprefix("postgres+asyncpg://")
+            return url
     raise RuntimeError("No database URL found in DATABASE_URL/NEXT_PUBLIC_DIRECT_URL/NEXT_PUBLIC_DATABASE_URL")
 
 

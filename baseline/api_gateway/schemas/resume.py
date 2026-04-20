@@ -1,9 +1,52 @@
-from pydantic import BaseModel
+from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 
-class ResumeResponse(BaseModel):
+SeniorityLevel = Literal["Junior", "Mid", "Senior", "Lead", "Staff", "Principal"]
+
+
+class ParsedProfileModel(BaseModel):
+    name: str = ""
+    headline: str = ""
+    experience_years: float = 0
+    skills: list[str] = Field(default_factory=list)
+    top_skills: list[str] = Field(default_factory=list)
+    archetypes: list[str] = Field(default_factory=list)
+    gaps: list[str] = Field(default_factory=list)
+    summary: str = ""
+
+
+class UserPreferencesModel(BaseModel):
+    target_role: str = ""
+    location: str = ""
+    min_salary: int | None = None
+    seniority: SeniorityLevel = "Mid"
+    skills: list[str] = Field(default_factory=list)
+    excluded_companies: list[str] | None = None
+
+
+class UserPreferencesPatch(BaseModel):
+    """Partial update body for PATCH /me/preferences."""
+
+    target_role: str | None = None
+    location: str | None = None
+    min_salary: int | None = None
+    seniority: SeniorityLevel | None = None
+    skills: list[str] | None = None
+    excluded_companies: list[str] | None = None
+
+
+class ResumeProfileResponse(BaseModel):
     id: str
     storage_path: str
-    parsed_profile: dict
-    preferences: dict
+    file_name: str
+    parsed_profile: ParsedProfileModel
+    preferences: UserPreferencesModel
     version: int
+    created_at: datetime
+
+
+class ResumeAnalyzeResponse(BaseModel):
+    analysis: str

@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000"]
     clerk_issuer: str | None = None
     clerk_audience: str | None = None
+    # Local filesystem root for uploaded resumes (relative paths are resolved from cwd).
+    resume_storage_dir: str = "./data/resumes"
 
 
 settings = Settings()
