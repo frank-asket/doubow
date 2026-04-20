@@ -1,31 +1,108 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { Upload, FileText, CheckCircle, Loader2, Sparkles, X } from 'lucide-react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { Upload, FileText, CheckCircle, Loader2, Sparkles, X, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useResumeUpload } from '@/hooks/useResumeUpload'
+import { resumeApi } from '@/lib/api'
+import type { UserPreferences } from '@/types'
 
 const SENIORITY_OPTIONS = ['Junior', 'Mid', 'Senior', 'Lead', 'Staff', 'Principal']
+const DEFAULT_PREFS: UserPreferences = {
+  target_role: 'AI/ML Engineer',
+  location: 'Remote / Europe',
+  min_salary: 140000,
+  seniority: 'Senior',
+  skills: ['RAG', 'LLMs', 'Python', 'FastAPI', 'MLOps'],
+}
 
 export default function ResumePage() {
-  const { upload, uploading, analyzeWithAI, analyzing, analysis } = useResumeUpload()
+  const { upload, uploading, analyzeWithAI, analyzing, analysis, error: uploadError } = useResumeUpload()
   const [uploaded, setUploaded] = useState(false)
   const [fileName, setFileName] = useState('')
   const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [resumeExists, setResumeExists] = useState(false)
 
-  const [role, setRole] = useState('AI/ML Engineer')
-  const [location, setLocation] = useState('Remote / Europe')
-  const [salary, setSalary] = useState('140000')
-  const [seniority, setSeniority] = useState('Senior')
-  const [skills, setSkills] = useState('RAG, LLMs, Python, FastAPI, MLOps')
+  const [role, setRole] = useState(DEFAULT_PREFS.target_role)
+  const [location, setLocation] = useState(DEFAULT_PREFS.location)
+  const [salary, setSalary] = useState(String(DEFAULT_PREFS.min_salary ?? ''))
+  const [seniority, setSeniority] = useState(DEFAULT_PREFS.seniority)
+  const [skills, setSkills] = useState(DEFAULT_PREFS.skills.join(', '))
+  const [savedPrefs, setSavedPrefs] = useState<UserPreferences>(DEFAULT_PREFS)
+  const [savingPrefs, setSavingPrefs] = useState(false)
+  const [prefsStatus, setPrefsStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const hydrateFromPrefs = useCallback((prefs: UserPreferences) => {
+    setRole(prefs.target_role ?? '')
+    setLocation(prefs.location ?? '')
+    setSalary(prefs.min_salary !== undefined ? String(prefs.min_salary) : '')
+    setSeniority(prefs.seniority ?? 'Mid')
+    setSkills((prefs.skills ?? []).join(', '))
+  }, [])
+
+  const loadResume = useCallback(async () => {
+    setLoadingProfile(true)
+    try {
+      const profile = await resumeApi.get()
+      setResumeExists(true)
+      setUploaded(true)
+      setFileName(profile.file_name)
+      setSavedPrefs(profile.preferences)
+      hydrateFromPrefs(profile.preferences)
+      setPrefsStatus(null)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load resume profile'
+      if (msg.toLowerCase().includes('resume not found')) {
+        setResumeExists(false)
+      } else {
+        setPrefsStatus({ type: 'error', text: msg })
+      }
+    } finally {
+      setLoadingProfile(false)
+    }
+  }, [hydrateFromPrefs])
+
+  useEffect(() => {
+    loadResume()
+  }, [loadResume])
+
+  const savePreferences = useCallback(async () => {
+    setSavingPrefs(true)
+    setPrefsStatus(null)
+    try {
+      const parsedSalary = salary.trim() === '' ? undefined : Number(salary)
+      const payload: Partial<UserPreferences> = {
+        target_role: role.trim(),
+        location: location.trim(),
+        min_salary: Number.isFinite(parsedSalary) ? parsedSalary : undefined,
+        seniority: seniority as UserPreferences['seniority'],
+        skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
+      }
+      const updated = await resumeApi.updatePreferences(payload)
+      setSavedPrefs(updated)
+      hydrateFromPrefs(updated)
+      setPrefsStatus({ type: 'success', text: 'Preferences saved.' })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to save preferences'
+      setPrefsStatus({ type: 'error', text: msg })
+    } finally {
+      setSavingPrefs(false)
+    }
+  }, [role, location, salary, seniority, skills, hydrateFromPrefs])
 
   const handleFile = useCallback(async (file: File) => {
     if (!file) return
     setFileName(file.name)
     const result = await upload(file)
-    if (result.success) setUploaded(true)
-  }, [upload])
+    if (result.success) {
+      setResumeExists(true)
+      setUploaded(true)
+      setPrefsStatus({ type: 'success', text: 'Resume uploaded. Preferences are ready to save.' })
+      await loadResume()
+    }
+  }, [upload, loadResume])
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -92,10 +169,22 @@ export default function ResumePage() {
           </div>
         )}
       </div>
+      {uploadError && (
+        <div className="flex items-start gap-2.5 p-3 bg-danger-bg border border-danger-border rounded-lg mb-5">
+          <AlertCircle size={14} className="text-danger-text mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-danger-text">{uploadError}</p>
+        </div>
+      )}
 
       {/* Preferences */}
       <div className="card p-5 mb-5">
         <p className="text-sm font-medium text-surface-800 mb-4">Search preferences</p>
+        {loadingProfile ? (
+          <div className="flex items-center gap-2 text-xs text-surface-500 mb-4">
+            <Loader2 size={12} className="animate-spin" />
+            Loading saved preferences...
+          </div>
+        ) : null}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-medium text-surface-500 mb-1.5 block">Target role</label>
@@ -111,7 +200,11 @@ export default function ResumePage() {
           </div>
           <div>
             <label className="text-xs font-medium text-surface-500 mb-1.5 block">Seniority</label>
-            <select className="field text-sm" value={seniority} onChange={(e) => setSeniority(e.target.value)}>
+            <select
+              className="field text-sm"
+              value={seniority}
+              onChange={(e) => setSeniority(e.target.value as UserPreferences['seniority'])}
+            >
               {SENIORITY_OPTIONS.map((o) => <option key={o}>{o}</option>)}
             </select>
           </div>
@@ -120,9 +213,44 @@ export default function ResumePage() {
             <input className="field text-sm" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. RAG, LLMs, Python" />
           </div>
         </div>
+        {prefsStatus && (
+          <div
+            className={cn(
+              'flex items-start gap-2 text-xs rounded-md px-3 py-2 mt-4',
+              prefsStatus.type === 'success'
+                ? 'bg-brand-50 text-brand-700 border border-brand-100'
+                : 'bg-danger-bg text-danger-text border border-danger-border'
+            )}
+          >
+            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+            <span>{prefsStatus.text}</span>
+          </div>
+        )}
+        {!loadingProfile && !resumeExists && (
+          <div className="flex items-start gap-2 text-xs rounded-md px-3 py-2 mt-4 bg-warning-bg text-warning-text border border-warning-border">
+            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+            <span>Upload a resume first to enable preference saving.</span>
+          </div>
+        )}
         <div className="flex gap-2 mt-4 pt-4 border-t border-surface-100">
-          <button className="btn btn-primary text-xs">Save preferences</button>
-          <button className="btn text-xs">Reset</button>
+          <button
+            onClick={() => savePreferences()}
+            disabled={savingPrefs || loadingProfile || !resumeExists}
+            className="btn btn-primary text-xs gap-1.5"
+          >
+            {savingPrefs ? <Loader2 size={12} className="animate-spin" /> : null}
+            {savingPrefs ? 'Saving...' : 'Save preferences'}
+          </button>
+          <button
+            onClick={() => {
+              hydrateFromPrefs(savedPrefs)
+              setPrefsStatus(null)
+            }}
+            disabled={savingPrefs || loadingProfile}
+            className="btn text-xs"
+          >
+            Reset
+          </button>
         </div>
       </div>
 

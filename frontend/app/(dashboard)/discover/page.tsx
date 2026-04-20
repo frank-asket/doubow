@@ -1,19 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { RefreshCw, SlidersHorizontal, Globe, ChevronDown, ChevronUp, ArrowRight, X, BookOpen } from 'lucide-react'
 import { cn, fitClass, fitLabel, channelLabel, channelBadgeClass, relativeTime, scoreBarWidth } from '@/lib/utils'
 import { useJobs } from '@/hooks/useJobs'
+import { usePipeline } from '@/hooks/usePipeline'
 import { useJobStore } from '@/stores/jobStore'
+import { usePipelineStore } from '@/stores/pipelineStore'
 import { applicationsApi } from '@/lib/api'
 import type { JobWithScore } from '@/types'
-
-const STAT_CARDS = [
-  { label: 'Evaluated this week', value: '148', sub: 'across 45+ portals' },
-  { label: 'High fit (≥ 4.0)', value: '12', sub: 'ready to review' },
-  { label: 'Avg fit score', value: '3.4', sub: 'all discovered roles' },
-  { label: 'Applied', value: '7', sub: 'awaiting response' },
-]
 
 const DIMENSION_LABELS: Record<string, string> = {
   tech: 'Tech match', culture: 'Culture', seniority: 'Seniority', comp: 'Compensation', location: 'Location',
@@ -197,10 +192,31 @@ function JobSkeleton() {
 
 export default function DiscoverPage() {
   const { jobs, total, loading, minFit, setMinFit } = useJobStore()
+  const applications = usePipelineStore((s) => s.applications)
   const { refresh } = useJobs()
+  usePipeline()
   const [filterOpen, setFilterOpen] = useState(false)
 
   const filteredJobs = jobs.filter((j) => !minFit || j.score.fit_score >= minFit)
+  const highFitCount = useMemo(
+    () => jobs.filter((j) => j.score.fit_score >= 4).length,
+    [jobs]
+  )
+  const avgFit = useMemo(() => {
+    if (!jobs.length) return 0
+    const totalScore = jobs.reduce((sum, j) => sum + j.score.fit_score, 0)
+    return totalScore / jobs.length
+  }, [jobs])
+  const appliedCount = useMemo(
+    () => applications.filter((a) => ['pending', 'applied', 'interview'].includes(a.status)).length,
+    [applications]
+  )
+  const statCards = [
+    { label: 'Evaluated roles', value: String(total), sub: 'in current search scope' },
+    { label: 'High fit (>= 4.0)', value: String(highFitCount), sub: 'from loaded matches' },
+    { label: 'Avg fit score', value: jobs.length ? avgFit.toFixed(1) : '-', sub: 'across loaded matches' },
+    { label: 'Applied', value: String(appliedCount), sub: 'pending response or interview' },
+  ]
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -227,7 +243,7 @@ export default function DiscoverPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-4 gap-3 mb-6">
-        {STAT_CARDS.map((s) => (
+        {statCards.map((s) => (
           <div key={s.label} className="bg-surface-100 rounded-lg p-3">
             <p className="text-2xs text-surface-400 uppercase tracking-wider mb-1">{s.label}</p>
             <p className="text-2xl font-semibold text-surface-800 tabular-nums">{s.value}</p>

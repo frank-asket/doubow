@@ -4,13 +4,14 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import type { Route } from 'next'
 import {
-  Compass, ListFilter, CheckSquare, BookOpen,
+  LayoutDashboard, Compass, ListFilter, CheckSquare, BookOpen,
   FileText, Cpu, ChevronRight, Bell, Settings, LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useApprovalStore } from '@/stores/approvalStore'
 
 const NAV: Array<{ href: Route; label: string; icon: React.ElementType; badge: string | null; urgent?: boolean }> = [
+  { href: '/dashboard', label: 'Dashboard',     icon: LayoutDashboard, badge: null },
   { href: '/discover',  label: 'Discover',      icon: Compass,      badge: 'jobs' },
   { href: '/pipeline',  label: 'Pipeline',       icon: ListFilter,   badge: 'pipeline' },
   { href: '/approvals', label: 'Approvals',      icon: CheckSquare,  badge: 'approvals', urgent: true },
