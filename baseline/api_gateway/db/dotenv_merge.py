@@ -24,10 +24,15 @@ def iter_dotenv_paths_upward(start_dir: Path) -> list[Path]:
 
 
 def load_dotenv_merged(start_dir: Path) -> None:
+    merged: dict[str, str] = {}
     for env_path in iter_dotenv_paths_upward(start_dir):
         for line in env_path.read_text(encoding="utf-8").splitlines():
             s = line.strip()
             if not s or s.startswith("#") or "=" not in s:
                 continue
             k, _, v = s.partition("=")
-            os.environ[k.strip()] = v.strip().strip('"').strip("'")
+            key = k.strip()
+            merged[key] = v.strip().strip('"').strip("'")
+    # Do not override variables already set in the process environment (shell, CI, Make).
+    for key, val in merged.items():
+        os.environ.setdefault(key, val)
