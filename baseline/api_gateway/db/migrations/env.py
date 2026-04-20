@@ -2,13 +2,18 @@ from __future__ import annotations
 
 import os
 from logging.config import fileConfig
-from urllib.parse import quote, unquote
+from pathlib import Path
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from db.dotenv_merge import load_dotenv_merged
 from db.session import Base
+from db.url_utils import normalize_db_url
 import models  # noqa: F401
+
+
+load_dotenv_merged(Path(__file__).resolve().parent)
 
 config = context.config
 
@@ -18,33 +23,14 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
-def normalize_db_url(url: str) -> str:
-    """
-    Normalize DATABASE_URL-like values and URL-encode unsafe passwords.
-    Handles inputs such as:
-      postgresql://user:pa?ss@host:5432/db
-    """
-    if "://" not in url or ":" not in url or "@" not in url:
-        return url
-
-    scheme, rest = url.split("://", 1)
-    if "/" not in rest:
-        return url
-
-    userinfo_host, path_q = rest.split("/", 1)
-    if ":" not in userinfo_host or "@" not in userinfo_host:
-        return url
-
-    user, pass_host = userinfo_host.split(":", 1)
-    password, host = pass_host.rsplit("@", 1)
-    encoded_password = quote(unquote(password), safe="")
-    return f"{scheme}://{user}:{encoded_password}@{host}/{path_q}"
-
-
 def resolve_database_url() -> str:
+    # Order: explicit migrate URL first. For Supabase, `db.*.supabase.co` (direct) is often IPv6-only;
+    # use Session pooler :5432 (e.g. ALEMBIC_DATABASE_URL) on IPv4-only networks — see Supabase “Connect”.
     candidates = [
         os.getenv("ALEMBIC_DATABASE_URL"),
         os.getenv("DATABASE_URL"),
+        os.getenv("POOLER_SESSION_DATABASE_URL"),
+        os.getenv("NEXT_PUBLIC_POOLER_SESSION_URL"),
         os.getenv("NEXT_PUBLIC_DIRECT_URL"),
         os.getenv("NEXT_PUBLIC_DATABASE_URL"),
     ]

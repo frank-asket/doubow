@@ -1,4 +1,25 @@
+from services.applications_service import ApplicationIdempotencyConflictError
 from services.approvals_service import ApprovalIdempotencyConflictError
+
+
+def test_application_create_idempotency_conflict_envelope(client, monkeypatch):
+    async def _raise_conflict(**kwargs):
+        raise ApplicationIdempotencyConflictError("app_prev_001")
+
+    monkeypatch.setattr("routers.applications.create_application", _raise_conflict)
+
+    res = client.post(
+        "/v1/me/applications",
+        json={"job_id": "j1", "channel": "email"},
+        headers={"Idempotency-Key": "idem-app-create-12345"},
+    )
+
+    assert res.status_code == 409
+    assert res.json() == {
+        "error": "idempotency_conflict",
+        "detail": "Key already used for a different application payload",
+        "prior_application_id": "app_prev_001",
+    }
 
 
 def test_autopilot_idempotency_conflict_envelope(client, monkeypatch):

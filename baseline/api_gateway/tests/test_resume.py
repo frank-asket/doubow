@@ -14,6 +14,7 @@ from services.resume_service import (
 @pytest.mark.asyncio
 async def test_upload_inherits_prefs_version_and_storage(tmp_path, monkeypatch, db_session):
     monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    monkeypatch.setattr(settings, "openrouter_api_key", None)
 
     db_session.add(User(id="user_r1", email="r1@example.com"))
     await db_session.commit()

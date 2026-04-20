@@ -528,7 +528,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 ANTHROPIC_API_KEY=
 
 # Database
-DATABASE_URL=postgresql+asyncpg://doubow:doubow@localhost:5432/doubow
+DATABASE_URL=postgresql+asyncpg://doubow:doubow@localhost:5433/doubow
 REDIS_URL=redis://localhost:6379
 
 # Auth (NextAuth)

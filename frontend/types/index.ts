@@ -11,6 +11,17 @@ export interface User {
   created_at: string
 }
 
+/** GET /v1/me/dashboard — sidebar badges + Discover stat strip */
+export interface DashboardSummary {
+  high_fit_count: number
+  pipeline_count: number
+  pending_approvals: number
+  evaluated_this_week: number
+  avg_fit_score: number | null
+  applied_awaiting_reply: number
+  total_scored_jobs: number
+}
+
 export interface UserPreferences {
   target_role: string
   location: string
@@ -45,7 +56,14 @@ export interface ParsedProfile {
 
 // ─── Jobs ──────────────────────────────────────────────────────────────────
 
-export type JobSource = 'ashby' | 'greenhouse' | 'lever' | 'linkedin' | 'wellfound' | 'manual'
+export type JobSource =
+  | 'ashby'
+  | 'greenhouse'
+  | 'lever'
+  | 'linkedin'
+  | 'wellfound'
+  | 'manual'
+  | 'catalog'
 
 export interface Job {
   id: string

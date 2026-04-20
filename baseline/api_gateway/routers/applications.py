@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session import get_session
-from dependencies import get_authenticated_user
+from dependencies import get_authenticated_user, optional_idempotency_key
 from models.user import User
 from schemas.applications import (
     ApplicationsListResponse,
@@ -10,8 +11,14 @@ from schemas.applications import (
     IntegrityCheckRequest,
     IntegrityCheckResponse,
     Application,
+    ApplicationIdempotencyConflictResponse,
 )
-from services.applications_service import create_application, integrity_check, list_applications
+from services.applications_service import (
+    ApplicationIdempotencyConflictError,
+    create_application,
+    integrity_check,
+    list_applications,
+)
 
 router = APIRouter(prefix="/me/applications", tags=["applications"])
 
@@ -25,13 +32,30 @@ async def list_applications_route(
     return await list_applications(session=session, user_id=user.id, status=status)
 
 
-@router.post("", response_model=Application)
+@router.post(
+    "",
+    response_model=Application,
+    responses={409: {"model": ApplicationIdempotencyConflictResponse}},
+)
 async def create_application_route(
     payload: CreateApplicationRequest,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
-) -> Application:
-    return await create_application(session=session, user_id=user.id, payload=payload)
+    idempotency_key: str | None = Depends(optional_idempotency_key),
+) -> Application | JSONResponse:
+    try:
+        return await create_application(
+            session=session,
+            user_id=user.id,
+            payload=payload,
+            idempotency_key=idempotency_key,
+        )
+    except ApplicationIdempotencyConflictError as exc:
+        body = ApplicationIdempotencyConflictResponse(
+            detail="Key already used for a different application payload",
+            prior_application_id=exc.prior_application_id,
+        )
+        return JSONResponse(status_code=status.HTTP_409_CONFLICT, content=body.model_dump())
 
 
 @router.post("/integrity-check", response_model=IntegrityCheckResponse)

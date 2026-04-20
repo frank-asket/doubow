@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from models.application import Application
     from models.approval import Approval
     from models.autopilot_run import AutopilotRun
+    from models.job_dismissal import JobDismissal
     from models.job_score import JobScore
     from models.prep_session import PrepSession
     from models.resume import Resume
@@ -37,3 +38,6 @@ class User(Base):
         "PrepSession", back_populates="user", cascade="all, delete-orphan"
     )
     job_scores: Mapped[list["JobScore"]] = relationship("JobScore", back_populates="user", cascade="all, delete-orphan")
+    job_dismissals: Mapped[list["JobDismissal"]] = relationship(
+        "JobDismissal", back_populates="user", cascade="all, delete-orphan"
+    )

@@ -1,4 +1,5 @@
 fastapi
+httpx
 python-multipart
 uvicorn[standard]
 pydantic-settings
@@ -7,3 +8,5 @@ asyncpg
 alembic
 celery
 PyJWT[crypto]
+pypdf
+python-docx

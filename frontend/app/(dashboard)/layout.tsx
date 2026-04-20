@@ -5,10 +5,10 @@ import Link from 'next/link'
 import type { Route } from 'next'
 import {
   LayoutDashboard, Compass, ListFilter, CheckSquare, BookOpen,
-  FileText, Cpu, ChevronRight, Bell, Settings, LogOut, Menu,
+  FileText, Cpu, ChevronRight, Bell, Settings, LogOut, Menu, Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useApprovalStore } from '@/stores/approvalStore'
+import { useDashboard } from '@/hooks/useDashboard'
 
 const NAV: Array<{ href: Route; label: string; icon: React.ElementType; badge: string | null; urgent?: boolean }> = [
   { href: '/dashboard', label: 'Dashboard',     icon: LayoutDashboard, badge: null },
@@ -39,7 +39,7 @@ function NavItem({
       )}
     >
       <Icon
-        size={14}
+        size={16}
         className={cn(active ? 'text-emerald-300' : 'text-zinc-500 group-hover:text-zinc-300')}
       />
       <span className="flex-1">{label}</span>
@@ -58,12 +58,13 @@ function NavItem({
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const approvals = useApprovalStore((s) => s.approvals)
-  const pendingCount = approvals.filter((a) => a.status === 'pending').length
+  const { summary } = useDashboard()
   const path = usePathname()
 
   const counts: Record<string, number> = {
-    approvals: pendingCount,
+    jobs: summary?.high_fit_count ?? 0,
+    pipeline: summary?.pipeline_count ?? 0,
+    approvals: summary?.pending_approvals ?? 0,
   }
 
   return (
@@ -74,7 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="border-b border-zinc-900 px-5 pb-4 pt-5">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/20 text-emerald-300">
-              <ChevronRight size={14} className="text-white" strokeWidth={3} />
+              <ChevronRight size={16} className="text-white" strokeWidth={1.75} />
             </div>
             <span className="text-[15px] font-semibold tracking-tight text-zinc-100">Doubow</span>
           </div>
@@ -98,11 +99,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Footer */}
         <div className="space-y-1 border-t border-zinc-900 p-3">
           <button className="flex w-full items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs text-zinc-400 transition-colors hover:border-zinc-800 hover:bg-zinc-900/70 hover:text-zinc-200">
-            <Bell size={14} />
+            <Bell size={16} />
             <span>Notifications</span>
           </button>
           <button className="flex w-full items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs text-zinc-400 transition-colors hover:border-zinc-800 hover:bg-zinc-900/70 hover:text-zinc-200">
-            <Settings size={14} />
+            <Settings size={16} />
             <span>Settings</span>
           </button>
           <div className="mt-1 flex items-center gap-2 px-3 py-2">
@@ -114,7 +115,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <p className="truncate text-2xs text-zinc-500">Pro</p>
             </div>
             <button className="p-0.5 text-zinc-500 hover:text-zinc-300">
-              <LogOut size={13} />
+              <LogOut size={15} />
             </button>
           </div>
         </div>
@@ -122,12 +123,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main */}
       <main className="min-w-0 flex-1 bg-[#050505]">
+        {/* Desktop top bar */}
+        <div className="dashboard-topbar hidden h-14 items-center justify-between border-b border-zinc-900 px-6 lg:flex">
+          <div>
+            <p className="text-2xs text-zinc-500">Tracking / Dashboard</p>
+            <p className="text-sm font-medium text-zinc-100">
+              {NAV.find((i) => path === i.href || path.startsWith(i.href + '/'))?.label ?? 'Main Dashboard'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="btn p-2">
+              <Bell size={16} />
+            </button>
+            <div className="relative">
+              <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <input
+                aria-label="Search dashboard"
+                className="field h-8 w-56 pl-8 pr-3 text-xs"
+                placeholder="Search"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Mobile/tablet top nav */}
         <div className="sticky top-0 z-20 border-b border-zinc-900 bg-[#050505]/95 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/20">
-                <ChevronRight size={14} className="text-white" strokeWidth={3} />
+                <ChevronRight size={16} className="text-white" strokeWidth={1.75} />
               </div>
               <div>
                 <p className="text-sm font-semibold text-zinc-100">Doubow</p>
@@ -135,7 +159,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
             <button className="rounded-lg border border-zinc-800 p-2 text-zinc-300 hover:bg-zinc-900/60">
-              <Menu size={14} />
+              <Menu size={16} />
             </button>
           </div>
           <div className="px-3 pb-3 overflow-x-auto">
@@ -155,7 +179,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         : 'border-zinc-800 bg-zinc-900/70 text-zinc-400 hover:text-zinc-200'
                     )}
                   >
-                    <Icon size={12} />
+                    <Icon size={14} />
                     <span>{item.label}</span>
                     {count !== undefined && count > 0 ? (
                       <span className={cn(

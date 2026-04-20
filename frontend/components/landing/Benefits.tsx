@@ -45,7 +45,7 @@ export function Benefits() {
                 className="border-b border-r border-zinc-800 p-8 text-left sm:p-10"
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 text-zinc-200">
-                  <Icon className="h-5 w-5" strokeWidth={1.5} />
+                  <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
                 <h3 className="mt-5 text-lg font-semibold text-white">
                   {item.title}

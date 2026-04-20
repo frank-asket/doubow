@@ -8,6 +8,7 @@ import { usePipeline } from '@/hooks/usePipeline'
 import { useJobStore } from '@/stores/jobStore'
 import { usePipelineStore } from '@/stores/pipelineStore'
 import { applicationsApi } from '@/lib/api'
+import { useDashboard } from '@/hooks/useDashboard'
 import type { JobWithScore } from '@/types'
 
 const DIMENSION_LABELS: Record<string, string> = {
@@ -42,11 +43,14 @@ function JobCard({ job }: { job: JobWithScore }) {
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
   const dismissJob = useJobStore((s) => s.dismissJob)
+  const queueIdempotencyKey = useMemo(() => crypto.randomUUID(), [job.id])
 
   async function handleQueue() {
     setQueuing(true)
     try {
-      await applicationsApi.create(job.id, job.score.channel_recommendation)
+      await applicationsApi.create(job.id, job.score.channel_recommendation, {
+        idempotencyKey: queueIdempotencyKey,
+      })
       setQueued(true)
     } catch {
       // optimistic anyway in demo
@@ -191,32 +195,51 @@ function JobSkeleton() {
 }
 
 export default function DiscoverPage() {
-  const { jobs, total, loading, minFit, setMinFit } = useJobStore()
-  const applications = usePipelineStore((s) => s.applications)
-  const { refresh } = useJobs()
+  const { jobs, loading, minFit, setMinFit } = useJobStore()
   usePipeline()
+  const { summary, loading: dashLoading, refresh: refreshDashboard } = useDashboard()
+  const { refresh: refreshJobs } = useJobs()
   const [filterOpen, setFilterOpen] = useState(false)
 
   const filteredJobs = jobs.filter((j) => !minFit || j.score.fit_score >= minFit)
-  const highFitCount = useMemo(
-    () => jobs.filter((j) => j.score.fit_score >= 4).length,
-    [jobs]
-  )
-  const avgFit = useMemo(() => {
-    if (!jobs.length) return 0
-    const totalScore = jobs.reduce((sum, j) => sum + j.score.fit_score, 0)
-    return totalScore / jobs.length
-  }, [jobs])
-  const appliedCount = useMemo(
-    () => applications.filter((a) => ['pending', 'applied', 'interview'].includes(a.status)).length,
-    [applications]
-  )
-  const statCards = [
-    { label: 'Evaluated roles', value: String(total), sub: 'in current search scope' },
-    { label: 'High fit (>= 4.0)', value: String(highFitCount), sub: 'from loaded matches' },
-    { label: 'Avg fit score', value: jobs.length ? avgFit.toFixed(1) : '-', sub: 'across loaded matches' },
-    { label: 'Applied', value: String(appliedCount), sub: 'pending response or interview' },
-  ]
+
+  const statCards = useMemo(() => {
+    if (!summary) {
+      return [
+        { label: 'Evaluated this week', value: dashLoading ? '…' : '-', sub: 'scores since Mon UTC' },
+        { label: 'High fit (>= 4.0)', value: dashLoading ? '…' : '-', sub: 'ready to review' },
+        { label: 'Avg fit score', value: dashLoading ? '…' : '-', sub: 'all scored roles' },
+        { label: 'Applied', value: dashLoading ? '…' : '-', sub: 'awaiting reply or next step' },
+      ]
+    }
+    return [
+      {
+        label: 'Evaluated this week',
+        value: String(summary.evaluated_this_week),
+        sub: 'scores since Mon UTC',
+      },
+      {
+        label: 'High fit (>= 4.0)',
+        value: String(summary.high_fit_count),
+        sub: 'ready to review',
+      },
+      {
+        label: 'Avg fit score',
+        value: summary.avg_fit_score != null ? summary.avg_fit_score.toFixed(1) : '-',
+        sub: 'all scored roles',
+      },
+      {
+        label: 'Applied',
+        value: String(summary.applied_awaiting_reply),
+        sub: 'awaiting reply or next step',
+      },
+    ]
+  }, [summary, dashLoading])
+
+  async function handleRefresh() {
+    await refreshJobs()
+    await refreshDashboard()
+  }
 
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
@@ -235,8 +258,8 @@ export default function DiscoverPage() {
             <SlidersHorizontal size={13} />
             Filters
           </button>
-          <button onClick={() => refresh()} className="btn text-xs gap-1.5">
-            <RefreshCw size={13} className={cn(loading && 'animate-spin-slow')} />
+          <button onClick={() => void handleRefresh()} className="btn text-xs gap-1.5">
+            <RefreshCw size={13} className={cn((loading || dashLoading) && 'animate-spin-slow')} />
             Refresh
           </button>
         </div>

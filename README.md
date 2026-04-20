@@ -7,8 +7,8 @@ Multi-agent job search platform scaffold aligned with the Doubow architecture do
 - `baseline`: backend/services scaffold (`api_gateway`, `model_service`, `worker_service`)
 
 ## Getting started
-1. Copy `.env.example` to `.env`
-2. Start infra from `infra/docker-compose.yml`
+1. Copy `.env.example` to `.env` (canonical local `DATABASE_URL` for Docker Postgres is in that file).
+2. Start infra from `infra/docker-compose.yml` — Postgres is exposed on **host port 5433** so it does not fight a native Postgres on 5432.
 3. Run UI workspace with Turborepo (`frontend`)
 
 ## Repo Layout
@@ -43,9 +43,19 @@ make db-seed
 make db-verify
 ```
 
+`make db-seed`, `make db-verify`, and `make db-reset-demo` normalize `DATABASE_URL` for `psql`: if you use SQLAlchemy’s async form (`postgresql+asyncpg://...`), the driver prefix is rewritten to `postgresql://` before calling `psql`.
+
+To wipe only demo rows (`u_demo_*` / `j_demo_*`) and re-seed:
+
+```bash
+make db-reset-demo
+```
+
 The SQL scripts are:
-- `scripts/db_seed.sql`
-- `scripts/db_verify.sql`
+- `scripts/db_seed.sql` — idempotent demo users, jobs, applications, approvals, prep sessions
+- `scripts/db_verify.sql` — sanity checks after seed
+- `scripts/db_reset_demo.sql` — deletes demo fixtures (keeps catalog migration rows such as `jb_cat_*`)
+- `scripts/db_grant_app_role.sql` — optional template for a least-privilege app role (`doubow_app`) with table grants for RLS-safe production use
 
 ## Implementation roadmap (priority order)
 
@@ -57,9 +67,9 @@ The SQL scripts are:
    - Replace remaining mock/demo API responses with DB-backed service logic.
    - Add typed error envelopes and idempotency tests for mutating endpoints.
 
-3. **Auth + RLS alignment with Supabase**
-   - Map Clerk identity to `users` records deterministically.
-   - Define/enforce RLS policies for user-scoped tables (`applications`, `approvals`, `prep_sessions`, etc.).
+3. **Auth + RLS alignment with Supabase** *(implemented — app layer + Postgres policies)*
+   - Clerk `sub` is normalized and stored as `users.id`; each request binds `app.current_user_id` for RLS (see `db/session.py`, migration `20260422_00_row_level_security`).
+   - Use a **non-superuser** DB role for the API in production so RLS is not bypassed.
 
 4. **Seed realism + fixtures**
    - Expand seed to multi-user/multi-job realistic datasets.

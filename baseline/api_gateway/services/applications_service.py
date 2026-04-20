@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.application import Application
@@ -16,6 +16,12 @@ from schemas.applications import (
 )
 from schemas.jobs import Job as JobSchema
 from services.job_score_mapping import job_score_to_api
+
+
+class ApplicationIdempotencyConflictError(Exception):
+    def __init__(self, prior_application_id: str):
+        super().__init__(prior_application_id)
+        self.prior_application_id = prior_application_id
 
 
 def _to_schema(app: Application, job: Job, score_row: JobScoreRow | None) -> ApplicationSchema:
@@ -48,6 +54,13 @@ def _to_schema(app: Application, job: Job, score_row: JobScoreRow | None) -> App
 
 
 async def list_applications(session: AsyncSession, user_id: str, status: str | None) -> ApplicationsListResponse:
+    per_page = 20
+
+    count_stmt = select(func.count()).select_from(Application).where(Application.user_id == user_id)
+    if status:
+        count_stmt = count_stmt.where(Application.status == status)
+    total = int((await session.execute(count_stmt)).scalar_one())
+
     stmt = (
         select(Application, Job, JobScoreRow)
         .join(Job, Job.id == Application.job_id)
@@ -59,12 +72,36 @@ async def list_applications(session: AsyncSession, user_id: str, status: str | N
     )
     if status:
         stmt = stmt.where(Application.status == status)
-    rows = (await session.execute(stmt.order_by(Application.last_updated.desc()))).all()
+    stmt = stmt.order_by(Application.last_updated.desc()).limit(per_page)
+    rows = (await session.execute(stmt)).all()
     items = [_to_schema(app, job, score_row) for app, job, score_row in rows]
-    return ApplicationsListResponse(items=items, total=len(items), page=1, per_page=20)
+    return ApplicationsListResponse(items=items, total=total, page=1, per_page=per_page)
 
 
-async def create_application(session: AsyncSession, user_id: str, payload: CreateApplicationRequest) -> ApplicationSchema:
+async def create_application(
+    session: AsyncSession,
+    user_id: str,
+    payload: CreateApplicationRequest,
+    idempotency_key: str | None = None,
+) -> ApplicationSchema:
+    if idempotency_key:
+        existing_stmt = select(Application).where(
+            Application.user_id == user_id,
+            Application.idempotency_key == idempotency_key,
+        )
+        existing = (await session.execute(existing_stmt)).scalar_one_or_none()
+        if existing is not None:
+            if existing.job_id != payload.job_id or existing.channel != payload.channel:
+                raise ApplicationIdempotencyConflictError(existing.id)
+            job_row = await session.get(Job, existing.job_id)
+            assert job_row is not None
+            score_row = (
+                await session.execute(
+                    select(JobScoreRow).where(JobScoreRow.user_id == user_id, JobScoreRow.job_id == job_row.id)
+                )
+            ).scalar_one_or_none()
+            return _to_schema(existing, job_row, score_row)
+
     job = await session.get(Job, payload.job_id)
     if not job:
         job = Job(
@@ -86,7 +123,7 @@ async def create_application(session: AsyncSession, user_id: str, payload: Creat
         job_id=job.id,
         status="pending",
         channel=payload.channel,
-        idempotency_key=f"app-{uuid4().hex[:12]}",
+        idempotency_key=idempotency_key or f"app-{uuid4().hex[:12]}",
     )
     session.add(app)
     await session.commit()

@@ -6,7 +6,14 @@
       "outputs": [".next/**", "dist/**"]
     },
     "lint": {},
-    "test": {},
+    "test": {
+      "passThroughEnv": [
+        "HOME",
+        "USERPROFILE",
+        "PLAYWRIGHT_BROWSERS_PATH",
+        "XDG_CACHE_HOME"
+      ]
+    },
     "dev": {
       "cache": false
     }

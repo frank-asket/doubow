@@ -39,3 +39,27 @@ ORDER BY table_name;
 \echo ''
 \echo '== ALEMBIC REVISION =='
 SELECT version_num FROM alembic_version;
+
+\echo ''
+\echo '== SEED SANITY (demo rows) =='
+SELECT
+  (SELECT COUNT(*)::int FROM users WHERE id LIKE 'u_demo_%') AS demo_users,
+  (SELECT COUNT(*)::int FROM applications WHERE user_id LIKE 'u_demo_%') AS demo_applications,
+  (SELECT COUNT(*)::int FROM approvals WHERE user_id LIKE 'u_demo_%' AND status = 'pending') AS demo_pending_approvals;
+
+\echo ''
+\echo '== ASSERTIONS (fail fast if seed not applied) =='
+DO $$
+DECLARE
+  nu int;
+  na int;
+BEGIN
+  SELECT COUNT(*) INTO nu FROM users WHERE id LIKE 'u_demo_%';
+  SELECT COUNT(*) INTO na FROM applications WHERE user_id LIKE 'u_demo_%';
+  IF nu < 2 THEN
+    RAISE EXCEPTION 'db_verify: expected >= 2 demo users (u_demo_%%), got %', nu;
+  END IF;
+  IF na < 5 THEN
+    RAISE EXCEPTION 'db_verify: expected >= 5 demo applications, got %', na;
+  END IF;
+END $$;

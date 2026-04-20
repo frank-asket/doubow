@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useAuth } from '@clerk/nextjs'
 import { Upload, FileText, CheckCircle, Loader2, Sparkles, X, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useResumeUpload } from '@/hooks/useResumeUpload'
-import { resumeApi } from '@/lib/api'
+import { isE2EAuthBypass } from '@/lib/e2e'
+import { ApiError, resumeApi } from '@/lib/api'
 import type { UserPreferences } from '@/types'
 
 const SENIORITY_OPTIONS = ['Junior', 'Mid', 'Senior', 'Lead', 'Staff', 'Principal']
@@ -17,6 +19,7 @@ const DEFAULT_PREFS: UserPreferences = {
 }
 
 export default function ResumePage() {
+  const { isLoaded, isSignedIn } = useAuth()
   const { upload, uploading, analyzeWithAI, analyzing, analysis, error: uploadError } = useResumeUpload()
   const [uploaded, setUploaded] = useState(false)
   const [fileName, setFileName] = useState('')
@@ -37,8 +40,8 @@ export default function ResumePage() {
   const hydrateFromPrefs = useCallback((prefs: UserPreferences) => {
     setRole(prefs.target_role ?? '')
     setLocation(prefs.location ?? '')
-    setSalary(prefs.min_salary !== undefined ? String(prefs.min_salary) : '')
-    setSeniority(prefs.seniority ?? 'Mid')
+    setSalary(prefs.min_salary != null && Number.isFinite(prefs.min_salary) ? String(prefs.min_salary) : '')
+    setSeniority((prefs.seniority ?? 'Mid') as UserPreferences['seniority'])
     setSkills((prefs.skills ?? []).join(', '))
   }, [])
 
@@ -54,8 +57,11 @@ export default function ResumePage() {
       setPrefsStatus(null)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load resume profile'
-      if (msg.toLowerCase().includes('resume not found')) {
+      const lower = msg.toLowerCase()
+      if (lower.includes('resume not found')) {
         setResumeExists(false)
+      } else if (err instanceof ApiError && err.status === 401) {
+        setPrefsStatus({ type: 'error', text: 'Could not verify your session — refresh the page or sign in again.' })
       } else {
         setPrefsStatus({ type: 'error', text: msg })
       }
@@ -65,8 +71,17 @@ export default function ResumePage() {
   }, [hydrateFromPrefs])
 
   useEffect(() => {
+    if (isE2EAuthBypass()) {
+      loadResume()
+      return
+    }
+    if (!isLoaded) return
+    if (!isSignedIn) {
+      setLoadingProfile(false)
+      return
+    }
     loadResume()
-  }, [loadResume])
+  }, [isLoaded, isSignedIn, loadResume])
 
   const savePreferences = useCallback(async () => {
     setSavingPrefs(true)
@@ -99,7 +114,10 @@ export default function ResumePage() {
     if (result.success) {
       setResumeExists(true)
       setUploaded(true)
-      setPrefsStatus({ type: 'success', text: 'Resume uploaded. Preferences are ready to save.' })
+      setPrefsStatus({
+        type: 'success',
+        text: 'Resume uploaded. Search preferences were updated from your résumé — review below and save any tweaks.',
+      })
       await loadResume()
     }
   }, [upload, loadResume])
@@ -177,9 +195,15 @@ export default function ResumePage() {
         </div>
       )}
 
-      {/* Preferences */}
+      {/* Preferences — values are inferred on upload from parsed résumé and saved server-side */}
       <div className="card p-5 mb-5">
-        <p className="mb-4 text-sm font-medium text-zinc-100">Search preferences</p>
+        <div className="mb-4">
+          <p className="text-sm font-medium text-zinc-100">Search preferences</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            When you upload a résumé, we fill target role, seniority, and key skills from the parsed profile. Adjust
+            anything here and click Save to persist edits.
+          </p>
+        </div>
         {loadingProfile ? (
           <div className="mb-4 flex items-center gap-2 text-xs text-zinc-500">
             <Loader2 size={12} className="animate-spin" />

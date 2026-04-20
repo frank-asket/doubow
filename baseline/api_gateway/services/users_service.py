@@ -5,6 +5,14 @@ from models.user import User
 from schemas.users import MeResponse
 
 
+def normalize_clerk_subject(sub: str) -> str:
+    """Stable primary key for users.id from Clerk JWT `sub` (trimmed, non-empty)."""
+    normalized = sub.strip()
+    if not normalized:
+        raise ValueError("empty Clerk subject")
+    return normalized
+
+
 async def ensure_user(session: AsyncSession, user_id: str, claims: dict) -> User:
     """Upsert the users row from Clerk claims and persist. Call on every authenticated request."""
     user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()

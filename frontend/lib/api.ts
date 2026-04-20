@@ -2,19 +2,35 @@ import type {
   JobWithScore, Application, IntegrityCheckResult,
   AutopilotRun, AutopilotScope, Approval, PrepSession,
   AgentState, ResumeProfile, UserPreferences, PaginatedResponse,
+  DashboardSummary,
 } from '@/types'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 let authTokenGetter: (() => Promise<string | null>) | null = null
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(public status: number, public detail: string) {
     super(detail)
+    this.name = 'ApiError'
   }
 }
 
 export function setAuthTokenGetter(getter: (() => Promise<string | null>) | null) {
   authTokenGetter = getter
+}
+
+function messageFromErrorBody(body: Record<string, unknown>, fallback: string): string {
+  const nested = body.error
+  if (nested && typeof nested === 'object' && nested !== null && 'message' in nested) {
+    const m = (nested as { message?: unknown }).message
+    if (typeof m === 'string') return m
+  }
+  // Idempotency 409: { error: "idempotency_conflict", detail: "…" }
+  if (body.error === 'idempotency_conflict' && typeof body.detail === 'string') {
+    return body.detail
+  }
+  if (typeof body.detail === 'string') return body.detail
+  return fallback
 }
 
 async function request<T>(
@@ -40,10 +56,23 @@ async function request<T>(
     credentials: 'include',
   })
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new ApiError(res.status, body.detail ?? res.statusText)
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>
+    throw new ApiError(res.status, messageFromErrorBody(body, res.statusText))
   }
-  return res.json()
+  if (res.status === 204) {
+    return undefined as T
+  }
+  const text = await res.text()
+  if (!text.trim()) {
+    return undefined as T
+  }
+  return JSON.parse(text) as T
+}
+
+// ─── Dashboard ─────────────────────────────────────────────────────────────
+
+export const dashboardApi = {
+  get: () => request<DashboardSummary>('/v1/me/dashboard'),
 }
 
 // ─── Jobs ──────────────────────────────────────────────────────────────────
@@ -67,11 +96,15 @@ export const applicationsApi = {
     const q = status ? `?status=${status}` : ''
     return request<PaginatedResponse<Application>>(`/v1/me/applications${q}`)
   },
-  create: (jobId: string, channel: string) =>
-    request<Application>('/v1/me/applications', {
-      method: 'POST',
-      body: JSON.stringify({ job_id: jobId, channel }),
-    }),
+  create: (jobId: string, channel: string, opts?: { idempotencyKey?: string }) =>
+    request<Application>(
+      '/v1/me/applications',
+      {
+        method: 'POST',
+        body: JSON.stringify({ job_id: jobId, channel }),
+      },
+      opts?.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : {},
+    ),
   integrityCheck: (mode: 'dry_run' | 'apply') =>
     request<IntegrityCheckResult>('/v1/me/applications/integrity-check', {
       method: 'POST',

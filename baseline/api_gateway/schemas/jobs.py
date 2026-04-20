@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-JobSource = Literal["ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual"]
+JobSource = Literal["ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog"]
 Channel = Literal["email", "linkedin", "company_site"]
 
 

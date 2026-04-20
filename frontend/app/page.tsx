@@ -21,7 +21,11 @@ export default function RootPage() {
         Skip to main content
       </a>
       <Header />
-      <main id="landing-main" tabIndex={-1}>
+      <main
+        id="landing-main"
+        tabIndex={-1}
+        className="landing-shell bg-black [background-image:radial-gradient(900px_360px_at_50%_-80px,rgba(52,211,153,0.14),transparent_60%),linear-gradient(to_right,rgba(63,63,70,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(63,63,70,0.2)_1px,transparent_1px)] [background-size:auto,64px_64px,64px_64px]"
+      >
         <Hero />
         <Tagline />
         <FutureOfResumes />

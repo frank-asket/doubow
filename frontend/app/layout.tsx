@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
-import { Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import ClerkApiAuthBridge from '@/components/auth/ClerkApiAuthBridge'
 import './globals.css'
 
-const inter = Inter({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
@@ -22,7 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} flex min-h-full flex-col bg-black font-sans text-zinc-50 antialiased`}>
+      <body
+        className={`${plusJakartaSans.variable} flex min-h-full flex-col bg-black font-sans text-zinc-50 antialiased`}
+        suppressHydrationWarning
+      >
         {clerkPublishableKey ? (
           <ClerkProvider publishableKey={clerkPublishableKey}>
             <ClerkApiAuthBridge />

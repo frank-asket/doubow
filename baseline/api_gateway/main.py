@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from db.session import init_models
+from error_handlers import register_exception_handlers
 from routers import agents, applications, approvals, auth, autopilot, jobs, prep, resume, users
 
 
@@ -23,6 +24,8 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+register_exception_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,

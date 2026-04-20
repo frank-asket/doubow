@@ -1,20 +1,24 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
 
 import { setAuthTokenGetter } from '@/lib/api'
 
 export default function ClerkApiAuthBridge() {
-  const { getToken, isSignedIn } = useAuth()
+  const { getToken } = useAuth()
 
-  useEffect(() => {
+  /** Register before child useEffects run so `/v1/me/*` fetchers receive a Bearer token on first paint. */
+  useLayoutEffect(() => {
     setAuthTokenGetter(async () => {
-      if (!isSignedIn) return null
-      return getToken()
+      try {
+        return await getToken()
+      } catch {
+        return null
+      }
     })
     return () => setAuthTokenGetter(null)
-  }, [getToken, isSignedIn])
+  }, [getToken])
 
   return null
 }

@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.job import Job
+from models.job_dismissal import JobDismissal
 from models.job_score import JobScore
 from schemas.jobs import JobsListResponse, JobWithScore
 from services.job_score_mapping import job_score_to_api
@@ -29,33 +30,54 @@ def _row_to_schema(job: Job, score_row: JobScore) -> JobWithScore:
     )
 
 
-async def _seed_user_demo_job(session: AsyncSession, user_id: str) -> None:
+def _score_spec_from_template(raw: dict | None) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    required = ("fit_score", "fit_reasons", "risk_flags", "dimension_scores")
+    if not all(k in raw for k in required):
+        return None
+    return raw
+
+
+async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) -> None:
+    """Create job_scores from jobs.score_template when the user has neither a score nor a dismissal."""
+    stmt = select(Job).where(Job.score_template.isnot(None))
+    jobs_with_templates = (await session.execute(stmt)).scalars().all()
+    if not jobs_with_templates:
+        return
+
+    catalog_ids = [j.id for j in jobs_with_templates]
+    scored_rows = (
+        await session.execute(select(JobScore.job_id).where(JobScore.user_id == user_id, JobScore.job_id.in_(catalog_ids)))
+    ).all()
+    scored = {r[0] for r in scored_rows}
+
+    dismissed_rows = (
+        await session.execute(
+            select(JobDismissal.job_id).where(JobDismissal.user_id == user_id, JobDismissal.job_id.in_(catalog_ids))
+        )
+    ).all()
+    dismissed = {r[0] for r in dismissed_rows}
+
     now = datetime.now(timezone.utc)
-    job = Job(
-        id=str(uuid4()),
-        source="manual",
-        external_id=f"seed-{uuid4().hex[:10]}",
-        title="Senior ML Engineer",
-        company="Mistral AI",
-        location="Remote · Paris",
-        salary_range="EUR130k-EUR160k",
-        description="Build production RAG and agentic systems.",
-        url="https://example.com/jobs/senior-ml-engineer",
-        posted_at=now,
-    )
-    dims = {"tech": 4.2, "culture": 4.0, "seniority": 4.3, "comp": 4.1, "location": 4.4, "channel_recommendation": "email"}
-    score_row = JobScore(
-        id=str(uuid4()),
-        user_id=user_id,
-        job_id=job.id,
-        fit_score=4.2,
-        fit_reasons=["Profile and role share relevant stack"],
-        risk_flags=[],
-        dimension_scores=dims,
-        scored_at=now,
-    )
-    session.add(job)
-    session.add(score_row)
+    for job in jobs_with_templates:
+        if job.id in scored or job.id in dismissed:
+            continue
+        spec = _score_spec_from_template(job.score_template if isinstance(job.score_template, dict) else None)
+        if spec is None:
+            continue
+        session.add(
+            JobScore(
+                id=str(uuid4()),
+                user_id=user_id,
+                job_id=job.id,
+                fit_score=spec["fit_score"],
+                fit_reasons=spec["fit_reasons"],
+                risk_flags=spec["risk_flags"],
+                dimension_scores=spec["dimension_scores"],
+                scored_at=now,
+            )
+        )
     await session.commit()
 
 
@@ -67,11 +89,7 @@ async def list_jobs(
     page: int,
     per_page: int = 20,
 ) -> JobsListResponse:
-    any_for_user = (
-        await session.execute(select(func.count(JobScore.id)).where(JobScore.user_id == user_id))
-    ).scalar_one()
-    if any_for_user == 0 and page == 1:
-        await _seed_user_demo_job(session, user_id)
+    await _sync_template_scores_for_user(session, user_id)
 
     filters = [JobScore.user_id == user_id, JobScore.fit_score >= min_fit]
     if location:
@@ -97,3 +115,21 @@ async def list_jobs(
     items = [_row_to_schema(job, score_row) for job, score_row in rows]
 
     return JobsListResponse(items=items, total=int(total), page=page, per_page=per_page)
+
+
+async def dismiss_job_for_user(session: AsyncSession, user_id: str, job_id: str) -> None:
+    job = await session.get(Job, job_id)
+    if job is None:
+        raise LookupError("job_not_found")
+
+    await session.execute(delete(JobScore).where(JobScore.user_id == user_id, JobScore.job_id == job_id))
+
+    existing = (
+        await session.execute(
+            select(JobDismissal).where(JobDismissal.user_id == user_id, JobDismissal.job_id == job_id)
+        )
+    ).scalar_one_or_none()
+    if existing is None:
+        session.add(JobDismissal(user_id=user_id, job_id=job_id))
+
+    await session.commit()

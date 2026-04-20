@@ -139,23 +139,38 @@ body {
 
   /* Dashboard polish: tighter density and cleaner rhythm */
   .dashboard-shell {
-    @apply tracking-[-0.01em];
+    @apply tracking-normal;
+    background:
+      radial-gradient(1200px 480px at 50% -10%, rgba(52, 211, 153, 0.18), transparent 55%),
+      linear-gradient(to right, rgba(63, 63, 70, 0.22) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(63, 63, 70, 0.22) 1px, transparent 1px),
+      #040405;
+    background-size: auto, 64px 64px, 64px 64px, auto;
+    color: #f4f4f5;
   }
 
   .dashboard-shell h1 {
-    @apply text-[1.4rem] sm:text-[1.65rem] font-semibold;
+    @apply text-[1.4rem] sm:text-[1.75rem] font-semibold;
+    letter-spacing: -0.025em;
   }
 
   .dashboard-shell h2 {
-    @apply text-[1.05rem] sm:text-[1.15rem] font-semibold;
+    @apply text-[1.1rem] sm:text-[1.2rem] font-semibold;
+    letter-spacing: -0.02em;
   }
 
   .dashboard-shell .btn {
     @apply h-8 px-2.5 text-xs rounded-md;
+    border-color: rgba(63, 63, 70, 0.85);
+    background: linear-gradient(180deg, rgba(24, 24, 27, 0.98) 0%, rgba(9, 9, 11, 0.98) 100%);
   }
 
   .dashboard-shell .btn.btn-primary {
     @apply font-semibold;
+    background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+    color: #030712;
+    border-color: rgba(52, 211, 153, 0.75);
+    box-shadow: 0 0 24px -8px rgba(52, 211, 153, 0.75);
   }
 
   .dashboard-shell .badge {
@@ -166,9 +181,31 @@ body {
     @apply h-9 text-sm;
   }
 
+  /* Professional default icon sizing for control surfaces */
+  .dashboard-shell .btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .dashboard-shell nav a svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Normalize Lucide icon stroke across dashboard + landing */
+  .dashboard-shell svg.lucide:not([stroke-width="0"]),
+  .landing-shell svg.lucide:not([stroke-width="0"]) {
+    stroke-width: 1.75;
+  }
+
   .dashboard-shell .card {
     @apply rounded-lg;
-    border-color: color-mix(in oklab, var(--border), white 6%);
+    border-color: rgba(63, 63, 70, 0.72);
+    background:
+      linear-gradient(180deg, rgba(24, 24, 27, 0.92) 0%, rgba(9, 9, 11, 0.95) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 12px 28px -18px rgba(0, 0, 0, 0.9);
   }
 
   .dashboard-shell .section-block {
@@ -177,5 +214,32 @@ body {
 
   .dashboard-shell .compact-header {
     @apply mb-5;
+  }
+
+  .dashboard-panel {
+    border: 1px solid rgba(63, 63, 70, 0.72);
+    border-radius: 16px;
+    background:
+      linear-gradient(180deg, rgba(24, 24, 27, 0.92) 0%, rgba(9, 9, 11, 0.95) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 12px 28px -18px rgba(0, 0, 0, 0.9);
+  }
+
+  .dashboard-topbar {
+    border-bottom: 1px solid rgba(63, 63, 70, 0.6);
+    background:
+      radial-gradient(700px 180px at 40% -30%, rgba(52, 211, 153, 0.14), transparent 60%),
+      rgba(9, 9, 11, 0.72);
+    backdrop-filter: blur(10px);
+  }
+
+  .dashboard-title {
+    @apply text-zinc-100 font-semibold;
+    letter-spacing: -0.02em;
+  }
+
+  .dashboard-subtitle {
+    @apply text-zinc-500 text-xs;
   }
 }

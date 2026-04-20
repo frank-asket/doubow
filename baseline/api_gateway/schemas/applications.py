@@ -59,3 +59,9 @@ class IntegrityCheckResponse(BaseModel):
     mode: IntegrityMode
     summary: IntegritySummary
     changes: list[IntegrityChange]
+
+
+class ApplicationIdempotencyConflictResponse(BaseModel):
+    error: Literal["idempotency_conflict"] = "idempotency_conflict"
+    detail: str
+    prior_application_id: str

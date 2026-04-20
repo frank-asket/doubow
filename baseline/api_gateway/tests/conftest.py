@@ -12,7 +12,7 @@ from db.session import Base
 from dependencies import get_authenticated_user
 from models.user import User
 import models  # noqa: F401
-from routers import approvals, autopilot
+from routers import applications, approvals, autopilot
 
 
 class _DummySession:
@@ -37,6 +37,7 @@ async def _override_authenticated_user() -> User:
 @pytest.fixture
 def client() -> TestClient:
     app = FastAPI()
+    app.include_router(applications.router, prefix="/v1")
     app.include_router(autopilot.router, prefix="/v1")
     app.include_router(approvals.router, prefix="/v1")
     app.dependency_overrides[get_session] = _override_session

@@ -13,6 +13,7 @@ from schemas.resume import (
     UserPreferencesModel,
     UserPreferencesPatch,
 )
+from services.openrouter import chat_completion
 from services.resume_parser import parse_resume
 
 
@@ -49,6 +50,50 @@ def merge_preferences_dicts(stored: dict | None, patch: dict) -> dict:
         if value is not None:
             base[key] = value
     return UserPreferencesModel.model_validate(base).model_dump()
+
+
+def _seniority_from_experience_years(years: float) -> str:
+    """Map total experience years to a coarse seniority bucket."""
+    if years < 2:
+        return "Junior"
+    if years < 5:
+        return "Mid"
+    if years < 9:
+        return "Senior"
+    if years < 14:
+        return "Lead"
+    if years < 20:
+        return "Staff"
+    return "Principal"
+
+
+def infer_preferences_from_parsed_profile(parsed: dict) -> dict:
+    """Derive preference fields from structured résumé data (best-effort).
+
+    Only emits keys when there is signal in the parsed profile so we do not
+    wipe user-edited preferences on re-upload when parsing is empty or stubbed.
+    """
+    headline = str(parsed.get("headline") or "").strip()
+    archetypes = [str(a).strip() for a in (parsed.get("archetypes") or []) if str(a).strip()]
+    skills_raw = parsed.get("top_skills") or parsed.get("skills") or []
+    skills = [str(s).strip() for s in skills_raw if str(s).strip()]
+    years = float(parsed.get("experience_years") or 0)
+
+    has_signal = bool(headline or archetypes or skills or years > 0)
+
+    patch: dict = {}
+    if headline:
+        patch["target_role"] = headline[:255]
+    elif archetypes:
+        patch["target_role"] = archetypes[0][:255]
+
+    if skills:
+        patch["skills"] = skills[:20]
+
+    if has_signal:
+        patch["seniority"] = _seniority_from_experience_years(years)
+
+    return patch
 
 
 def resume_row_to_response(row: Resume) -> ResumeProfileResponse:
@@ -98,6 +143,8 @@ async def upload_resume_for_user(
     prev = await _get_latest_resume_row(session, user_id)
     next_version = (prev.version + 1) if prev else 1
     prefs_dict = merge_preferences_dicts(prev.preferences if prev else None, {})
+    inferred = infer_preferences_from_parsed_profile(normalized)
+    prefs_dict = merge_preferences_dicts(prefs_dict, inferred)
 
     resume_id = str(uuid4())
     safe_name = _slug_filename(filename)
@@ -169,6 +216,19 @@ def build_profile_analysis(profile: ParsedProfileModel, prefs: UserPreferencesMo
     return "\n\n".join(lines)
 
 
+def _openrouter_analysis_prompt(parsed: ParsedProfileModel, prefs: UserPreferencesModel) -> tuple[str, str]:
+    system = (
+        "You are a concise career coach. Given structured résumé data and job-search preferences, "
+        "write a short profile analysis: strengths, gaps, fit for the stated target role/location, "
+        "and 3–5 concrete next steps. Use plain text with short paragraphs or bullet lines; no markdown headings."
+    )
+    user = (
+        f"Parsed profile:\n{parsed.model_dump_json(indent=2)}\n\n"
+        f"Preferences:\n{prefs.model_dump_json(indent=2)}"
+    )
+    return system, user
+
+
 async def analyze_resume_for_user(session: AsyncSession, user_id: str) -> str:
     row = await _get_latest_resume_row(session, user_id)
     if row is None:
@@ -176,4 +236,12 @@ async def analyze_resume_for_user(session: AsyncSession, user_id: str) -> str:
 
     parsed = ParsedProfileModel.model_validate(normalize_parsed_profile_dict(row.parsed_profile or {}))
     prefs = UserPreferencesModel.model_validate(merge_preferences_dicts(row.preferences, {}))
+
+    if settings.openrouter_api_key:
+        try:
+            system, user = _openrouter_analysis_prompt(parsed, prefs)
+            return await chat_completion(system_message=system, user_message=user)
+        except Exception:
+            return build_profile_analysis(parsed, prefs)
+
     return build_profile_analysis(parsed, prefs)

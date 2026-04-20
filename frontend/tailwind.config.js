@@ -40,7 +40,7 @@ module.exports = {
         purple:  { bg: '#EEEDFE', border: '#AFA9EC', text: '#3C3489' },
       },
       fontFamily: {
-        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['var(--font-geist-mono)', 'monospace'],
       },
       fontSize: {

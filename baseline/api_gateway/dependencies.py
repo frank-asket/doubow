@@ -1,3 +1,4 @@
+from collections.abc import AsyncGenerator
 from functools import lru_cache
 
 import jwt
@@ -6,9 +7,9 @@ from jwt import InvalidTokenError, PyJWKClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
-from db.session import get_session
+from db.session import bind_request_user_for_rls, get_session, reset_request_user_rls
 from models.user import User
-from services.users_service import ensure_user
+from services.users_service import ensure_user, normalize_clerk_subject
 
 
 @lru_cache(maxsize=4)
@@ -41,7 +42,10 @@ def get_current_user_id(authorization: str | None = Header(default=None, alias="
     user_id = claims.get("sub")
     if not isinstance(user_id, str) or not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing subject")
-    return user_id
+    try:
+        return normalize_clerk_subject(user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject") from exc
 
 
 def get_current_user_claims(authorization: str | None = Header(default=None, alias="Authorization")) -> dict:
@@ -65,11 +69,36 @@ def get_current_user_claims(authorization: str | None = Header(default=None, ali
 async def get_authenticated_user(
     claims: dict = Depends(get_current_user_claims),
     session: AsyncSession = Depends(get_session),
-) -> User:
-    user_id = claims.get("sub")
-    if not isinstance(user_id, str) or not user_id:
+) -> AsyncGenerator[User, None]:
+    raw_sub = claims.get("sub")
+    if not isinstance(raw_sub, str) or not raw_sub:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing subject")
-    return await ensure_user(session, user_id, claims)
+    try:
+        user_id = normalize_clerk_subject(raw_sub)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject") from exc
+
+    token = bind_request_user_for_rls(user_id)
+    try:
+        user = await ensure_user(session, user_id, claims)
+        yield user
+    finally:
+        reset_request_user_rls(token)
+
+
+def optional_idempotency_key(idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")) -> str | None:
+    """Same validation as required idempotency when the header is present; omitted/blank means no replay semantics."""
+    if idempotency_key is None:
+        return None
+    stripped = idempotency_key.strip()
+    if not stripped:
+        return None
+    if len(stripped) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Idempotency-Key must be at least 8 characters",
+        )
+    return stripped
 
 
 def require_idempotency_key(idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")) -> str:
