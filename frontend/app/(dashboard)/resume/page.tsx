@@ -20,19 +20,19 @@ export default function ResumePage() {
   const [seniority, setSeniority] = useState('Senior')
   const [skills, setSkills] = useState('RAG, LLMs, Python, FastAPI, MLOps')
 
-  async function handleFile(file: File) {
+  const handleFile = useCallback(async (file: File) => {
     if (!file) return
     setFileName(file.name)
     const result = await upload(file)
     if (result.success) setUploaded(true)
-  }
+  }, [upload])
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDragOver(false)
     const file = e.dataTransfer.files[0]
     if (file) handleFile(file)
-  }, [])
+  }, [handleFile])
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
