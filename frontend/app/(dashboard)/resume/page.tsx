@@ -112,18 +112,19 @@ export default function ResumePage() {
   }, [handleFile])
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-surface-800">My resume</h1>
-        <p className="text-sm text-surface-500 mt-0.5">Upload your resume to power matching, tailoring, and interview prep</p>
-      </div>
+      <section className="rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Resume</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">My resume</h1>
+        <p className="mt-2 text-sm text-zinc-400 sm:text-base">Upload your resume to power matching, tailoring, and interview prep</p>
+      </section>
 
       {/* Upload zone */}
       <div
         className={cn(
           'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 mb-6',
-          dragOver ? 'border-brand-400 bg-brand-50' : uploaded ? 'border-brand-400 bg-brand-50' : 'border-surface-200 hover:border-surface-300 hover:bg-surface-50'
+          dragOver ? 'border-emerald-500/40 bg-emerald-500/10' : uploaded ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-950'
         )}
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
@@ -140,66 +141,66 @@ export default function ResumePage() {
 
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 size={28} className="text-brand-400 animate-spin" />
-            <p className="text-sm text-surface-600">Uploading {fileName}…</p>
+            <Loader2 size={28} className="animate-spin text-emerald-300" />
+            <p className="text-sm text-zinc-300">Uploading {fileName}…</p>
           </div>
         ) : uploaded ? (
           <div className="flex flex-col items-center gap-3">
-            <CheckCircle size={28} className="text-brand-400" />
+            <CheckCircle size={28} className="text-emerald-300" />
             <div>
-              <p className="text-sm font-medium text-surface-800">{fileName}</p>
-              <p className="text-xs text-brand-600 mt-0.5">Uploaded successfully</p>
+              <p className="text-sm font-medium text-zinc-100">{fileName}</p>
+              <p className="mt-0.5 text-xs text-emerald-300">Uploaded successfully</p>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setUploaded(false); setFileName('') }}
-              className="text-xs text-surface-400 hover:text-surface-600 flex items-center gap-1"
+              className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
             >
               <X size={11} /> Replace
             </button>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-surface-100 flex items-center justify-center border border-surface-200">
-              <Upload size={20} className="text-surface-400" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900">
+              <Upload size={20} className="text-zinc-500" />
             </div>
             <div>
-              <p className="text-sm font-medium text-surface-700">Drop your resume here</p>
-              <p className="text-xs text-surface-400 mt-1">PDF or DOCX · Up to 5 MB</p>
+              <p className="text-sm font-medium text-zinc-200">Drop your resume here</p>
+              <p className="mt-1 text-xs text-zinc-500">PDF or DOCX · Up to 5 MB</p>
             </div>
           </div>
         )}
       </div>
       {uploadError && (
-        <div className="flex items-start gap-2.5 p-3 bg-danger-bg border border-danger-border rounded-lg mb-5">
-          <AlertCircle size={14} className="text-danger-text mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-danger-text">{uploadError}</p>
+        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
+          <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-rose-300" />
+          <p className="text-xs text-rose-300">{uploadError}</p>
         </div>
       )}
 
       {/* Preferences */}
       <div className="card p-5 mb-5">
-        <p className="text-sm font-medium text-surface-800 mb-4">Search preferences</p>
+        <p className="mb-4 text-sm font-medium text-zinc-100">Search preferences</p>
         {loadingProfile ? (
-          <div className="flex items-center gap-2 text-xs text-surface-500 mb-4">
+          <div className="mb-4 flex items-center gap-2 text-xs text-zinc-500">
             <Loader2 size={12} className="animate-spin" />
             Loading saved preferences...
           </div>
         ) : null}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-medium text-surface-500 mb-1.5 block">Target role</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Target role</label>
             <input className="field text-sm" value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. ML Engineer" />
           </div>
           <div>
-            <label className="text-xs font-medium text-surface-500 mb-1.5 block">Location</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Location</label>
             <input className="field text-sm" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Remote, London" />
           </div>
           <div>
-            <label className="text-xs font-medium text-surface-500 mb-1.5 block">Min salary (USD)</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Min salary (USD)</label>
             <input className="field text-sm" value={salary} onChange={(e) => setSalary(e.target.value)} placeholder="e.g. 140000" type="number" />
           </div>
           <div>
-            <label className="text-xs font-medium text-surface-500 mb-1.5 block">Seniority</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Seniority</label>
             <select
               className="field text-sm"
               value={seniority}
@@ -209,7 +210,7 @@ export default function ResumePage() {
             </select>
           </div>
           <div className="col-span-2">
-            <label className="text-xs font-medium text-surface-500 mb-1.5 block">Key skills</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Key skills</label>
             <input className="field text-sm" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. RAG, LLMs, Python" />
           </div>
         </div>
@@ -218,8 +219,8 @@ export default function ResumePage() {
             className={cn(
               'flex items-start gap-2 text-xs rounded-md px-3 py-2 mt-4',
               prefsStatus.type === 'success'
-                ? 'bg-brand-50 text-brand-700 border border-brand-100'
-                : 'bg-danger-bg text-danger-text border border-danger-border'
+                ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
+                : 'border border-rose-500/30 bg-rose-500/10 text-rose-300'
             )}
           >
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
@@ -227,12 +228,12 @@ export default function ResumePage() {
           </div>
         )}
         {!loadingProfile && !resumeExists && (
-          <div className="flex items-start gap-2 text-xs rounded-md px-3 py-2 mt-4 bg-warning-bg text-warning-text border border-warning-border">
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
             <span>Upload a resume first to enable preference saving.</span>
           </div>
         )}
-        <div className="flex gap-2 mt-4 pt-4 border-t border-surface-100">
+        <div className="mt-4 flex gap-2 border-t border-zinc-800 pt-4">
           <button
             onClick={() => savePreferences()}
             disabled={savingPrefs || loadingProfile || !resumeExists}
@@ -258,8 +259,8 @@ export default function ResumePage() {
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm font-medium text-surface-800">AI profile analysis</p>
-            <p className="text-xs text-surface-500 mt-0.5">Get archetypes, skill gaps, and target companies</p>
+            <p className="text-sm font-medium text-zinc-100">AI profile analysis</p>
+            <p className="mt-0.5 text-xs text-zinc-400">Get archetypes, skill gaps, and target companies</p>
           </div>
           <button
             onClick={() => analyzeWithAI()}
@@ -272,8 +273,8 @@ export default function ResumePage() {
         </div>
 
         <div className={cn(
-          'bg-surface-50 rounded-lg border border-surface-200 p-4 min-h-[100px] text-xs text-surface-700 leading-relaxed whitespace-pre-wrap',
-          !analysis && 'flex items-center justify-center text-surface-400'
+          'min-h-[100px] rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-200',
+          !analysis && 'flex items-center justify-center text-zinc-500'
         )}>
           {analysis || (
             <div className="text-center">
@@ -281,7 +282,7 @@ export default function ResumePage() {
               <p>Upload your resume and click Analyze to see your profile breakdown</p>
             </div>
           )}
-          {analyzing && <span className="inline-block w-0.5 h-3 bg-brand-400 animate-pulse ml-0.5 align-middle" />}
+          {analyzing && <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-emerald-300 align-middle" />}
         </div>
       </div>
     </div>

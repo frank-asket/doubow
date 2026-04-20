@@ -8,14 +8,14 @@ import { useAgentStore } from '@/stores/agentStore'
 import type { AgentState } from '@/types'
 
 const AGENT_META: Record<string, { icon: string; color: string }> = {
-  discovery:    { icon: '🔍', color: 'bg-brand-50 text-brand-800' },
-  scorer:       { icon: '◆', color: 'bg-purple-bg text-purple-text' },
-  tailor:       { icon: '✂', color: 'bg-info-bg text-info-text' },
-  writer:       { icon: '✏', color: 'bg-warning-bg text-warning-text' },
-  apply:        { icon: '📤', color: 'bg-danger-bg text-danger-text' },
-  prep:         { icon: '🎯', color: 'bg-brand-50 text-brand-800' },
-  monitor:      { icon: '⚙', color: 'bg-purple-bg text-purple-text' },
-  orchestrator: { icon: '⊕', color: 'bg-info-bg text-info-text' },
+  discovery:    { icon: '🔍', color: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+  scorer:       { icon: '◆', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' },
+  tailor:       { icon: '✂', color: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+  writer:       { icon: '✏', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' },
+  apply:        { icon: '📤', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' },
+  prep:         { icon: '🎯', color: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+  monitor:      { icon: '⚙', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' },
+  orchestrator: { icon: '⊕', color: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
 }
 
 const SUGGESTED_PROMPTS = [
@@ -29,16 +29,16 @@ function StatusDot({ status }: { status: AgentState['status'] }) {
   return (
     <span className={cn(
       'w-2 h-2 rounded-full flex-shrink-0',
-      status === 'running' && 'bg-warning-text animate-pulse',
-      status === 'active'  && 'bg-brand-400',
-      status === 'idle'    && 'bg-surface-300',
-      status === 'error'   && 'bg-danger-border',
+      status === 'running' && 'bg-amber-300 animate-pulse',
+      status === 'active'  && 'bg-emerald-400',
+      status === 'idle'    && 'bg-zinc-600',
+      status === 'error'   && 'bg-rose-400',
     )} />
   )
 }
 
 function AgentCard({ agent }: { agent: AgentState }) {
-  const meta = AGENT_META[agent.name] ?? { icon: '●', color: 'bg-surface-100 text-surface-500' }
+  const meta = AGENT_META[agent.name] ?? { icon: '●', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' }
   return (
     <div className="card p-3.5 flex items-start gap-3">
       <div className={cn('w-8 h-8 rounded-md flex items-center justify-center text-sm flex-shrink-0', meta.color)}>
@@ -46,25 +46,25 @@ function AgentCard({ agent }: { agent: AgentState }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <p className="text-sm font-medium text-surface-800">{agent.label}</p>
+          <p className="text-sm font-medium text-zinc-100">{agent.label}</p>
           <StatusDot status={agent.status} />
-          <span className="text-2xs text-surface-400 capitalize">{agent.status}</span>
+          <span className="text-2xs capitalize text-zinc-500">{agent.status}</span>
         </div>
-        <p className="text-xs text-surface-500 truncate">{agent.description}</p>
+        <p className="truncate text-xs text-zinc-400">{agent.description}</p>
         {agent.status === 'running' && agent.progress !== undefined && (
-          <div className="mt-2 h-0.5 bg-surface-100 rounded-full overflow-hidden">
+          <div className="mt-2 h-0.5 overflow-hidden rounded-full bg-zinc-900">
             <div
-              className="h-full bg-brand-400 rounded-full transition-all duration-500"
+              className="h-full rounded-full bg-emerald-400 transition-all duration-500"
               style={{ width: `${Math.round(agent.progress * 100)}%` }}
             />
           </div>
         )}
         {agent.message && (
-          <p className="text-2xs text-surface-400 mt-1 truncate">{agent.message}</p>
+          <p className="mt-1 truncate text-2xs text-zinc-500">{agent.message}</p>
         )}
       </div>
       {agent.items_processed !== undefined && (
-        <span className="text-2xs text-surface-400 tabular-nums flex-shrink-0">{agent.items_processed} items</span>
+        <span className="text-2xs tabular-nums text-zinc-500 flex-shrink-0">{agent.items_processed} items</span>
       )}
     </div>
   )
@@ -75,13 +75,13 @@ function ChatMessage({ role, text }: { role: 'user' | 'ai'; text: string }) {
     <div className={cn('flex items-start gap-2.5', role === 'user' && 'flex-row-reverse')}>
       <div className={cn(
         'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
-        role === 'ai' ? 'bg-brand-50 text-brand-600' : 'bg-surface-100 text-surface-500'
+        role === 'ai' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-zinc-900 text-zinc-300'
       )}>
         {role === 'ai' ? <Bot size={12} /> : <User size={12} />}
       </div>
       <div className={cn(
         'max-w-[80%] px-3 py-2 rounded-lg text-xs leading-relaxed',
-        role === 'ai' ? 'bg-surface-50 border border-surface-200 text-surface-700' : 'bg-brand-400 text-white'
+        role === 'ai' ? 'border border-zinc-800 bg-zinc-950 text-zinc-200' : 'bg-emerald-500 text-black'
       )}>
         {text || <span className="animate-pulse opacity-60">●●●</span>}
       </div>
@@ -123,17 +123,18 @@ export default function AgentsPage() {
   ]
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
         <div>
-          <h1 className="text-xl font-semibold text-surface-800">Agent status</h1>
-          <p className="text-sm text-surface-500 mt-0.5">Multi-agent orchestration layer</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Agents</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Agent status</h1>
+          <p className="mt-2 text-sm text-zinc-400 sm:text-base">Multi-agent orchestration layer</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-brand-50 border border-brand-100 rounded-md">
-            <Zap size={12} className="text-brand-600" />
-            <span className="text-xs font-medium text-brand-800">{activeCount} agents active</span>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5">
+            <Zap size={12} className="text-emerald-300" />
+            <span className="text-xs font-medium text-emerald-200">{activeCount} agents active</span>
           </div>
           <button className="btn text-xs gap-1.5">
             <RefreshCw size={13} />
@@ -142,10 +143,10 @@ export default function AgentsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Agent grid */}
         <div>
-          <p className="text-xs text-surface-400 uppercase tracking-wider font-medium mb-3">Agent roster</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Agent roster</p>
           <div className="space-y-2">
             {displayAgents.map((agent) => (
               <AgentCard key={agent.name} agent={agent} />
@@ -155,22 +156,22 @@ export default function AgentsPage() {
 
         {/* Orchestrator chat */}
         <div className="flex flex-col">
-          <p className="text-xs text-surface-400 uppercase tracking-wider font-medium mb-3">Orchestrator chat</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Orchestrator chat</p>
           <div className="card flex flex-col flex-1 min-h-[520px]">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 py-8">
-                  <div className="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center">
-                    <Bot size={18} className="text-brand-600" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
+                    <Bot size={18} className="text-emerald-300" />
                   </div>
-                  <p className="text-xs text-surface-400 text-center">Ask me anything about your pipeline</p>
+                  <p className="text-center text-xs text-zinc-500">Ask me anything about your pipeline</p>
                   <div className="grid grid-cols-1 gap-2 w-full">
                     {SUGGESTED_PROMPTS.map((p) => (
                       <button
                         key={p}
                         onClick={() => send(p)}
-                        className="text-xs text-left px-3 py-2 rounded-md bg-surface-50 border border-surface-200 hover:bg-surface-100 hover:border-surface-300 transition-colors text-surface-600"
+                        className="rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-left text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-900"
                       >
                         {p}
                       </button>
@@ -186,7 +187,7 @@ export default function AgentsPage() {
             </div>
 
             {/* Input */}
-            <div className="border-t border-surface-100 p-3">
+            <div className="border-t border-zinc-800 p-3">
               <div className="flex items-center gap-2">
                 <input
                   value={input}

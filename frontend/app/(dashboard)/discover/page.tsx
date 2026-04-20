@@ -25,14 +25,14 @@ function FitBadge({ score }: { score: number }) {
 function ScoreBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-24 text-xs text-surface-400 flex-shrink-0">{DIMENSION_LABELS[label] ?? label}</span>
-      <div className="flex-1 h-1 bg-surface-100 rounded-full overflow-hidden">
+      <span className="w-24 flex-shrink-0 text-xs text-zinc-500">{DIMENSION_LABELS[label] ?? label}</span>
+      <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-900">
         <div
-          className="h-full bg-brand-400 rounded-full transition-all duration-500"
+          className="h-full rounded-full bg-emerald-400 transition-all duration-500"
           style={{ width: `${scoreBarWidth(value)}%` }}
         />
       </div>
-      <span className="w-6 text-xs text-surface-500 text-right tabular-nums">{value.toFixed(1)}</span>
+      <span className="w-6 text-right text-xs tabular-nums text-zinc-400">{value.toFixed(1)}</span>
     </div>
   )
 }
@@ -62,19 +62,19 @@ function JobCard({ job }: { job: JobWithScore }) {
         {/* Top row */}
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-md bg-surface-100 flex items-center justify-center text-xs font-semibold text-surface-500 flex-shrink-0 border border-surface-200">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 text-xs font-semibold text-zinc-300">
               {job.company.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium text-surface-800 leading-snug">{job.title}</p>
-              <p className="text-xs text-surface-500 mt-0.5">{job.company}</p>
+              <p className="text-sm font-medium leading-snug text-zinc-100">{job.title}</p>
+              <p className="mt-0.5 text-xs text-zinc-400">{job.company}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <FitBadge score={job.score.fit_score} />
             <button
               onClick={() => dismissJob(job.id)}
-              className="text-surface-300 hover:text-surface-500 transition-colors"
+              className="text-zinc-600 transition-colors hover:text-zinc-300"
             >
               <X size={13} />
             </button>
@@ -83,20 +83,20 @@ function JobCard({ job }: { job: JobWithScore }) {
 
         {/* Meta */}
         <div className="flex flex-wrap gap-3 mb-3">
-          <span className="text-xs text-surface-400">📍 {job.location}</span>
+          <span className="text-xs text-zinc-500">📍 {job.location}</span>
           {job.salary_range && (
-            <span className="text-xs text-surface-400">💰 {job.salary_range}</span>
+            <span className="text-xs text-zinc-500">💰 {job.salary_range}</span>
           )}
           <span className={cn('badge text-2xs', channelBadgeClass(job.score.channel_recommendation))}>
             via {channelLabel(job.score.channel_recommendation)}
           </span>
-          <span className="text-xs text-surface-300">{relativeTime(job.discovered_at)}</span>
+          <span className="text-xs text-zinc-500">{relativeTime(job.discovered_at)}</span>
         </div>
 
         {/* Expand/collapse */}
         <button
           onClick={() => setExpanded((x) => !x)}
-          className="flex items-center gap-1 text-xs text-surface-400 hover:text-surface-600 transition-colors mb-3"
+          className="mb-3 flex items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
         >
           {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           {expanded ? 'Less detail' : 'View fit breakdown'}
@@ -106,11 +106,11 @@ function JobCard({ job }: { job: JobWithScore }) {
           <div className="space-y-4 pb-1 animate-slide-up">
             {/* Reasons */}
             <div>
-              <p className="text-2xs text-surface-400 uppercase tracking-wider mb-1.5 font-medium">Why it matches</p>
+              <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-zinc-500">Why it matches</p>
               <ul className="space-y-1">
                 {job.score.fit_reasons.map((r, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-surface-600">
-                    <span className="w-1 h-1 rounded-full bg-brand-400 mt-1.5 flex-shrink-0" />
+                  <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                    <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-emerald-400" />
                     {r}
                   </li>
                 ))}
@@ -120,11 +120,11 @@ function JobCard({ job }: { job: JobWithScore }) {
             {/* Risks */}
             {job.score.risk_flags.length > 0 && (
               <div>
-                <p className="text-2xs text-surface-400 uppercase tracking-wider mb-1.5 font-medium">Watch out</p>
+                <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-zinc-500">Watch out</p>
                 <ul className="space-y-1">
                   {job.score.risk_flags.map((r, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-danger-text">
-                      <span className="w-1 h-1 rounded-full bg-danger-border mt-1.5 flex-shrink-0" />
+                    <li key={i} className="flex items-start gap-2 text-xs text-rose-300">
+                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-rose-400" />
                       {r}
                     </li>
                   ))}
@@ -134,7 +134,7 @@ function JobCard({ job }: { job: JobWithScore }) {
 
             {/* Score bars */}
             <div>
-              <p className="text-2xs text-surface-400 uppercase tracking-wider mb-2 font-medium">Fit dimensions</p>
+              <p className="mb-2 text-2xs font-medium uppercase tracking-wider text-zinc-500">Fit dimensions</p>
               <div className="space-y-1.5">
                 {Object.entries(job.score.dimension_scores).map(([k, v]) => (
                   <ScoreBar key={k} label={k} value={v} />
@@ -145,9 +145,9 @@ function JobCard({ job }: { job: JobWithScore }) {
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-2 pt-2 border-t border-surface-100">
+        <div className="flex items-center gap-2 border-t border-zinc-800 pt-2">
           {queued ? (
-            <span className="text-xs text-brand-600 font-medium">✓ Added to queue</span>
+            <span className="text-xs font-medium text-emerald-300">✓ Added to queue</span>
           ) : (
             <button
               onClick={handleQueue}
@@ -219,17 +219,18 @@ export default function DiscoverPage() {
   ]
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
         <div>
-          <h1 className="text-xl font-semibold text-surface-800">Discover</h1>
-          <p className="text-sm text-surface-500 mt-0.5">AI-matched roles based on your resume and preferences</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Discover</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Discover</h1>
+          <p className="mt-2 text-sm text-zinc-400 sm:text-base">AI-matched roles based on your resume and preferences</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={() => setFilterOpen((x) => !x)}
-            className={cn('btn text-xs gap-1.5', filterOpen && 'bg-surface-100 border-surface-300')}
+            className={cn('btn text-xs gap-1.5', filterOpen && 'border-zinc-700 bg-zinc-900')}
           >
             <SlidersHorizontal size={13} />
             Filters
@@ -242,22 +243,22 @@ export default function DiscoverPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 section-block">
         {statCards.map((s) => (
-          <div key={s.label} className="bg-surface-100 rounded-lg p-3">
-            <p className="text-2xs text-surface-400 uppercase tracking-wider mb-1">{s.label}</p>
-            <p className="text-2xl font-semibold text-surface-800 tabular-nums">{s.value}</p>
-            <p className="text-2xs text-surface-400 mt-0.5">{s.sub}</p>
+          <div key={s.label} className="rounded-lg border border-zinc-800 bg-zinc-950 p-2.5">
+            <p className="mb-1 text-2xs uppercase tracking-wider text-zinc-500">{s.label}</p>
+            <p className="text-2xl font-semibold tabular-nums text-zinc-100">{s.value}</p>
+            <p className="mt-0.5 text-2xs text-zinc-500">{s.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Filters panel */}
       {filterOpen && (
-        <div className="card p-4 mb-4 animate-slide-up">
-          <p className="text-xs font-medium text-surface-600 mb-3">Filter jobs</p>
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-2 text-xs text-surface-600">
+        <div className="card p-3.5 mb-4 animate-slide-up">
+          <p className="mb-3 text-xs font-medium text-zinc-300">Filter jobs</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+            <label className="flex items-center gap-2 text-xs text-zinc-300">
               Min fit score
               <select
                 className="field w-24 text-xs py-1"
@@ -271,7 +272,7 @@ export default function DiscoverPage() {
                 <option value={4.5}>4.5+</option>
               </select>
             </label>
-            <label className="flex items-center gap-2 text-xs text-surface-600">
+            <label className="flex items-center gap-2 text-xs text-zinc-300">
               <Globe size={12} />
               Location
               <input className="field w-32 text-xs py-1" placeholder="e.g. Remote" />
@@ -282,7 +283,7 @@ export default function DiscoverPage() {
 
       {/* Job list */}
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-xs text-surface-400 font-medium uppercase tracking-wider">
+        <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
           Top matches · {filteredJobs.length} shown
         </p>
       </div>
@@ -292,9 +293,9 @@ export default function DiscoverPage() {
           ? Array.from({ length: 4 }).map((_, i) => <JobSkeleton key={i} />)
           : filteredJobs.length === 0
           ? (
-            <div className="text-center py-16 text-surface-400">
+            <div className="py-16 text-center text-zinc-500">
               <Globe size={28} className="mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-medium text-surface-500">No matches yet</p>
+              <p className="text-sm font-medium text-zinc-300">No matches yet</p>
               <p className="text-xs mt-1">Upload your resume and click Refresh to discover roles</p>
             </div>
           )

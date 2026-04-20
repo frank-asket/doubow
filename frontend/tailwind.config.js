@@ -9,29 +9,29 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Doubow brand — forest green system
+        // Landing-aligned emerald system (black + green)
         brand: {
-          50:  '#E1F5EE',
-          100: '#9FE1CB',
-          200: '#5DCAA5',
-          400: '#1D9E75',
-          600: '#0F6E56',
-          800: '#085041',
-          900: '#04342C',
+          50:  '#03251A',
+          100: '#064E3B',
+          200: '#047857',
+          400: '#34D399',
+          600: '#10B981',
+          800: '#A7F3D0',
+          900: '#D1FAE5',
         },
-        // Neutral system
+        // Landing-aligned zinc neutrals for dashboard shell
         surface: {
-          0:   '#FFFFFF',
-          50:  '#F8F8F6',
-          100: '#F1F0EC',
-          200: '#E4E3DD',
-          300: '#C8C7BF',
-          400: '#9B9A93',
-          500: '#6B6A63',
-          600: '#4A4942',
-          700: '#2E2D28',
-          800: '#1A1917',
-          900: '#0D0D0C',
+          0:   '#000000',
+          50:  '#09090B',
+          100: '#111113',
+          200: '#18181B',
+          300: '#27272A',
+          400: '#3F3F46',
+          500: '#71717A',
+          600: '#A1A1AA',
+          700: '#D4D4D8',
+          800: '#E4E4E7',
+          900: '#F4F4F5',
         },
         // Semantic
         danger:  { bg: '#FCEBEB', border: '#F09595', text: '#791F1F' },
@@ -64,7 +64,7 @@ module.exports = {
       boxShadow: {
         card: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
         'card-hover': '0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
-        focus: '0 0 0 3px rgba(29,158,117,0.2)',
+        focus: '0 0 0 3px rgba(52,211,153,0.25)',
       },
       animation: {
         'fade-in':  'fadeIn 0.2s ease-out',

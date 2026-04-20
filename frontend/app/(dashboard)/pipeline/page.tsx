@@ -24,7 +24,7 @@ function ChangeRow({ change }: { change: IntegrityChange }) {
   }[change.type]
 
   return (
-    <div className="flex items-start gap-3 py-2.5 border-b border-surface-100 last:border-0">
+    <div className="flex items-start gap-3 border-b border-zinc-800 py-2.5 last:border-0">
       <span className={cn(
         'badge text-2xs mt-0.5',
         change.type === 'deduplicate' ? 'badge-interview' :
@@ -32,8 +32,8 @@ function ChangeRow({ change }: { change: IntegrityChange }) {
       )}>
         {label}
       </span>
-      <p className="text-xs text-surface-600 flex-1">{change.reason}</p>
-      <button className="text-2xs text-brand-600 hover:underline whitespace-nowrap">
+      <p className="flex-1 text-xs text-zinc-300">{change.reason}</p>
+      <button className="text-2xs whitespace-nowrap text-emerald-300 hover:underline">
         Jump to row
       </button>
     </div>
@@ -68,14 +68,15 @@ export default function PipelinePage() {
   const hasIntegrityIssues = applications.some((a) => a.is_stale || a.dedup_group)
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
         <div>
-          <h1 className="text-xl font-semibold text-surface-800">Pipeline</h1>
-          <p className="text-sm text-surface-500 mt-0.5">Track and manage all your applications</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Pipeline</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Pipeline</h1>
+          <p className="mt-2 text-sm text-zinc-400 sm:text-base">Track and manage all your applications</p>
         </div>
-        <button onClick={() => refresh()} className="btn text-xs gap-1.5">
+        <button onClick={() => refresh()} className="btn text-xs gap-1.5 self-start sm:self-auto">
           <RefreshCw size={13} />
           Refresh
         </button>
@@ -83,17 +84,17 @@ export default function PipelinePage() {
 
       {/* Integrity banner */}
       {hasIntegrityIssues && !integrityResult && (
-        <div className="flex items-start gap-3 p-3.5 bg-warning-bg border border-warning-border rounded-lg mb-5 animate-fade-in">
-          <AlertTriangle size={15} className="text-warning-text mt-0.5 flex-shrink-0" />
+        <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 animate-fade-in">
+          <AlertTriangle size={15} className="mt-0.5 flex-shrink-0 text-amber-300" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-warning-text">Integrity issues detected</p>
-            <p className="text-xs text-warning-text/80 mt-0.5">Possible duplicates and stale entries found</p>
+            <p className="text-sm font-medium text-amber-200">Integrity issues detected</p>
+            <p className="mt-0.5 text-xs text-amber-200/80">Possible duplicates and stale entries found</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => runIntegrity('dry_run')}
               disabled={integrityLoading}
-              className="btn text-xs gap-1.5 border-warning-border text-warning-text hover:bg-warning-bg"
+              className="btn border-amber-500/30 bg-amber-500/10 text-xs text-amber-200 hover:bg-amber-500/20"
             >
               {integrityLoading ? <Loader2 size={12} className="animate-spin" /> : null}
               Preview cleanup
@@ -105,24 +106,24 @@ export default function PipelinePage() {
       {/* Integrity result */}
       {integrityResult && (
         <div className="card p-4 mb-5 animate-slide-up">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
             <div>
-              <p className="text-sm font-medium text-surface-800">Integrity check results</p>
-              <p className="text-xs text-surface-400 mt-0.5">
+              <p className="text-sm font-medium text-zinc-100">Integrity check results</p>
+              <p className="mt-0.5 text-xs text-zinc-500">
                 {integrityResult.mode === 'dry_run' ? 'Preview — no changes applied yet' : 'Changes applied'}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               <span className="badge badge-pending text-xs">{integrityResult.summary.duplicates} dupes</span>
               <span className="badge badge-rejected text-xs">{integrityResult.summary.stale} stale</span>
               <span className="badge badge-applied text-xs">{integrityResult.summary.status_fixes} fixes</span>
             </div>
           </div>
-          <div className="divide-y divide-surface-100">
+          <div className="divide-y divide-zinc-800">
             {integrityResult.changes.map((c, i) => <ChangeRow key={i} change={c} />)}
           </div>
           {integrityResult.mode === 'dry_run' && (
-            <div className="flex gap-2 mt-3 pt-3 border-t border-surface-100">
+            <div className="mt-3 flex gap-2 border-t border-zinc-800 pt-3">
               <button
                 onClick={() => runIntegrity('apply')}
                 disabled={applying}
@@ -140,7 +141,7 @@ export default function PipelinePage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-surface-100 rounded-lg mb-4 w-fit">
+      <div className="mb-4 flex w-full gap-1 overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950 p-1 sm:w-fit">
         {STATUS_TABS.map((tab) => {
           const count = tab.value === 'all'
             ? applications.length
@@ -152,13 +153,13 @@ export default function PipelinePage() {
               className={cn(
                 'px-3 py-1.5 rounded-md text-xs transition-all duration-150',
                 activeTab === tab.value
-                  ? 'bg-white text-surface-800 font-medium shadow-card'
-                  : 'text-surface-500 hover:text-surface-700'
+                  ? 'border border-emerald-500/30 bg-emerald-500/10 font-medium text-emerald-300'
+                  : 'text-zinc-400 hover:text-zinc-200'
               )}
             >
               {tab.label}
               {count > 0 && (
-                <span className="ml-1.5 text-2xs text-surface-400 tabular-nums">{count}</span>
+                <span className="ml-1.5 text-2xs tabular-nums text-zinc-500">{count}</span>
               )}
             </button>
           )
@@ -166,12 +167,12 @@ export default function PipelinePage() {
       </div>
 
       {/* Table */}
-      <div className="card overflow-hidden">
-        <table className="w-full">
+      <div className="card overflow-x-auto">
+        <table className="w-full min-w-[760px]">
           <thead>
-            <tr className="border-b border-surface-100">
+            <tr className="border-b border-zinc-800">
               {['Company', 'Role', 'Fit', 'Channel', 'Status', 'Last update', ''].map((h) => (
-                <th key={h} className="text-left py-2.5 px-4 text-2xs text-surface-400 uppercase tracking-wider font-medium">
+                <th key={h} className="px-4 py-2.5 text-left text-2xs font-medium uppercase tracking-wider text-zinc-500">
                   {h}
                 </th>
               ))}
@@ -180,25 +181,25 @@ export default function PipelinePage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-xs text-surface-400">
+                <td colSpan={7} className="py-12 text-center text-xs text-zinc-500">
                   No applications in this category yet
                 </td>
               </tr>
             ) : (
               filtered.map((app) => (
-                <tr key={app.id} className="border-b border-surface-100 hover:bg-surface-50 transition-colors group">
+                <tr key={app.id} className="group border-b border-zinc-800 transition-colors hover:bg-zinc-950/70">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded bg-surface-100 flex items-center justify-center text-2xs font-semibold text-surface-500 border border-surface-200">
+                      <div className="flex h-6 w-6 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-2xs font-semibold text-zinc-300">
                         {app.job.company.slice(0, 2).toUpperCase()}
                       </div>
-                      <span className="text-sm font-medium text-surface-700">{app.job.company}</span>
+                      <span className="text-sm font-medium text-zinc-200">{app.job.company}</span>
                       {app.is_stale && (
-                        <span className="badge bg-warning-bg text-warning-text text-2xs">stale</span>
+                        <span className="badge border border-amber-500/30 bg-amber-500/10 text-2xs text-amber-300">stale</span>
                       )}
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-surface-600 max-w-[180px] truncate">{app.job.title}</td>
+                  <td className="max-w-[180px] truncate px-4 py-3 text-sm text-zinc-300">{app.job.title}</td>
                   <td className="py-3 px-4">
                     {app.score && (
                       <span className={cn('badge text-xs', fitClass(app.score.fit_score))}>
@@ -216,11 +217,11 @@ export default function PipelinePage() {
                       {app.status}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-xs text-surface-400 tabular-nums">
+                  <td className="px-4 py-3 text-xs tabular-nums text-zinc-500">
                     {app.applied_at ? shortDate(app.applied_at) : '—'}
                   </td>
                   <td className="py-3 px-4">
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity text-surface-400 hover:text-surface-600">
+                    <button className="text-zinc-500 opacity-0 transition-opacity hover:text-zinc-300 group-hover:opacity-100">
                       <ChevronRight size={14} />
                     </button>
                   </td>

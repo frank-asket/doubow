@@ -81,39 +81,39 @@ function StarStoryCard({ story, index }: { story: StarStory; index: number }) {
     ['Reflection', story.reflection],
   ]
   return (
-    <div className="border border-surface-200 rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-zinc-800">
       <button
         onClick={() => setOpen((x) => !x)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-surface-50 transition-colors"
+        className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-zinc-950"
       >
         <div className="flex items-center gap-2">
-          <span className="text-2xs font-medium text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full">
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-2xs font-medium text-emerald-300">
             Story {index + 1}
           </span>
-          <span className="text-xs font-medium text-surface-700 line-clamp-1">
+          <span className="line-clamp-1 text-xs font-medium text-zinc-200">
             {story.situation.slice(0, 64)}…
           </span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 ml-2">
           <div className="flex gap-1">
             {story.tags.map((t) => (
-              <span key={t} className="text-2xs px-1.5 py-0.5 bg-surface-100 text-surface-500 rounded">
+              <span key={t} className="rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-2xs text-zinc-400">
                 {t}
               </span>
             ))}
           </div>
-          {open ? <ChevronUp size={13} className="text-surface-400" /> : <ChevronDown size={13} className="text-surface-400" />}
+          {open ? <ChevronUp size={13} className="text-zinc-500" /> : <ChevronDown size={13} className="text-zinc-500" />}
         </div>
       </button>
 
       {open && (
-        <div className="border-t border-surface-100 divide-y divide-surface-100 animate-slide-up">
+        <div className="animate-slide-up divide-y divide-zinc-800 border-t border-zinc-800">
           {sections.map(([label, text]) => (
             <div key={label} className="px-4 py-3 flex gap-3">
-              <span className="text-2xs font-semibold text-brand-600 uppercase tracking-wider w-20 flex-shrink-0 pt-0.5">
+              <span className="w-20 flex-shrink-0 pt-0.5 text-2xs font-semibold uppercase tracking-wider text-emerald-300">
                 {label}
               </span>
-              <p className="text-xs text-surface-700 leading-relaxed">{text}</p>
+              <p className="text-xs leading-relaxed text-zinc-300">{text}</p>
             </div>
           ))}
         </div>
@@ -128,12 +128,12 @@ function QuestionList({ questions }: { questions: string[] }) {
       {questions.map((q, i) => (
         <div
           key={i}
-          className="flex items-start gap-3 px-4 py-3 rounded-lg border border-surface-100 hover:border-surface-200 hover:bg-surface-50 transition-colors"
+          className="flex items-start gap-3 rounded-lg border border-zinc-800 px-4 py-3 transition-colors hover:border-zinc-700 hover:bg-zinc-950"
         >
-          <span className="text-xs font-semibold text-brand-600 tabular-nums flex-shrink-0 w-5">
+          <span className="w-5 flex-shrink-0 text-xs font-semibold tabular-nums text-emerald-300">
             Q{i + 1}
           </span>
-          <p className="text-xs text-surface-700 leading-relaxed">{q}</p>
+          <p className="text-xs leading-relaxed text-zinc-300">{q}</p>
         </div>
       ))}
     </div>
@@ -239,15 +239,15 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
   return (
     <div className="card animate-fade-in">
       {/* Card header */}
-      <div className="p-4 border-b border-surface-100">
+      <div className="border-b border-zinc-800 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-md bg-surface-100 border border-surface-200 flex items-center justify-center text-xs font-semibold text-surface-500 flex-shrink-0">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 text-xs font-semibold text-zinc-300">
               {session.application.job.company.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium text-surface-800">{session.application.job.company}</p>
-              <p className="text-xs text-surface-500">{session.application.job.title}</p>
+              <p className="text-sm font-medium text-zinc-100">{session.application.job.company}</p>
+              <p className="text-xs text-zinc-400">{session.application.job.title}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -257,13 +257,13 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             )}>
               {session.application.status}
             </span>
-            <span className="text-2xs text-surface-400">{relativeTime(session.created_at)}</span>
+            <span className="text-2xs text-zinc-500">{relativeTime(session.created_at)}</span>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-3 border-b border-surface-100 bg-surface-50">
+      <div className="flex gap-1 border-b border-zinc-800 bg-zinc-950 p-3">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -271,13 +271,13 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             className={cn(
               'px-3 py-1.5 rounded-md text-xs transition-all duration-150 flex items-center gap-1.5',
               activeTab === tab.key
-                ? 'bg-white text-surface-800 font-medium shadow-card border border-surface-200'
-                : 'text-surface-500 hover:text-surface-700 hover:bg-surface-100'
+                ? 'border border-emerald-500/30 bg-emerald-500/10 font-medium text-emerald-300'
+                : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
             )}
           >
             {tab.label}
             {tab.count !== undefined && (
-              <span className="text-2xs tabular-nums text-surface-400">{tab.count}</span>
+              <span className="text-2xs tabular-nums text-zinc-500">{tab.count}</span>
             )}
           </button>
         ))}
@@ -288,7 +288,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
         {activeTab === 'questions' && (
           <div className="animate-fade-in">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-surface-400 font-medium">Tailored to your resume + this JD</p>
+              <p className="text-xs font-medium text-zinc-500">Tailored to your resume + this JD</p>
               <button className="btn text-xs gap-1.5">
                 <RefreshCw size={12} />
                 Regenerate
@@ -301,7 +301,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
         {activeTab === 'stories' && (
           <div className="animate-fade-in">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-surface-400 font-medium">STAR + Reflection method</p>
+              <p className="text-xs font-medium text-zinc-500">STAR + Reflection method</p>
               <button
                 onClick={generateStarStory}
                 disabled={generatingStory}
@@ -319,16 +319,16 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             )}
 
             {(generatingStory || storyOutput) && (
-              <div className="bg-surface-50 border border-surface-200 rounded-lg p-4 text-xs text-surface-700 leading-relaxed whitespace-pre-wrap animate-fade-in">
+              <div className="animate-fade-in rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-200">
                 {storyOutput}
                 {generatingStory && (
-                  <span className="inline-block w-0.5 h-3 bg-brand-400 animate-pulse ml-0.5 align-middle" />
+                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-emerald-300 align-middle" />
                 )}
               </div>
             )}
 
             {!localStories.length && !storyOutput && !generatingStory && (
-              <div className="text-center py-10 text-surface-400">
+              <div className="py-10 text-center text-zinc-500">
                 <MessageSquare size={24} className="mx-auto mb-2 opacity-40" />
                 <p className="text-xs">No stories yet — click Generate to create your first STAR-R story</p>
               </div>
@@ -339,7 +339,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
         {activeTab === 'brief' && (
           <div className="animate-fade-in">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-surface-400 font-medium">Company intelligence for your interview</p>
+              <p className="text-xs font-medium text-zinc-500">Company intelligence for your interview</p>
               <button
                 onClick={generateBrief}
                 disabled={generatingBrief}
@@ -351,14 +351,14 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             </div>
 
             {(briefOutput || generatingBrief) ? (
-              <div className="bg-surface-50 border border-surface-200 rounded-lg p-4 text-xs text-surface-700 leading-relaxed whitespace-pre-wrap">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-200">
                 {briefOutput}
                 {generatingBrief && (
-                  <span className="inline-block w-0.5 h-3 bg-brand-400 animate-pulse ml-0.5 align-middle" />
+                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-emerald-300 align-middle" />
                 )}
               </div>
             ) : (
-              <div className="text-center py-10 text-surface-400">
+              <div className="py-10 text-center text-zinc-500">
                 <Building2 size={24} className="mx-auto mb-2 opacity-40" />
                 <p className="text-xs">Generate a brief to see recent news, tech stack signals, and smart questions to ask</p>
               </div>
@@ -368,7 +368,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
       </div>
 
       {/* Action bar */}
-      <div className="px-4 pb-4 flex items-center gap-2 border-t border-surface-100 pt-3">
+      <div className="flex items-center gap-2 border-t border-zinc-800 px-4 pb-4 pt-3">
         <button onClick={generateStarStory} disabled={generatingStory} className="btn text-xs gap-1.5">
           <Sparkles size={12} />
           New STAR-R story
@@ -407,25 +407,26 @@ export default function PrepPage() {
   const [loading] = useState(false)
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
         <div>
-          <h1 className="text-xl font-semibold text-surface-800">Interview prep</h1>
-          <p className="text-sm text-surface-500 mt-0.5">STAR-R stories, tailored questions, and company briefs</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Interview prep</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Interview prep</h1>
+          <p className="mt-2 text-sm text-zinc-400 sm:text-base">STAR-R stories, tailored questions, and company briefs</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface-100 rounded-md">
-            <BookOpen size={12} className="text-surface-500" />
-            <span className="text-xs text-surface-500">{sessions.length} sessions</span>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5">
+            <BookOpen size={12} className="text-zinc-400" />
+            <span className="text-xs text-zinc-400">{sessions.length} sessions</span>
           </div>
         </div>
       </div>
 
       {/* Info banner */}
-      <div className="flex items-start gap-2.5 p-3.5 bg-brand-50 border border-brand-100 rounded-lg mb-5">
-        <Sparkles size={14} className="text-brand-600 mt-0.5 flex-shrink-0" />
-        <p className="text-xs text-brand-800">
+      <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5">
+        <Sparkles size={14} className="mt-0.5 flex-shrink-0 text-emerald-300" />
+        <p className="text-xs text-emerald-200">
           <span className="font-medium">Prep is tailored per application.</span>{' '}
           Questions and STAR-R stories are generated from your resume + the specific job description.
         </p>
@@ -437,9 +438,9 @@ export default function PrepPage() {
           ? Array.from({ length: 2 }).map((_, i) => <PrepSkeleton key={i} />)
           : sessions.length === 0
           ? (
-            <div className="text-center py-16 text-surface-400">
+            <div className="py-16 text-center text-zinc-500">
               <BookOpen size={28} className="mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-medium text-surface-500">No prep sessions yet</p>
+              <p className="text-sm font-medium text-zinc-300">No prep sessions yet</p>
               <p className="text-xs mt-1">Prep sessions are created when you queue an application</p>
             </div>
           )
