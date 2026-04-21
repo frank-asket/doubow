@@ -30,6 +30,9 @@ register_exception_handlers(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    # Keep local multi-port frontend workflows working (3000/3001/3100/etc),
+    # even if CORS_ORIGINS env parsing/drift misses a local origin.
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
