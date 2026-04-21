@@ -11,7 +11,12 @@ export function useDashboard() {
   const { data, error, isLoading, mutate } = useSWR(
     ready ? 'dashboard' : null,
     () => dashboardApi.get(),
-    { revalidateOnFocus: true, dedupingInterval: 15_000 }
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 15_000,
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
+    }
   )
 
   return {

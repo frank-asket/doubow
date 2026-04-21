@@ -9,6 +9,12 @@ const isProtectedRoute = createRouteMatcher([
   '/resume(.*)',
   '/agents(.*)',
 ])
+const isAuthEntryRoute = createRouteMatcher([
+  '/auth(.*)',
+  '/login(.*)',
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+])
 
 type PublicMetadata = { plan?: string; subscriptionStatus?: string }
 
@@ -30,6 +36,13 @@ function isPaidAccess(metadata: PublicMetadata | undefined): boolean {
 
 export default clerkMiddleware(async (auth, req) => {
   if (process.env.E2E_BYPASS_AUTH === '1') return
+  const { userId } = await auth()
+
+  // Hard server-side guard: never mount auth pages when already signed in.
+  if (userId && isAuthEntryRoute(req)) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
   if (!isProtectedRoute(req)) return
 
   await auth.protect()

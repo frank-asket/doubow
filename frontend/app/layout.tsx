@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import ClerkApiAuthBridge from '@/components/auth/ClerkApiAuthBridge'
+import DevAuthNotice from '@/components/auth/DevAuthNotice'
 import PostHogProvider from '@/components/analytics/PostHogProvider'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import './globals.css'
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           >
             <ThemeProvider>
               <ClerkApiAuthBridge />
+              <DevAuthNotice />
               <PostHogBoundary />
               {children}
             </ThemeProvider>

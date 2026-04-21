@@ -1,7 +1,12 @@
 import { SignUp } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 
-export default function AuthSignUpPage() {
+export default async function AuthSignUpPage() {
+  const { userId } = await auth();
+  if (userId) redirect("/dashboard");
+
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   if (!publishableKey) {

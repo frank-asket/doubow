@@ -142,6 +142,7 @@ export default function DashboardOverviewPage() {
           High-fit opportunities in your queue: <span className="font-semibold">{highFit}</span>
         </p>
       </section>
+
     </div>
   )
 }

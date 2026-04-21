@@ -5,7 +5,7 @@ import Link from 'next/link'
 import type { Route } from 'next'
 import {
   LayoutDashboard, Compass, ListFilter, CheckSquare, BookOpen,
-  FileText, Cpu, Bell, Settings, LogOut, Menu, Search,
+  FileText, Cpu, Bell, Settings, LogOut, Menu, Search, ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDashboard } from '@/hooks/useDashboard'
@@ -95,6 +95,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Footer */}
         <div className="space-y-1 border-t border-white/10 p-3">
+          <Link
+            href="/subscribe"
+            className="mb-2 block rounded-2xl border border-white/15 bg-white px-3 py-3 text-zinc-900 shadow-sm transition hover:border-white/30"
+          >
+            <span className="inline-flex items-center rounded-full bg-indigo-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+              Doubow Pro
+            </span>
+            <p className="mt-2 text-[23px] font-bold leading-[1.08] tracking-tight text-indigo-900">
+              Get Personal Career
+              <br />
+              Coach On-the-go
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+              Get reach and hired easily with tips for your professional coach.
+            </p>
+            <span className="mt-3 inline-flex items-center gap-1 rounded-lg bg-[#FFBC01] px-2.5 py-1.5 text-[11px] font-semibold text-black">
+              Upgrade to Pro
+              <ChevronRight size={13} />
+            </span>
+          </Link>
           <button className="flex w-full items-center gap-2 rounded-[10px] border border-transparent px-3 py-2 text-[14px] text-[#d7def5] transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white">
             <Bell size={16} />
             <span>Notifications</span>
@@ -202,6 +222,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )
               })}
             </div>
+          </div>
+          <div className="px-4 pb-3">
+            <Link
+              href="/subscribe"
+              className="block rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-zinc-900"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Doubow Pro</p>
+              <p className="mt-1 text-[13px] font-semibold leading-snug text-zinc-900">
+                Upgrade for higher limits and premium prep.
+              </p>
+              <span className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-amber-900">
+                Upgrade to Pro
+                <ChevronRight size={13} />
+              </span>
+            </Link>
           </div>
         </div>
 
