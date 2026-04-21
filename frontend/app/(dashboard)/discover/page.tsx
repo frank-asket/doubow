@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { RefreshCw, SlidersHorizontal, Globe, ChevronDown, ChevronUp, ArrowRight, X, BookOpen, ShieldCheck, Timer } from 'lucide-react'
 import { cn, fitClass, fitLabel, channelLabel, channelBadgeClass, relativeTime, scoreBarWidth } from '@/lib/utils'
@@ -9,7 +9,8 @@ import { useJobs } from '@/hooks/useJobs'
 import { usePipeline } from '@/hooks/usePipeline'
 import { useJobStore } from '@/stores/jobStore'
 import { usePipelineStore } from '@/stores/pipelineStore'
-import { applicationsApi, resumeApi } from '@/lib/api'
+import { applicationsApi, resumeApi, telemetryApi } from '@/lib/api'
+import { clearActivationStart, getActivationStartAt, trackEvent } from '@/lib/telemetry'
 import { useDashboard } from '@/hooks/useDashboard'
 import type { JobWithScore } from '@/types'
 
@@ -216,7 +217,16 @@ export default function DiscoverPage() {
       refreshInterval: (current) => (current?.state === 'scoring_in_progress' ? 5000 : 0),
     },
   )
+  const { data: activationKpi, isLoading: activationKpiLoading, mutate: refreshActivationKpi } = useSWR(
+    'activation-kpi',
+    telemetryApi.activationKpi,
+    { revalidateOnFocus: true, dedupingInterval: 30_000 },
+  )
   const [filterOpen, setFilterOpen] = useState(false)
+  const emptyTracked = useRef(false)
+  const scoringTracked = useRef(false)
+  const etaTracked = useRef(false)
+  const readyTracked = useRef(false)
 
   const filteredJobs = jobs.filter((j) => !minFit || j.score.fit_score >= minFit)
   const etaMinutes = onboarding?.eta_seconds ? Math.max(1, Math.round(onboarding.eta_seconds / 60)) : null
@@ -226,12 +236,75 @@ export default function DiscoverPage() {
     'scoring_job_matches',
     'building_first_queue',
   ] as const
+  const avgTimeMinutes = activationKpi?.avg_time_to_first_matches_seconds != null
+    ? Math.max(1, Math.round(activationKpi.avg_time_to_first_matches_seconds / 60))
+    : null
+  const latestTimeMinutes = activationKpi?.latest_time_to_first_matches_seconds != null
+    ? Math.max(1, Math.round(activationKpi.latest_time_to_first_matches_seconds / 60))
+    : null
 
   useEffect(() => {
     if (onboarding?.state === 'ready' && jobs.length === 0) {
       void refreshJobs()
     }
   }, [onboarding?.state, jobs.length, refreshJobs])
+
+  useEffect(() => {
+    if (onboarding?.state === 'no_resume' && !emptyTracked.current) {
+      trackEvent('discover_empty_viewed')
+      emptyTracked.current = true
+      return
+    }
+    if (onboarding?.state !== 'no_resume') {
+      emptyTracked.current = false
+    }
+  }, [onboarding?.state])
+
+  useEffect(() => {
+    if (onboarding?.state === 'scoring_in_progress' && !scoringTracked.current) {
+      trackEvent('match_scoring_started', { step: onboarding.current_step })
+      scoringTracked.current = true
+      return
+    }
+    if (onboarding?.state !== 'scoring_in_progress') {
+      scoringTracked.current = false
+    }
+  }, [onboarding?.state, onboarding?.current_step])
+
+  useEffect(() => {
+    if (onboarding?.state === 'scoring_in_progress' && onboarding.eta_seconds != null && !etaTracked.current) {
+      trackEvent('match_scoring_eta_shown', { eta_seconds: onboarding.eta_seconds })
+      etaTracked.current = true
+      return
+    }
+    if (onboarding?.state !== 'scoring_in_progress') {
+      etaTracked.current = false
+    }
+  }, [onboarding?.state, onboarding?.eta_seconds])
+
+  useEffect(() => {
+    if (onboarding?.state === 'ready' && !readyTracked.current) {
+      const startedAt = getActivationStartAt()
+      const nowIso = new Date().toISOString()
+      let timeToFirstMatchesSeconds: number | null = null
+      if (startedAt) {
+        const delta = (Date.parse(nowIso) - Date.parse(startedAt)) / 1000
+        if (Number.isFinite(delta) && delta >= 0) {
+          timeToFirstMatchesSeconds = delta
+        }
+      }
+      trackEvent('first_matches_ready', {
+        time_to_first_matches_seconds: timeToFirstMatchesSeconds,
+        first_jobs_count: jobs.length,
+      })
+      clearActivationStart()
+      readyTracked.current = true
+      return
+    }
+    if (onboarding?.state !== 'ready') {
+      readyTracked.current = false
+    }
+  }, [onboarding?.state, jobs.length])
 
   const statCards = useMemo(() => {
     if (!summary) {
@@ -240,6 +313,7 @@ export default function DiscoverPage() {
         { label: 'High fit (>= 4.0)', value: dashLoading ? '…' : '-', sub: 'ready to review' },
         { label: 'Avg fit score', value: dashLoading ? '…' : '-', sub: 'all scored roles' },
         { label: 'Applied', value: dashLoading ? '…' : '-', sub: 'awaiting reply or next step' },
+        { label: 'Time to first matches', value: activationKpiLoading ? '…' : '-', sub: 'activation KPI' },
       ]
     }
     return [
@@ -263,13 +337,23 @@ export default function DiscoverPage() {
         value: String(summary.applied_awaiting_reply),
         sub: 'awaiting reply or next step',
       },
+      {
+        label: 'Time to first matches',
+        value: avgTimeMinutes != null
+          ? `~${avgTimeMinutes}m avg${latestTimeMinutes != null ? ` · ${latestTimeMinutes}m latest` : ''}`
+          : latestTimeMinutes != null
+          ? `${latestTimeMinutes}m latest`
+          : '-',
+        sub: activationKpi?.sample_size ? `from ${activationKpi.sample_size} run${activationKpi.sample_size > 1 ? 's' : ''}` : 'activation KPI',
+      },
     ]
-  }, [summary, dashLoading])
+  }, [summary, dashLoading, activationKpi, activationKpiLoading, avgTimeMinutes, latestTimeMinutes])
 
   async function handleRefresh() {
     await refreshJobs()
     await refreshOnboarding()
     await refreshDashboard()
+    await refreshActivationKpi()
   }
 
   return (
@@ -297,7 +381,7 @@ export default function DiscoverPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 section-block">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 section-block">
         {statCards.map((s) => (
           <div key={s.label} className="rounded-lg border border-zinc-800 bg-zinc-950 p-2.5">
             <p className="mb-1 text-2xs uppercase tracking-wider text-zinc-500">{s.label}</p>

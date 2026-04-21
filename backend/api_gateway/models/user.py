@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from models.job_score import JobScore
     from models.prep_session import PrepSession
     from models.resume import Resume
+    from models.telemetry_event import TelemetryEvent
 
 
 class User(Base):
@@ -40,4 +41,7 @@ class User(Base):
     job_scores: Mapped[list["JobScore"]] = relationship("JobScore", back_populates="user", cascade="all, delete-orphan")
     job_dismissals: Mapped[list["JobDismissal"]] = relationship(
         "JobDismissal", back_populates="user", cascade="all, delete-orphan"
+    )
+    telemetry_events: Mapped[list["TelemetryEvent"]] = relationship(
+        "TelemetryEvent", back_populates="user", cascade="all, delete-orphan"
     )

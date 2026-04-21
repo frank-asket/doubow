@@ -6,6 +6,7 @@ from models.job_dismissal import JobDismissal
 from models.job_score import JobScore
 from models.prep_session import PrepSession
 from models.resume import Resume
+from models.telemetry_event import TelemetryEvent
 from models.user import User
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "Approval",
     "AutopilotRun",
     "PrepSession",
+    "TelemetryEvent",
 ]

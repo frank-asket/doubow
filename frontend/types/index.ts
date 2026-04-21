@@ -255,3 +255,9 @@ export interface ApiError {
   detail: string
   status: number
 }
+
+export interface ActivationKPI {
+  sample_size: number
+  latest_time_to_first_matches_seconds: number | null
+  avg_time_to_first_matches_seconds: number | null
+}

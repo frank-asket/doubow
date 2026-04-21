@@ -4,6 +4,7 @@ import type {
   AgentState, ResumeProfile, UserPreferences, PaginatedResponse,
   DashboardSummary,
   OnboardingStatus,
+  ActivationKPI,
 } from '@/types'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
@@ -179,6 +180,25 @@ export const resumeApi = {
     }),
   analyzeProfile: () =>
     request<{ analysis: string }>('/v1/me/resume/analyze', { method: 'POST' }),
+}
+
+// ─── Telemetry ──────────────────────────────────────────────────────────────
+
+type TelemetryEventName =
+  | 'discover_empty_viewed'
+  | 'resume_upload_started'
+  | 'resume_upload_succeeded'
+  | 'match_scoring_started'
+  | 'match_scoring_eta_shown'
+  | 'first_matches_ready'
+
+export const telemetryApi = {
+  track: (event_name: TelemetryEventName, properties: Record<string, unknown> = {}, occurred_at?: string) =>
+    request<{ status: 'ok' }>('/v1/me/telemetry/events', {
+      method: 'POST',
+      body: JSON.stringify({ event_name, properties, occurred_at: occurred_at ?? null }),
+    }),
+  activationKpi: () => request<ActivationKPI>('/v1/me/telemetry/activation-kpi'),
 }
 
 // ─── Auth debug ─────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 
 import { resumeApi } from '@/lib/api'
+import { setActivationStartNow, trackEvent } from '@/lib/telemetry'
 
 export function useResumeUpload() {
   const [uploading, setUploading] = useState(false)
@@ -11,8 +12,18 @@ export function useResumeUpload() {
   const upload = useCallback(async (file: File) => {
     setUploading(true)
     setError(null)
+    trackEvent('resume_upload_started', {
+      file_name: file.name,
+      file_size_bytes: file.size,
+      file_type: file.type || 'unknown',
+    })
     try {
       await resumeApi.upload(file)
+      setActivationStartNow()
+      trackEvent('resume_upload_succeeded', {
+        file_name: file.name,
+        file_size_bytes: file.size,
+      })
       return { success: true }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Upload failed'

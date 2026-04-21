@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from db.session import init_models
 from error_handlers import register_exception_handlers
-from routers import agents, applications, approvals, auth, autopilot, jobs, prep, resume, users
+from routers import agents, applications, approvals, auth, autopilot, jobs, prep, resume, telemetry, users
 
 
 @asynccontextmanager
@@ -51,3 +51,4 @@ app.include_router(autopilot.router, prefix=API_PREFIX)
 app.include_router(approvals.router, prefix=API_PREFIX)
 app.include_router(prep.router, prefix=API_PREFIX)
 app.include_router(agents.router, prefix=API_PREFIX)
+app.include_router(telemetry.router, prefix=API_PREFIX)
