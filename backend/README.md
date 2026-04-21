@@ -9,7 +9,7 @@ Backend services and data workflows for Doubow.
 - `worker_service/` — async/background worker scaffold.
 - `scripts/` — SQL scripts for seed/verify/reset/grants.
 - `docker-compose.yml` — backend-local service orchestration.
-- `Makefile` — DB migration/seed helpers.
+- `infra/` — extra Docker assets: `docker-compose.yml` for a **standalone Postgres + Redis** stack (host Postgres on **5433**), plus optional `Dockerfile.api`, `Dockerfile.worker`, and `nginx.conf` samples.
 
 ## Run locally
 
@@ -30,6 +30,20 @@ From inside `backend/`:
 ```bash
 docker compose --env-file .env up --build
 docker compose --env-file .env down
+```
+
+### Postgres + Redis only (no app services)
+
+Use this when you only need local databases (same port **5433** as documented in the repo-root `.env.example`):
+
+```bash
+docker compose -f backend/infra/docker-compose.yml up -d
+```
+
+Stop:
+
+```bash
+docker compose -f backend/infra/docker-compose.yml down
 ```
 
 ## Database workflow

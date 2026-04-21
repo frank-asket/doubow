@@ -153,11 +153,13 @@ doubow/
 │       └── types/
 │           └── index.ts
 │
-├── infra/
-│   ├── docker-compose.yml            # Local: API + worker + Postgres + Redis
-│   ├── Dockerfile.api
-│   ├── Dockerfile.worker
-│   └── nginx.conf
+├── backend/
+│   ├── infra/                        # Docker helpers (dev Postgres/Redis stack, legacy image samples)
+│   │   ├── docker-compose.yml        # Postgres :5433 + Redis
+│   │   ├── Dockerfile.api
+│   │   ├── Dockerfile.worker
+│   │   └── nginx.conf
+│   └── …                             # api_gateway, worker_service, docker-compose.yml — see backend/README
 │
 ├── .cursor/
 │   └── rules/                        # Cursor AI rules

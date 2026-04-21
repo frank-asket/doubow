@@ -5,8 +5,8 @@ Canonical top-level map of this repository.
 ## Root folders
 
 - `backend/` — backend runtime and service code (API gateway, migrations, backend scripts, backend compose).
+- `backend/infra/` — Docker and proxy configs specific to the backend (dev Postgres/Redis stack, optional images).
 - `frontend/` — Next.js application (routes, components, frontend public assets, frontend build config).
-- `infra/` — shared infrastructure definitions.
 - `packages/` — shared workspace packages (types/utilities).
 - `docs/` — non-runtime documentation (architecture, design references, archive, onboarding).
 - `.github/` — CI workflows and GitHub automation.

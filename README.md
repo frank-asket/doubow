@@ -90,7 +90,7 @@ flowchart TB
 - `frontend/` — web application
 - `backend/` — API, models, migrations, scripts, workers
 - `docs/` — architecture, design system, onboarding, product maps
-- `infra/` — infrastructure configs
+- `backend/infra/` — Docker snippets (Postgres/Redis dev stack, optional API/worker/nginx samples)
 
 Primary references:
 - `docs/structure.md`
