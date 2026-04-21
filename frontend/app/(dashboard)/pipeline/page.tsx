@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertTriangle, ChevronRight, RefreshCw, Loader2 } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Loader2, FileEdit } from 'lucide-react'
 import { cn, statusBadgeClass, channelBadgeClass, channelLabel, shortDate, fitClass } from '@/lib/utils'
 import { usePipeline } from '@/hooks/usePipeline'
 import { usePipelineStore } from '@/stores/pipelineStore'
 import { applicationsApi } from '@/lib/api'
-import type { ApplicationStatus, IntegrityChange } from '@/types'
+import type { Application, ApplicationStatus, IntegrityChange } from '@/types'
 
 const STATUS_TABS: { label: string; value: ApplicationStatus | 'all' }[] = [
   { label: 'All', value: 'all' },
@@ -45,6 +45,19 @@ export default function PipelinePage() {
   const { refresh } = usePipeline()
   const [activeTab, setActiveTab] = useState<ApplicationStatus | 'all'>('all')
   const [applying, setApplying] = useState(false)
+  const [draftingId, setDraftingId] = useState<string | null>(null)
+
+  async function generateDraft(app: Application) {
+    setDraftingId(app.id)
+    try {
+      await applicationsApi.createDraft(app.id)
+      await refresh()
+    } catch {
+      // silent
+    } finally {
+      setDraftingId(null)
+    }
+  }
 
   const filtered = activeTab === 'all'
     ? applications
@@ -220,9 +233,20 @@ export default function PipelinePage() {
                   <td className="px-4 py-3 text-xs tabular-nums text-zinc-500">
                     {app.applied_at ? shortDate(app.applied_at) : '—'}
                   </td>
-                  <td className="py-3 px-4">
-                    <button className="text-zinc-500 opacity-0 transition-opacity hover:text-zinc-300 group-hover:opacity-100">
-                      <ChevronRight size={14} />
+                  <td className="py-3 px-4 text-right">
+                    <button
+                      type="button"
+                      onClick={() => generateDraft(app)}
+                      disabled={draftingId === app.id}
+                      title="Generate outreach draft (opens in Approvals)"
+                      className="btn inline-flex items-center gap-1 border border-zinc-700 bg-zinc-900 px-2 py-1 text-2xs text-zinc-300 hover:border-zinc-500 hover:text-zinc-100 disabled:opacity-50"
+                    >
+                      {draftingId === app.id ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <FileEdit size={12} />
+                      )}
+                      Draft
                     </button>
                   </td>
                 </tr>

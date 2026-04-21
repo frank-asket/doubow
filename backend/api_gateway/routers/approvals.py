@@ -1,4 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
+from config import settings
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -54,7 +56,15 @@ async def approve_approval(
             idempotency_key=idempotency_key,
         )
         if response.queued_send and response.send_task_id:
-            background_tasks.add_task(run_send_stub_in_background, approval_id, user.id)
+            if settings.use_celery_for_send:
+                try:
+                    from tasks.send_tasks import send_approval_stub_task
+
+                    send_approval_stub_task.delay(approval_id, user.id)
+                except Exception:
+                    background_tasks.add_task(run_send_stub_in_background, approval_id, user.id)
+            else:
+                background_tasks.add_task(run_send_stub_in_background, approval_id, user.id)
         return response
     except ApprovalIdempotencyConflictError as exc:
         body = ApprovalIdempotencyConflictResponse(

@@ -1,3 +1,5 @@
-from celery import Celery
+"""Entrypoint for ``celery -A tasks.worker worker`` — re-exports the shared app."""
 
-celery_app = Celery('doubow')
+from tasks.celery_app import celery_app
+
+__all__ = ["celery_app"]

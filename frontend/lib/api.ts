@@ -143,10 +143,20 @@ export const autopilotApi = {
 export const approvalsApi = {
   list: () => request<Approval[]>('/v1/me/approvals'),
   approve: (id: string, editedBody?: string) =>
-    request<{ approval_id: string; queued_send: boolean }>(`/v1/me/approvals/${id}/approve`, {
-      method: 'POST',
-      body: JSON.stringify({ edited_body: editedBody ?? null }),
-    }),
+    request<{ approval_id: string; queued_send: boolean; send_task_id?: string | null }>(
+      `/v1/me/approvals/${id}/approve`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ edited_body: editedBody ?? null }),
+      },
+      // Backend requires Idempotency-Key for approve-once semantics.
+      {
+        'Idempotency-Key':
+          typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? `approve_${id}_${crypto.randomUUID()}`
+            : `approve_${id}_${Date.now()}_${Math.random().toString(36).slice(2, 14)}`,
+      },
+    ),
   reject: (id: string) =>
     request<void>(`/v1/me/approvals/${id}/reject`, { method: 'POST' }),
 }

@@ -6,7 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.autopilot_run import AutopilotRun
 from schemas.autopilot import AutopilotRunRequest, AutopilotRunResponse
+from services.autopilot_response import autopilot_run_to_response
 from services.idempotency import payload_fingerprint
+
+
+async def get_autopilot_run(session: AsyncSession, user_id: str, run_id: str) -> AutopilotRunResponse | None:
+    row = await session.get(AutopilotRun, run_id)
+    if row is None or row.user_id != user_id:
+        return None
+    return autopilot_run_to_response(row, replayed=False)
 
 
 async def run_autopilot(
@@ -25,18 +33,7 @@ async def run_autopilot(
     if existing:
         if existing.request_fingerprint != fingerprint:
             raise ValueError(existing.id)
-        return (
-            AutopilotRunResponse(
-                run_id=existing.id,
-                status="done",
-                replayed=True,
-                scope=existing.scope,  # type: ignore[arg-type]
-                item_results=[],
-                started_at=existing.started_at,
-                completed_at=existing.completed_at or datetime.now(timezone.utc),
-            ),
-            True,
-        )
+        return (autopilot_run_to_response(existing, replayed=True), True)
 
     run = AutopilotRun(
         id=str(uuid4()),
@@ -49,14 +46,4 @@ async def run_autopilot(
     )
     session.add(run)
     await session.commit()
-    return (
-        AutopilotRunResponse(
-            run_id=run.id,
-            status="queued",
-            replayed=False,
-            scope=payload.scope,
-            item_results=[],
-            started_at=run.started_at,
-        ),
-        False,
-    )
+    return (autopilot_run_to_response(run, replayed=False), False)

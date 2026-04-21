@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = "postgresql+asyncpg://doubow:doubow@localhost:5433/doubow"
     redis_url: str = "redis://localhost:6379"
+    # When True, enqueue send-after-approve via Celery (`tasks.send_tasks`). Worker must run separately.
+    use_celery_for_send: bool = False
     cors_origins: list[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, Sparkles, Loader2, BookOpen, Building2, MessageSquare, RefreshCw } from 'lucide-react'
 import { cn, relativeTime } from '@/lib/utils'
-import { prepApi } from '@/lib/api'
-import type { PrepSession, StarStory } from '@/types'
+import { applicationsApi, prepApi } from '@/lib/api'
+import type { Application, PrepSession, StarStory } from '@/types'
 
 // ── Mock data for standalone demo ─────────────────────────────────────────
 
@@ -382,6 +382,76 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
   )
 }
 
+function ApiPrepPanel() {
+  const [apps, setApps] = useState<Application[]>([])
+  const [appId, setAppId] = useState('')
+  const [session, setSession] = useState<PrepSession | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [listLoading, setListLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    applicationsApi
+      .list()
+      .then((r) => {
+        if (cancelled) return
+        setApps(r.items)
+        if (r.items[0]) setAppId(r.items[0].id)
+        setListLoading(false)
+      })
+      .catch(() => setListLoading(false))
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function onGenerate() {
+    if (!appId) return
+    setLoading(true)
+    try {
+      const s = await prepApi.generate(appId)
+      setSession(s)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (listLoading || apps.length === 0) return null
+
+  return (
+    <div className="card mb-6 border border-zinc-300/20 p-4">
+      <p className="mb-2 text-xs font-medium text-zinc-200">Generate from your applications</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={appId}
+          onChange={(e) => setAppId(e.target.value)}
+          className="max-w-[min(100%,28rem)] rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-200"
+        >
+          {apps.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.job.company} — {a.job.title}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => void onGenerate()}
+          disabled={loading}
+          className="btn btn-primary inline-flex items-center gap-1.5 text-xs"
+        >
+          {loading ? <Loader2 size={12} className="animate-spin" /> : null}
+          Generate prep
+        </button>
+      </div>
+      {session && (
+        <div className="mt-5">
+          <PrepSessionCard session={session} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 function PrepSkeleton() {
   return (
     <div className="card p-4 space-y-3">
@@ -422,6 +492,8 @@ export default function PrepPage() {
           </div>
         </div>
       </div>
+
+      <ApiPrepPanel />
 
       {/* Info banner */}
       <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-zinc-300/30 bg-zinc-200/10 p-3.5">
