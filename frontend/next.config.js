@@ -51,6 +51,18 @@ const nextConfig = {
   env: {
     CLERK_REQUIRE_ACTIVE_SUBSCRIPTION: process.env.CLERK_REQUIRE_ACTIVE_SUBSCRIPTION ?? '',
   },
+  // Avoid noisy cross-origin dev warnings during local multi-port flows
+  // (e.g. frontend on :3001 and Playwright baseURL on 127.0.0.1:3100).
+  allowedDevOrigins: [
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    'http://localhost:3100',
+    'http://127.0.0.1:3100',
+  ],
   experimental: {
     typedRoutes: true,
   },
