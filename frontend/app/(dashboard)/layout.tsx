@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import type { Route } from 'next'
@@ -61,16 +60,6 @@ function NavItem({
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { summary } = useDashboard()
   const path = usePathname()
-  const [isDesktop, setIsDesktop] = useState(
-    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
-  )
-
-  useEffect(() => {
-    const onResize = () => setIsDesktop(window.innerWidth >= 1024)
-    onResize()
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
 
   const counts: Record<string, number> = {
     jobs: summary?.high_fit_count ?? 0,
@@ -81,7 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen bg-[#f3f4f8] text-zinc-900">
       {/* Sidebar */}
-      <aside className={cn('w-[210px] flex-shrink-0 flex-col rounded-r-2xl bg-[#020b31] text-zinc-100', isDesktop ? 'flex' : 'hidden')}>
+      <aside className="hidden w-[210px] flex-shrink-0 flex-col rounded-r-2xl bg-[#020b31] text-zinc-100 lg:flex">
         {/* Logo */}
         <div className="border-b border-white/10 px-4 pb-4 pt-6">
           <div className="flex items-center gap-2">
@@ -132,11 +121,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main */}
       <main className="min-w-0 flex-1 bg-[#f3f4f8]">
         {/* Desktop top bar */}
-        <div className={cn('h-[78px] items-center justify-between border-b border-[#e7e8ee] bg-[#f8f8fb] px-7', isDesktop ? 'flex' : 'hidden')}>
+        <div className="hidden h-[78px] items-center justify-between border-b border-[#e7e8ee] bg-[#f8f8fb] px-7 lg:flex">
           <div className="relative w-full max-w-md">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
-              aria-label="Search dashboard"
+                aria-label="Search dashboard desktop"
               className="h-10 w-full rounded-[10px] border border-[#e1e2e9] bg-[#f8f8fb] pl-9 pr-3 text-[13px] text-zinc-700 outline-none focus:border-indigo-300"
               placeholder="Search anything here..."
             />
@@ -160,7 +149,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Mobile/tablet top nav */}
-        <div className={cn('sticky top-0 z-20 border-b border-zinc-200 bg-white/95 backdrop-blur', isDesktop ? 'hidden' : 'block')}>
+        <div className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
               <div>

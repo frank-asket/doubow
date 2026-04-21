@@ -19,7 +19,7 @@ test.describe('dashboard visual regression', () => {
       await page.setViewportSize({ width: item.width, height: item.height })
       await page.goto('/dashboard')
 
-      const desktopSearch = page.getByRole('textbox', { name: 'Search dashboard' })
+      const desktopSearch = page.getByRole('textbox', { name: 'Search dashboard desktop' })
       const mobileSearch = page.getByRole('textbox', { name: 'Search dashboard mobile' })
       const dashboardNavLink = page.getByRole('link', { name: 'Dashboard', exact: true }).first()
 
