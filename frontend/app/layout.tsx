@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import ClerkApiAuthBridge from '@/components/auth/ClerkApiAuthBridge'
@@ -19,6 +20,14 @@ export const metadata: Metadata = {
   icons: { icon: '/favicon.svg' },
 }
 
+function PostHogBoundary() {
+  return (
+    <Suspense fallback={null}>
+      <PostHogProvider />
+    </Suspense>
+  )
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
@@ -32,13 +41,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ClerkProvider publishableKey={clerkPublishableKey}>
             <ThemeProvider>
               <ClerkApiAuthBridge />
-              <PostHogProvider />
+              <PostHogBoundary />
               {children}
             </ThemeProvider>
           </ClerkProvider>
         ) : (
           <ThemeProvider>
-            <PostHogProvider />
+            <PostHogBoundary />
             {children}
           </ThemeProvider>
         )}
