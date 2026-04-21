@@ -1,4 +1,4 @@
-"""Stub outbound send after approval — updates durable state (real provider hooks go here)."""
+"""Outbound send after approval — SMTP when configured; otherwise durable state only."""
 
 from __future__ import annotations
 
@@ -8,15 +8,18 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from db.session import SessionLocal, bind_request_user_for_rls, reset_request_user_rls
 from models.application import Application
 from models.approval import Approval
+from models.job import Job
+from models.user import User
+from services.outbound_email import send_email_outbound
 
 logger = logging.getLogger(__name__)
 
 
 async def execute_approval_send_stub(session: AsyncSession, approval_id: str, user_id: str) -> None:
-    """Mark approval sent and application applied (stub: no external API call)."""
     approval = (
         await session.execute(select(Approval).where(Approval.id == approval_id, Approval.user_id == user_id))
     ).scalar_one_or_none()
@@ -27,15 +30,37 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
         logger.warning("send_stub: approval %s status=%s", approval_id, approval.status)
         return
 
-    app = await session.get(Application, approval.application_id)
-    if app is None or app.user_id != user_id:
+    app_row = await session.get(Application, approval.application_id)
+    if app_row is None or app_row.user_id != user_id:
         logger.warning("send_stub: application missing or wrong user")
+        return
+
+    user = await session.get(User, user_id)
+    if user is None:
+        logger.warning("send_stub: user %s missing", user_id)
+        return
+
+    job = await session.get(Job, app_row.job_id)
+
+    recipient = settings.outbound_send_recipient_override or user.email
+    subject = approval.subject or (f"Application — {job.title}" if job else "Application")
+
+    try:
+        if approval.channel == "email":
+            await send_email_outbound(to_addr=recipient, subject=subject, body=approval.draft_body)
+        else:
+            logger.info(
+                "send_stub: channel=%s has no SMTP integration; recording sent locally only",
+                approval.channel,
+            )
+    except Exception:
+        logger.exception("send_stub: outbound dispatch failed approval_id=%s", approval_id)
         return
 
     now = datetime.now(timezone.utc)
     approval.sent_at = now
-    app.status = "applied"
-    app.applied_at = now
+    app_row.status = "applied"
+    app_row.applied_at = now
     await session.commit()
 
 

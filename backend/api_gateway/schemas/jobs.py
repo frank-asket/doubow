@@ -48,3 +48,26 @@ class JobsListResponse(BaseModel):
     total: int
     page: int
     per_page: int
+
+
+class DiscoverJobItem(BaseModel):
+    source: str = Field(min_length=1, max_length=64)
+    external_id: str = Field(min_length=1, max_length=255)
+    title: str = Field(min_length=1, max_length=255)
+    company: str = Field(min_length=1, max_length=255)
+    location: str | None = Field(default=None, max_length=255)
+    salary_range: str | None = Field(default=None, max_length=128)
+    description: str = ""
+    url: str = ""
+    posted_at: datetime | None = None
+    score_template: dict | None = None
+
+
+class DiscoverJobsRequest(BaseModel):
+    jobs: list[DiscoverJobItem] = Field(min_length=1, max_length=100)
+
+
+class DiscoverJobsResponse(BaseModel):
+    created: int
+    updated: int
+    job_ids: list[str]

@@ -108,6 +108,25 @@ export interface JobScore {
 
 export type JobWithScore = Job & { score: JobScore }
 
+export interface DiscoverJobItem {
+  source: string
+  external_id: string
+  title: string
+  company: string
+  location?: string
+  salary_range?: string
+  description?: string
+  url?: string
+  posted_at?: string
+  score_template?: Record<string, unknown>
+}
+
+export interface DiscoverJobsResponse {
+  created: number
+  updated: number
+  job_ids: string[]
+}
+
 // ─── Applications ──────────────────────────────────────────────────────────
 
 export type ApplicationStatus =

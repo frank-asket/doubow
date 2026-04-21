@@ -23,6 +23,18 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     # When True, enqueue send-after-approve via Celery (`tasks.send_tasks`). Worker must run separately.
     use_celery_for_send: bool = False
+
+    # Optional SMTP for real outbound after approval (email channel). When disabled, send path logs only.
+    smtp_enabled: bool = False
+    smtp_host: str = "localhost"
+    smtp_port: int = 587
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    outbound_from_email: str | None = None
+    # When set, all approval sends go here (testing). Otherwise uses the authenticated user's email.
+    outbound_send_recipient_override: str | None = None
     cors_origins: list[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",

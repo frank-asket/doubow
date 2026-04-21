@@ -1,5 +1,5 @@
 import type {
-  JobWithScore, Application, IntegrityCheckResult,
+  JobWithScore, DiscoverJobItem, DiscoverJobsResponse, Application, IntegrityCheckResult,
   AutopilotRun, AutopilotScope, Approval, PrepSession,
   AgentState, ResumeProfile, UserPreferences, PaginatedResponse,
   DashboardSummary,
@@ -89,6 +89,11 @@ export const jobsApi = {
   },
   dismiss: (jobId: string) =>
     request<void>(`/v1/jobs/${jobId}/dismiss`, { method: 'POST' }),
+  discover: (jobs: DiscoverJobItem[]) =>
+    request<DiscoverJobsResponse>('/v1/jobs/discover', {
+      method: 'POST',
+      body: JSON.stringify({ jobs }),
+    }),
 }
 
 // ─── Applications ──────────────────────────────────────────────────────────

@@ -5,10 +5,21 @@ from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
 from schemas.errors import ErrorResponse
-from schemas.jobs import JobsListResponse
+from schemas.jobs import DiscoverJobsRequest, DiscoverJobsResponse, JobsListResponse
+from services.job_discovery_service import discover_upsert_jobs
 from services.jobs_service import dismiss_job_for_user, list_jobs as list_jobs_service
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
+
+
+@router.post("/discover", response_model=DiscoverJobsResponse)
+async def discover_jobs_route(
+    payload: DiscoverJobsRequest,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> DiscoverJobsResponse:
+    """Upsert jobs into the catalog (feed / connector → Postgres) and bootstrap scores for this user."""
+    return await discover_upsert_jobs(session=session, user_id=user.id, payload=payload)
 
 
 @router.get("", response_model=JobsListResponse)
