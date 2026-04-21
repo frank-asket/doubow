@@ -13,6 +13,55 @@ Doubow combines a modern Next.js frontend with a FastAPI backend to help users d
 - 📄 Parse resume into structured profile
 - 🤖 Monitor all agent activity
 
+## 🏗️ High-Level Architecture
+
+```mermaid
+flowchart LR
+  U[User Browser]
+  FE[Frontend\nNext.js App Router]
+  CL[Clerk Auth]
+  API[API Gateway\nFastAPI]
+  DB[(Supabase Postgres)]
+  RD[(Redis)]
+  PH[(PostHog)]
+  AG[Agent Services\nDiscover • Scoring • Writing • Apply • Prep • Monitor]
+
+  U --> FE
+  FE -->|JWT / session| CL
+  FE -->|Bearer Clerk JWT| API
+  API -->|Validate claims + ensure user| CL
+  API --> DB
+  API --> RD
+  API --> AG
+  AG --> DB
+  AG --> RD
+  FE --> PH
+  API --> PH
+```
+
+**Request path (typical):**
+- User interacts with dashboard routes in `frontend/`.
+- Frontend sends authenticated requests to `backend/api_gateway`.
+- FastAPI validates Clerk identity, scopes every read/write to `user_id`, and orchestrates domain services.
+- Services persist state in Postgres, use Redis for transient/queue-friendly workflows, and emit telemetry to PostHog.
+
+### Deployment View (Local)
+
+```mermaid
+flowchart TB
+  FE[Frontend Dev Server\nlocalhost:3000]
+  API[api_gateway container\nlocalhost:8000 -> :8080]
+  PG[(postgres container\n:5432)]
+  R[(redis container\n:6379)]
+  W[worker/model containers]
+
+  FE --> API
+  API --> PG
+  API --> R
+  W --> PG
+  W --> R
+```
+
 ## 🧱 Frontend + Backend Stack
 
 ### Frontend (`frontend/`)

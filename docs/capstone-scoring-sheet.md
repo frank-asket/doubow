@@ -16,20 +16,20 @@ Rate each criterion from 1-5, then multiply by its weight.
 
 | Category | Weight | Criteria | Score (1-5) | Weighted Score |
 |---|---:|---|---:|---:|
-| Technical Depth | 20% | Problem selection and scope |  |  |
-| Technical Depth | 20% | Architecture and design choices |  |  |
-| Technical Depth | 20% | Prompt/model interaction quality |  |  |
-| Technical Depth | 20% | Orchestration and control flow |  |  |
-| Engineering Practices | 20% | Code quality |  |  |
-| Engineering Practices | 20% | Logging and error handling |  |  |
-| Engineering Practices | 20% | Unit/integration testing |  |  |
-| Engineering Practices | 20% | Observability |  |  |
-| Production Readiness | 15% | Solution feasibility |  |  |
-| Production Readiness | 15% | Evaluation strategy |  |  |
-| Production Readiness | 15% | Deployment readiness |  |  |
-| Presentation | 15% | User interface quality |  |  |
-| Presentation | 15% | Demo quality |  |  |
-| Presentation | 15% | Communication clarity |  |  |
+| Technical Depth | 20% | Problem selection and scope | 4.5 |  |
+| Technical Depth | 20% | Architecture and design choices | 4.5 |  |
+| Technical Depth | 20% | Prompt/model interaction quality | 3.5 |  |
+| Technical Depth | 20% | Orchestration and control flow | 4.0 |  |
+| Engineering Practices | 20% | Code quality | 4.0 |  |
+| Engineering Practices | 20% | Logging and error handling | 4.0 |  |
+| Engineering Practices | 20% | Unit/integration testing | 4.0 |  |
+| Engineering Practices | 20% | Observability | 3.5 |  |
+| Production Readiness | 15% | Solution feasibility | 4.0 |  |
+| Production Readiness | 15% | Evaluation strategy | 3.0 |  |
+| Production Readiness | 15% | Deployment readiness | 3.5 |  |
+| Presentation | 15% | User interface quality | 4.5 |  |
+| Presentation | 15% | Demo quality | 3.5 |  |
+| Presentation | 15% | Communication clarity | 4.0 |  |
 
 ## Category Scoring Formula
 
@@ -52,6 +52,15 @@ Copy this into your notes/spreadsheet:
 - Production Readiness avg: `____ / 5` -> contribution: `____ * 0.15`
 - Presentation avg: `____ / 5` -> contribution: `____ * 0.15`
 - **Final Score**: `____ / 100`
+
+Draft filled values:
+
+- Technical Depth avg: `4.13 / 5` -> contribution: `82.5 * 0.20 = 16.5`
+- Engineering Practices avg: `3.88 / 5` -> contribution: `77.5 * 0.20 = 15.5`
+- Production Readiness avg: `3.50 / 5` -> contribution: `70.0 * 0.15 = 10.5`
+- Presentation avg: `4.00 / 5` -> contribution: `80.0 * 0.15 = 12.0`
+- **Weighted subtotal (per rubric weights listed): `54.5 / 70`**
+- **Normalized final score: `77.9 / 100`**
 
 ## Rating Anchors by Category
 
@@ -78,6 +87,17 @@ Copy this into your notes/spreadsheet:
 ## Reviewer Notes
 
 - Key strengths:
+  - Clear AI engineering scope with realistic product workflow (discover, scoring, approvals, prep).
+  - Solid architecture decomposition (Next.js frontend, FastAPI API gateway, Clerk auth, Postgres + Redis).
+  - Strong safety posture improvements: user-scoped tenancy, typed error envelopes, idempotency checks, integration tests.
+  - Dashboard UX quality significantly improved with cross-breakpoint visual regression coverage.
 - Key risks:
+  - Evaluation strategy for LLM quality is still light (limited quantitative quality benchmarks and acceptance gates).
+  - Observability is good for events but not yet full production ops (alerts, SLOs, tracing depth).
+  - Deployment hardening and rollback playbooks need tighter explicit documentation.
 - Must-fix before production:
+  - Add formal eval suite for prompt/model outputs (quality rubric + pass/fail thresholds).
+  - Define and document SLOs, alert conditions, and incident-response basics.
+  - Validate production auth/RLS posture end-to-end with non-superuser data access guarantees.
 - Recommended next step:
+  - Ship a `docs/capstone-readiness.md` package containing: eval metrics dashboard, deployment checklist, demo script, and final risk register.
