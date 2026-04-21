@@ -24,6 +24,10 @@ class ApplicationIdempotencyConflictError(Exception):
         self.prior_application_id = prior_application_id
 
 
+class ApplicationJobNotFoundError(Exception):
+    pass
+
+
 def _to_schema(app: Application, job: Job, score_row: JobScoreRow | None) -> ApplicationSchema:
     return ApplicationSchema(
         id=app.id,
@@ -104,18 +108,7 @@ async def create_application(
 
     job = await session.get(Job, payload.job_id)
     if not job:
-        job = Job(
-            id=payload.job_id,
-            source="manual",
-            external_id=f"seed-{uuid4().hex[:10]}",
-            title="Generated role",
-            company="Unknown",
-            location="Remote",
-            description="Seeded from application create",
-            url="https://example.com/jobs/generated",
-        )
-        session.add(job)
-        await session.flush()
+        raise ApplicationJobNotFoundError(f"Job not found: {payload.job_id}")
 
     app = Application(
         id=f"app_{uuid4().hex[:12]}",

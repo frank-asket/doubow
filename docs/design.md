@@ -76,3 +76,27 @@ When generating UI in Doubow:
 - Prefer dense, clear, production-like information layouts.
 - Keep structure modular and component-driven.
 - Avoid “template landing” styling patterns.
+
+## 9) Monochrome Style Guard (PR Gate)
+
+Current visual policy is strict monochrome: black, white, and gray only.
+
+Do not introduce color utility classes outside the zinc/neutral/black/white scale.
+
+Disallowed utility prefixes (Tailwind examples):
+- `emerald-*`, `green-*`, `lime-*`
+- `amber-*`, `yellow-*`, `orange-*`
+- `sky-*`, `blue-*`, `cyan-*`, `teal-*`
+- `violet-*`, `purple-*`, `indigo-*`, `pink-*`
+- `rose-*`, `red-*`
+
+Allowed:
+- `black`, `white`, `zinc-*`, `neutral-*`, `gray-*` (when needed)
+
+Pre-PR check (run from repo root):
+
+```bash
+rg "emerald|amber|sky|violet|rose|cyan|lime|teal|indigo|blue-|purple|green-|red-|orange-|yellow-|pink-" frontend --glob "*.{ts,tsx,css}"
+```
+
+If this command returns matches, the PR is not monochrome-compliant and must be fixed before merge.

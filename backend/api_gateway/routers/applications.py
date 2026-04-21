@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session import get_session
 from dependencies import get_authenticated_user, optional_idempotency_key
 from models.user import User
+from schemas.errors import ErrorResponse
 from schemas.applications import (
     ApplicationsListResponse,
     CreateApplicationRequest,
@@ -15,6 +16,7 @@ from schemas.applications import (
 )
 from services.applications_service import (
     ApplicationIdempotencyConflictError,
+    ApplicationJobNotFoundError,
     create_application,
     integrity_check,
     list_applications,
@@ -35,7 +37,7 @@ async def list_applications_route(
 @router.post(
     "",
     response_model=Application,
-    responses={409: {"model": ApplicationIdempotencyConflictResponse}},
+    responses={404: {"model": ErrorResponse}, 409: {"model": ApplicationIdempotencyConflictResponse}},
 )
 async def create_application_route(
     payload: CreateApplicationRequest,
@@ -56,6 +58,8 @@ async def create_application_route(
             prior_application_id=exc.prior_application_id,
         )
         return JSONResponse(status_code=status.HTTP_409_CONFLICT, content=body.model_dump())
+    except ApplicationJobNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.post("/integrity-check", response_model=IntegrityCheckResponse)

@@ -39,7 +39,7 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
       <span className="w-24 flex-shrink-0 text-xs text-zinc-500">{DIMENSION_LABELS[label] ?? label}</span>
       <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-900">
         <div
-          className="h-full rounded-full bg-emerald-400 transition-all duration-500"
+          className="h-full rounded-full bg-zinc-200 transition-all duration-500"
           style={{ width: `${scoreBarWidth(value)}%` }}
         />
       </div>
@@ -124,7 +124,7 @@ function JobCard({ job }: { job: JobWithScore }) {
               <ul className="space-y-1">
                 {job.score.fit_reasons.map((r, i) => (
                   <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
-                    <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-emerald-400" />
+                    <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-zinc-200" />
                     {r}
                   </li>
                 ))}
@@ -137,8 +137,8 @@ function JobCard({ job }: { job: JobWithScore }) {
                 <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-zinc-500">Watch out</p>
                 <ul className="space-y-1">
                   {job.score.risk_flags.map((r, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-rose-300">
-                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-rose-400" />
+                    <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-zinc-400" />
                       {r}
                     </li>
                   ))}
@@ -161,7 +161,7 @@ function JobCard({ job }: { job: JobWithScore }) {
         {/* Actions */}
         <div className="flex items-center gap-2 border-t border-zinc-800 pt-2">
           {queued ? (
-            <span className="text-xs font-medium text-emerald-300">✓ Added to queue</span>
+            <span className="text-xs font-medium text-zinc-100">✓ Added to queue</span>
           ) : (
             <button
               onClick={handleQueue}
@@ -361,7 +361,7 @@ export default function DiscoverPage() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Discover</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Discover</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Discover</h1>
           <p className="mt-2 text-sm text-zinc-400 sm:text-base">AI-matched roles based on your resume and preferences</p>
         </div>
@@ -433,7 +433,7 @@ export default function DiscoverPage() {
           ? (
             <div className="card p-6 sm:p-8 text-zinc-300">
               <div className="mx-auto max-w-2xl text-center">
-                <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-2xs font-medium text-amber-200">
+                <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-zinc-500/30 bg-zinc-800 px-2.5 py-1 text-2xs font-medium text-zinc-300">
                   No resume connected
                 </div>
                 <p className="text-lg font-medium text-zinc-100">No jobs yet — upload your resume to start matching.</p>
@@ -452,7 +452,7 @@ export default function DiscoverPage() {
             <div className="card p-6 sm:p-8">
               <div className="mx-auto max-w-2xl">
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <span className="badge bg-amber-500/15 text-amber-200 border-amber-500/30 text-2xs">Scoring in progress</span>
+                  <span className="badge bg-zinc-800 text-zinc-300 border-zinc-500/30 text-2xs">Scoring in progress</span>
                   {etaMinutes != null && (
                     <span className="badge text-2xs border-zinc-700 text-zinc-300"><Timer size={10} /> ~{etaMinutes} min</span>
                   )}
@@ -468,7 +468,7 @@ export default function DiscoverPage() {
                     return (
                       <div key={step} className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2">
                         <span className={cn('text-xs', active ? 'text-zinc-100' : 'text-zinc-400')}>{ONBOARDING_STEP_LABELS[step]}</span>
-                        <span className={cn('text-2xs', done ? 'text-emerald-300' : active ? 'text-amber-200' : 'text-zinc-500')}>
+                        <span className={cn('text-2xs', done ? 'text-zinc-100' : active ? 'text-zinc-300' : 'text-zinc-500')}>
                           {done ? 'Done' : active ? 'In progress' : 'Pending'}
                         </span>
                       </div>
@@ -476,7 +476,7 @@ export default function DiscoverPage() {
                   })}
                 </div>
                 <div className="mt-4 flex items-start gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-400">
-                  <ShieldCheck size={13} className="mt-0.5 text-emerald-300" />
+                  <ShieldCheck size={13} className="mt-0.5 text-zinc-100" />
                   You can leave this page. We keep processing in the background.
                 </div>
               </div>

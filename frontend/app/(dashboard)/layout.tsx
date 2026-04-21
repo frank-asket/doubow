@@ -1,11 +1,12 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import type { Route } from 'next'
 import {
   LayoutDashboard, Compass, ListFilter, CheckSquare, BookOpen,
-  FileText, Cpu, ChevronRight, Bell, Settings, LogOut, Menu, Search,
+  FileText, Cpu, Bell, Settings, LogOut, Menu, Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDashboard } from '@/hooks/useDashboard'
@@ -32,22 +33,22 @@ function NavItem({
     <Link
       href={href}
       className={cn(
-        'group flex items-center gap-2 rounded-xl border px-3 py-2 text-xs transition-all duration-150',
+        'group flex items-center gap-2.5 rounded-[10px] border px-3 py-2.5 text-[14px] transition-all duration-150',
         active
-          ? 'border-emerald-500/40 bg-emerald-500/10 font-medium text-emerald-200'
-          : 'border-transparent text-zinc-400 hover:border-zinc-800 hover:bg-zinc-900/70 hover:text-zinc-200'
+          ? 'border-[#2744cf] bg-[#1f3dbf] font-medium text-white shadow-sm'
+          : 'border-transparent text-[#d7def5] hover:border-white/20 hover:bg-white/10 hover:text-white'
       )}
     >
       <Icon
-        size={16}
-        className={cn(active ? 'text-emerald-300' : 'text-zinc-500 group-hover:text-zinc-300')}
+        size={17}
+        className={cn(active ? 'text-white' : 'text-[#d7def5] group-hover:text-white')}
       />
       <span className="flex-1">{label}</span>
       {count !== undefined && count > 0 && (
         <span
           className={cn(
             'text-2xs px-1.5 py-0.5 rounded-full font-medium tabular-nums',
-            urgent ? 'bg-amber-500/15 text-amber-300' : 'bg-emerald-500/15 text-emerald-300'
+            active ? 'bg-white/20 text-white' : 'bg-white/15 text-zinc-100'
           )}
         >
           {count}
@@ -60,6 +61,16 @@ function NavItem({
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { summary } = useDashboard()
   const path = usePathname()
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
+  )
+
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= 1024)
+    onResize()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const counts: Record<string, number> = {
     jobs: summary?.high_fit_count ?? 0,
@@ -68,22 +79,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="dashboard-shell flex min-h-screen bg-black text-zinc-50">
+    <div className="flex min-h-screen bg-[#f3f4f8] text-zinc-900">
       {/* Sidebar */}
-      <aside className="hidden w-[250px] flex-shrink-0 flex-col border-r border-zinc-900 bg-[#060606] lg:flex">
+      <aside className={cn('w-[210px] flex-shrink-0 flex-col rounded-r-2xl bg-[#020b31] text-zinc-100', isDesktop ? 'flex' : 'hidden')}>
         {/* Logo */}
-        <div className="border-b border-zinc-900 px-5 pb-4 pt-5">
+        <div className="border-b border-white/10 px-4 pb-4 pt-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/20 text-emerald-300">
-              <ChevronRight size={16} className="text-white" strokeWidth={1.75} />
-            </div>
-            <span className="text-[15px] font-semibold tracking-tight text-zinc-100">Doubow</span>
+            <span className="text-[33px] font-semibold tracking-tight text-white">Doubow.</span>
           </div>
-          <p className="ml-9 mt-1 text-2xs text-zinc-500">Job search AI</p>
+          <p className="mt-1 text-[11px] text-[#d7def5]/85">Career Command Center</p>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
           {NAV.map((item) => (
             <NavItem
               key={item.href}
@@ -97,24 +105,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Footer */}
-        <div className="space-y-1 border-t border-zinc-900 p-3">
-          <button className="flex w-full items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs text-zinc-400 transition-colors hover:border-zinc-800 hover:bg-zinc-900/70 hover:text-zinc-200">
+        <div className="space-y-1 border-t border-white/10 p-3">
+          <button className="flex w-full items-center gap-2 rounded-[10px] border border-transparent px-3 py-2 text-[14px] text-[#d7def5] transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white">
             <Bell size={16} />
             <span>Notifications</span>
           </button>
-          <button className="flex w-full items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-xs text-zinc-400 transition-colors hover:border-zinc-800 hover:bg-zinc-900/70 hover:text-zinc-200">
+          <button className="flex w-full items-center gap-2 rounded-[10px] border border-transparent px-3 py-2 text-[14px] text-[#d7def5] transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white">
             <Settings size={16} />
             <span>Settings</span>
           </button>
           <div className="mt-1 flex items-center gap-2 px-3 py-2">
-            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 text-2xs font-medium text-zinc-100">
+            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-2xs font-medium text-white">
               FL
             </div>
             <div className="flex-1 min-w-0">
-              <p className="truncate text-xs font-medium text-zinc-200">Franck L.</p>
-              <p className="truncate text-2xs text-zinc-500">Pro</p>
+              <p className="truncate text-xs font-medium text-zinc-100">Franck L.</p>
+              <p className="truncate text-2xs text-zinc-300">Pro</p>
             </div>
-            <button className="p-0.5 text-zinc-500 hover:text-zinc-300">
+            <button className="p-0.5 text-zinc-300 hover:text-white">
               <LogOut size={15} />
             </button>
           </div>
@@ -122,47 +130,59 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main */}
-      <main className="min-w-0 flex-1 bg-[#050505]">
+      <main className="min-w-0 flex-1 bg-[#f3f4f8]">
         {/* Desktop top bar */}
-        <div className="dashboard-topbar hidden h-14 items-center justify-between border-b border-zinc-900 px-6 lg:flex">
-          <div>
-            <p className="text-2xs text-zinc-500">Tracking / Dashboard</p>
-            <p className="text-sm font-medium text-zinc-100">
-              {NAV.find((i) => path === i.href || path.startsWith(i.href + '/'))?.label ?? 'Main Dashboard'}
-            </p>
+        <div className={cn('h-[78px] items-center justify-between border-b border-[#e7e8ee] bg-[#f8f8fb] px-7', isDesktop ? 'flex' : 'hidden')}>
+          <div className="relative w-full max-w-md">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <input
+              aria-label="Search dashboard"
+              className="h-10 w-full rounded-[10px] border border-[#e1e2e9] bg-[#f8f8fb] pl-9 pr-3 text-[13px] text-zinc-700 outline-none focus:border-indigo-300"
+              placeholder="Search anything here..."
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <button className="btn p-2">
+          <div className="ml-4 flex items-center gap-3">
+            <button className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e1e2e9] text-zinc-500 hover:bg-zinc-50">
               <Bell size={16} />
             </button>
-            <div className="relative">
-              <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
-              <input
-                aria-label="Search dashboard"
-                className="field h-8 w-56 pl-8 pr-3 text-xs"
-                placeholder="Search"
-              />
+            <div className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
+                FL
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-800">Franck L.</p>
+                <p className="text-xs text-zinc-500">
+                  {NAV.find((i) => path === i.href || path.startsWith(i.href + '/'))?.label ?? 'Dashboard'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Mobile/tablet top nav */}
-        <div className="sticky top-0 z-20 border-b border-zinc-900 bg-[#050505]/95 backdrop-blur lg:hidden">
+        <div className={cn('sticky top-0 z-20 border-b border-zinc-200 bg-white/95 backdrop-blur', isDesktop ? 'hidden' : 'block')}>
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/20">
-                <ChevronRight size={16} className="text-white" strokeWidth={1.75} />
-              </div>
               <div>
-                <p className="text-sm font-semibold text-zinc-100">Doubow</p>
+                <p className="text-sm font-bold text-zinc-900">Doubow.</p>
                 <p className="text-2xs text-zinc-500">Dashboard</p>
               </div>
             </div>
-            <button className="rounded-lg border border-zinc-800 p-2 text-zinc-300 hover:bg-zinc-900/60">
+            <button className="rounded-lg border border-zinc-300 p-2 text-zinc-600 hover:bg-zinc-100">
               <Menu size={16} />
             </button>
           </div>
-          <div className="px-3 pb-3 overflow-x-auto">
+          <div className="px-4 pb-3">
+            <div className="relative">
+              <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <input
+                aria-label="Search dashboard mobile"
+                className="h-10 w-full rounded-[10px] border border-[#e1e2e9] bg-[#f8f8fb] pl-9 pr-3 text-[13px] text-zinc-700 outline-none focus:border-indigo-300"
+                placeholder="Search anything here..."
+              />
+            </div>
+          </div>
+          <div className="overflow-x-auto px-3 pb-3">
             <div className="flex items-center gap-1.5 min-w-max">
               {NAV.map((item) => {
                 const Icon = item.icon
@@ -173,10 +193,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs transition-colors',
+                      'inline-flex items-center gap-1.5 rounded-xl border px-2 py-1 text-[13px] transition-colors sm:px-2.5 sm:py-1.5',
                       active
-                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200'
-                        : 'border-zinc-800 bg-zinc-900/70 text-zinc-400 hover:text-zinc-200'
+                        ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                        : 'border-zinc-200 bg-white text-zinc-500 hover:text-zinc-700'
                     )}
                   >
                     <Icon size={14} />
@@ -184,7 +204,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {count !== undefined && count > 0 ? (
                       <span className={cn(
                         'text-2xs px-1.5 py-0.5 rounded-full font-medium tabular-nums',
-                        item.urgent ? 'bg-amber-500/15 text-amber-300' : 'bg-emerald-500/15 text-emerald-300'
+                        active ? 'bg-indigo-100 text-indigo-700' : 'bg-zinc-100 text-zinc-600'
                       )}>
                         {count}
                       </span>

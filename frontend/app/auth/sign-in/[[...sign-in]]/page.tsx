@@ -6,9 +6,9 @@ export default function AuthSignInPage() {
 
   if (!publishableKey) {
     return (
-      <div className="rounded-xl border border-amber-500/35 bg-amber-500/10 p-5 text-sm text-amber-100">
-        <p className="font-semibold text-amber-50">Clerk sign-in is not configured</p>
-        <p className="mt-2 text-amber-100/90">
+      <div className="rounded-xl border border-zinc-500/35 bg-zinc-800 p-5 text-sm text-zinc-200">
+        <p className="font-semibold text-zinc-100">Clerk sign-in is not configured</p>
+        <p className="mt-2 text-zinc-300">
           Set <code className="rounded bg-black/30 px-1.5 py-0.5 text-xs">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code> in{" "}
           <code className="rounded bg-black/30 px-1.5 py-0.5 text-xs">frontend/.env.local</code> or the repo root{" "}
           <code className="rounded bg-black/30 px-1.5 py-0.5 text-xs">.env</code> (see{" "}

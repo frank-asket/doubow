@@ -133,7 +133,7 @@ export default function ResumePage() {
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <section className="rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Resume</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Resume</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">My resume</h1>
         <p className="mt-2 text-sm text-zinc-400 sm:text-base">Upload your resume to power matching, tailoring, and interview prep</p>
       </section>
@@ -142,7 +142,7 @@ export default function ResumePage() {
       <div
         className={cn(
           'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 mb-6',
-          dragOver ? 'border-emerald-500/40 bg-emerald-500/10' : uploaded ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-950'
+          dragOver ? 'border-zinc-300/40 bg-zinc-200/10' : uploaded ? 'border-zinc-300/40 bg-zinc-200/10' : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-950'
         )}
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
@@ -159,15 +159,15 @@ export default function ResumePage() {
 
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 size={28} className="animate-spin text-emerald-300" />
+            <Loader2 size={28} className="animate-spin text-zinc-100" />
             <p className="text-sm text-zinc-300">Uploading {fileName}…</p>
           </div>
         ) : uploaded ? (
           <div className="flex flex-col items-center gap-3">
-            <CheckCircle size={28} className="text-emerald-300" />
+            <CheckCircle size={28} className="text-zinc-100" />
             <div>
               <p className="text-sm font-medium text-zinc-100">{fileName}</p>
-              <p className="mt-0.5 text-xs text-emerald-300">Uploaded successfully</p>
+              <p className="mt-0.5 text-xs text-zinc-100">Uploaded successfully</p>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setUploaded(false); setFileName('') }}
@@ -189,9 +189,9 @@ export default function ResumePage() {
         )}
       </div>
       {uploadError && (
-        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
-          <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-rose-300" />
-          <p className="text-xs text-rose-300">{uploadError}</p>
+        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-zinc-500/40 bg-zinc-800 p-3">
+          <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-zinc-300" />
+          <p className="text-xs text-zinc-300">{uploadError}</p>
         </div>
       )}
 
@@ -243,8 +243,8 @@ export default function ResumePage() {
             className={cn(
               'flex items-start gap-2 text-xs rounded-md px-3 py-2 mt-4',
               prefsStatus.type === 'success'
-                ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
-                : 'border border-rose-500/30 bg-rose-500/10 text-rose-300'
+                ? 'border border-zinc-300/30 bg-zinc-200/10 text-zinc-200'
+                : 'border border-zinc-500/40 bg-zinc-800 text-zinc-300'
             )}
           >
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
@@ -252,7 +252,7 @@ export default function ResumePage() {
           </div>
         )}
         {!loadingProfile && !resumeExists && (
-          <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-zinc-500/40 bg-zinc-800 px-3 py-2 text-xs text-zinc-300">
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
             <span>Upload a resume first to enable preference saving.</span>
           </div>
@@ -306,7 +306,7 @@ export default function ResumePage() {
               <p>Upload your resume and click Analyze to see your profile breakdown</p>
             </div>
           )}
-          {analyzing && <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-emerald-300 align-middle" />}
+          {analyzing && <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-zinc-100 align-middle" />}
         </div>
       </div>
     </div>

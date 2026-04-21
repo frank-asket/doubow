@@ -1,6 +1,6 @@
 export const clerkAppearance = {
   variables: {
-    colorPrimary: "#4ade80",
+    colorPrimary: "#f4f4f5",
     colorBackground: "#0a0a0a",
     colorInputBackground: "#18181b",
     colorNeutral: "#a1a1aa",
@@ -11,7 +11,7 @@ export const clerkAppearance = {
     headerTitle: "text-white",
     headerSubtitle: "text-zinc-400",
     socialButtonsBlockButton: "border-zinc-700 bg-zinc-900 text-white",
-    formButtonPrimary: "bg-emerald-400 text-zinc-950 hover:bg-emerald-300",
-    footerActionLink: "text-emerald-400 hover:text-emerald-300",
+    formButtonPrimary: "bg-zinc-100 text-zinc-950 hover:bg-white",
+    footerActionLink: "text-zinc-100 hover:text-zinc-200",
   },
 };

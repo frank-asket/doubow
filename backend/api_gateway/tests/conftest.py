@@ -12,7 +12,7 @@ from db.session import Base
 from dependencies import get_authenticated_user
 from models.user import User
 import models  # noqa: F401
-from routers import applications, approvals, autopilot
+from routers import applications, approvals, autopilot, jobs
 
 
 class _DummySession:
@@ -40,6 +40,7 @@ def client() -> TestClient:
     app.include_router(applications.router, prefix="/v1")
     app.include_router(autopilot.router, prefix="/v1")
     app.include_router(approvals.router, prefix="/v1")
+    app.include_router(jobs.router, prefix="/v1")
     app.dependency_overrides[get_session] = _override_session
     app.dependency_overrides[get_authenticated_user] = _override_authenticated_user
     return TestClient(app)

@@ -25,32 +25,32 @@ const items = [
 
 export function Benefits() {
   return (
-    <section id="why" className="border-b border-zinc-800 bg-black">
-      <div className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+    <section id="why" className="border-b border-neutral-300/70 bg-white py-16 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
           Why choose Doubow?
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-400">
-          Built for <span className="text-zinc-300">people in any field</span>: care, trades,
+        <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-neutral-700 sm:text-lg">
+          Built for <span className="text-neutral-900">people in any field</span>: care, trades,
           office work, clinical roles, hospitality, technology—any title you’re pursuing. You
           keep control of applying; we help with preparation and clarity.
         </p>
 
-        <div className="mt-14 grid border-l border-t border-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => {
             const Icon = item.icon;
             return (
               <article
                 key={item.title}
-                className="border-b border-r border-zinc-800 p-8 text-left sm:p-10"
+                className="rounded-xl border border-neutral-300 bg-white p-5 text-left transition-colors duration-150 hover:border-neutral-400 sm:p-6"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 text-zinc-200">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-primary-500/40 bg-primary-500/15 text-neutral-1000">
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
-                <h3 className="mt-5 text-lg font-semibold text-white">
+                <h3 className="mt-4 text-base font-semibold text-neutral-1000 sm:text-lg">
                   {item.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                <p className="mt-2 text-sm leading-relaxed text-neutral-700">
                   {item.body}
                 </p>
               </article>

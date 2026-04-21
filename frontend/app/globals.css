@@ -3,16 +3,63 @@
 @tailwind utilities;
 
 :root {
-  --background: #000000;
-  --foreground: #fafafa;
-  --mint: #34d399;
-  --mint-bright: #6ee7b7;
-  --card: #0a0a0a;
-  --border: #27272a;
-  --muted: #a1a1aa;
-  --surface-2: #111113;
+  /* Djamo-inspired RGB tokens for Tailwind alpha utilities */
+  --primary-500: 255 188 1;
+  --primary-600: 232 191 0;
+  --secondary-500: 0 28 240;
+  --secondary-600: 12 41 255;
+  --secondary-accent: 255 144 165;
+  --neutral-0: 255 255 255;
+  --neutral-50: 249 250 251;
+  --neutral-300: 209 213 219;
+  --neutral-400: 156 163 175;
+  --neutral-500: 107 114 128;
+  --neutral-600: 75 85 99;
+  --neutral-700: 55 65 81;
+  --neutral-800: 31 41 55;
+  --neutral-900: 17 24 39;
+  --neutral-1000: 0 0 0;
+  --success-500: 49 182 122;
+  --warning-500: 253 60 45;
+
+  --background: #ffffff;
+  --foreground: #111827;
+  --mint: #e8bf00;
+  --mint-bright: #ffbc01;
+  --card: #ffffff;
+  --border: #d1d5db;
+  --muted: #6b7280;
+  --surface-2: #f9fafb;
   --sidebar-width: 224px;
   --header-height: 56px;
+}
+
+.dark {
+  --primary-500: 255 196 26;
+  --primary-600: 242 205 64;
+  --secondary-500: 61 92 255;
+  --secondary-600: 92 119 255;
+  --secondary-accent: 255 163 181;
+  --neutral-0: 3 7 18;
+  --neutral-50: 15 23 42;
+  --neutral-300: 71 85 105;
+  --neutral-400: 100 116 139;
+  --neutral-500: 148 163 184;
+  --neutral-600: 203 213 225;
+  --neutral-700: 226 232 240;
+  --neutral-800: 241 245 249;
+  --neutral-900: 248 250 252;
+  --neutral-1000: 255 255 255;
+  --success-500: 74 222 128;
+  --warning-500: 251 113 133;
+  --background: #030712;
+  --foreground: #f8fafc;
+  --mint: #ffd64d;
+  --mint-bright: #ffe082;
+  --card: #0f172a;
+  --border: #334155;
+  --muted: #94a3b8;
+  --surface-2: #111827;
 }
 
 html {
@@ -57,22 +104,22 @@ body {
   }
 
   /* Fit score colors */
-  .fit-high { @apply border border-emerald-500/30 bg-emerald-500/10 text-emerald-300; }
+  .fit-high { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
   .fit-mid  { @apply border border-zinc-700 bg-zinc-900 text-zinc-300; }
-  .fit-low  { @apply border border-rose-500/30 bg-rose-500/10 text-rose-300; }
+  .fit-low  { @apply border border-zinc-600/40 bg-zinc-900/80 text-zinc-300; }
 
   /* Status badges */
   .badge { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium; }
-  .badge-applied   { @apply border border-emerald-500/30 bg-emerald-500/10 text-emerald-300; }
-  .badge-interview { @apply border border-sky-500/30 bg-sky-500/10 text-sky-300; }
-  .badge-pending   { @apply border border-amber-500/30 bg-amber-500/10 text-amber-300; }
-  .badge-rejected  { @apply border border-rose-500/30 bg-rose-500/10 text-rose-300; }
-  .badge-offer     { @apply border border-violet-500/30 bg-violet-500/10 text-violet-300; }
+  .badge-applied   { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .badge-interview { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .badge-pending   { @apply border border-zinc-500/40 bg-zinc-800 text-zinc-300; }
+  .badge-rejected  { @apply border border-zinc-500/40 bg-zinc-800 text-zinc-300; }
+  .badge-offer     { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
   .badge-saved     { @apply border border-zinc-700 bg-zinc-900 text-zinc-300; }
 
   /* Channel badges */
-  .ch-email    { @apply border border-emerald-500/30 bg-emerald-500/10 text-emerald-300; }
-  .ch-linkedin { @apply border border-sky-500/30 bg-sky-500/10 text-sky-300; }
+  .ch-email    { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .ch-linkedin { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
   .ch-site     { @apply border border-zinc-700 bg-zinc-900 text-zinc-300; }
 
   /* Buttons */
@@ -89,13 +136,13 @@ body {
     border-color: color-mix(in oklab, var(--border), white 10%);
   }
   .btn-primary {
-    background: var(--mint);
-    color: var(--background);
-    border-color: var(--mint);
+    background: #f4f4f5;
+    color: #09090b;
+    border-color: #f4f4f5;
   }
   .btn-primary:hover {
-    background: var(--mint-bright);
-    border-color: var(--mint-bright);
+    background: #ffffff;
+    border-color: #ffffff;
   }
   .btn-danger {
     @apply border-danger-border text-danger-text
@@ -122,7 +169,7 @@ body {
     color: var(--muted);
   }
   .field:focus {
-    border-color: var(--mint);
+    border-color: #f4f4f5;
   }
 
   /* Shimmer skeleton */
@@ -141,7 +188,7 @@ body {
   .dashboard-shell {
     @apply tracking-normal;
     background:
-      radial-gradient(1200px 480px at 50% -10%, rgba(52, 211, 153, 0.18), transparent 55%),
+      radial-gradient(1200px 480px at 50% -10%, rgba(244, 244, 245, 0.12), transparent 55%),
       linear-gradient(to right, rgba(63, 63, 70, 0.22) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(63, 63, 70, 0.22) 1px, transparent 1px),
       #040405;
@@ -150,12 +197,12 @@ body {
   }
 
   .dashboard-shell h1 {
-    @apply text-[1.4rem] sm:text-[1.75rem] font-semibold;
+    @apply text-[1.4rem] sm:text-[1.75rem] font-bold;
     letter-spacing: -0.025em;
   }
 
   .dashboard-shell h2 {
-    @apply text-[1.1rem] sm:text-[1.2rem] font-semibold;
+    @apply text-[1.1rem] sm:text-[1.2rem] font-bold;
     letter-spacing: -0.02em;
   }
 
@@ -167,10 +214,10 @@ body {
 
   .dashboard-shell .btn.btn-primary {
     @apply font-semibold;
-    background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+    background: linear-gradient(180deg, #f4f4f5 0%, #d4d4d8 100%);
     color: #030712;
-    border-color: rgba(52, 211, 153, 0.75);
-    box-shadow: 0 0 24px -8px rgba(52, 211, 153, 0.75);
+    border-color: rgba(244, 244, 245, 0.75);
+    box-shadow: 0 0 24px -8px rgba(244, 244, 245, 0.4);
   }
 
   .dashboard-shell .badge {
@@ -229,13 +276,13 @@ body {
   .dashboard-topbar {
     border-bottom: 1px solid rgba(63, 63, 70, 0.6);
     background:
-      radial-gradient(700px 180px at 40% -30%, rgba(52, 211, 153, 0.14), transparent 60%),
+      radial-gradient(700px 180px at 40% -30%, rgba(244, 244, 245, 0.1), transparent 60%),
       rgba(9, 9, 11, 0.72);
     backdrop-filter: blur(10px);
   }
 
   .dashboard-title {
-    @apply text-zinc-100 font-semibold;
+    @apply text-zinc-100 font-bold;
     letter-spacing: -0.02em;
   }
 

@@ -67,45 +67,45 @@ export function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="border-b border-zinc-800 bg-black py-20">
+    <section id="faq" className="border-b border-neutral-300/70 bg-white py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-xl">
-            <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
               Your questions, answered
             </h2>
-            <p className="mt-4 text-lg text-zinc-400">
+            <p className="mt-4 text-lg text-neutral-700">
               Straightforward answers—no jargon required.
             </p>
           </div>
           <Link
             href="/discover"
-            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-emerald-400 hover:text-emerald-300"
+            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-neutral-800 hover:text-neutral-1000"
           >
             Create account now <span aria-hidden>&gt;</span>
           </Link>
         </div>
 
-        <div className="mt-14 grid border-t border-l border-zinc-800 sm:grid-cols-2">
+        <div className="mt-14 grid border-t border-l border-neutral-300 sm:grid-cols-2">
           {faqs.map((item, idx) => {
             const isOpen = open === idx;
             return (
-              <div key={item.q} className="border-b border-r border-zinc-800">
+              <div key={item.q} className="border-b border-r border-neutral-300">
                 <button
                   type="button"
-                  className="flex w-full items-start justify-between gap-4 p-5 text-left text-sm font-medium text-white sm:p-6"
+                  className="flex w-full items-start justify-between gap-4 p-5 text-left text-sm font-medium text-neutral-1000 sm:p-6"
                   onClick={() => setOpen(isOpen ? null : idx)}
                   aria-expanded={isOpen}
                 >
                   <span>{item.q}</span>
                   <Plus
-                    className={`h-4 w-4 shrink-0 text-zinc-400 transition ${
+                    className={`h-4 w-4 shrink-0 text-neutral-500 transition ${
                       isOpen ? "rotate-45" : ""
                     }`}
                   />
                 </button>
                 {isOpen ? (
-                  <div className="border-t border-zinc-800 px-5 pb-5 pt-0 text-sm leading-relaxed text-zinc-400 sm:px-6 sm:pb-6">
+                  <div className="border-t border-neutral-300 px-5 pb-5 pt-0 text-sm leading-relaxed text-neutral-700 sm:px-6 sm:pb-6">
                     {item.a}
                   </div>
                 ) : null}

@@ -1,60 +1,72 @@
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, ShieldCheck, Sparkles } from "lucide-react";
 import { DashboardPreview } from "@/components/doubow/DashboardPreview";
 
 export function Hero() {
   return (
-    <section id="product" className="border-b border-zinc-800">
-      <div className="mx-auto max-w-6xl px-4 pb-6 pt-14 text-center sm:px-6 sm:pt-20 lg:px-8 lg:pt-24">
-        <h1 className="text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem] lg:leading-[1.1]">
-          The platform for your next chapter—dream job or your own venture
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-sm font-medium leading-snug text-emerald-400/95 sm:text-base">
-          Production-grade automation for your profile, pipeline, and materials—you still click Apply and Send.
-        </p>
-        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg">
-          Doubow is built for people actively looking for opportunity:{" "}
-          <span className="text-zinc-200">
-            land a role you want, or professionalize the story behind a business or side project you’re
-            building.
-          </span>{" "}
-          In one workspace you <span className="text-zinc-200">keep résumé, credentials, and jobs organized</span>,
-          get <span className="text-zinc-200">tailored application wording</span> grounded in your real profile,
-          and <span className="text-zinc-200">practice interviews</span>. We automate the heavy lifting—not
-          decisions on your behalf. You always{" "}
-          <span className="text-zinc-200">submit on the employer&apos;s or LinkedIn&apos;s own site</span>; with
-          Gmail connected we save <span className="text-zinc-200">draft emails</span> you review before anything
-          goes out.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+    <section id="product" className="border-b border-neutral-300/70">
+      <div className="mx-auto max-w-6xl px-4 pb-8 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pt-24">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary-500/40 bg-primary-500/10 px-3 py-1 text-2xs font-medium uppercase tracking-[0.18em] text-neutral-900">
+            <Sparkles size={12} />
+            Human-in-the-loop career agent
+          </div>
+          <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-neutral-1000 sm:text-5xl lg:text-[3.3rem] lg:leading-[1.06]">
+            A calmer way to run your job search
+          </h1>
+          <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-neutral-700 sm:text-lg">
+            Doubow helps you discover better-fit roles, tailor materials with your real resume data, and stay ready
+            for interviews. The automation is fast, but approvals stay in your hands.
+          </p>
+        </div>
+
+        <div className="mx-auto mt-6 grid max-w-4xl gap-2.5 sm:grid-cols-3">
+          <div className="rounded-xl border border-neutral-300 bg-white px-3.5 py-3 text-left">
+            <p className="text-2xs uppercase tracking-wider text-neutral-600">Time to first matches</p>
+            <p className="mt-1 text-lg font-semibold text-neutral-1000">~2 min</p>
+          </div>
+          <div className="rounded-xl border border-neutral-300 bg-white px-3.5 py-3 text-left">
+            <p className="text-2xs uppercase tracking-wider text-neutral-600">Approval safety</p>
+            <p className="mt-1 flex items-center gap-1 text-lg font-semibold text-neutral-1000">
+              <ShieldCheck size={14} className="text-neutral-1000" />
+              Always-on gate
+            </p>
+          </div>
+          <div className="rounded-xl border border-neutral-300 bg-white px-3.5 py-3 text-left">
+            <p className="text-2xs uppercase tracking-wider text-neutral-600">Fit scoring</p>
+            <p className="mt-1 text-lg font-semibold text-neutral-1000">5 dimensions</p>
+          </div>
+        </div>
+
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/discover"
-            className="inline-flex rounded-full bg-emerald-400 px-8 py-3.5 text-sm font-semibold text-zinc-950 shadow-[0_0_40px_-4px_rgba(74,222,128,0.65)] transition hover:bg-emerald-300"
+            className="inline-flex rounded-full bg-primary-500 px-8 py-3.5 text-sm font-semibold text-black shadow-[0_16px_40px_-18px_rgba(255,188,1,0.8)] transition hover:bg-primary-600"
           >
             Get started now
           </Link>
           <a
             href="/auth/sign-up"
-            className="inline-flex rounded-full border border-zinc-600 px-7 py-3.5 text-sm font-semibold text-zinc-200 transition hover:border-zinc-400 hover:text-white"
+            className="inline-flex rounded-full border border-neutral-400 px-7 py-3.5 text-sm font-semibold text-neutral-800 transition hover:border-neutral-700 hover:text-neutral-1000"
           >
             See pricing
           </a>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-sm text-zinc-400">
-          <span className="text-zinc-500">Doubow members</span>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm text-neutral-700">
+          <span className="text-neutral-500">Doubow members</span>
           <span className="flex gap-0.5" role="img" aria-label="5 out of 5 stars">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className="h-4 w-4 fill-amber-400 text-amber-400"
+                className="h-4 w-4 fill-primary-500 text-primary-500"
                 strokeWidth={0}
               />
             ))}
           </span>
-          <span className="font-semibold text-white">4.9</span>
+          <span className="font-semibold text-neutral-1000">4.9</span>
           <span
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400 text-xs font-bold text-zinc-950"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-500 text-xs font-bold text-black"
             aria-hidden
           >
             D

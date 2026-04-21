@@ -24,13 +24,13 @@ const steps = [
 
 function MockSignup() {
   return (
-    <div className="mt-6 space-y-2 rounded-xl border border-zinc-800 bg-black/40 p-3">
-      <div className="h-8 rounded-lg bg-zinc-900/80 px-2 text-[10px] leading-8 text-zinc-500">
+    <div className="mt-6 space-y-2 rounded-xl border border-neutral-300 bg-neutral-50 p-3">
+      <div className="h-8 rounded-lg bg-white px-2 text-[10px] leading-8 text-neutral-700">
         Resume PDF uploaded
       </div>
-      <div className="flex h-8 items-center justify-between rounded-lg bg-zinc-900/80 px-2 text-[10px] text-zinc-400">
+      <div className="flex h-8 items-center justify-between rounded-lg bg-white px-2 text-[10px] text-neutral-700">
         <span>Inbox connected</span>
-        <span className="text-emerald-400">Active</span>
+        <span className="text-neutral-1000">Active</span>
       </div>
     </div>
   );
@@ -38,11 +38,11 @@ function MockSignup() {
 
 function MockFund() {
   return (
-    <div className="mt-6 space-y-2 rounded-xl border border-zinc-800 bg-black/40 p-3">
-      <p className="text-[10px] text-zinc-500">Output for Metro Health · ICU Nurse</p>
-      <div className="flex h-9 items-center justify-between rounded-lg border border-zinc-700 bg-zinc-900/60 px-2">
-        <span className="truncate text-xs text-white">Resume_Alex_MetroHealth_ICUNurse.pdf</span>
-        <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
+    <div className="mt-6 space-y-2 rounded-xl border border-neutral-300 bg-neutral-50 p-3">
+      <p className="text-[10px] text-neutral-700">Output for Metro Health · ICU Nurse</p>
+      <div className="flex h-9 items-center justify-between rounded-lg border border-neutral-300 bg-white px-2">
+        <span className="truncate text-xs text-neutral-1000">Resume_Alex_MetroHealth_ICUNurse.pdf</span>
+        <span className="flex items-center gap-1 text-[10px] font-medium text-neutral-900">
           Tailored
           <ChevronDown className="h-3 w-3 opacity-60" />
         </span>
@@ -53,14 +53,14 @@ function MockFund() {
 
 function MockTrade() {
   return (
-    <div className="mt-6 space-y-2 rounded-xl border border-zinc-800 bg-black/40 p-3">
-      <div className="flex items-center justify-between rounded-lg bg-zinc-900/50 px-2 py-2 text-[10px] text-zinc-400">
+    <div className="mt-6 space-y-2 rounded-xl border border-neutral-300 bg-neutral-50 p-3">
+      <div className="flex items-center justify-between rounded-lg bg-white px-2 py-2 text-[10px] text-neutral-700">
         <span>From</span>
-        <span className="font-mono text-zinc-200">you@domain.com</span>
+        <span className="font-mono text-neutral-900">you@domain.com</span>
       </div>
-      <div className="flex items-center justify-between rounded-lg bg-zinc-900/50 px-2 py-2 text-[11px]">
-        <span className="text-zinc-400">Status</span>
-        <span className="text-emerald-400">Draft ready</span>
+      <div className="flex items-center justify-between rounded-lg bg-white px-2 py-2 text-[11px]">
+        <span className="text-neutral-600">Status</span>
+        <span className="text-neutral-1000">Draft ready</span>
       </div>
     </div>
   );
@@ -68,36 +68,36 @@ function MockTrade() {
 
 export function HowItWorks() {
   return (
-    <section id="how" className="border-b border-zinc-800 bg-black py-20">
+    <section id="how" className="border-b border-neutral-300/70 bg-white py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
               How it works
             </h2>
-            <p className="mt-4 max-w-xl text-lg text-zinc-400">
-              From your résumé to <span className="text-zinc-300">saved roles</span> to{" "}
-              <span className="text-zinc-300">clear application materials per job</span>—with you
+            <p className="mt-3 max-w-xl text-base leading-relaxed text-neutral-700 sm:text-lg">
+              From your résumé to <span className="text-neutral-900">saved roles</span> to{" "}
+              <span className="text-neutral-900">clear application materials per job</span>—with you
               choosing when and where to hit submit.
             </p>
           </div>
           <Link
             href="/discover"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-400 hover:text-emerald-300"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-neutral-800 hover:text-neutral-1000"
           >
             Create account now <span aria-hidden>&gt;</span>
           </Link>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-10 grid gap-2.5 md:grid-cols-3">
           {steps.map((step) => (
             <div
               key={step.n}
-              className="rounded-2xl border border-zinc-800 bg-[#0c0c0c] p-6"
+              className="rounded-xl border border-neutral-300 bg-white p-5 transition-colors duration-150 hover:border-neutral-400 sm:p-6"
             >
-              <span className="text-3xl font-semibold text-zinc-700">{step.n}</span>
-              <h3 className="mt-3 text-lg font-semibold text-white">{step.title}</h3>
-              <p className="mt-2 text-sm text-zinc-400">{step.body}</p>
+              <span className="text-2xl font-semibold text-primary-600">{step.n}</span>
+              <h3 className="mt-2.5 text-base font-semibold text-neutral-1000 sm:text-lg">{step.title}</h3>
+              <p className="mt-2 text-sm text-neutral-700">{step.body}</p>
               {step.mock === "signup" ? <MockSignup /> : null}
               {step.mock === "fund" ? <MockFund /> : null}
               {step.mock === "trade" ? <MockTrade /> : null}

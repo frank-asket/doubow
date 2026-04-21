@@ -6,6 +6,7 @@ from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
 from dependencies import require_idempotency_key
+from schemas.errors import ErrorResponse
 from schemas.approvals import (
     Approval,
     ApprovalIdempotencyConflictResponse,
@@ -33,7 +34,7 @@ async def list_approvals_route(
 @router.post(
     "/{approval_id}/approve",
     response_model=ApproveApprovalResponse,
-    responses={409: {"model": ApprovalIdempotencyConflictResponse}},
+    responses={404: {"model": ErrorResponse}, 409: {"model": ApprovalIdempotencyConflictResponse}},
 )
 async def approve_approval(
     approval_id: str,
@@ -60,7 +61,11 @@ async def approve_approval(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
-@router.post("/{approval_id}/reject", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/{approval_id}/reject",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"model": ErrorResponse}},
+)
 async def reject_approval_route(
     approval_id: str,
     session: AsyncSession = Depends(get_session),

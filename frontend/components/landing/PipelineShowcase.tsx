@@ -10,7 +10,7 @@ const roles = [
 
 function Initial({ name }: { name: string }) {
   return (
-    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-xs font-bold text-white">
+    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500/25 text-xs font-bold text-neutral-1000">
       {name.slice(0, 1)}
     </span>
   );
@@ -18,22 +18,22 @@ function Initial({ name }: { name: string }) {
 
 export function PipelineShowcase() {
   return (
-    <section id="product" className="border-b border-zinc-800 bg-black py-20">
+    <section id="product" className="border-b border-neutral-300/70 bg-white py-20">
       <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
         <div>
-          <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
             Every sector, matched worldwide
           </h2>
-          <p className="mt-4 text-lg text-zinc-400">
+          <p className="mt-4 text-lg text-neutral-700">
             Nurses, teachers, drivers, clinicians, accountants, technicians—Doubow is for anyone
             updating their career. Save roles you find (or ideas from our search helper), then get{" "}
-            <span className="text-zinc-300">tailored wording</span> and a clear path to{" "}
-            <span className="text-zinc-300">apply on the real site</span>. Connect Gmail if you want
-            application emails saved as <span className="text-zinc-300">drafts</span> to edit and send.
+            <span className="text-neutral-900">tailored wording</span> and a clear path to{" "}
+            <span className="text-neutral-900">apply on the real site</span>. Connect Gmail if you want
+            application emails saved as <span className="text-neutral-900">drafts</span> to edit and send.
           </p>
           <Link
             href="/discover"
-            className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-emerald-400 hover:text-emerald-300"
+            className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-neutral-800 hover:text-neutral-1000"
           >
             Open dashboard <span aria-hidden>&gt;</span>
           </Link>
@@ -42,17 +42,17 @@ export function PipelineShowcase() {
           {roles.concat(roles).map((c, i) => (
             <div
               key={`${c.title}-${i}`}
-              className="flex min-w-[140px] flex-col gap-2 rounded-2xl border border-zinc-800 bg-[#0c0c0c] p-4"
+              className="flex min-w-[140px] flex-col gap-2 rounded-2xl border border-neutral-300 bg-white p-4"
             >
               <div className="flex items-center gap-2">
                 <Initial name={c.company} />
-                <span className="text-sm font-semibold text-white">{c.title}</span>
+                <span className="text-sm font-semibold text-neutral-1000">{c.title}</span>
               </div>
-              <p className="text-xs text-zinc-500">{c.company}</p>
-              <p className="font-mono text-sm text-white">{c.match}</p>
+              <p className="text-xs text-neutral-500">{c.company}</p>
+              <p className="font-mono text-sm text-neutral-1000">{c.match}</p>
               <p
                 className={`text-xs font-semibold ${
-                  c.up ? "text-emerald-400" : "text-red-400"
+                  c.up ? "text-neutral-900" : "text-neutral-500"
                 }`}
               >
                 {c.delta}

@@ -87,7 +87,7 @@ function StarStoryCard({ story, index }: { story: StarStory; index: number }) {
         className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-zinc-950"
       >
         <div className="flex items-center gap-2">
-          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-2xs font-medium text-emerald-300">
+          <span className="rounded-full border border-zinc-300/30 bg-zinc-200/10 px-2 py-0.5 text-2xs font-medium text-zinc-100">
             Story {index + 1}
           </span>
           <span className="line-clamp-1 text-xs font-medium text-zinc-200">
@@ -110,7 +110,7 @@ function StarStoryCard({ story, index }: { story: StarStory; index: number }) {
         <div className="animate-slide-up divide-y divide-zinc-800 border-t border-zinc-800">
           {sections.map(([label, text]) => (
             <div key={label} className="px-4 py-3 flex gap-3">
-              <span className="w-20 flex-shrink-0 pt-0.5 text-2xs font-semibold uppercase tracking-wider text-emerald-300">
+              <span className="w-20 flex-shrink-0 pt-0.5 text-2xs font-semibold uppercase tracking-wider text-zinc-100">
                 {label}
               </span>
               <p className="text-xs leading-relaxed text-zinc-300">{text}</p>
@@ -130,7 +130,7 @@ function QuestionList({ questions }: { questions: string[] }) {
           key={i}
           className="flex items-start gap-3 rounded-lg border border-zinc-800 px-4 py-3 transition-colors hover:border-zinc-700 hover:bg-zinc-950"
         >
-          <span className="w-5 flex-shrink-0 text-xs font-semibold tabular-nums text-emerald-300">
+          <span className="w-5 flex-shrink-0 text-xs font-semibold tabular-nums text-zinc-100">
             Q{i + 1}
           </span>
           <p className="text-xs leading-relaxed text-zinc-300">{q}</p>
@@ -271,7 +271,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             className={cn(
               'px-3 py-1.5 rounded-md text-xs transition-all duration-150 flex items-center gap-1.5',
               activeTab === tab.key
-                ? 'border border-emerald-500/30 bg-emerald-500/10 font-medium text-emerald-300'
+                ? 'border border-zinc-300/30 bg-zinc-200/10 font-medium text-zinc-100'
                 : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
             )}
           >
@@ -322,7 +322,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
               <div className="animate-fade-in rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-200">
                 {storyOutput}
                 {generatingStory && (
-                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-emerald-300 align-middle" />
+                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-zinc-100 align-middle" />
                 )}
               </div>
             )}
@@ -354,7 +354,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
               <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-200">
                 {briefOutput}
                 {generatingBrief && (
-                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-emerald-300 align-middle" />
+                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-zinc-100 align-middle" />
                 )}
               </div>
             ) : (
@@ -411,7 +411,7 @@ export default function PrepPage() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Interview prep</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Interview prep</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Interview prep</h1>
           <p className="mt-2 text-sm text-zinc-400 sm:text-base">STAR-R stories, tailored questions, and company briefs</p>
         </div>
@@ -424,9 +424,9 @@ export default function PrepPage() {
       </div>
 
       {/* Info banner */}
-      <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5">
-        <Sparkles size={14} className="mt-0.5 flex-shrink-0 text-emerald-300" />
-        <p className="text-xs text-emerald-200">
+      <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-zinc-300/30 bg-zinc-200/10 p-3.5">
+        <Sparkles size={14} className="mt-0.5 flex-shrink-0 text-zinc-100" />
+        <p className="text-xs text-zinc-200">
           <span className="font-medium">Prep is tailored per application.</span>{' '}
           Questions and STAR-R stories are generated from your resume + the specific job description.
         </p>

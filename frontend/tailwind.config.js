@@ -35,9 +35,42 @@ module.exports = {
         },
         // Semantic
         danger:  { bg: '#FCEBEB', border: '#F09595', text: '#791F1F' },
-        warning: { bg: '#FAEEDA', border: '#EF9F27', text: '#633806' },
+        warning: {
+          bg: '#FAEEDA',
+          border: '#EF9F27',
+          text: '#633806',
+          500: 'rgb(var(--warning-500) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--warning-500) / <alpha-value>)',
+        },
         info:    { bg: '#E6F1FB', border: '#85B7EB', text: '#0C447C' },
         purple:  { bg: '#EEEDFE', border: '#AFA9EC', text: '#3C3489' },
+        primary: {
+          500: 'rgb(var(--primary-500) / <alpha-value>)',
+          600: 'rgb(var(--primary-600) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--primary-500) / <alpha-value>)',
+        },
+        secondary: {
+          500: 'rgb(var(--secondary-500) / <alpha-value>)',
+          600: 'rgb(var(--secondary-600) / <alpha-value>)',
+          accent: 'rgb(var(--secondary-accent) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--secondary-500) / <alpha-value>)',
+        },
+        neutral: {
+          0: 'rgb(var(--neutral-0) / <alpha-value>)',
+          50: 'rgb(var(--neutral-50) / <alpha-value>)',
+          300: 'rgb(var(--neutral-300) / <alpha-value>)',
+          400: 'rgb(var(--neutral-400) / <alpha-value>)',
+          500: 'rgb(var(--neutral-500) / <alpha-value>)',
+          600: 'rgb(var(--neutral-600) / <alpha-value>)',
+          700: 'rgb(var(--neutral-700) / <alpha-value>)',
+          800: 'rgb(var(--neutral-800) / <alpha-value>)',
+          900: 'rgb(var(--neutral-900) / <alpha-value>)',
+          1000: 'rgb(var(--neutral-1000) / <alpha-value>)',
+        },
+        success: {
+          500: 'rgb(var(--success-500) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--success-500) / <alpha-value>)',
+        },
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],

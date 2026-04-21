@@ -36,6 +36,15 @@ class Settings(BaseSettings):
     openrouter_api_url: str = "https://openrouter.ai/api/v1"
     # OpenRouter optional attribution header (e.g. your app URL).
     openrouter_http_referer: str | None = "http://localhost:3000"
+    # Feature flag: use LangChain structured prompting for resume analysis.
+    use_langchain: bool = False
+
+    # PostHog (optional). When configured, telemetry is mirrored to PostHog and
+    # activation KPI is sourced from PostHog events.
+    posthog_host: str = "https://eu.posthog.com"
+    posthog_project_id: str | None = None
+    posthog_personal_api_key: str | None = None
+    posthog_project_api_key: str | None = None
 
 
 settings = Settings()

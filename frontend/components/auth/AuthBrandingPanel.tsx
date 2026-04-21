@@ -14,8 +14,8 @@ export function AuthBrandingPanel() {
         className="pointer-events-none absolute inset-0 opacity-[0.35]"
         aria-hidden
       >
-        <div className="absolute -left-1/4 top-0 h-80 w-80 rounded-full bg-emerald-500/20 blur-[100px]" />
-        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-emerald-600/10 blur-[80px]" />
+        <div className="absolute -left-1/4 top-0 h-80 w-80 rounded-full bg-zinc-200/15 blur-[100px]" />
+        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-zinc-300/10 blur-[80px]" />
       </div>
 
       <div className="relative">
@@ -30,7 +30,7 @@ export function AuthBrandingPanel() {
         <ul className="mt-10 space-y-3">
           {highlights.map((line) => (
             <li key={line} className="flex gap-3 text-sm text-zinc-300">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-200/10 text-zinc-100">
                 <svg
                   className="h-3 w-3"
                   viewBox="0 0 24 24"
@@ -55,7 +55,7 @@ export function AuthBrandingPanel() {
 
       <p className="relative mt-12 text-xs text-zinc-600 lg:mt-0">
         Need the marketing site?{" "}
-        <Link href="/" className="font-medium text-emerald-400 hover:text-emerald-300">
+        <Link href="/" className="font-medium text-zinc-100 hover:text-zinc-200">
           Back to daubo.com home
         </Link>
       </p>

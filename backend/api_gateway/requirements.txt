@@ -10,3 +10,4 @@ celery
 PyJWT[crypto]
 pypdf
 python-docx
+langchain-core

@@ -18,8 +18,14 @@ function BottomRow() {
 function ChartCard() {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-zinc-800 bg-[#0c0c0c] p-5">
-      <p className="text-xs font-medium text-zinc-500">Pipeline overview</p>
-      <div className="mt-3 h-28 rounded-xl border border-zinc-800 bg-black/60" />
+      <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Pipeline overview</p>
+      <div className="mt-3 h-28 rounded-xl border border-zinc-800 bg-black/60 p-3">
+        <div className="flex h-full items-end gap-2">
+          {[28, 38, 54, 36, 66].map((h, i) => (
+            <span key={i} className="w-5 rounded-sm bg-zinc-200/90" style={{ height: `${h}%` }} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -45,7 +51,23 @@ function SideCard() {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-zinc-800 bg-[#0c0c0c] p-5">
       <p className="text-sm font-semibold text-white">By pipeline stage</p>
-      <div className="mt-4 h-28 rounded-full border border-zinc-800 bg-black/60" />
+      <div className="mt-4 h-28 rounded-xl border border-zinc-800 bg-black/60 p-3">
+        <div className="space-y-2">
+          {[
+            { label: "Saved", w: "78%" },
+            { label: "Pending", w: "56%" },
+            { label: "Applied", w: "68%" },
+            { label: "Interview", w: "34%" },
+          ].map((row) => (
+            <div key={row.label} className="flex items-center gap-2 text-2xs text-zinc-400">
+              <span className="w-14">{row.label}</span>
+              <span className="h-1.5 flex-1 rounded-full bg-zinc-900">
+                <span className="block h-full rounded-full bg-zinc-200" style={{ width: row.w }} />
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -62,7 +84,7 @@ export function DashboardPreview() {
       >
         <div className="flex min-h-[420px] flex-col md:min-h-[480px] md:flex-row">
           <aside className="flex w-full shrink-0 flex-col border-r border-zinc-800/90 bg-[#0a0a0a] p-4 md:w-[312px]">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-400">Job Search AI</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-100">Job Search AI</p>
             <div className="mt-4 space-y-2">
               {["Home", "My jobs", "Approvals", "Interviews"].map((item) => (
                 <div
@@ -97,6 +119,18 @@ export function DashboardPreview() {
               </div>
             </header>
             <div className="space-y-4 p-4 sm:p-5">
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Matches", value: "12" },
+                  { label: "Queued", value: "8" },
+                  { label: "Pending approvals", value: "3" },
+                ].map((s) => (
+                  <div key={s.label} className="rounded-xl border border-zinc-800 bg-[#0b0b0b] px-3 py-2">
+                    <p className="text-2xs uppercase tracking-wide text-zinc-500">{s.label}</p>
+                    <p className="mt-1 text-base font-semibold text-zinc-100">{s.value}</p>
+                  </div>
+                ))}
+              </div>
               <div className="grid gap-4 lg:grid-cols-5">
                 <div className="lg:col-span-3">
                   <ChartCard />

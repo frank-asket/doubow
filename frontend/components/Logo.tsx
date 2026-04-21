@@ -15,7 +15,7 @@ export function LogoMark({ className = "" }: { className?: string }) {
         width="18"
         height="6"
         rx="1.5"
-        fill="#4ade80"
+        fill="#FFBC01"
         transform="skewY(-14)"
       />
       <rect
@@ -24,7 +24,7 @@ export function LogoMark({ className = "" }: { className?: string }) {
         width="18"
         height="6"
         rx="1.5"
-        fill="#4ade80"
+        fill="#FFBC01"
         opacity="0.78"
         transform="skewY(-14)"
       />
@@ -34,7 +34,7 @@ export function LogoMark({ className = "" }: { className?: string }) {
         width="18"
         height="6"
         rx="1.5"
-        fill="#4ade80"
+        fill="#FFBC01"
         opacity="0.52"
         transform="skewY(-14)"
       />
@@ -44,7 +44,7 @@ export function LogoMark({ className = "" }: { className?: string }) {
 
 export function Logo({ href = "/" }: { href?: string }) {
   const inner = (
-    <span className="inline-flex items-center gap-2 font-semibold tracking-tight text-white">
+    <span className="inline-flex items-center gap-2 font-bold tracking-tight text-neutral-1000">
       <LogoMark />
       Doubow
     </span>
@@ -54,7 +54,7 @@ export function Logo({ href = "/" }: { href?: string }) {
     return (
       <a
         href={href}
-        className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+        className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-100"
       >
         {inner}
       </a>

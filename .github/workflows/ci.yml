@@ -65,3 +65,9 @@ jobs:
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
           python -m pytest -q backend/api_gateway/tests
+      - name: Run LangChain resume integration guardrail
+        env:
+          PYTHONPATH: backend/api_gateway
+          CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
+        run: |
+          python -m pytest -q backend/api_gateway/tests/integration/test_resume_langchain_integration.py

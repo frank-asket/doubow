@@ -33,7 +33,7 @@ function ChangeRow({ change }: { change: IntegrityChange }) {
         {label}
       </span>
       <p className="flex-1 text-xs text-zinc-300">{change.reason}</p>
-      <button className="text-2xs whitespace-nowrap text-emerald-300 hover:underline">
+      <button className="text-2xs whitespace-nowrap text-zinc-100 hover:underline">
         Jump to row
       </button>
     </div>
@@ -72,7 +72,7 @@ export default function PipelinePage() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Pipeline</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Pipeline</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Pipeline</h1>
           <p className="mt-2 text-sm text-zinc-400 sm:text-base">Track and manage all your applications</p>
         </div>
@@ -84,17 +84,17 @@ export default function PipelinePage() {
 
       {/* Integrity banner */}
       {hasIntegrityIssues && !integrityResult && (
-        <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 animate-fade-in">
-          <AlertTriangle size={15} className="mt-0.5 flex-shrink-0 text-amber-300" />
+        <div className="mb-5 flex items-start gap-3 rounded-lg border border-zinc-500/30 bg-zinc-800 p-3.5 animate-fade-in">
+          <AlertTriangle size={15} className="mt-0.5 flex-shrink-0 text-zinc-300" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-amber-200">Integrity issues detected</p>
-            <p className="mt-0.5 text-xs text-amber-200/80">Possible duplicates and stale entries found</p>
+            <p className="text-sm font-medium text-zinc-200">Integrity issues detected</p>
+            <p className="mt-0.5 text-xs text-zinc-400">Possible duplicates and stale entries found</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => runIntegrity('dry_run')}
               disabled={integrityLoading}
-              className="btn border-amber-500/30 bg-amber-500/10 text-xs text-amber-200 hover:bg-amber-500/20"
+              className="btn border-zinc-500/30 bg-zinc-800 text-xs text-zinc-200 hover:bg-zinc-700"
             >
               {integrityLoading ? <Loader2 size={12} className="animate-spin" /> : null}
               Preview cleanup
@@ -153,7 +153,7 @@ export default function PipelinePage() {
               className={cn(
                 'px-3 py-1.5 rounded-md text-xs transition-all duration-150',
                 activeTab === tab.value
-                  ? 'border border-emerald-500/30 bg-emerald-500/10 font-medium text-emerald-300'
+                  ? 'border border-zinc-300/30 bg-zinc-200/10 font-medium text-zinc-100'
                   : 'text-zinc-400 hover:text-zinc-200'
               )}
             >
@@ -195,7 +195,7 @@ export default function PipelinePage() {
                       </div>
                       <span className="text-sm font-medium text-zinc-200">{app.job.company}</span>
                       {app.is_stale && (
-                        <span className="badge border border-amber-500/30 bg-amber-500/10 text-2xs text-amber-300">stale</span>
+                        <span className="badge border border-zinc-500/40 bg-zinc-800 text-2xs text-zinc-300">stale</span>
                       )}
                     </div>
                   </td>

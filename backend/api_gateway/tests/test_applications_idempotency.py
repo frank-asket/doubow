@@ -5,6 +5,7 @@ from models.user import User
 from schemas.applications import CreateApplicationRequest
 from services.applications_service import (
     ApplicationIdempotencyConflictError,
+    ApplicationJobNotFoundError,
     create_application,
 )
 
@@ -93,3 +94,17 @@ async def test_create_application_without_key_creates_distinct_rows(db_session):
     a = await create_application(db_session, "u_app_rand", payload, idempotency_key=None)
     b = await create_application(db_session, "u_app_rand", payload, idempotency_key=None)
     assert a.id != b.id
+
+
+@pytest.mark.asyncio
+async def test_create_application_requires_existing_job(db_session):
+    db_session.add(User(id="u_app_missing_job", email="missing@example.com"))
+    await db_session.commit()
+
+    with pytest.raises(ApplicationJobNotFoundError):
+        await create_application(
+            db_session,
+            "u_app_missing_job",
+            CreateApplicationRequest(job_id="job_missing", channel="email"),
+            idempotency_key=None,
+        )

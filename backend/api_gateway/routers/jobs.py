@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
+from schemas.errors import ErrorResponse
 from schemas.jobs import JobsListResponse
 from services.jobs_service import dismiss_job_for_user, list_jobs as list_jobs_service
 
@@ -23,7 +24,11 @@ async def list_jobs(
     )
 
 
-@router.post("/{job_id}/dismiss", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/{job_id}/dismiss",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"model": ErrorResponse}},
+)
 async def dismiss_job(
     job_id: str,
     session: AsyncSession = Depends(get_session),

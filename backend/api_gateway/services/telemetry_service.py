@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.telemetry_event import TelemetryEvent
 from schemas.telemetry import ActivationKPIResponse, TelemetryEventIn
+from services.posthog_service import capture_event, fetch_activation_event_pairs
 
 
 async def record_event(session: AsyncSession, user_id: str, payload: TelemetryEventIn) -> None:
@@ -16,9 +17,34 @@ async def record_event(session: AsyncSession, user_id: str, payload: TelemetryEv
     )
     session.add(row)
     await session.commit()
+    try:
+        await capture_event(
+            distinct_id=user_id,
+            event_name=payload.event_name,
+            properties=payload.properties or {},
+            occurred_at=payload.occurred_at,
+        )
+    except Exception:
+        # PostHog is best-effort; local telemetry should still succeed.
+        return
 
 
 async def get_activation_kpi(session: AsyncSession, user_id: str) -> ActivationKPIResponse:
+    # Prefer PostHog when configured.
+    try:
+        pairs = await fetch_activation_event_pairs(user_id)
+    except Exception:
+        pairs = []
+    if pairs:
+        durations_seconds = [max(0.0, (ready - start).total_seconds()) for start, ready in pairs]
+        avg = sum(durations_seconds) / len(durations_seconds)
+        return ActivationKPIResponse(
+            sample_size=len(durations_seconds),
+            latest_time_to_first_matches_seconds=durations_seconds[-1],
+            avg_time_to_first_matches_seconds=avg,
+        )
+
+    # Fallback to local DB events when PostHog is not configured/reachable.
     stmt = (
         select(TelemetryEvent)
         .where(

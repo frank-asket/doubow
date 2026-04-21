@@ -48,9 +48,9 @@ function ApprovalCard({ approval }: { approval: Approval }) {
     return (
       <div className={cn(
         'card p-4 flex items-center gap-3 animate-fade-in transition-all',
-        done === 'approved' ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-rose-500/30 bg-rose-500/10'
+        done === 'approved' ? 'border-zinc-300/30 bg-zinc-200/10' : 'border-zinc-500/40 bg-zinc-800'
       )}>
-        {done === 'approved' ? <Check size={16} className="text-emerald-300" /> : <X size={16} className="text-rose-300" />
+        {done === 'approved' ? <Check size={16} className="text-zinc-100" /> : <X size={16} className="text-zinc-300" />
         }
         <p className="text-sm font-medium text-zinc-200">
           {done === 'approved' ? `Application to ${approval.application.job.company} queued for send` : 'Rejected'}
@@ -113,7 +113,7 @@ function ApprovalCard({ approval }: { approval: Approval }) {
 
         {/* HITL notice */}
         <div className="flex items-center gap-1.5 mb-3 px-1">
-          <ShieldCheck size={12} className="text-emerald-300" />
+          <ShieldCheck size={12} className="text-zinc-100" />
           <p className="text-2xs text-zinc-500">
             Nothing is sent until you approve. You can edit before approving.
           </p>
@@ -181,16 +181,16 @@ export default function ApprovalsPage() {
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <section className="rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Approvals</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Approvals</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Pending approvals</h1>
         <p className="mt-2 text-sm text-zinc-400 sm:text-base">Review AI-drafted applications before they are sent</p>
       </section>
 
       {/* Notice */}
       {pending.length > 0 && (
-        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5">
-          <AlertCircle size={15} className="mt-0.5 flex-shrink-0 text-emerald-300" />
-          <p className="text-sm text-emerald-200">
+        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-zinc-300/30 bg-zinc-200/10 p-3.5">
+          <AlertCircle size={15} className="mt-0.5 flex-shrink-0 text-zinc-100" />
+          <p className="text-sm text-zinc-200">
             <span className="font-medium">{pending.length} application{pending.length !== 1 ? 's' : ''} ready for review.</span>{' '}
             AI drafted each one — nothing is sent until you approve.
           </p>
@@ -204,7 +204,7 @@ export default function ApprovalsPage() {
           : pending.length === 0
           ? (
             <div className="text-center py-16">
-              <ShieldCheck size={28} className="mx-auto mb-3 text-emerald-300 opacity-60" />
+              <ShieldCheck size={28} className="mx-auto mb-3 text-zinc-200 opacity-60" />
               <p className="text-sm font-medium text-zinc-300">All caught up</p>
               <p className="mt-1 text-xs text-zinc-500">No pending approvals right now</p>
             </div>

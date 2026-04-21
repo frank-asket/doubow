@@ -5,42 +5,42 @@ export function FutureOfResumes() {
   return (
     <section
       id="future-resumes"
-      className="border-b border-zinc-800 bg-gradient-to-b from-[#070707] to-black py-20 sm:py-24"
+      className="border-b border-neutral-300/70 bg-gradient-to-b from-white to-neutral-50 py-20 sm:py-24"
     >
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400/90">
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600">
           The future of résumés
         </p>
-        <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        <h2 className="mt-4 text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
           Stop rewriting the same story for every posting
         </h2>
-        <div className="mt-6 space-y-4 text-left text-base leading-relaxed text-zinc-400 sm:text-lg">
+        <div className="mt-6 space-y-4 text-left text-base leading-relaxed text-neutral-700 sm:text-lg">
           <p>
             The old loop: hours tweaking bullets and summaries so you sound right for{" "}
-            <em className="text-zinc-300 not-italic">this</em> recruiter and{" "}
-            <em className="text-zinc-300 not-italic">that</em> ATS—then doing it again tomorrow.
+            <em className="text-neutral-900 not-italic">this</em> recruiter and{" "}
+            <em className="text-neutral-900 not-italic">that</em> ATS—then doing it again tomorrow.
           </p>
           <p>
-            <span className="text-zinc-200">Doubow starts from your real résumé and credentials</span>{" "}
+            <span className="text-neutral-1000">Doubow starts from your real résumé and credentials</span>{" "}
             (nothing invented), then helps you shape{" "}
-            <span className="text-zinc-200">application-specific wording, checklists, and interview prep</span>{" "}
-            per role. It&apos;s a <span className="text-zinc-200">guardrailed assistant inside your workspace</span>
+            <span className="text-neutral-1000">application-specific wording, checklists, and interview prep</span>{" "}
+            per role. It&apos;s a <span className="text-neutral-1000">guardrailed assistant inside your workspace</span>
             —not a public chatbot pretending to be you, and not auto-submitting on employer sites.
           </p>
-          <p className="text-sm text-zinc-500 sm:text-base">
+          <p className="text-sm text-neutral-500 sm:text-base">
             You review and edit; you click Apply and Send. That&apos;s the balance between leverage and trust.
           </p>
         </div>
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a
             href="/auth/sign-up"
-            className="inline-flex rounded-full bg-emerald-400 px-8 py-3.5 text-sm font-semibold text-zinc-950 shadow-[0_0_32px_-6px_rgba(74,222,128,0.55)] transition hover:bg-emerald-300"
+            className="inline-flex rounded-full bg-primary-500 px-8 py-3.5 text-sm font-semibold text-black shadow-[0_16px_40px_-18px_rgba(255,188,1,0.8)] transition hover:bg-primary-600"
           >
             Open your workspace
           </a>
           <Link
             href="/discover"
-            className="text-sm font-semibold text-zinc-400 underline-offset-4 hover:text-emerald-400 hover:underline"
+            className="text-sm font-semibold text-neutral-700 underline-offset-4 hover:text-neutral-1000 hover:underline"
           >
             Already signed in →
           </Link>

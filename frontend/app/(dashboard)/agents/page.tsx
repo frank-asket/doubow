@@ -8,14 +8,14 @@ import { useAgentStore } from '@/stores/agentStore'
 import type { AgentState } from '@/types'
 
 const AGENT_META: Record<string, { icon: string; color: string }> = {
-  discovery:    { icon: '🔍', color: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+  discovery:    { icon: '🔍', color: 'border border-zinc-300/30 bg-zinc-200/10 text-zinc-100' },
   scorer:       { icon: '◆', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' },
-  tailor:       { icon: '✂', color: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+  tailor:       { icon: '✂', color: 'border border-zinc-300/30 bg-zinc-200/10 text-zinc-100' },
   writer:       { icon: '✏', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' },
   apply:        { icon: '📤', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' },
-  prep:         { icon: '🎯', color: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+  prep:         { icon: '🎯', color: 'border border-zinc-300/30 bg-zinc-200/10 text-zinc-100' },
   monitor:      { icon: '⚙', color: 'border border-zinc-700 bg-zinc-900 text-zinc-300' },
-  orchestrator: { icon: '⊕', color: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+  orchestrator: { icon: '⊕', color: 'border border-zinc-300/30 bg-zinc-200/10 text-zinc-100' },
 }
 
 const SUGGESTED_PROMPTS = [
@@ -29,10 +29,10 @@ function StatusDot({ status }: { status: AgentState['status'] }) {
   return (
     <span className={cn(
       'w-2 h-2 rounded-full flex-shrink-0',
-      status === 'running' && 'bg-amber-300 animate-pulse',
-      status === 'active'  && 'bg-emerald-400',
+      status === 'running' && 'bg-zinc-300 animate-pulse',
+      status === 'active'  && 'bg-zinc-100',
       status === 'idle'    && 'bg-zinc-600',
-      status === 'error'   && 'bg-rose-400',
+      status === 'error'   && 'bg-zinc-400',
     )} />
   )
 }
@@ -54,7 +54,7 @@ function AgentCard({ agent }: { agent: AgentState }) {
         {agent.status === 'running' && agent.progress !== undefined && (
           <div className="mt-2 h-0.5 overflow-hidden rounded-full bg-zinc-900">
             <div
-              className="h-full rounded-full bg-emerald-400 transition-all duration-500"
+              className="h-full rounded-full bg-zinc-100 transition-all duration-500"
               style={{ width: `${Math.round(agent.progress * 100)}%` }}
             />
           </div>
@@ -75,13 +75,13 @@ function ChatMessage({ role, text }: { role: 'user' | 'ai'; text: string }) {
     <div className={cn('flex items-start gap-2.5', role === 'user' && 'flex-row-reverse')}>
       <div className={cn(
         'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
-        role === 'ai' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-zinc-900 text-zinc-300'
+        role === 'ai' ? 'bg-zinc-200/10 text-zinc-100' : 'bg-zinc-900 text-zinc-300'
       )}>
         {role === 'ai' ? <Bot size={12} /> : <User size={12} />}
       </div>
       <div className={cn(
         'max-w-[80%] px-3 py-2 rounded-lg text-xs leading-relaxed',
-        role === 'ai' ? 'border border-zinc-800 bg-zinc-950 text-zinc-200' : 'bg-emerald-500 text-black'
+        role === 'ai' ? 'border border-zinc-800 bg-zinc-950 text-zinc-200' : 'bg-zinc-100 text-zinc-950'
       )}>
         {text || <span className="animate-pulse opacity-60">●●●</span>}
       </div>
@@ -127,14 +127,14 @@ export default function AgentsPage() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Agents</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Agents</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Agent status</h1>
           <p className="mt-2 text-sm text-zinc-400 sm:text-base">Multi-agent orchestration layer</p>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5">
-            <Zap size={12} className="text-emerald-300" />
-            <span className="text-xs font-medium text-emerald-200">{activeCount} agents active</span>
+          <div className="flex items-center gap-1.5 rounded-md border border-zinc-300/30 bg-zinc-200/10 px-2.5 py-1.5">
+            <Zap size={12} className="text-zinc-100" />
+            <span className="text-xs font-medium text-zinc-200">{activeCount} agents active</span>
           </div>
           <button className="btn text-xs gap-1.5">
             <RefreshCw size={13} />
@@ -162,8 +162,8 @@ export default function AgentsPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 py-8">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
-                    <Bot size={18} className="text-emerald-300" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-300/20 bg-zinc-200/10">
+                    <Bot size={18} className="text-zinc-100" />
                   </div>
                   <p className="text-center text-xs text-zinc-500">Ask me anything about your pipeline</p>
                   <div className="grid grid-cols-1 gap-2 w-full">

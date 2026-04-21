@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 
 from config import settings
 from models.user import User
@@ -111,3 +112,120 @@ async def test_onboarding_status_states(tmp_path, monkeypatch, db_session):
     status2 = await get_onboarding_status_for_user(db_session, "user_onb_1")
     assert status2.state == "ready"
     assert status2.first_jobs_ready is True
+
+
+@pytest.mark.asyncio
+async def test_upload_rejects_unsupported_file_type(tmp_path, monkeypatch, db_session):
+    monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    db_session.add(User(id="user_bad_type", email="badtype@example.com"))
+    await db_session.commit()
+
+    with pytest.raises(ValueError, match="Unsupported file type"):
+        await upload_resume_for_user(
+            db_session,
+            "user_bad_type",
+            b"plain text",
+            "resume.txt",
+            "text/plain",
+        )
+
+
+@pytest.mark.asyncio
+async def test_upload_rejects_empty_file(tmp_path, monkeypatch, db_session):
+    monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    db_session.add(User(id="user_empty", email="empty@example.com"))
+    await db_session.commit()
+
+    with pytest.raises(ValueError, match="Uploaded file is empty"):
+        await upload_resume_for_user(
+            db_session,
+            "user_empty",
+            b"",
+            "resume.pdf",
+            "application/pdf",
+        )
+
+
+@pytest.mark.asyncio
+async def test_upload_parser_failure_returns_validation_error(tmp_path, monkeypatch, db_session):
+    monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    db_session.add(User(id="user_parse_fail", email="parsefail@example.com"))
+    await db_session.commit()
+
+    async def _boom(*args, **kwargs):
+        raise RuntimeError("parser exploded")
+
+    monkeypatch.setattr("services.resume_service.parse_resume", _boom)
+    with pytest.raises(ValueError, match="Failed to parse resume content"):
+        await upload_resume_for_user(
+            db_session,
+            "user_parse_fail",
+            b"%PDF-1.4 fake",
+            "resume.pdf",
+            "application/pdf",
+        )
+
+
+@pytest.mark.asyncio
+async def test_upload_storage_write_failure_returns_validation_error(tmp_path, monkeypatch, db_session):
+    monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    db_session.add(User(id="user_write_fail", email="writefail@example.com"))
+    await db_session.commit()
+
+    original_write_bytes = Path.write_bytes
+
+    def _fail_write(self, data):  # type: ignore[no-untyped-def]
+        raise OSError("disk full")
+
+    monkeypatch.setattr(Path, "write_bytes", _fail_write)
+    try:
+        with pytest.raises(ValueError, match="Failed to persist uploaded resume"):
+            await upload_resume_for_user(
+                db_session,
+                "user_write_fail",
+                b"%PDF-1.4 fake",
+                "resume.pdf",
+                "application/pdf",
+            )
+    finally:
+        monkeypatch.setattr(Path, "write_bytes", original_write_bytes)
+
+
+@pytest.mark.asyncio
+async def test_analyze_resume_uses_langchain_when_flag_enabled(tmp_path, monkeypatch, db_session):
+    monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    monkeypatch.setattr(settings, "openrouter_api_key", "or_test_key")
+    monkeypatch.setattr(settings, "use_langchain", True)
+    db_session.add(User(id="user_lc", email="lc@example.com"))
+    await db_session.commit()
+
+    await upload_resume_for_user(
+        db_session, "user_lc", b"%PDF-1.4 fake", "resume.pdf", "application/pdf"
+    )
+
+    async def _lc(*args, **kwargs):
+        return "Summary: LangChain analysis"
+
+    monkeypatch.setattr("services.resume_service.analyze_resume_with_langchain", _lc)
+    out = await analyze_resume_for_user(db_session, "user_lc")
+    assert out == "Summary: LangChain analysis"
+
+
+@pytest.mark.asyncio
+async def test_analyze_resume_langchain_failure_falls_back(tmp_path, monkeypatch, db_session):
+    monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    monkeypatch.setattr(settings, "openrouter_api_key", "or_test_key")
+    monkeypatch.setattr(settings, "use_langchain", True)
+    db_session.add(User(id="user_lc_fallback", email="lcf@example.com"))
+    await db_session.commit()
+
+    await upload_resume_for_user(
+        db_session, "user_lc_fallback", b"%PDF-1.4 fake", "resume.pdf", "application/pdf"
+    )
+
+    async def _boom(*args, **kwargs):
+        raise RuntimeError("lc fail")
+
+    monkeypatch.setattr("services.resume_service.analyze_resume_with_langchain", _boom)
+    out = await analyze_resume_for_user(db_session, "user_lc_fallback")
+    assert "Profile:" in out

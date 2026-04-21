@@ -16,8 +16,18 @@ from schemas.resume import (
     UserPreferencesModel,
     UserPreferencesPatch,
 )
+from services.langchain_resume_analysis import analyze_resume_with_langchain
 from services.openrouter import chat_completion
 from services.resume_parser import parse_resume
+
+MAX_RESUME_BYTES = 15 * 1024 * 1024
+_ALLOWED_MIME_TYPES = {
+    "application/pdf",
+    "application/x-pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/msword",
+}
+_ALLOWED_EXTENSIONS = {".pdf", ".docx", ".doc"}
 
 
 def default_prefs_dict() -> dict:
@@ -28,6 +38,14 @@ def _slug_filename(name: str, max_len: int = 120) -> str:
     base = Path(name).name
     base = re.sub(r"[^\w.\-]+", "_", base, flags=re.UNICODE).strip("._") or "resume"
     return base[:max_len]
+
+
+def _is_supported_resume_file(filename: str, content_type: str | None) -> bool:
+    ext = Path(filename).suffix.lower()
+    if ext in _ALLOWED_EXTENSIONS:
+        return True
+    mime = (content_type or "").split(";")[0].strip().lower()
+    return mime in _ALLOWED_MIME_TYPES
 
 
 def normalize_parsed_profile_dict(raw: dict) -> dict:
@@ -182,10 +200,17 @@ async def upload_resume_for_user(
     filename: str,
     content_type: str | None,
 ) -> ResumeProfileResponse:
-    if len(file_bytes) > 15 * 1024 * 1024:
+    if not file_bytes:
+        raise ValueError("Uploaded file is empty")
+    if len(file_bytes) > MAX_RESUME_BYTES:
         raise ValueError("File too large (max 15MB)")
+    if not _is_supported_resume_file(filename, content_type):
+        raise ValueError("Unsupported file type. Please upload PDF or DOCX.")
 
-    parsed_raw = await parse_resume(file_bytes, content_type or "application/octet-stream")
+    try:
+        parsed_raw = await parse_resume(file_bytes, content_type or "application/octet-stream")
+    except Exception as exc:
+        raise ValueError("Failed to parse resume content") from exc
     normalized = normalize_parsed_profile_dict(parsed_raw)
 
     prev = await _get_latest_resume_row(session, user_id)
@@ -201,7 +226,10 @@ async def upload_resume_for_user(
     root = Path(settings.resume_storage_dir).expanduser().resolve()
     dest = root / user_id / f"{resume_id}_{safe_name}"
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(file_bytes)
+    try:
+        dest.write_bytes(file_bytes)
+    except OSError as exc:
+        raise ValueError("Failed to persist uploaded resume") from exc
 
     row = Resume(
         id=resume_id,
@@ -284,6 +312,12 @@ async def analyze_resume_for_user(session: AsyncSession, user_id: str) -> str:
 
     parsed = ParsedProfileModel.model_validate(normalize_parsed_profile_dict(row.parsed_profile or {}))
     prefs = UserPreferencesModel.model_validate(merge_preferences_dicts(row.preferences, {}))
+
+    if settings.use_langchain and settings.openrouter_api_key:
+        try:
+            return await analyze_resume_with_langchain(parsed, prefs)
+        except Exception:
+            return build_profile_analysis(parsed, prefs)
 
     if settings.openrouter_api_key:
         try:

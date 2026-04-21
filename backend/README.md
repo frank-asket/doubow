@@ -53,3 +53,14 @@ make -C backend db-sync
 ```bash
 cd backend/api_gateway && PYTHONPATH=. python -m pytest tests/ -q
 ```
+
+## Activation KPI via PostHog
+
+When PostHog environment variables are configured, activation telemetry is mirrored to PostHog and the
+`/v1/me/telemetry/activation-kpi` endpoint reads KPI values from PostHog events.
+
+Required env vars:
+- `POSTHOG_HOST`
+- `POSTHOG_PROJECT_ID`
+- `POSTHOG_PERSONAL_API_KEY` (read/query API)
+- `POSTHOG_PROJECT_API_KEY` (capture API)

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
+from schemas.errors import ErrorResponse
 from schemas.resume import OnboardingStatusResponse, ResumeAnalyzeResponse, ResumeProfileResponse
 from services.resume_service import (
     analyze_resume_for_user,
@@ -15,7 +16,7 @@ from services.resume_service import (
 router = APIRouter(prefix="/me", tags=["resume"])
 
 
-@router.get("/resume", response_model=ResumeProfileResponse)
+@router.get("/resume", response_model=ResumeProfileResponse, responses={404: {"model": ErrorResponse}})
 async def get_resume(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
@@ -34,7 +35,7 @@ async def get_onboarding_status(
     return await get_onboarding_status_for_user(session, user.id)
 
 
-@router.post("/resume/analyze", response_model=ResumeAnalyzeResponse)
+@router.post("/resume/analyze", response_model=ResumeAnalyzeResponse, responses={404: {"model": ErrorResponse}})
 async def analyze_resume(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
@@ -49,7 +50,7 @@ async def analyze_resume(
     return ResumeAnalyzeResponse(analysis=text)
 
 
-@router.post("/resume", response_model=ResumeProfileResponse)
+@router.post("/resume", response_model=ResumeProfileResponse, responses={400: {"model": ErrorResponse}})
 async def upload_resume(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
