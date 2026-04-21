@@ -1,6 +1,8 @@
 'use client'
 
+import { FormEvent, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Route } from 'next'
 import {
@@ -59,7 +61,29 @@ function NavItem({
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { summary } = useDashboard()
+  const router = useRouter()
   const path = usePathname()
+  const [desktopSearch, setDesktopSearch] = useState('')
+  const [mobileSearch, setMobileSearch] = useState('')
+
+  const submitSearch = (value: string) => {
+    const query = value.trim()
+    if (!query) {
+      router.push('/search')
+      return
+    }
+    router.push(`/search?q=${encodeURIComponent(query)}`)
+  }
+
+  const onDesktopSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    submitSearch(desktopSearch)
+  }
+
+  const onMobileSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    submitSearch(mobileSearch)
+  }
 
   const counts: Record<string, number> = {
     jobs: summary?.high_fit_count ?? 0,
@@ -115,14 +139,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <ChevronRight size={13} />
             </span>
           </Link>
-          <button className="flex w-full items-center gap-2 rounded-[10px] border border-transparent px-3 py-2 text-[14px] text-[#d7def5] transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white">
+          <Link
+            href="/notifications"
+            className="flex w-full items-center gap-2 rounded-[10px] border border-transparent px-3 py-2 text-[14px] text-[#d7def5] transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
+          >
             <Bell size={16} />
             <span>Notifications</span>
-          </button>
-          <button className="flex w-full items-center gap-2 rounded-[10px] border border-transparent px-3 py-2 text-[14px] text-[#d7def5] transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white">
+          </Link>
+          <Link
+            href="/settings"
+            className="flex w-full items-center gap-2 rounded-[10px] border border-transparent px-3 py-2 text-[14px] text-[#d7def5] transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
+          >
             <Settings size={16} />
             <span>Settings</span>
-          </button>
+          </Link>
           <div className="mt-1 flex items-center gap-2 px-3 py-2">
             <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-2xs font-medium text-white">
               FL
@@ -142,18 +172,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="min-w-0 flex-1 bg-[#f3f4f8]">
         {/* Desktop top bar */}
         <div className="hidden h-[78px] items-center justify-between border-b border-[#e7e8ee] bg-[#f8f8fb] px-7 lg:flex">
-          <div className="relative w-full max-w-md">
+          <form className="relative w-full max-w-md" onSubmit={onDesktopSearch}>
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
                 aria-label="Search dashboard desktop"
               className="h-10 w-full rounded-[10px] border border-[#e1e2e9] bg-[#f8f8fb] pl-9 pr-3 text-[13px] text-zinc-700 outline-none focus:border-indigo-300"
               placeholder="Search anything here..."
+              value={desktopSearch}
+              onChange={(event) => setDesktopSearch(event.target.value)}
             />
-          </div>
+          </form>
           <div className="ml-4 flex items-center gap-3">
-            <button className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e1e2e9] text-zinc-500 hover:bg-zinc-50">
+            <Link
+              href="/notifications"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e1e2e9] text-zinc-500 hover:bg-zinc-50"
+              aria-label="Open notifications"
+            >
               <Bell size={16} />
-            </button>
+            </Link>
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
                 FL
@@ -182,14 +218,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
           </div>
           <div className="px-4 pb-3">
-            <div className="relative">
+            <form className="relative" onSubmit={onMobileSearch}>
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
               <input
                 aria-label="Search dashboard mobile"
                 className="h-10 w-full rounded-[10px] border border-[#e1e2e9] bg-[#f8f8fb] pl-9 pr-3 text-[13px] text-zinc-700 outline-none focus:border-indigo-300"
                 placeholder="Search anything here..."
+                value={mobileSearch}
+                onChange={(event) => setMobileSearch(event.target.value)}
               />
-            </div>
+            </form>
           </div>
           <div className="overflow-x-auto px-3 pb-3">
             <div className="flex items-center gap-1.5 min-w-max">
