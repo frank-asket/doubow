@@ -43,6 +43,14 @@ export interface ResumeProfile {
   created_at: string
 }
 
+export interface OnboardingStatus {
+  state: 'no_resume' | 'scoring_in_progress' | 'ready'
+  current_step: 'upload_complete' | 'parsing_resume' | 'scoring_job_matches' | 'building_first_queue' | 'first_jobs_ready'
+  eta_seconds?: number | null
+  has_resume: boolean
+  first_jobs_ready: boolean
+}
+
 export interface ParsedProfile {
   name: string
   headline: string

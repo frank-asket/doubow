@@ -22,7 +22,7 @@ frontend/out/
 
 # Local databases / artifacts
 *.db
-baseline/api_gateway/data/
+backend/api_gateway/data/
 
 .turbo/
 

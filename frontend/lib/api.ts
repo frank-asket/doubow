@@ -3,6 +3,7 @@ import type {
   AutopilotRun, AutopilotScope, Approval, PrepSession,
   AgentState, ResumeProfile, UserPreferences, PaginatedResponse,
   DashboardSummary,
+  OnboardingStatus,
 } from '@/types'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
@@ -161,6 +162,7 @@ export const prepApi = {
 
 export const resumeApi = {
   get: () => request<ResumeProfile>('/v1/me/resume'),
+  onboardingStatus: () => request<OnboardingStatus>('/v1/me/onboarding/status'),
   upload: (file: File) => {
     const form = new FormData()
     form.append('file', file)

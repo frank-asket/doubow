@@ -43,25 +43,25 @@ jobs:
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r baseline/api_gateway/requirements.txt psycopg2-binary pytest pytest-asyncio httpx aiosqlite
+          pip install -r backend/api_gateway/requirements.txt psycopg2-binary pytest pytest-asyncio httpx aiosqlite
       - name: Verify Alembic migration chain compiles (offline SQL)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
           ALEMBIC_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
-          PYTHONPATH: baseline/api_gateway
+          PYTHONPATH: backend/api_gateway
         run: |
-          python -m alembic -c baseline/api_gateway/alembic.ini upgrade head --sql > /tmp/alembic.sql
+          python -m alembic -c backend/api_gateway/alembic.ini upgrade head --sql > /tmp/alembic.sql
           test -s /tmp/alembic.sql
       - name: Apply migrations to Postgres (online)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
           ALEMBIC_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
-          PYTHONPATH: baseline/api_gateway
+          PYTHONPATH: backend/api_gateway
         run: |
-          python -m alembic -c baseline/api_gateway/alembic.ini upgrade head
+          python -m alembic -c backend/api_gateway/alembic.ini upgrade head
       - name: Run backend test suite
         env:
-          PYTHONPATH: baseline/api_gateway
+          PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
-          python -m pytest -q baseline/api_gateway/tests
+          python -m pytest -q backend/api_gateway/tests

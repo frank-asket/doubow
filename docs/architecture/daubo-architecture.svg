@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="1560" viewBox="0 0 680 780">
+  <title>Daubo high-level architecture</title>
+  <desc>Five-layer architecture: browser, Next.js frontend, FastAPI backend with 8 agents, data stores, and external integrations</desc>
+
+  <!-- Background -->
+  <rect width="680" height="720" fill="#FFFFFF"/>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: Arial, sans-serif; fill: #1A1A1A; }
+      .th  { font-size: 14px; font-weight: 500; }
+      .ts  { font-size: 12px; font-weight: 400; fill: #555555; }
+    </style>
+  </defs>
+
+  <!-- Layer 1: Browser -->
+  <rect x="40" y="28" width="600" height="60" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="340" y="52" text-anchor="middle">Browser / client</text>
+  <text class="ts" x="340" y="72" text-anchor="middle">Next.js App Router · Zustand · SWR · SSE streaming</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="340" y1="90" x2="340" y2="116" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
+  <text class="ts" x="358" y="107" fill="#888780">HTTP / SSE</text>
+
+  <!-- Layer 2: FastAPI -->
+  <rect x="40" y="118" width="600" height="60" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text class="th" x="340" y="142" text-anchor="middle" fill="#085041">FastAPI — API layer</text>
+  <text class="ts" x="340" y="162" text-anchor="middle" fill="#0F6E56">9 routers · JWT auth · idempotency · rate limiting · CORS</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="340" y1="180" x2="340" y2="206" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Layer 3: Agents container -->
+  <rect x="40" y="208" width="600" height="130" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="th" x="340" y="232" text-anchor="middle" fill="#3C3489">Multi-agent orchestration layer</text>
+
+  <!-- Orchestrator -->
+  <rect x="254" y="248" width="172" height="42" rx="8" fill="#EEEDFE" stroke="#7F77DD" stroke-width="1"/>
+  <text class="th" x="340" y="268" text-anchor="middle" fill="#3C3489">Orchestrator</text>
+  <text class="ts" x="340" y="282" text-anchor="middle" fill="#534AB7">routes · locks · gate</text>
+
+  <!-- Discovery -->
+  <rect x="50" y="248" width="88" height="42" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="94" y="268" text-anchor="middle">Discovery</text>
+  <text class="ts" x="94" y="282" text-anchor="middle">45+ portals</text>
+
+  <!-- Scorer -->
+  <rect x="150" y="248" width="88" height="42" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="194" y="268" text-anchor="middle">Scorer</text>
+  <text class="ts" x="194" y="282" text-anchor="middle">1–5 fit score</text>
+
+  <!-- Writer -->
+  <rect x="440" y="248" width="88" height="42" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="484" y="268" text-anchor="middle">Writer</text>
+  <text class="ts" x="484" y="282" text-anchor="middle">drafts letters</text>
+
+  <!-- Apply -->
+  <rect x="540" y="248" width="88" height="42" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="584" y="268" text-anchor="middle">Apply</text>
+  <text class="ts" x="584" y="282" text-anchor="middle">post-approval</text>
+
+  <!-- Tailor -->
+  <rect x="50" y="302" width="88" height="28" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="94" y="320" text-anchor="middle">Tailor</text>
+
+  <!-- Monitor -->
+  <rect x="150" y="302" width="88" height="28" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="194" y="320" text-anchor="middle">Monitor</text>
+
+  <!-- Prep -->
+  <rect x="440" y="302" width="88" height="28" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="484" y="320" text-anchor="middle">Prep</text>
+
+  <!-- Approval gate -->
+  <rect x="432" y="256" width="6" height="26" rx="2" fill="#EF9F27" opacity="0.9"/>
+  <text class="ts" x="440" y="263" fill="#633806">✓ approval</text>
+  <text class="ts" x="440" y="276" fill="#633806">gate</text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="340" y1="340" x2="340" y2="366" stroke="#7F77DD" stroke-width="1" marker-end="url(#arrow)"/>
+  <text class="ts" x="358" y="357" fill="#888780">services</text>
+
+  <!-- Layer 4: Services -->
+  <rect x="40" y="368" width="140" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text class="th" x="110" y="390" text-anchor="middle" fill="#085041">Anthropic</text>
+  <text class="ts" x="110" y="406" text-anchor="middle" fill="#0F6E56">claude-sonnet-4</text>
+
+  <rect x="192" y="368" width="120" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="252" y="390" text-anchor="middle">Resume parser</text>
+  <text class="ts" x="252" y="406" text-anchor="middle">PDF · DOCX</text>
+
+  <rect x="324" y="368" width="120" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="384" y="390" text-anchor="middle">Idempotency</text>
+  <text class="ts" x="384" y="406" text-anchor="middle">SHA-256 · Redis</text>
+
+  <rect x="456" y="368" width="184" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="548" y="390" text-anchor="middle">Portal scanner</text>
+  <text class="ts" x="548" y="406" text-anchor="middle">Playwright · Greenhouse · Ashby</text>
+
+  <!-- Arrow 4→5 -->
+  <line x1="340" y1="422" x2="340" y2="448" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Layer 5: Data -->
+  <rect x="40" y="450" width="600" height="52" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="340" y="472" text-anchor="middle">Data layer</text>
+  <text class="ts" x="340" y="490" text-anchor="middle">PostgreSQL (Supabase + RLS)  ·  Redis (cache · locks · idempotency)  ·  Supabase Storage (resumes)</text>
+
+  <!-- Celery sidebar -->
+  <rect x="596" y="208" width="44" height="130" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text class="th" x="618" y="266" text-anchor="middle" transform="rotate(-90,618,266)" fill="#633806">Celery workers</text>
+  <text class="ts" x="618" y="282" text-anchor="middle" transform="rotate(-90,618,282)" fill="#854F0B">beat · broker</text>
+
+  <!-- External integrations label -->
+  <text class="ts" x="340" y="528" text-anchor="middle" fill="#888780">external integrations</text>
+  <line x1="340" y1="504" x2="340" y2="533" stroke="#888780" stroke-width="1" stroke-dasharray="3 3"/>
+
+  <!-- Integrations row -->
+  <rect x="40" y="535" width="120" height="44" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text class="th" x="100" y="555" text-anchor="middle" fill="#0C447C">Gmail API</text>
+  <text class="ts" x="100" y="571" text-anchor="middle" fill="#185FA5">drafts only</text>
+
+  <rect x="172" y="535" width="120" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="th" x="232" y="555" text-anchor="middle" fill="#3C3489">LinkedIn API</text>
+  <text class="ts" x="232" y="571" text-anchor="middle" fill="#534AB7">post-approval</text>
+
+  <rect x="304" y="535" width="120" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="364" y="555" text-anchor="middle">NextAuth</text>
+  <text class="ts" x="364" y="571" text-anchor="middle">Google · LinkedIn</text>
+
+  <rect x="436" y="535" width="120" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="496" y="555" text-anchor="middle">Sentry</text>
+  <text class="ts" x="496" y="571" text-anchor="middle">errors · traces</text>
+
+  <rect x="568" y="535" width="72" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="th" x="604" y="555" text-anchor="middle">Prometheus</text>
+  <text class="ts" x="604" y="571" text-anchor="middle">metrics</text>
+
+  <!-- Legend -->
+  <rect x="40" y="604" width="600" height="166" rx="8" fill="none" stroke="#DDDDDD" stroke-width="0.5" stroke-dasharray="4 3"/>
+  <text class="ts" x="60" y="622" fill="#888780">Legend</text>
+
+  <rect x="60" y="634" width="14" height="14" rx="3" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text class="ts" x="82" y="645">API gateway + AI service</text>
+
+  <rect x="60" y="656" width="14" height="14" rx="3" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="ts" x="82" y="667">Agent layer</text>
+
+  <rect x="60" y="678" width="14" height="14" rx="3" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text class="ts" x="82" y="689">Services · data · integrations</text>
+
+  <rect x="230" y="634" width="14" height="14" rx="3" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text class="ts" x="252" y="645">Async task queue (Celery)</text>
+
+  <rect x="230" y="652" width="6" height="14" rx="2" fill="#EF9F27"/>
+  <text class="ts" x="252" y="663">Approval gate — blocks Apply agent until user approves</text>
+
+  <line x1="230" y1="685" x2="248" y2="685" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
+  <text class="ts" x="256" y="689">Synchronous HTTP · SSE stream</text>
+
+  <line x1="390" y1="685" x2="408" y2="685" stroke="#888780" stroke-width="1" stroke-dasharray="3 3"/>
+  <text class="ts" x="416" y="689">Internal service call</text>
+
+  <rect x="60" y="716" width="14" height="14" rx="3" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text class="ts" x="82" y="727">Activation flow: Discover empty → Resume upload → Scoring in progress (ETA) → First jobs</text>
+
+  <rect x="60" y="738" width="14" height="14" rx="3" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text class="ts" x="82" y="749">Human-in-the-loop trust: reject action remains visible in every approval state</text>
+</svg>

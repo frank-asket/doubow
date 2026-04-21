@@ -1,18 +1,27 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { RefreshCw, SlidersHorizontal, Globe, ChevronDown, ChevronUp, ArrowRight, X, BookOpen } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useMemo, useState } from 'react'
+import useSWR from 'swr'
+import { RefreshCw, SlidersHorizontal, Globe, ChevronDown, ChevronUp, ArrowRight, X, BookOpen, ShieldCheck, Timer } from 'lucide-react'
 import { cn, fitClass, fitLabel, channelLabel, channelBadgeClass, relativeTime, scoreBarWidth } from '@/lib/utils'
 import { useJobs } from '@/hooks/useJobs'
 import { usePipeline } from '@/hooks/usePipeline'
 import { useJobStore } from '@/stores/jobStore'
 import { usePipelineStore } from '@/stores/pipelineStore'
-import { applicationsApi } from '@/lib/api'
+import { applicationsApi, resumeApi } from '@/lib/api'
 import { useDashboard } from '@/hooks/useDashboard'
 import type { JobWithScore } from '@/types'
 
 const DIMENSION_LABELS: Record<string, string> = {
   tech: 'Tech match', culture: 'Culture', seniority: 'Seniority', comp: 'Compensation', location: 'Location',
+}
+const ONBOARDING_STEP_LABELS: Record<string, string> = {
+  upload_complete: 'Upload complete',
+  parsing_resume: 'Parsing resume',
+  scoring_job_matches: 'Scoring job matches',
+  building_first_queue: 'Building your first queue',
+  first_jobs_ready: 'First jobs ready',
 }
 
 function FitBadge({ score }: { score: number }) {
@@ -199,9 +208,30 @@ export default function DiscoverPage() {
   usePipeline()
   const { summary, loading: dashLoading, refresh: refreshDashboard } = useDashboard()
   const { refresh: refreshJobs } = useJobs()
+  const { data: onboarding, mutate: refreshOnboarding } = useSWR(
+    'onboarding-status',
+    resumeApi.onboardingStatus,
+    {
+      revalidateOnFocus: false,
+      refreshInterval: (current) => (current?.state === 'scoring_in_progress' ? 5000 : 0),
+    },
+  )
   const [filterOpen, setFilterOpen] = useState(false)
 
   const filteredJobs = jobs.filter((j) => !minFit || j.score.fit_score >= minFit)
+  const etaMinutes = onboarding?.eta_seconds ? Math.max(1, Math.round(onboarding.eta_seconds / 60)) : null
+  const onboardingSteps = [
+    'upload_complete',
+    'parsing_resume',
+    'scoring_job_matches',
+    'building_first_queue',
+  ] as const
+
+  useEffect(() => {
+    if (onboarding?.state === 'ready' && jobs.length === 0) {
+      void refreshJobs()
+    }
+  }, [onboarding?.state, jobs.length, refreshJobs])
 
   const statCards = useMemo(() => {
     if (!summary) {
@@ -238,6 +268,7 @@ export default function DiscoverPage() {
 
   async function handleRefresh() {
     await refreshJobs()
+    await refreshOnboarding()
     await refreshDashboard()
   }
 
@@ -314,6 +345,59 @@ export default function DiscoverPage() {
       <div className="space-y-3">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => <JobSkeleton key={i} />)
+          : filteredJobs.length === 0 && onboarding?.state === 'no_resume'
+          ? (
+            <div className="card p-6 sm:p-8 text-zinc-300">
+              <div className="mx-auto max-w-2xl text-center">
+                <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-2xs font-medium text-amber-200">
+                  No resume connected
+                </div>
+                <p className="text-lg font-medium text-zinc-100">No jobs yet — upload your resume to start matching.</p>
+                <p className="mt-2 text-sm text-zinc-400">
+                  Daubo scores your fit across tech, culture, seniority, comp, and location before showing jobs.
+                </p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                  <Link href="/resume" className="btn btn-primary text-xs">Upload Resume</Link>
+                  <Link href="/resume" className="btn text-xs">How matching works</Link>
+                </div>
+              </div>
+            </div>
+          )
+          : filteredJobs.length === 0 && onboarding?.state === 'scoring_in_progress'
+          ? (
+            <div className="card p-6 sm:p-8">
+              <div className="mx-auto max-w-2xl">
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <span className="badge bg-amber-500/15 text-amber-200 border-amber-500/30 text-2xs">Scoring in progress</span>
+                  {etaMinutes != null && (
+                    <span className="badge text-2xs border-zinc-700 text-zinc-300"><Timer size={10} /> ~{etaMinutes} min</span>
+                  )}
+                </div>
+                <p className="text-lg font-medium text-zinc-100">Great — your resume is uploaded.</p>
+                <p className="mt-1 text-sm text-zinc-400">
+                  We are scoring your first set of jobs now. This usually takes about 1-2 minutes.
+                </p>
+                <div className="mt-5 space-y-2">
+                  {onboardingSteps.map((step) => {
+                    const active = onboarding.current_step === step
+                    const done = onboardingSteps.indexOf(onboarding.current_step as typeof onboardingSteps[number]) > onboardingSteps.indexOf(step)
+                    return (
+                      <div key={step} className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2">
+                        <span className={cn('text-xs', active ? 'text-zinc-100' : 'text-zinc-400')}>{ONBOARDING_STEP_LABELS[step]}</span>
+                        <span className={cn('text-2xs', done ? 'text-emerald-300' : active ? 'text-amber-200' : 'text-zinc-500')}>
+                          {done ? 'Done' : active ? 'In progress' : 'Pending'}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="mt-4 flex items-start gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-400">
+                  <ShieldCheck size={13} className="mt-0.5 text-emerald-300" />
+                  You can leave this page. We keep processing in the background.
+                </div>
+              </div>
+            </div>
+          )
           : filteredJobs.length === 0
           ? (
             <div className="py-16 text-center text-zinc-500">
