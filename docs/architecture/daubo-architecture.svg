@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1360" height="1560" viewBox="0 0 680 780">
   <title>Daubo high-level architecture</title>
-  <desc>Five-layer architecture: browser, Next.js frontend, FastAPI backend with 8 agents, data stores, and external integrations</desc>
+  <desc>Five-layer architecture: browser, Next.js frontend, FastAPI backend with 8 agents, semantic matching/evaluation flow, data stores, and external integrations</desc>
 
   <!-- Background -->
   <rect width="680" height="720" fill="#FFFFFF"/>
@@ -29,7 +29,7 @@
   <!-- Layer 2: FastAPI -->
   <rect x="40" y="118" width="600" height="60" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
   <text class="th" x="340" y="142" text-anchor="middle" fill="#085041">FastAPI — API layer</text>
-  <text class="ts" x="340" y="162" text-anchor="middle" fill="#0F6E56">9 routers · JWT auth · idempotency · rate limiting · CORS</text>
+  <text class="ts" x="340" y="162" text-anchor="middle" fill="#0F6E56">9 routers · JWT auth · idempotency · rate limiting · CORS (localhost regex)</text>
 
   <!-- Arrow 2→3 -->
   <line x1="340" y1="180" x2="340" y2="206" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow)"/>
@@ -101,6 +101,9 @@
   <text class="th" x="548" y="390" text-anchor="middle">Portal scanner</text>
   <text class="ts" x="548" y="406" text-anchor="middle">Playwright · Greenhouse · Ashby</text>
 
+  <!-- Semantic matching/eval note -->
+  <text class="ts" x="340" y="436" text-anchor="middle" fill="#534AB7">Semantic matching (feature-flagged) blends into scoring · offline precision evaluator compares baseline vs blend</text>
+
   <!-- Arrow 4→5 -->
   <line x1="340" y1="422" x2="340" y2="448" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
 
@@ -169,4 +172,7 @@
 
   <rect x="60" y="738" width="14" height="14" rx="3" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
   <text class="ts" x="82" y="749">Human-in-the-loop trust: reject action remains visible in every approval state</text>
+
+  <rect x="390" y="716" width="14" height="14" rx="3" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="ts" x="412" y="727">Phase 3: semantic score blend experiment + offline evaluator script (`scripts/semantic_precision_eval.py`)</text>
 </svg>

@@ -20,11 +20,13 @@ flowchart LR
   U[User Browser]
   FE[Frontend\nNext.js App Router]
   CL[Clerk Auth]
-  API[API Gateway\nFastAPI]
+  API[API Gateway\nFastAPI + CORS guard]
   DB[(Supabase Postgres)]
   RD[(Redis)]
   PH[(PostHog)]
   AG[Agent Services\nDiscover • Scoring • Writing • Apply • Prep • Monitor]
+  SEM[Semantic Match Service\nsentence-transformers (flagged)]
+  EVAL[Offline Evaluator\nbaseline vs semantic precision]
 
   U --> FE
   FE -->|JWT / session| CL
@@ -35,6 +37,9 @@ flowchart LR
   API --> AG
   AG --> DB
   AG --> RD
+  AG --> SEM
+  EVAL --> DB
+  EVAL --> SEM
   FE --> PH
   API --> PH
 ```
@@ -42,8 +47,9 @@ flowchart LR
 **Request path (typical):**
 - User interacts with dashboard routes in `frontend/`.
 - Frontend sends authenticated requests to `backend/api_gateway`.
-- FastAPI validates Clerk identity, scopes every read/write to `user_id`, and orchestrates domain services.
+- FastAPI validates Clerk identity, applies localhost-safe CORS policy, scopes every read/write to `user_id`, and orchestrates domain services.
 - Services persist state in Postgres, use Redis for transient/queue-friendly workflows, and emit telemetry to PostHog.
+- Semantic matching is feature-flagged and blended into scoring when enabled; offline evaluator scripts compare baseline vs semantic precision.
 
 ### Deployment View (Local)
 

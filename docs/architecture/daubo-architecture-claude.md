@@ -15,8 +15,11 @@ Doubow is a **multi-agent job search platform** composed of:
 - **Anthropic Claude** (claude-sonnet-4-20250514) as the AI backbone
 - **Gmail OAuth** and **LinkedIn OAuth** for channel-aware apply
 - **Supabase** for auth, file storage (resumes), and real-time subscriptions
+- **Feature-flagged semantic matching** (`sentence-transformers`) blended into fit scoring
+- **Offline evaluation tooling** to compare baseline vs semantic precision on sampled job sets
 
 The core principle: **AI drafts, user approves, system executes.** No outbound action (email, LinkedIn message, form submission) is ever taken without an explicit user approval.
+For local multi-port frontend development, the API layer explicitly allows localhost loopback origins via CORS configuration.
 
 ---
 
