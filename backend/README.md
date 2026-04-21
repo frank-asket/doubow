@@ -54,6 +54,22 @@ make -C backend db-sync
 cd backend/api_gateway && PYTHONPATH=. python -m pytest tests/ -q
 ```
 
+## Outbound email (SMTP)
+
+After a user **approves** an **email-channel** draft, the API can send via SMTP (see `services/outbound_email.py`). Configure in **`backend/.env`** (used by `docker compose`) and/or the repo-root **`.env`** (loaded by `config.Settings` when running `uvicorn` locally).
+
+| Variable | Purpose |
+|----------|---------|
+| `SMTP_ENABLED` | `true` to connect to SMTP; `false` = dry-run (log only, still completes workflow). |
+| `OUTBOUND_FROM_EMAIL` | Required for real send (verified sender with your provider). |
+| `SMTP_HOST` / `SMTP_PORT` | Provider SMTP endpoint (often 587 + TLS or 465 + SSL). |
+| `SMTP_USE_TLS` / `SMTP_USE_SSL` | Match provider: 587 usually `TLS=true`; 465 usually `SSL=true`, `TLS=false`. |
+| `SMTP_USER` / `SMTP_PASSWORD` | Provider credentials. |
+| `OUTBOUND_SEND_RECIPIENT_OVERRIDE` | Optional; send all test mail to one inbox. |
+| `USE_CELERY_FOR_SEND` | `true` only if a Celery worker consumes Redis. |
+
+Copy commented defaults from **`backend/.env.example`** or **`.env.example`** at repo root. Restart the API after changes.
+
 ## Activation KPI via PostHog
 
 When PostHog environment variables are configured, activation telemetry is mirrored to PostHog and the

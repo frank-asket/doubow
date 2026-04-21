@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import { isPaidPublicMetadata, type ClerkPlanPublicMetadata } from '@/lib/clerkPlan'
 
 const isProtectedRoute = createRouteMatcher([
   '/discover(.*)',
@@ -16,11 +17,11 @@ const isAuthEntryRoute = createRouteMatcher([
   '/sign-up(.*)',
 ])
 
-type PublicMetadata = { plan?: string; subscriptionStatus?: string }
-
-function readPublicMetadata(sessionClaims: unknown): PublicMetadata | undefined {
+function readPublicMetadata(sessionClaims: unknown): ClerkPlanPublicMetadata | undefined {
   const claims = sessionClaims as Record<string, unknown> | null | undefined
-  return (claims?.public_metadata ?? claims?.publicMetadata) as PublicMetadata | undefined
+  return (claims?.public_metadata ?? claims?.publicMetadata) as
+    | ClerkPlanPublicMetadata
+    | undefined
 }
 
 /**
@@ -28,12 +29,6 @@ function readPublicMetadata(sessionClaims: unknown): PublicMetadata | undefined 
  * Clerk Billing / publicMetadata in production. Default is off so a normal sign-in
  * unlocks the app; subscription can still be enforced in the API per feature.
  */
-function isPaidAccess(metadata: PublicMetadata | undefined): boolean {
-  if (metadata?.subscriptionStatus === 'active') return true
-  if (metadata?.plan && metadata.plan !== 'free') return true
-  return false
-}
-
 export default clerkMiddleware(async (auth, req) => {
   if (process.env.E2E_BYPASS_AUTH === '1') return
   const { userId } = await auth()
@@ -58,7 +53,7 @@ export default clerkMiddleware(async (auth, req) => {
   const { sessionClaims } = await auth()
   const metadata = readPublicMetadata(sessionClaims)
 
-  if (!isPaidAccess(metadata)) {
+  if (!isPaidPublicMetadata(metadata)) {
     return NextResponse.redirect(new URL('/', req.url))
   }
 })
