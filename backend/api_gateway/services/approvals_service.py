@@ -19,7 +19,7 @@ class ApprovalIdempotencyConflictError(Exception):
         self.prior_approval_id = prior_approval_id
 
 
-def _approval_to_schema(
+def build_approval_schema(
     approval: Approval, app: Application, job: Job, score_row: JobScoreRow | None
 ) -> ApprovalSchema:
     app_schema = application_to_schema(app, job, score_row, approval=approval)
@@ -50,7 +50,7 @@ async def list_approvals(session: AsyncSession, user_id: str) -> list[ApprovalSc
         .where(Approval.user_id == user_id)
     )
     rows = (await session.execute(stmt.order_by(Approval.created_at.desc()))).all()
-    return [_approval_to_schema(approval, app, job, score_row) for approval, app, job, score_row in rows]
+    return [build_approval_schema(approval, app, job, score_row) for approval, app, job, score_row in rows]
 
 
 async def approve_approval(
@@ -78,14 +78,15 @@ async def approve_approval(
     if edited_body is not None:
         approval.draft_body = edited_body
         approval.status = "edited"
-    approval.status = "approved"
+    else:
+        approval.status = "approved"
     approval.approved_at = datetime.now(timezone.utc)
     await session.commit()
     return ApproveApprovalResponse(
         approval_id=approval.id,
-        status=approval.status,
+        status=approval.status,  # type: ignore[arg-type]
         queued_send=True,
-        send_task_id=f"send_{uuid4().hex[:10]}",
+        send_task_id=str(uuid4()),
     )
 
 

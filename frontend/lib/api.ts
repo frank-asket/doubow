@@ -112,6 +112,10 @@ export const applicationsApi = {
       method: 'POST',
       body: JSON.stringify({ mode }),
     }),
+  createDraft: (applicationId: string) =>
+    request<Approval>(`/v1/me/applications/${encodeURIComponent(applicationId)}/draft`, {
+      method: 'POST',
+    }),
 }
 
 // ─── Autopilot ─────────────────────────────────────────────────────────────

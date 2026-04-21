@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +19,7 @@ from services.approvals_service import (
     list_approvals as list_approvals_service,
     reject_approval as reject_approval_service,
 )
+from services.send_approval_service import run_send_stub_in_background
 
 router = APIRouter(prefix="/me/approvals", tags=["approvals"])
 
@@ -39,18 +40,22 @@ async def list_approvals_route(
 async def approve_approval(
     approval_id: str,
     payload: ApproveApprovalRequest,
+    background_tasks: BackgroundTasks,
     idempotency_key: str = Depends(require_idempotency_key),
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> ApproveApprovalResponse:
     try:
-        return await approve_approval_service(
+        response = await approve_approval_service(
             session=session,
             user_id=user.id,
             approval_id=approval_id,
             edited_body=payload.edited_body,
             idempotency_key=idempotency_key,
         )
+        if response.queued_send and response.send_task_id:
+            background_tasks.add_task(run_send_stub_in_background, approval_id, user.id)
+        return response
     except ApprovalIdempotencyConflictError as exc:
         body = ApprovalIdempotencyConflictResponse(
             detail="Key already used with a different approval submission",

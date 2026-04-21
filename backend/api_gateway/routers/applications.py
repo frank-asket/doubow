@@ -7,13 +7,14 @@ from dependencies import get_authenticated_user, optional_idempotency_key
 from models.user import User
 from schemas.errors import ErrorResponse
 from schemas.applications import (
+    Application,
+    ApplicationIdempotencyConflictResponse,
     ApplicationsListResponse,
     CreateApplicationRequest,
     IntegrityCheckRequest,
     IntegrityCheckResponse,
-    Application,
-    ApplicationIdempotencyConflictResponse,
 )
+from schemas.approvals import Approval as ApprovalPayload
 from services.applications_service import (
     ApplicationIdempotencyConflictError,
     ApplicationJobNotFoundError,
@@ -21,6 +22,7 @@ from services.applications_service import (
     integrity_check,
     list_applications,
 )
+from services.draft_service import ApplicationNotFoundError, create_draft_approval_for_application
 
 router = APIRouter(prefix="/me/applications", tags=["applications"])
 
@@ -59,6 +61,22 @@ async def create_application_route(
         )
         return JSONResponse(status_code=status.HTTP_409_CONFLICT, content=body.model_dump())
     except ApplicationJobNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.post(
+    "/{application_id}/draft",
+    response_model=ApprovalPayload,
+    responses={404: {"model": ErrorResponse}},
+)
+async def create_application_draft_route(
+    application_id: str,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> ApprovalPayload:
+    try:
+        return await create_draft_approval_for_application(session, user.id, application_id)
+    except ApplicationNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
