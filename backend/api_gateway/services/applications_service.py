@@ -4,6 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.application import Application
+from models.approval import Approval
 from models.job import Job
 from models.job_score import JobScore as JobScoreRow
 from schemas.applications import (
@@ -14,8 +15,7 @@ from schemas.applications import (
     IntegrityCheckResponse,
     IntegritySummary,
 )
-from schemas.jobs import Job as JobSchema
-from services.job_score_mapping import job_score_to_api
+from services.application_schema import application_to_schema
 
 
 class ApplicationIdempotencyConflictError(Exception):
@@ -28,33 +28,21 @@ class ApplicationJobNotFoundError(Exception):
     pass
 
 
-def _to_schema(app: Application, job: Job, score_row: JobScoreRow | None) -> ApplicationSchema:
-    return ApplicationSchema(
-        id=app.id,
-        user_id=app.user_id,
-        job=JobSchema(
-            id=job.id,
-            source=job.source,
-            external_id=job.external_id,
-            title=job.title,
-            company=job.company,
-            location=job.location or "Remote",
-            salary_range=job.salary_range,
-            description=job.description or "",
-            url=job.url or "",
-            posted_at=job.posted_at,
-            discovered_at=job.discovered_at,
-        ),
-        score=job_score_to_api(job.id, score_row),
-        status=app.status,
-        channel=app.channel,
-        applied_at=app.applied_at,
-        last_updated=app.last_updated,
-        idempotency_key=app.idempotency_key,
-        notes=app.notes,
-        is_stale=app.is_stale,
-        dedup_group=app.dedup_group,
+async def _latest_approval_by_application_ids(
+    session: AsyncSession, user_id: str, application_ids: list[str]
+) -> dict[str, Approval]:
+    if not application_ids:
+        return {}
+    stmt = (
+        select(Approval)
+        .where(Approval.user_id == user_id, Approval.application_id.in_(application_ids))
+        .order_by(Approval.created_at.desc())
     )
+    rows = (await session.execute(stmt)).scalars().all()
+    latest: dict[str, Approval] = {}
+    for approval in rows:
+        latest.setdefault(approval.application_id, approval)
+    return latest
 
 
 async def list_applications(session: AsyncSession, user_id: str, status: str | None) -> ApplicationsListResponse:
@@ -78,7 +66,12 @@ async def list_applications(session: AsyncSession, user_id: str, status: str | N
         stmt = stmt.where(Application.status == status)
     stmt = stmt.order_by(Application.last_updated.desc()).limit(per_page)
     rows = (await session.execute(stmt)).all()
-    items = [_to_schema(app, job, score_row) for app, job, score_row in rows]
+    app_ids = [app.id for app, _, _ in rows]
+    approvals = await _latest_approval_by_application_ids(session, user_id, app_ids)
+    items = [
+        application_to_schema(app, job, score_row, approval=approvals.get(app.id))
+        for app, job, score_row in rows
+    ]
     return ApplicationsListResponse(items=items, total=total, page=1, per_page=per_page)
 
 
@@ -104,7 +97,15 @@ async def create_application(
                     select(JobScoreRow).where(JobScoreRow.user_id == user_id, JobScoreRow.job_id == job_row.id)
                 )
             ).scalar_one_or_none()
-            return _to_schema(existing, job_row, score_row)
+            approval_row = (
+                await session.execute(
+                    select(Approval)
+                    .where(Approval.user_id == user_id, Approval.application_id == existing.id)
+                    .order_by(Approval.created_at.desc())
+                    .limit(1)
+                )
+            ).scalar_one_or_none()
+            return application_to_schema(existing, job_row, score_row, approval=approval_row)
 
     job = await session.get(Job, payload.job_id)
     if not job:
@@ -126,7 +127,7 @@ async def create_application(
             select(JobScoreRow).where(JobScoreRow.user_id == user_id, JobScoreRow.job_id == job.id)
         )
     ).scalar_one_or_none()
-    return _to_schema(app, job, score_row)
+    return application_to_schema(app, job, score_row, approval=None)
 
 
 async def integrity_check(session: AsyncSession, user_id: str, mode: str) -> IntegrityCheckResponse:

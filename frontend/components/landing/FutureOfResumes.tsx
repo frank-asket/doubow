@@ -5,10 +5,10 @@ export function FutureOfResumes() {
   return (
     <section
       id="future-resumes"
-      className="border-b border-neutral-300/70 bg-gradient-to-b from-white to-neutral-50 py-20 sm:py-24"
+      className="border-b border-[#e7e8ee] bg-gradient-to-b from-[#f8f8fb] to-[#f3f4f8] py-20 sm:py-24"
     >
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600">
+        <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
           The future of résumés
         </p>
         <h2 className="mt-4 text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
@@ -34,7 +34,7 @@ export function FutureOfResumes() {
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a
             href="/auth/sign-up"
-            className="inline-flex rounded-full bg-primary-500 px-8 py-3.5 text-sm font-semibold text-black shadow-[0_16px_40px_-18px_rgba(255,188,1,0.8)] transition hover:bg-primary-600"
+            className="inline-flex rounded-full bg-indigo-600 px-8 py-3.5 text-sm font-semibold text-white shadow-[0_16px_40px_-18px_rgba(67,56,202,0.55)] transition hover:bg-indigo-700"
           >
             Open your workspace
           </a>

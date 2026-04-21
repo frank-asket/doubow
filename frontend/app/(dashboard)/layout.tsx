@@ -157,10 +157,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-2xs font-medium text-white">
               FL
             </div>
-            <div className="flex-1 min-w-0">
+            <Link href="/settings" className="flex-1 min-w-0">
               <p className="truncate text-xs font-medium text-zinc-100">Franck L.</p>
               <p className="truncate text-2xs text-zinc-300">Pro</p>
-            </div>
+            </Link>
             <button className="p-0.5 text-zinc-300 hover:text-white">
               <LogOut size={15} />
             </button>
@@ -194,12 +194,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
                 FL
               </div>
-              <div>
+              <Link href="/settings">
                 <p className="text-sm font-medium text-zinc-800">Franck L.</p>
                 <p className="text-xs text-zinc-500">
                   {NAV.find((i) => path === i.href || path.startsWith(i.href + '/'))?.label ?? 'Dashboard'}
                 </p>
-              </div>
+              </Link>
             </div>
           </div>
         </div>

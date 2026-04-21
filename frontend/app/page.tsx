@@ -20,7 +20,7 @@ export default async function RootPage() {
   }
 
   return (
-    <>
+    <div className="landing-shell">
       <a
         href="#landing-main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[300] focus:rounded-lg focus:bg-zinc-100 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-zinc-950 focus:shadow-lg focus:outline-none"
@@ -28,11 +28,7 @@ export default async function RootPage() {
         Skip to main content
       </a>
       <Header />
-      <main
-        id="landing-main"
-        tabIndex={-1}
-        className="landing-shell bg-white"
-      >
+      <main id="landing-main" tabIndex={-1} className="min-w-0">
         <Hero />
         <Tagline />
         <FutureOfResumes />
@@ -46,6 +42,6 @@ export default async function RootPage() {
         <FooterCTA />
       </main>
       <Footer />
-    </>
+    </div>
   )
 }

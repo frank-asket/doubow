@@ -95,6 +95,7 @@ flowchart TB
 Primary references:
 - `docs/structure.md`
 - `docs/product-panels.md`
+- `docs/architecture/doubow-high-level-flow.md`
 - `docs/architecture/daubo-architecture-claude.md`
 - `docs/architecture/daubo-design-system.md`
 

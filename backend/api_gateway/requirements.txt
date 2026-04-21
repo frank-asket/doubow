@@ -4,6 +4,7 @@ python-multipart
 uvicorn[standard]
 pydantic-settings
 sqlalchemy
+greenlet
 asyncpg
 alembic
 celery

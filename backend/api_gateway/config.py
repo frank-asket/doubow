@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     openrouter_api_url: str = "https://openrouter.ai/api/v1"
     # OpenRouter optional attribution header (e.g. your app URL).
     openrouter_http_referer: str | None = "http://localhost:3000"
+    openrouter_max_retries: int = 3
+    openrouter_retry_base_delay_s: float = 0.5
+    openrouter_retry_max_delay_s: float = 8.0
     # Feature flag: use LangChain structured prompting for resume analysis.
     use_langchain: bool = False
     # Feature flag: blend semantic resume/job similarity into fit scoring.

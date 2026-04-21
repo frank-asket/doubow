@@ -10,7 +10,7 @@ const roles = [
 
 function Initial({ name }: { name: string }) {
   return (
-    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500/25 text-xs font-bold text-neutral-1000">
+    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
       {name.slice(0, 1)}
     </span>
   );
@@ -18,7 +18,7 @@ function Initial({ name }: { name: string }) {
 
 export function PipelineShowcase() {
   return (
-    <section id="product" className="border-b border-neutral-300/70 bg-white py-20">
+    <section id="product" className="border-b border-[#e7e8ee] bg-[#f3f4f8] py-20">
       <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">

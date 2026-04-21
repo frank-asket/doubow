@@ -4,69 +4,74 @@ import { DashboardPreview } from "@/components/doubow/DashboardPreview";
 
 export function Hero() {
   return (
-    <section id="product" className="border-b border-neutral-300/70">
+    <section
+      id="product"
+      className="border-b border-zinc-200/80 bg-gradient-to-b from-white via-zinc-50/90 to-zinc-50"
+    >
       <div className="mx-auto max-w-6xl px-4 pb-8 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pt-24">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary-500/40 bg-primary-500/10 px-3 py-1 text-2xs font-medium uppercase tracking-[0.18em] text-neutral-900">
+          <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-2xs font-semibold uppercase tracking-[0.2em] text-indigo-600 shadow-sm ring-1 ring-indigo-500/10">
             <Sparkles size={12} />
             Human-in-the-loop career agent
           </div>
-          <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-neutral-1000 sm:text-5xl lg:text-[3.3rem] lg:leading-[1.06]">
+          <h1 className="mt-5 text-4xl font-bold leading-[1.08] tracking-tight text-zinc-950 sm:text-5xl lg:text-[3.25rem]">
             A calmer way to run your job search
           </h1>
-          <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-neutral-700 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg">
             Doubow helps you discover better-fit roles, tailor materials with your real resume data, and stay ready
             for interviews. The automation is fast, but approvals stay in your hands.
           </p>
         </div>
 
-        <div className="mx-auto mt-6 grid max-w-4xl gap-2.5 sm:grid-cols-3">
-          <div className="rounded-xl border border-neutral-300 bg-white px-3.5 py-3 text-left">
-            <p className="text-2xs uppercase tracking-wider text-neutral-600">Time to first matches</p>
-            <p className="mt-1 text-lg font-semibold text-neutral-1000">~2 min</p>
+        <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-left shadow-sm shadow-zinc-950/5">
+            <p className="text-2xs font-medium uppercase tracking-wider text-zinc-500">
+              Time to first matches
+            </p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-950">~2 min</p>
           </div>
-          <div className="rounded-xl border border-neutral-300 bg-white px-3.5 py-3 text-left">
-            <p className="text-2xs uppercase tracking-wider text-neutral-600">Approval safety</p>
-            <p className="mt-1 flex items-center gap-1 text-lg font-semibold text-neutral-1000">
-              <ShieldCheck size={14} className="text-neutral-1000" />
+          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-left shadow-sm shadow-zinc-950/5">
+            <p className="text-2xs font-medium uppercase tracking-wider text-zinc-500">Approval safety</p>
+            <p className="mt-1 flex items-center gap-1.5 text-lg font-semibold text-zinc-950">
+              <ShieldCheck size={16} className="shrink-0 text-indigo-600" strokeWidth={2} />
               Always-on gate
             </p>
           </div>
-          <div className="rounded-xl border border-neutral-300 bg-white px-3.5 py-3 text-left">
-            <p className="text-2xs uppercase tracking-wider text-neutral-600">Fit scoring</p>
-            <p className="mt-1 text-lg font-semibold text-neutral-1000">5 dimensions</p>
+          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-left shadow-sm shadow-zinc-950/5">
+            <p className="text-2xs font-medium uppercase tracking-wider text-zinc-500">Fit scoring</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-950">5 dimensions</p>
           </div>
         </div>
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/discover"
-            className="inline-flex rounded-full bg-primary-500 px-8 py-3.5 text-sm font-semibold text-black shadow-[0_16px_40px_-18px_rgba(255,188,1,0.8)] transition hover:bg-primary-600"
+            className="inline-flex rounded-full border border-indigo-600 bg-indigo-600 px-8 py-3.5 text-sm font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:border-indigo-700 hover:bg-indigo-700"
           >
             Get started now
           </Link>
           <a
             href="/auth/sign-up"
-            className="inline-flex rounded-full border border-neutral-400 px-7 py-3.5 text-sm font-semibold text-neutral-800 transition hover:border-neutral-700 hover:text-neutral-1000"
+            className="inline-flex rounded-full border border-zinc-200 bg-white px-7 py-3.5 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
           >
             See pricing
           </a>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm text-neutral-700">
-          <span className="text-neutral-500">Doubow members</span>
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-3 text-sm text-zinc-600">
+          <span className="text-zinc-500">Doubow members</span>
           <span className="flex gap-0.5" role="img" aria-label="5 out of 5 stars">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className="h-4 w-4 fill-primary-500 text-primary-500"
+                className="h-4 w-4 fill-indigo-600 text-indigo-600"
                 strokeWidth={0}
               />
             ))}
           </span>
-          <span className="font-semibold text-neutral-1000">4.9</span>
+          <span className="font-semibold tabular-nums text-zinc-950">4.9</span>
           <span
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-500 text-xs font-bold text-black"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white"
             aria-hidden
           >
             D

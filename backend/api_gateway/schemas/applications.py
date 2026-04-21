@@ -10,6 +10,8 @@ IntegrityMode = Literal["dry_run", "apply"]
 IntegrityChangeType = Literal["deduplicate", "mark_stale", "normalize_status"]
 Channel = Literal["email", "linkedin", "company_site"]
 
+PipelineStage = Literal["score", "draft", "approve", "send_prep"]
+
 
 class Application(BaseModel):
     id: str
@@ -24,6 +26,7 @@ class Application(BaseModel):
     notes: str | None = None
     is_stale: bool = False
     dedup_group: str | None = None
+    pipeline_stage: PipelineStage
 
 
 class ApplicationsListResponse(BaseModel):

@@ -5,8 +5,9 @@ import { productName } from "@/lib/customer-config";
 
 export function FooterCTA() {
   return (
-    <section className="bg-white px-4 py-16 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl rounded-2xl border border-neutral-300 bg-neutral-50 px-8 py-14 text-center sm:px-12 sm:py-16">
+    <section className="border-t border-zinc-200/80 bg-gradient-to-b from-zinc-50 to-white px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl rounded-2xl border border-zinc-200 bg-white px-8 py-14 text-center shadow-lg shadow-zinc-950/[0.06] ring-1 ring-indigo-500/[0.07] sm:px-12 sm:py-16">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Career momentum</p>
         <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
           Ready to organize your next career move?
         </h2>
@@ -16,7 +17,7 @@ export function FooterCTA() {
         </p>
         <Link
           href="/discover"
-          className="mt-8 inline-flex rounded-full bg-primary-500 px-9 py-3.5 text-sm font-semibold text-black shadow-[0_16px_40px_-18px_rgba(255,188,1,0.8)] transition hover:bg-primary-600"
+          className="mt-8 inline-flex rounded-full border border-indigo-600 bg-indigo-600 px-9 py-3.5 text-sm font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:border-indigo-700 hover:bg-indigo-700"
         >
           Get started now
         </Link>
@@ -27,7 +28,7 @@ export function FooterCTA() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-neutral-300 bg-white pb-12 pt-10">
+    <footer className="border-t border-zinc-200/80 bg-zinc-50 pb-12 pt-10">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
         <div className="sm:col-span-2 lg:col-span-1">
           <Logo href="/" />

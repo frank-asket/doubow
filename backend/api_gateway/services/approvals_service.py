@@ -10,9 +10,7 @@ from models.job import Job
 from models.job_score import JobScore as JobScoreRow
 from schemas.approvals import Approval as ApprovalSchema
 from schemas.approvals import ApproveApprovalResponse
-from schemas.applications import Application as ApplicationSchema
-from schemas.jobs import Job as JobSchema
-from services.job_score_mapping import job_score_to_api
+from services.application_schema import application_to_schema
 
 
 class ApprovalIdempotencyConflictError(Exception):
@@ -24,32 +22,7 @@ class ApprovalIdempotencyConflictError(Exception):
 def _approval_to_schema(
     approval: Approval, app: Application, job: Job, score_row: JobScoreRow | None
 ) -> ApprovalSchema:
-    app_schema = ApplicationSchema(
-        id=app.id,
-        user_id=app.user_id,
-        job=JobSchema(
-            id=job.id,
-            source=job.source,
-            external_id=job.external_id,
-            title=job.title,
-            company=job.company,
-            location=job.location or "Remote",
-            salary_range=job.salary_range,
-            description=job.description or "",
-            url=job.url or "",
-            posted_at=job.posted_at,
-            discovered_at=job.discovered_at,
-        ),
-        score=job_score_to_api(job.id, score_row),
-        status=app.status,
-        channel=app.channel,
-        applied_at=app.applied_at,
-        last_updated=app.last_updated,
-        idempotency_key=app.idempotency_key,
-        notes=app.notes,
-        is_stale=app.is_stale,
-        dedup_group=app.dedup_group,
-    )
+    app_schema = application_to_schema(app, job, score_row, approval=approval)
     return ApprovalSchema(
         id=approval.id,
         application=app_schema,

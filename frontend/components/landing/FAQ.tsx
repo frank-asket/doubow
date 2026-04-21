@@ -67,7 +67,7 @@ export function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="border-b border-neutral-300/70 bg-white py-20">
+    <section id="faq" className="border-b border-indigo-100 bg-[#f3f4f8] py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-xl">
@@ -86,26 +86,30 @@ export function FAQ() {
           </Link>
         </div>
 
-        <div className="mt-14 grid border-t border-l border-neutral-300 sm:grid-cols-2">
+        <div className="mt-14 grid overflow-hidden rounded-2xl border border-indigo-100 bg-white sm:grid-cols-2">
           {faqs.map((item, idx) => {
             const isOpen = open === idx;
             return (
-              <div key={item.q} className="border-b border-r border-neutral-300">
+              <div key={item.q} className="border-b border-r border-indigo-100">
                 <button
                   type="button"
-                  className="flex w-full items-start justify-between gap-4 p-5 text-left text-sm font-medium text-neutral-1000 sm:p-6"
+                  className={`flex w-full items-start justify-between gap-4 p-5 text-left text-sm font-medium text-neutral-1000 transition-colors sm:p-6 ${
+                    isOpen ? "bg-indigo-50/60" : "hover:bg-indigo-50/40"
+                  }`}
                   onClick={() => setOpen(isOpen ? null : idx)}
                   aria-expanded={isOpen}
                 >
                   <span>{item.q}</span>
                   <Plus
-                    className={`h-4 w-4 shrink-0 text-neutral-500 transition ${
+                    className={`h-4 w-4 shrink-0 transition ${
+                      isOpen ? "text-indigo-600" : "text-neutral-500"
+                    } ${
                       isOpen ? "rotate-45" : ""
                     }`}
                   />
                 </button>
                 {isOpen ? (
-                  <div className="border-t border-neutral-300 px-5 pb-5 pt-0 text-sm leading-relaxed text-neutral-700 sm:px-6 sm:pb-6">
+                  <div className="border-t border-indigo-100 bg-indigo-50/40 px-5 pb-5 pt-0 text-sm leading-relaxed text-neutral-700 sm:px-6 sm:pb-6">
                     {item.a}
                   </div>
                 ) : null}

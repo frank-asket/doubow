@@ -115,6 +115,9 @@ export type ApplicationStatus =
 
 export type Channel = 'email' | 'linkedin' | 'company_site'
 
+/** Derived from Postgres (scores + approvals); matches backend ``pipeline_stage``. */
+export type PipelineStage = 'score' | 'draft' | 'approve' | 'send_prep'
+
 export interface Application {
   id: string
   user_id: string
@@ -128,6 +131,7 @@ export interface Application {
   notes?: string
   is_stale: boolean
   dedup_group?: string
+  pipeline_stage: PipelineStage
 }
 
 // ─── Integrity Check ───────────────────────────────────────────────────────

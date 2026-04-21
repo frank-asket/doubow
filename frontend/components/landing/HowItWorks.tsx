@@ -68,7 +68,7 @@ function MockTrade() {
 
 export function HowItWorks() {
   return (
-    <section id="how" className="border-b border-neutral-300/70 bg-white py-16 sm:py-20">
+    <section id="how" className="border-b border-[#e7e8ee] bg-[#f3f4f8] py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -95,7 +95,7 @@ export function HowItWorks() {
               key={step.n}
               className="rounded-xl border border-neutral-300 bg-white p-5 transition-colors duration-150 hover:border-neutral-400 sm:p-6"
             >
-              <span className="text-2xl font-semibold text-primary-600">{step.n}</span>
+              <span className="text-2xl font-semibold text-indigo-600">{step.n}</span>
               <h3 className="mt-2.5 text-base font-semibold text-neutral-1000 sm:text-lg">{step.title}</h3>
               <p className="mt-2 text-sm text-neutral-700">{step.body}</p>
               {step.mock === "signup" ? <MockSignup /> : null}

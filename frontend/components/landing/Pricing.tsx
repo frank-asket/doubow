@@ -61,22 +61,22 @@ export function Pricing() {
   const [yearly, setYearly] = useState(false);
 
   return (
-    <section id="pricing" className="border-b border-neutral-300/70 bg-white py-16 sm:py-20">
+    <section id="pricing" className="border-b border-zinc-200/80 bg-zinc-50 py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
+          <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
             Choose your plan. Start today.
           </h2>
-          <p className="max-w-md text-base leading-relaxed text-neutral-700 sm:text-lg lg:text-right">
+          <p className="max-w-md text-base leading-relaxed text-zinc-600 sm:text-lg lg:text-right">
             Free to explore; Pro unlocks tailored resume exports and applying
             through your own email with full approval control.
           </p>
         </div>
 
         <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <div className="relative inline-flex rounded-full border border-neutral-300 bg-neutral-50 p-1">
+          <div className="relative inline-flex rounded-full border border-zinc-200 bg-white p-1 shadow-sm shadow-zinc-950/5">
             <span
-              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-primary-500 transition-all duration-200 ${
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-indigo-600 transition-all duration-200 ${
                 yearly ? "left-[calc(50%+2px)]" : "left-1"
               }`}
               aria-hidden
@@ -85,7 +85,7 @@ export function Pricing() {
               type="button"
               onClick={() => setYearly(false)}
               className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold ${
-                !yearly ? "text-black" : "text-neutral-600"
+                !yearly ? "text-zinc-950" : "text-zinc-500"
               }`}
             >
               Monthly
@@ -94,20 +94,20 @@ export function Pricing() {
               type="button"
               onClick={() => setYearly(true)}
               className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold ${
-                yearly ? "text-black" : "text-neutral-600"
+                yearly ? "text-zinc-950" : "text-zinc-500"
               }`}
             >
               Yearly
-              <span className="rounded-full bg-primary-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-neutral-900">
+              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-700 ring-1 ring-indigo-500/15">
                 20% OFF
               </span>
             </button>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-sm text-neutral-500">
+        <p className="mt-8 text-center text-sm text-zinc-500">
           Ready to subscribe? Open{" "}
-          <a href="/auth/sign-up" className="font-semibold text-neutral-900 hover:underline">
+          <a href="/auth/sign-up" className="font-semibold text-zinc-900 underline-offset-4 hover:underline">
             Doubow plans &amp; billing
           </a>{" "}
           and finish checkout from your account.
@@ -119,29 +119,29 @@ export function Pricing() {
               key={tier.name}
               className={`relative flex flex-col overflow-hidden rounded-xl border p-5 sm:p-6 ${
                 tier.featured
-                  ? "border-primary-500/45 bg-white shadow-[0_20px_60px_-30px_rgba(255,188,1,0.45)]"
-                  : "border-neutral-300 bg-white"
+                  ? "border-indigo-200 bg-white shadow-md shadow-zinc-950/[0.08] ring-1 ring-indigo-500/15"
+                  : "border-zinc-200 bg-white shadow-sm shadow-zinc-950/5"
               }`}
             >
               {tier.featured ? (
-                <span className="absolute right-4 top-4 rounded-full bg-primary-500 px-2.5 py-0.5 text-[10px] font-bold uppercase text-black">
+                <span className="absolute right-4 top-4 rounded-full bg-indigo-600 px-2.5 py-0.5 text-[10px] font-bold uppercase text-white">
                   Popular
                 </span>
               ) : null}
-              <h3 className="text-base font-semibold text-neutral-1000 sm:text-lg">{tier.name}</h3>
+              <h3 className="text-base font-semibold text-zinc-950 sm:text-lg">{tier.name}</h3>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-semibold text-neutral-1000 sm:text-4xl">
+                <span className="text-3xl font-semibold tabular-nums text-zinc-950 sm:text-4xl">
                   {yearly ? tier.yearly : tier.monthly}
                 </span>
-                <span className="text-sm text-neutral-600">/month</span>
+                <span className="text-sm text-zinc-500">/month</span>
               </div>
-              <p className="mt-3 text-sm text-neutral-700">{tier.blurb}</p>
+              <p className="mt-3 text-sm text-zinc-600">{tier.blurb}</p>
               <a
                 href={tier.name === "Free" ? "/auth/sign-up" : "/discover"}
-                className={`mt-8 inline-flex justify-center rounded-full py-3 text-sm font-semibold ${
+                className={`mt-8 inline-flex justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${
                   tier.featured
-                    ? "bg-primary-500 text-black hover:bg-primary-600"
-                    : "border border-neutral-400 text-neutral-900 hover:border-neutral-700"
+                    ? "border border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/20 hover:border-indigo-700 hover:bg-indigo-700"
+                    : "border border-zinc-200 bg-white text-zinc-900 shadow-sm hover:border-zinc-300 hover:bg-zinc-50"
                 }`}
               >
                 {tier.name === "Free" ? "Create account" : "Subscribe"}
@@ -149,19 +149,19 @@ export function Pricing() {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center" aria-hidden>
-                  <div className="w-full border-t border-neutral-300" />
+                  <div className="w-full border-t border-zinc-200" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-white px-3 text-xs font-medium text-neutral-600">
+                  <span className="bg-white px-3 text-xs font-medium text-zinc-500">
                     {tier.includedLabel}
                   </span>
                 </div>
               </div>
 
-              <ul className="space-y-3 text-sm text-neutral-700">
+              <ul className="space-y-3 text-sm text-zinc-600">
                 {tier.features.map((f) => (
                   <li key={f} className="flex gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary-600" strokeWidth={1.75} />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" strokeWidth={1.75} />
                     {f}
                   </li>
                 ))}
