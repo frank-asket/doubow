@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.prompts import ChatPromptTemplate
 
 from schemas.resume import ParsedProfileModel, UserPreferencesModel
 from services.openrouter import chat_completion
+
+
+class LangChainUnavailableError(RuntimeError):
+    """Raised when langchain-core is not installed but feature flag is enabled."""
 
 
 class ResumeAnalysisStructured(BaseModel):
@@ -29,6 +31,12 @@ def _as_text(result: ResumeAnalysisStructured) -> str:
 
 
 async def analyze_resume_with_langchain(parsed: ParsedProfileModel, prefs: UserPreferencesModel) -> str:
+    try:
+        from langchain_core.output_parsers import PydanticOutputParser
+        from langchain_core.prompts import ChatPromptTemplate
+    except ModuleNotFoundError as exc:  # pragma: no cover - depends on deployment env
+        raise LangChainUnavailableError("langchain-core is not installed") from exc
+
     parser = PydanticOutputParser(pydantic_object=ResumeAnalysisStructured)
     prompt = ChatPromptTemplate.from_messages(
         [

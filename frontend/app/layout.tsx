@@ -38,7 +38,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
       >
         {clerkPublishableKey ? (
-          <ClerkProvider publishableKey={clerkPublishableKey}>
+          <ClerkProvider
+            publishableKey={clerkPublishableKey}
+            signInUrl="/auth/sign-in"
+            signUpUrl="/auth/sign-up"
+            signInFallbackRedirectUrl="/dashboard"
+            signUpFallbackRedirectUrl="/dashboard"
+            afterSignOutUrl="/"
+          >
             <ThemeProvider>
               <ClerkApiAuthBridge />
               <PostHogBoundary />

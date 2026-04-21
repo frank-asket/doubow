@@ -16,6 +16,7 @@ from schemas.resume import (
     UserPreferencesModel,
     UserPreferencesPatch,
 )
+from services.langchain_resume_analysis import LangChainUnavailableError
 from services.langchain_resume_analysis import analyze_resume_with_langchain
 from services.openrouter import chat_completion
 from services.resume_parser import parse_resume
@@ -316,6 +317,8 @@ async def analyze_resume_for_user(session: AsyncSession, user_id: str) -> str:
     if settings.use_langchain and settings.openrouter_api_key:
         try:
             return await analyze_resume_with_langchain(parsed, prefs)
+        except LangChainUnavailableError:
+            return build_profile_analysis(parsed, prefs)
         except Exception:
             return build_profile_analysis(parsed, prefs)
 

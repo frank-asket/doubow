@@ -4,11 +4,14 @@ from uuid import uuid4
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from models.job import Job
 from models.job_dismissal import JobDismissal
 from models.job_score import JobScore
+from models.resume import Resume
 from schemas.jobs import JobsListResponse, JobWithScore
 from services.job_score_mapping import job_score_to_api
+from services.semantic_match_service import SemanticMatcherUnavailableError, semantic_fit_score
 
 
 def _row_to_schema(job: Job, score_row: JobScore) -> JobWithScore:
@@ -59,6 +62,18 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
     ).all()
     dismissed = {r[0] for r in dismissed_rows}
 
+    latest_resume = (
+        await session.execute(
+            select(Resume)
+            .where(Resume.user_id == user_id)
+            .order_by(Resume.created_at.desc(), Resume.version.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    parsed_profile = latest_resume.parsed_profile if latest_resume is not None else None
+    semantic_weight = max(0.0, min(1.0, float(settings.semantic_matching_weight)))
+    semantic_enabled = bool(settings.use_semantic_matching and semantic_weight > 0.0)
+
     now = datetime.now(timezone.utc)
     for job in jobs_with_templates:
         if job.id in scored or job.id in dismissed:
@@ -66,13 +81,23 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
         spec = _score_spec_from_template(job.score_template if isinstance(job.score_template, dict) else None)
         if spec is None:
             continue
+        fit_score = float(spec["fit_score"])
+        fit_reasons = list(spec["fit_reasons"])
+        if semantic_enabled:
+            try:
+                semantic_score = semantic_fit_score(parsed_profile, job)
+            except SemanticMatcherUnavailableError:
+                semantic_score = None
+            if semantic_score is not None:
+                fit_score = round(((1.0 - semantic_weight) * fit_score) + (semantic_weight * semantic_score), 1)
+                fit_reasons = [*fit_reasons, f"Semantic similarity signal: {semantic_score:.1f}/5.0"]
         session.add(
             JobScore(
                 id=str(uuid4()),
                 user_id=user_id,
                 job_id=job.id,
-                fit_score=spec["fit_score"],
-                fit_reasons=spec["fit_reasons"],
+                fit_score=fit_score,
+                fit_reasons=fit_reasons,
                 risk_flags=spec["risk_flags"],
                 dimension_scores=spec["dimension_scores"],
                 scored_at=now,

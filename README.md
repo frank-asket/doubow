@@ -145,6 +145,11 @@ docker compose -f backend/docker-compose.yml --env-file backend/.env down
 - Frontend: `http://localhost:3000`
 - Auth route: `http://localhost:3000/auth/sign-up`
 - API health: `http://localhost:8000/healthz`
+- Week 1 KPI snapshot: `./.venv-test/bin/python scripts/baseline_report.py`
+- Phase 3 offline semantic precision eval:
+  `./.venv-test/bin/python scripts/semantic_precision_eval.py --user-id <clerk_user_id>`
+- Phase 3 with stronger outcome-proxy labels:
+  `./.venv-test/bin/python scripts/semantic_precision_eval.py --user-id <clerk_user_id> --label-mode outcome`
 
 ## 🗄️ Database Workflow (Supabase/Postgres)
 
@@ -199,3 +204,4 @@ Behavior:
 - Design system: `docs/architecture/daubo-design-system.md`
 - Product panel behavior: `docs/product-panels.md`
 - Onboarding notes: `docs/onboarding.md`
+- Stack decision matrix and baseline gates: `docs/stack-decisions.md`

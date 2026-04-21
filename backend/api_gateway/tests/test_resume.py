@@ -13,6 +13,7 @@ from services.resume_service import (
     update_preferences_for_user,
     upload_resume_for_user,
 )
+from services.langchain_resume_analysis import LangChainUnavailableError
 
 
 @pytest.mark.asyncio
@@ -228,4 +229,24 @@ async def test_analyze_resume_langchain_failure_falls_back(tmp_path, monkeypatch
 
     monkeypatch.setattr("services.resume_service.analyze_resume_with_langchain", _boom)
     out = await analyze_resume_for_user(db_session, "user_lc_fallback")
+    assert "Profile:" in out
+
+
+@pytest.mark.asyncio
+async def test_analyze_resume_langchain_unavailable_falls_back(tmp_path, monkeypatch, db_session):
+    monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    monkeypatch.setattr(settings, "openrouter_api_key", "or_test_key")
+    monkeypatch.setattr(settings, "use_langchain", True)
+    db_session.add(User(id="user_lc_missing_dep", email="lcmissing@example.com"))
+    await db_session.commit()
+
+    await upload_resume_for_user(
+        db_session, "user_lc_missing_dep", b"%PDF-1.4 fake", "resume.pdf", "application/pdf"
+    )
+
+    async def _missing(*args, **kwargs):
+        raise LangChainUnavailableError("langchain-core is not installed")
+
+    monkeypatch.setattr("services.resume_service.analyze_resume_with_langchain", _missing)
+    out = await analyze_resume_for_user(db_session, "user_lc_missing_dep")
     assert "Profile:" in out

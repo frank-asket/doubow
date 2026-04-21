@@ -21,7 +21,12 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = "postgresql+asyncpg://doubow:doubow@localhost:5433/doubow"
     redis_url: str = "redis://localhost:6379"
-    cors_origins: list[str] = ["http://localhost:3000"]
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ]
     clerk_issuer: str | None = None
     clerk_audience: str | None = None
     # Local filesystem root for uploaded resumes (relative paths are resolved from cwd).
@@ -38,6 +43,10 @@ class Settings(BaseSettings):
     openrouter_http_referer: str | None = "http://localhost:3000"
     # Feature flag: use LangChain structured prompting for resume analysis.
     use_langchain: bool = False
+    # Feature flag: blend semantic resume/job similarity into fit scoring.
+    use_semantic_matching: bool = False
+    # Blend weight for semantic score in final fit score. 0.0 disables impact.
+    semantic_matching_weight: float = 0.25
 
     # PostHog (optional). When configured, telemetry is mirrored to PostHog and
     # activation KPI is sourced from PostHog events.
