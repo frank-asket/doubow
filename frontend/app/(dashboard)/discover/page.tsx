@@ -53,7 +53,7 @@ function JobCard({ job }: { job: JobWithScore }) {
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
   const dismissJob = useJobStore((s) => s.dismissJob)
-  const queueIdempotencyKey = useMemo(() => crypto.randomUUID(), [job.id])
+  const queueIdempotencyKey = useMemo(() => crypto.randomUUID(), [])
 
   async function handleQueue() {
     setQueuing(true)
