@@ -1,40 +1,21 @@
-# Frontend
+# Frontend Legacy Wrapper
 
-Next.js application for the Doubow product UI.
+`frontend/` is now a transitional wrapper only.
 
-## Structure
+Canonical frontend runtime lives in `apps/web/`.
 
-- `app/` — App Router pages/layouts.
-- `components/` — reusable UI components.
-- `hooks/` — frontend hooks.
-- `lib/` — API client and shared frontend utilities.
-- `stores/` — client state stores.
-- `public/` — static assets (`public/reference` for UI references).
-- `tests/` — Playwright/browser tests.
-
-## Run locally
-
-From repo root:
+Use these root commands:
 
 ```bash
-npm run -w frontend dev
+npm run dev:web
+npm run build:web
+npm run lint:web
+npm run type-check
 ```
 
-Build:
+Or direct workspace commands:
 
 ```bash
-npm run -w frontend build
+npm run -w @doubow/web dev
+npm run -w @doubow/web build
 ```
-
-Lint and type-check:
-
-```bash
-npm run -w frontend lint
-npm run -w frontend type-check
-```
-
-## Auth and API
-
-- API base URL comes from `NEXT_PUBLIC_API_URL`.
-- Authenticated calls use Clerk bearer tokens via `components/auth/ClerkApiAuthBridge.tsx` and `lib/api.ts`.
-- Backend routes like `/v1/me/*` require a valid `Authorization: Bearer <Clerk JWT>`.

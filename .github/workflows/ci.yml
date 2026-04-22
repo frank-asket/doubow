@@ -10,14 +10,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Guard deprecated frontend runtime paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${GITHUB_BASE_REF:-}" ]]; then
+            git fetch origin "${GITHUB_BASE_REF}" --depth=1
+            BASE_REF="origin/${GITHUB_BASE_REF}"
+          else
+            BASE_REF="HEAD~1"
+          fi
+          CHANGED="$(git diff --name-only "${BASE_REF}"...HEAD || true)"
+          if [[ -z "${CHANGED}" ]]; then
+            echo "No changed files to validate."
+            exit 0
+          fi
+          if echo "${CHANGED}" | rg -n '^(frontend/(app|components|hooks|lib|stores)/|frontend/(middleware\.ts|next\.config\.js|playwright\.config\.ts|postcss\.config\.js|tailwind\.config\.js|tsconfig\.json|next-env\.d\.ts)$)'; then
+            echo "Deprecated frontend runtime paths were modified. Use apps/web instead."
+            exit 1
+          fi
+          echo "Frontend path guard passed."
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run -w frontend lint
-      - run: npm run -w frontend type-check
-      - run: npm run -w frontend build
+      - run: npm run -w @doubow/web lint
+      - run: npm run -w @doubow/web type-check
+      - run: npm run -w @doubow/web build
 
   backend-migration-check:
     runs-on: ubuntu-latest

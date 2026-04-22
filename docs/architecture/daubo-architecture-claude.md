@@ -294,6 +294,21 @@ Phase C step 1 status (apps/web runtime root):
 - Converted `frontend/package.json` to legacy wrapper mode (`@doubow/web-legacy`) proxying to `apps/web`.
 - Updated `apps/web` env loading to include repo root and legacy frontend env files during transition.
 
+Phase C step 2.1 status (route bridge removal + CI guard):
+- Removed legacy dashboard route bridge files from `frontend/app/(dashboard)` for migrated domains:
+  - `discover/page.tsx`
+  - `pipeline/page.tsx`
+  - `approvals/page.tsx`
+  - `prep/page.tsx`
+  - `agents/page.tsx`
+- Updated CI frontend job to run canonical workspace commands on `@doubow/web`.
+- Added a CI guard that blocks modifications to deprecated frontend runtime paths (`frontend/app`, `frontend/components`, `frontend/hooks`, `frontend/lib`, `frontend/stores`, and related runtime config files).
+
+Phase C step 2.2 status (frontend legacy wrapper minimization):
+- Removed legacy frontend runtime/source/config/test trees from `frontend/` (`app`, `components`, `hooks`, `lib`, `stores`, `public`, `tests`, runtime config files).
+- Simplified `frontend/package.json` to a script-only wrapper that proxies commands to canonical `apps/web`.
+- Updated `frontend/README.md` to reflect wrapper-only status and canonical `apps/web` usage.
+
 Acceptance checks (per slice):
 - No mixed ownership in moved slice (code + tests + imports moved together).
 - PR passes app-local and root-level CI.
