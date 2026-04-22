@@ -10,8 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "test": "playwright test --config=playwright.config.ts",
-    "test:smoke": "playwright test --config=playwright.config.ts"
+    "test": "NO_PROXY=localhost,127.0.0.1,::1 no_proxy=localhost,127.0.0.1,::1 PLAYWRIGHT_BASE_URL=http://localhost:3100 playwright test --config=playwright.config.ts",
+    "test:smoke": "NO_PROXY=localhost,127.0.0.1,::1 no_proxy=localhost,127.0.0.1,::1 PLAYWRIGHT_BASE_URL=http://localhost:3100 playwright test --config=playwright.config.ts --grep-invert \"dashboard visual regression\""
   },
   "dependencies": {
     "@clerk/nextjs": "^6.39.2",
