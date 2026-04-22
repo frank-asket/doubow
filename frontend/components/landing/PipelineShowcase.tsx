@@ -18,13 +18,13 @@ function Initial({ name }: { name: string }) {
 
 export function PipelineShowcase() {
   return (
-    <section id="pipeline-showcase" className="border-b border-zinc-200/80 bg-zinc-50 py-20">
+    <section id="pipeline-showcase" className="landing-section-y border-b border-zinc-200/80 bg-zinc-50">
       <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
         <div>
-          <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
+          <h2 className="landing-heading text-balance">
             Every sector, matched worldwide
           </h2>
-          <p className="mt-4 text-lg text-neutral-700">
+          <p className="landing-lede mt-5 max-w-xl">
             Nurses, teachers, drivers, clinicians, accountants, technicians—Doubow is for anyone
             updating their career. Save roles you find (or ideas from our search helper), then get{" "}
             <span className="text-neutral-900">tailored wording</span> and a clear path to{" "}
@@ -33,7 +33,7 @@ export function PipelineShowcase() {
           </p>
           <Link
             href="/discover"
-            className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-neutral-800 hover:text-neutral-1000"
+            className="mt-6 inline-flex items-center gap-1 rounded-md text-sm font-semibold text-neutral-800 transition hover:text-neutral-1000 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             Open dashboard <span aria-hidden>&gt;</span>
           </Link>

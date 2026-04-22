@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { ClerkProvider } from '@clerk/nextjs'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google'
 import ClerkApiAuthBridge from '@/components/auth/ClerkApiAuthBridge'
 import ClerkDevOriginGuard from '@/components/auth/ClerkDevOriginGuard'
 import DevAuthNotice from '@/components/auth/DevAuthNotice'
@@ -12,6 +12,13 @@ import './globals.css'
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
+  display: 'swap',
+})
+
+/** Editorial display for marketing headlines (landing); body stays sans. */
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-display',
   display: 'swap',
 })
 
@@ -36,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${plusJakartaSans.variable} flex min-h-full flex-col font-sans antialiased`}
+        className={`${plusJakartaSans.variable} ${fraunces.variable} flex min-h-full flex-col font-sans antialiased`}
         suppressHydrationWarning
       >
         {clerkPublishableKey ? (

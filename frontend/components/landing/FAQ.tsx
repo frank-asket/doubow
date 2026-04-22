@@ -67,20 +67,20 @@ export function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="border-b border-zinc-200/80 bg-white py-20">
+    <section id="faq" className="landing-section-y border-b border-zinc-200/80 bg-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-xl">
-            <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
+            <h2 className="landing-heading text-balance">
               Your questions, answered
             </h2>
-            <p className="mt-4 text-lg text-neutral-700">
+            <p className="landing-lede mt-4">
               Straightforward answers—no jargon required.
             </p>
           </div>
           <Link
             href="/discover"
-            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-neutral-800 hover:text-neutral-1000"
+            className="inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-semibold text-neutral-800 transition hover:text-neutral-1000 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             Create account now <span aria-hidden>&gt;</span>
           </Link>
@@ -93,7 +93,7 @@ export function FAQ() {
               <div key={item.q} className="border-b border-r border-zinc-200">
                 <button
                   type="button"
-                  className={`flex w-full items-start justify-between gap-4 p-5 text-left text-sm font-semibold text-black transition-colors sm:p-6 ${
+                  className={`flex w-full items-start justify-between gap-4 p-5 text-left text-sm font-semibold text-black transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 sm:p-6 ${
                     isOpen ? "bg-indigo-50/60" : "hover:bg-zinc-50"
                   }`}
                   onClick={() => setOpen(isOpen ? null : idx)}

@@ -31,14 +31,14 @@ export function Testimonials() {
   return (
     <section
       id="testimonials"
-      className="border-b border-zinc-200/80 bg-white py-20"
+      className="landing-section-y border-b border-zinc-200/80 bg-white"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <h2 className="max-w-xl text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
+          <h2 className="landing-heading max-w-xl text-balance">
             Trusted by serious job seekers
           </h2>
-          <p className="max-w-md text-lg text-zinc-600 lg:text-right">
+          <p className="landing-lede max-w-md lg:text-right">
             Built for people who want leverage, transparency, and control at the
             moments that touch employers.
           </p>
@@ -73,7 +73,7 @@ export function Testimonials() {
           <div className="flex flex-row justify-stretch divide-x divide-zinc-200 bg-zinc-50/80 lg:w-52 lg:flex-col lg:divide-x-0 lg:divide-y">
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 py-6 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 lg:flex-none"
+              className="flex flex-1 items-center justify-center gap-2 py-6 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 lg:flex-none"
               onClick={() => setI((v) => (v - 1 + quotes.length) % quotes.length)}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -81,7 +81,7 @@ export function Testimonials() {
             </button>
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 py-6 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 lg:flex-none"
+              className="flex flex-1 items-center justify-center gap-2 py-6 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 lg:flex-none"
               onClick={() => setI((v) => (v + 1) % quotes.length)}
             >
               Next

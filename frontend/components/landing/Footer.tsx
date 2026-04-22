@@ -6,19 +6,19 @@ import { productName } from "@/lib/customer-config";
 
 export function FooterCTA() {
   return (
-    <section className="border-t border-zinc-200/80 bg-gradient-to-b from-zinc-50 to-white px-4 py-16 sm:px-6 lg:px-8">
+    <section className="border-t border-zinc-200/80 bg-gradient-to-b from-zinc-50 to-white px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
       <div className="mx-auto max-w-4xl rounded-2xl border border-zinc-200 bg-white px-8 py-14 text-center shadow-md shadow-zinc-950/10 sm:px-12 sm:py-16">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Career momentum</p>
-        <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
+        <h2 className="font-display mx-auto mt-5 max-w-2xl text-balance text-3xl font-semibold leading-tight tracking-tight text-zinc-950 sm:text-4xl">
           Ready to organize your next career move?
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-neutral-700">
+        <p className="landing-lede mx-auto mt-5 max-w-xl">
           Track roles, refine what you send employers, and practice interviews—without giving up control
           of where or how you apply.
         </p>
         <Link
           href="/discover"
-          className="mt-8 inline-flex rounded-full border border-indigo-600 bg-indigo-600 px-9 py-3.5 text-sm font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:border-indigo-700 hover:bg-indigo-700"
+          className="landing-btn-primary mt-10 px-9 py-3.5"
         >
           Get started now
         </Link>

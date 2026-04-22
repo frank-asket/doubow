@@ -15,7 +15,7 @@ const cols = [
 
 export function ProcessStrip() {
   return (
-    <section className="border-b border-zinc-200/80 bg-zinc-50 py-16 sm:py-20">
+    <section className="landing-section-y border-b border-zinc-200/80 bg-zinc-50">
       <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:grid-cols-3 sm:px-6 lg:px-8">
         {cols.map((c) => (
           <div

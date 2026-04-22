@@ -5,13 +5,13 @@ export function FutureOfResumes() {
   return (
     <section
       id="future-resumes"
-      className="border-b border-zinc-200/80 bg-white py-20 sm:py-24"
+      className="landing-section-y border-b border-zinc-200/80 bg-white"
     >
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
           The future of résumés
         </p>
-        <h2 className="mt-4 text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
+        <h2 className="landing-heading mt-5 max-w-3xl text-balance">
           Stop rewriting the same story for every posting
         </h2>
         <div className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-6 text-left shadow-sm shadow-zinc-950/5 sm:p-8">

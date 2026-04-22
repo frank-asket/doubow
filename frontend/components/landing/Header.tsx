@@ -21,7 +21,7 @@ export function Header() {
 
   return (
     <header className="landing-header sticky top-0 z-50 border-b shadow-[0_1px_0_0_rgb(24_24_27_/_0.06)]">
-      <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
+      <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8 lg:py-4">
         <Logo href="/" />
 
         <nav
@@ -32,7 +32,7 @@ export function Header() {
             <a
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-zinc-600 transition hover:text-zinc-900"
+              className="rounded-md text-sm font-medium text-zinc-600 transition hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/90 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               {item.label}
             </a>
@@ -44,14 +44,14 @@ export function Header() {
             <Link
               href={"/auth/sign-in" as Route}
               prefetch
-              className="hidden rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 sm:inline-flex sm:items-center sm:justify-center"
+              className="hidden rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:inline-flex sm:items-center sm:justify-center"
             >
               Log in
             </Link>
             <Link
               href={"/auth/sign-up" as Route}
               prefetch
-              className="hidden rounded-full border border-indigo-600 bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-600/20 transition hover:bg-indigo-700 hover:border-indigo-700 sm:inline-flex sm:items-center sm:justify-center"
+              className="hidden rounded-full border border-indigo-600 bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-600/20 transition hover:border-indigo-700 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:inline-flex sm:items-center sm:justify-center"
             >
               Get started
             </Link>

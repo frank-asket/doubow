@@ -68,14 +68,14 @@ function MockTrade() {
 
 export function HowItWorks() {
   return (
-    <section id="how" className="border-b border-zinc-200/80 bg-white py-16 sm:py-20">
+    <section id="how" className="landing-section-y border-b border-zinc-200/80 bg-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
+            <h2 className="landing-heading text-balance">
               How it works
             </h2>
-            <p className="mt-3 max-w-xl text-base leading-relaxed text-neutral-700 sm:text-lg">
+            <p className="landing-lede mt-4 max-w-xl">
               From your résumé to <span className="text-neutral-900">saved roles</span> to{" "}
               <span className="text-neutral-900">clear application materials per job</span>—with you
               choosing when and where to hit submit.
@@ -83,7 +83,7 @@ export function HowItWorks() {
           </div>
           <Link
             href="/discover"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-neutral-800 hover:text-neutral-1000"
+            className="inline-flex items-center gap-1 rounded-md text-sm font-semibold text-neutral-800 transition hover:text-neutral-1000 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             Create account now <span aria-hidden>&gt;</span>
           </Link>

@@ -25,12 +25,12 @@ const items = [
 
 export function Benefits() {
   return (
-    <section id="why" className="border-b border-zinc-200/80 bg-white py-16 sm:py-20">
+    <section id="why" className="landing-section-y border-b border-zinc-200/80 bg-white">
       <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
+        <h2 className="landing-heading text-balance">
           Why choose Doubow?
         </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg">
+        <p className="landing-lede mx-auto mt-4 max-w-2xl text-pretty">
           Built for <span className="font-medium text-zinc-900">people in any field</span>: care, trades,
           office work, clinical roles, hospitality, technology—any title you’re pursuing. You
           keep control of applying; we help with preparation and clarity.

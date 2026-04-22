@@ -73,8 +73,9 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-geist-mono)', 'monospace'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'ui-serif', 'serif'],
+        mono: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         '2xs': ['10px', { lineHeight: '14px' }],
@@ -105,8 +106,15 @@ module.exports = {
         'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
         'shimmer':  'shimmer 1.8s linear infinite',
         'spin-slow': 'spin 2s linear infinite',
+        'landing-rise': 'landingRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        'landing-rise-delayed': 'landingRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards',
+        'landing-rise-delayed-2': 'landingRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards',
       },
       keyframes: {
+        landingRise: {
+          from: { opacity: '0', transform: 'translateY(16px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
         fadeIn:  { from: { opacity: '0' }, to: { opacity: '1' } },
         slideUp: { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         pulseSoft: { '0%,100%': { opacity: '1' }, '50%': { opacity: '0.5' } },

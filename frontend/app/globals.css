@@ -252,14 +252,56 @@ body {
     background-color: #fafafa;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
-  .landing-shell h1 {
+  .landing-shell ::selection {
+    background: rgb(79 70 229 / 0.15);
+    color: rgb(var(--neutral-1000));
+  }
+
+  /* Marketing display (Fraunces): slightly looser tracking than geometric sans */
+  .landing-shell .font-display {
+    letter-spacing: -0.022em;
+  }
+
+  .landing-shell h1:not(.font-display) {
     letter-spacing: -0.035em;
   }
 
-  .landing-shell main > section h2 {
+  .landing-shell main > section h2:not(.font-display) {
     letter-spacing: -0.028em;
+  }
+
+  /* Shared landing rhythm: section titles + supporting copy */
+  .landing-shell .landing-heading {
+    @apply font-bold tracking-tight text-zinc-950;
+    font-size: clamp(1.75rem, 2.4vw + 1rem, 2.5rem);
+    line-height: 1.14;
+    letter-spacing: -0.03em;
+  }
+
+  .landing-shell .landing-lede {
+    @apply text-zinc-600;
+    font-size: clamp(1rem, 0.15vw + 0.97rem, 1.125rem);
+    line-height: 1.65;
+  }
+
+  .landing-shell .landing-section-y {
+    @apply py-20 sm:py-24 lg:py-28;
+  }
+
+  /* Primary marketing actions */
+  .landing-shell .landing-btn-primary {
+    @apply inline-flex items-center justify-center rounded-full border border-indigo-600 bg-indigo-600 px-8 py-3.5 text-sm font-semibold text-white shadow-md shadow-indigo-600/25 transition;
+    @apply hover:border-indigo-700 hover:bg-indigo-700;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+
+  .landing-shell .landing-btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-7 py-3.5 text-sm font-semibold text-zinc-800 shadow-sm transition;
+    @apply hover:border-zinc-300 hover:bg-zinc-50;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
   }
 
   .landing-shell .landing-header {

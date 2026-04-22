@@ -61,13 +61,13 @@ export function Pricing() {
   const [yearly, setYearly] = useState(false);
 
   return (
-    <section id="pricing" className="border-b border-zinc-200/80 bg-zinc-50 py-16 sm:py-20">
+    <section id="pricing" className="landing-section-y border-b border-zinc-200/80 bg-zinc-50">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <h2 className="max-w-xl text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
+          <h2 className="landing-heading max-w-xl text-balance">
             Choose your plan. Start today.
           </h2>
-          <p className="max-w-md text-base leading-relaxed text-zinc-600 sm:text-lg lg:text-right">
+          <p className="landing-lede max-w-md lg:text-right">
             Free to explore; Pro unlocks tailored resume exports and applying
             through your own email with full approval control.
           </p>
@@ -84,7 +84,7 @@ export function Pricing() {
             <button
               type="button"
               onClick={() => setYearly(false)}
-              className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold ${
+              className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                 !yearly ? "text-zinc-950" : "text-zinc-500"
               }`}
             >
@@ -93,7 +93,7 @@ export function Pricing() {
             <button
               type="button"
               onClick={() => setYearly(true)}
-              className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold ${
+              className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                 yearly ? "text-zinc-950" : "text-zinc-500"
               }`}
             >
@@ -107,7 +107,10 @@ export function Pricing() {
 
         <p className="mt-8 text-center text-sm text-zinc-500">
           Ready to subscribe? Open{" "}
-          <a href="/auth/sign-up" className="font-semibold text-zinc-900 underline-offset-4 hover:underline">
+          <a
+            href="/auth/sign-up"
+            className="rounded font-semibold text-zinc-900 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+          >
             Doubow plans &amp; billing
           </a>{" "}
           and finish checkout from your account.
@@ -138,10 +141,10 @@ export function Pricing() {
               <p className="mt-3 text-sm text-zinc-600">{tier.blurb}</p>
               <a
                 href={tier.name === "Free" ? "/auth/sign-up" : "/discover"}
-                className={`mt-8 inline-flex justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${
+                className={`mt-8 inline-flex justify-center rounded-full px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                   tier.featured
-                    ? "border border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/20 hover:border-indigo-700 hover:bg-indigo-700"
-                    : "border border-zinc-200 bg-white text-zinc-900 shadow-sm hover:border-zinc-300 hover:bg-zinc-50"
+                    ? "border border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/20 hover:border-indigo-700 hover:bg-indigo-700 focus-visible:ring-indigo-500 focus-visible:ring-offset-white"
+                    : "border border-zinc-200 bg-white text-zinc-900 shadow-sm hover:border-zinc-300 hover:bg-zinc-50 focus-visible:ring-zinc-400 focus-visible:ring-offset-white"
                 }`}
               >
                 {tier.name === "Free" ? "Create account" : "Subscribe"}
