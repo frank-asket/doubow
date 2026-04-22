@@ -269,6 +269,18 @@ Phase B Slice 2 status (started with Discover domain):
   - `frontend/stores/agentStore.ts`
   - `frontend/components/agents/AgentStatusCard.tsx`
   - `frontend/components/agents/OrchestratorChat.tsx`
+- Moved remaining domain-specific components and converted to shims:
+  - `frontend/components/approvals/DraftPreview.tsx` -> `apps/web/src/approvals/components/DraftPreview.tsx`
+  - `frontend/components/pipeline/IntegrityBanner.tsx` -> `apps/web/src/pipeline/components/IntegrityBanner.tsx`
+
+Slice 2 completion checklist:
+- [x] Discover domain canonicalized in `apps/web` with frontend shims (page, hook, store, job components, URL helper).
+- [x] Pipeline domain canonicalized in `apps/web` with frontend shims (page, hook, store, components, constants, helpers).
+- [x] Approvals domain canonicalized in `apps/web` with frontend shims (page, hook, store, components including DraftPreview).
+- [x] Prep domain canonicalized in `apps/web` with frontend shims (page and prep components).
+- [x] Agents domain canonicalized in `apps/web` with frontend shims (page, hook, store, components).
+- [x] Frontend route paths and runtime behavior preserved via re-export compatibility shims.
+- [x] Frontend verification passes (lint/build/type-check after build).
 
 Acceptance checks (per slice):
 - No mixed ownership in moved slice (code + tests + imports moved together).
