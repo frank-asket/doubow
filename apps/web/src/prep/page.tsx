@@ -150,7 +150,15 @@ function QuestionList({ questions }: { questions: string[] }) {
 type Tab = 'questions' | 'stories' | 'brief'
 type AssistCapability = 'checking' | 'available' | 'missing' | 'error' | 'llm_missing'
 
-function PrepSessionCard({ session, assistCapability }: { session: PrepSession; assistCapability: AssistCapability }) {
+function PrepSessionCard({
+  session,
+  assistCapability,
+  allowAssist = true,
+}: {
+  session: PrepSession
+  assistCapability: AssistCapability
+  allowAssist?: boolean
+}) {
   const [activeTab, setActiveTab] = useState<Tab>('questions')
   const [generatingStory, setGeneratingStory] = useState(false)
   const [generatingBrief, setGeneratingBrief] = useState(false)
@@ -170,7 +178,7 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
     } catch (e) {
       const msg =
         e instanceof ApiError && e.status === 404
-          ? 'Prep assist endpoint is unavailable (404). Restart backend and verify /v1/me/prep/assist exists.'
+          ? 'Prep assist is available, but this application was not found in your backend data.'
           : e instanceof ApiError
             ? e.detail
             : 'Could not generate story.'
@@ -191,7 +199,7 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
     } catch (e) {
       const msg =
         e instanceof ApiError && e.status === 404
-          ? 'Prep assist endpoint is unavailable (404). Restart backend and verify /v1/me/prep/assist exists.'
+          ? 'Prep assist is available, but this application was not found in your backend data.'
           : e instanceof ApiError
             ? e.detail
             : 'Could not generate brief.'
@@ -233,6 +241,11 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
         </div>
       </div>
 
+      {!allowAssist && (
+        <div className="mx-4 mt-3 rounded-[10px] border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-700">
+          Assist actions are disabled for demo sessions. Generate prep from your real applications to use AI assist.
+        </div>
+      )}
       {assistError && (
         <div
           role="alert"
@@ -286,6 +299,7 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
                 onClick={() => void generateStarStory()}
                 disabled={
                   generatingStory ||
+                  !allowAssist ||
                   assistCapability === 'missing' ||
                   assistCapability === 'error' ||
                   assistCapability === 'llm_missing'
@@ -329,6 +343,7 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
                 onClick={() => void generateBrief()}
                 disabled={
                   generatingBrief ||
+                  !allowAssist ||
                   assistCapability === 'missing' ||
                   assistCapability === 'error' ||
                   assistCapability === 'llm_missing'
@@ -363,6 +378,7 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
           onClick={() => void generateStarStory()}
           disabled={
             generatingStory ||
+            !allowAssist ||
             assistCapability === 'missing' ||
             assistCapability === 'error' ||
             assistCapability === 'llm_missing'
@@ -376,6 +392,7 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
           onClick={() => void generateBrief()}
           disabled={
             generatingBrief ||
+            !allowAssist ||
             assistCapability === 'missing' ||
             assistCapability === 'error' ||
             assistCapability === 'llm_missing'
@@ -490,7 +507,7 @@ function ApiPrepPanel({ assistCapability }: { assistCapability: AssistCapability
       </div>
       {session && (
         <div className="mt-5">
-          <PrepSessionCard session={session} assistCapability={assistCapability} />
+          <PrepSessionCard session={session} assistCapability={assistCapability} allowAssist />
         </div>
       )}
     </div>
@@ -586,7 +603,7 @@ export default function PrepPage() {
             </div>
           )
           : sessions.map((s) => (
-            <PrepSessionCard key={s.id} session={s} assistCapability={assistCapability} />
+            <PrepSessionCard key={s.id} session={s} assistCapability={assistCapability} allowAssist={false} />
           ))
         }
       </div>
