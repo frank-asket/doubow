@@ -49,6 +49,14 @@ export default function ResumePage() {
   const loadResume = useCallback(async () => {
     setLoadingProfile(true)
     try {
+      const onboarding = await resumeApi.onboardingStatus()
+      if (onboarding.state === 'no_resume') {
+        setResumeExists(false)
+        setUploaded(false)
+        setFileName('')
+        setPrefsStatus(null)
+        return
+      }
       const profile = await resumeApi.get()
       setResumeExists(true)
       setUploaded(true)
@@ -58,10 +66,7 @@ export default function ResumePage() {
       setPrefsStatus(null)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load resume profile'
-      const lower = msg.toLowerCase()
-      if (lower.includes('resume not found')) {
-        setResumeExists(false)
-      } else if (err instanceof ApiError && err.status === 401) {
+      if (err instanceof ApiError && err.status === 401) {
         setPrefsStatus({ type: 'error', text: 'Could not verify your session — refresh the page or sign in again.' })
       } else {
         setPrefsStatus({ type: 'error', text: msg })
@@ -290,7 +295,7 @@ export default function ResumePage() {
           </div>
           <button
             onClick={() => analyzeWithAI()}
-            disabled={analyzing}
+            disabled={analyzing || loadingProfile || !resumeExists}
             className="btn btn-primary text-xs gap-1.5"
           >
             {analyzing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
