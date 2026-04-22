@@ -2,6 +2,10 @@
 
 > Multi-agent job search platform where AI drafts and humans approve.
 
+<p align="left">
+  <img src="./frontend/public/favicon.svg" alt="Doubow logo" width="36" height="36" />
+</p>
+
 ## ✨ Overview
 
 Doubow combines a modern Next.js frontend with a FastAPI backend to help users discover roles, score fit, prepare applications, and safely approve outbound actions.
@@ -20,13 +24,17 @@ flowchart LR
   U[User Browser]
   FE[Frontend\nNext.js App Router]
   CL[Clerk Auth]
-  API[API Gateway\nFastAPI + CORS guard]
+  API[API Gateway\nFastAPI + CORS guard + rate limit]
   DB[(Supabase Postgres)]
   RD[(Redis)]
   PH[(PostHog)]
+  SENTRY[(Sentry)]
+  METRICS[/Prometheus /metrics/]
   AG[Agent Services\nDiscover • Scoring • Writing • Apply • Prep • Monitor]
+  OAUTH[Channel Integrations\nGoogle OAuth + LinkedIn OAuth]
   SEM[Semantic Match Service\nsentence-transformers (flagged)]
   EVAL[Offline Evaluator\nbaseline vs semantic precision]
+  AUTO[Autopilot Runs\nidempotency + run history]
 
   U --> FE
   FE -->|JWT / session| CL
@@ -35,9 +43,15 @@ flowchart LR
   API --> DB
   API --> RD
   API --> AG
+  API --> OAUTH
+  API --> METRICS
+  API --> SENTRY
+  API --> AUTO
   AG --> DB
   AG --> RD
   AG --> SEM
+  AUTO --> DB
+  AUTO --> RD
   EVAL --> DB
   EVAL --> SEM
   FE --> PH
@@ -50,6 +64,9 @@ flowchart LR
 - FastAPI validates Clerk identity, applies localhost-safe CORS policy, scopes every read/write to `user_id`, and orchestrates domain services.
 - Services persist state in Postgres, use Redis for transient/queue-friendly workflows, and emit telemetry to PostHog.
 - Semantic matching is feature-flagged and blended into scoring when enabled; offline evaluator scripts compare baseline vs semantic precision.
+- Approval handoff is channel-aware (email + LinkedIn) with explicit user approval before outbound actions.
+- Autopilot supports idempotent execution and run-history retrieval for operations visibility.
+- API exposes `/metrics` for Prometheus scraping and Sentry hooks for error observability.
 
 ### Deployment View (Local)
 
@@ -101,14 +118,17 @@ Primary references:
 
 ## 🎨 Design, Icons, Animation
 
-- Icon language: `lucide-react` for consistent UI semantics.
-- Product visual style is documented in `docs/design.md`.
-- Activation and dashboard surfaces use subtle UI motion (loading/progress/fade transitions).
+- Main logo: Doubow mark (see `frontend/public/favicon.svg` and `frontend/components/Logo.tsx`).
+- Icon language: `lucide-react` for consistent UI semantics across dashboard and landing.
+- Product visual system is documented in `docs/design.md` and `docs/architecture/daubo-design-system.md`.
+- Core motion primitives: fade/slide progress transitions, loading indicators, and low-amplitude hover elevation.
+- Animation library: `framer-motion` (landing and interaction micro-motion).
 
 Visual references you can embed in GitHub markdown:
 - `docs/design-screens/target-daubo.png`
 - `docs/design-screens/landing-daubo-full-redesign.png`
 - `docs/design-screens/local-daubo-after-pixel-pass.png`
+- `frontend/public/reference/landing/hero-dashboard-real.png`
 
 Animation guidance:
 - Add short `.gif` demos in `docs/design-screens/` (Discover loading, Approvals flow, Dashboard interactions).

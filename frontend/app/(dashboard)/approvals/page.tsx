@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, X, Edit3, Mail, LinkIcon, Loader2, ShieldCheck, AlertCircle } from 'lucide-react'
 import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import { cn, channelLabel, relativeTime } from '@/lib/utils'
 import { useApprovals } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approvalStore'
-import { approvalsApi } from '@/lib/api'
+import { ApiError, approvalsApi, googleIntegrationsApi, linkedinIntegrationsApi } from '@/lib/api'
 import type { Approval } from '@/types'
 
 function ChannelIcon({ channel }: { channel: Approval['channel'] }) {
@@ -22,6 +22,8 @@ function ApprovalCard({ approval }: { approval: Approval }) {
   const [approving, setApproving] = useState(false)
   const [rejecting, setRejecting] = useState(false)
   const [done, setDone] = useState<'approved' | 'rejected' | null>(null)
+  const isEmail = approval.channel === 'email'
+  const isLinkedIn = approval.channel === 'linkedin'
 
   async function handleApprove() {
     setApproving(true)
@@ -123,7 +125,11 @@ function ApprovalCard({ approval }: { approval: Approval }) {
         <div className="mb-3 flex items-center gap-1.5 px-1">
           <ShieldCheck size={12} className="text-indigo-600" />
           <p className="text-2xs text-zinc-500">
-            Nothing is sent until you approve. You can edit before approving.
+            {isEmail
+              ? 'Nothing is sent until you approve. You can edit before approving.'
+              : isLinkedIn
+              ? 'Approve to queue the LinkedIn handoff. You can still edit before approving.'
+              : 'Approve to queue handoff. You can edit before approving.'}
           </p>
         </div>
 
@@ -135,7 +141,7 @@ function ApprovalCard({ approval }: { approval: Approval }) {
             className="btn btn-primary text-xs gap-1.5"
           >
             {approving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-            {approving ? 'Sending…' : 'Approve & send'}
+            {approving ? 'Queuing…' : isEmail ? 'Approve & queue email' : isLinkedIn ? 'Approve & queue LinkedIn' : 'Approve'}
           </button>
           <button
             onClick={() => setEditing((x) => !x)}
@@ -185,8 +191,60 @@ function ApprovalSkeleton() {
 export default function ApprovalsPage() {
   const { approvals, loading } = useApprovalStore()
   useApprovals()
+  const [gmailConnected, setGmailConnected] = useState<boolean | null>(null)
+  const [linkedinConnected, setLinkedinConnected] = useState<boolean | null>(null)
+  const [integrationBusy, setIntegrationBusy] = useState(false)
+  const [integrationError, setIntegrationError] = useState<string | null>(null)
 
   const pending = approvals.filter((a) => a.status === 'pending')
+  const pendingEmail = pending.some((a) => a.channel === 'email')
+  const pendingLinkedIn = pending.some((a) => a.channel === 'linkedin')
+
+  async function refreshIntegrationStatus() {
+    setIntegrationError(null)
+    try {
+      const [gmail, linkedin] = await Promise.all([
+        googleIntegrationsApi.status().catch(() => ({ connected: false, google_email: null })),
+        linkedinIntegrationsApi.status().catch(() => ({ connected: false, expires_at: null })),
+      ])
+      setGmailConnected(Boolean(gmail.connected))
+      setLinkedinConnected(Boolean(linkedin.connected))
+    } catch {
+      setIntegrationError('Could not refresh channel connection status.')
+    }
+  }
+
+  async function connectGoogle() {
+    setIntegrationBusy(true)
+    setIntegrationError(null)
+    try {
+      const { authorization_url } = await googleIntegrationsApi.getAuthorizationUrl()
+      window.location.href = authorization_url
+    } catch (e) {
+      if (e instanceof ApiError) setIntegrationError(e.detail)
+      else setIntegrationError('Could not start Google connect flow.')
+    } finally {
+      setIntegrationBusy(false)
+    }
+  }
+
+  async function connectLinkedIn() {
+    setIntegrationBusy(true)
+    setIntegrationError(null)
+    try {
+      const { authorization_url } = await linkedinIntegrationsApi.getAuthorizationUrl()
+      window.location.href = authorization_url
+    } catch (e) {
+      if (e instanceof ApiError) setIntegrationError(e.detail)
+      else setIntegrationError('Could not start LinkedIn connect flow.')
+    } finally {
+      setIntegrationBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    void refreshIntegrationStatus()
+  }, [pendingEmail, pendingLinkedIn])
 
   return (
     <div className="space-y-5 p-5 sm:p-7">
@@ -204,6 +262,59 @@ export default function ApprovalsPage() {
             <span className="font-medium">{pending.length} application{pending.length !== 1 ? 's' : ''} ready for review.</span>{' '}
             AI drafted each one — nothing is sent until you approve.
           </p>
+        </div>
+      )}
+
+      {(pendingEmail || pendingLinkedIn) && (
+        <div className="rounded-[16px] border border-zinc-200 bg-white p-3.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-medium text-zinc-900">Channel handoff status</p>
+            <button
+              type="button"
+              onClick={() => void refreshIntegrationStatus()}
+              className="btn text-xs"
+              disabled={integrationBusy}
+            >
+              Refresh status
+            </button>
+          </div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {pendingEmail && (
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                <p className="text-xs font-medium text-zinc-800">Gmail (email approvals)</p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  {gmailConnected === null
+                    ? 'Checking status...'
+                    : gmailConnected
+                    ? 'Connected'
+                    : 'Not connected'}
+                </p>
+                {!gmailConnected && (
+                  <button type="button" onClick={() => void connectGoogle()} className="btn mt-2 text-xs" disabled={integrationBusy}>
+                    Connect Gmail
+                  </button>
+                )}
+              </div>
+            )}
+            {pendingLinkedIn && (
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                <p className="text-xs font-medium text-zinc-800">LinkedIn (note approvals)</p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  {linkedinConnected === null
+                    ? 'Checking status...'
+                    : linkedinConnected
+                    ? 'Connected'
+                    : 'Not connected'}
+                </p>
+                {!linkedinConnected && (
+                  <button type="button" onClick={() => void connectLinkedIn()} className="btn mt-2 text-xs" disabled={integrationBusy}>
+                    Connect LinkedIn
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+          {integrationError && <p className="mt-2 text-xs text-red-700">{integrationError}</p>}
         </div>
       )}
 

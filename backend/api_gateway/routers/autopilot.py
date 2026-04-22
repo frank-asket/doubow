@@ -13,6 +13,7 @@ from schemas.autopilot import (
 from services.autopilot_runner import execute_autopilot_run_background
 from services.autopilot_service import (
     get_autopilot_run as get_autopilot_run_service,
+    list_autopilot_runs as list_autopilot_runs_service,
     run_autopilot as run_autopilot_service,
 )
 
@@ -65,3 +66,12 @@ async def get_autopilot_run_route(
     if row is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
     return row
+
+
+@router.get("/runs", response_model=list[AutopilotRunResponse])
+async def list_autopilot_runs_route(
+    limit: int = 20,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> list[AutopilotRunResponse]:
+    return await list_autopilot_runs_service(session=session, user_id=user.id, limit=max(1, min(limit, 100)))

@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Loader2, RefreshCw, Zap } from 'lucide-react'
+import useSWR from 'swr'
 import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import { cn } from '@/lib/utils'
+import { autopilotApi } from '@/lib/api'
 import { useAgentStream, useOrchestratorChat } from '@/hooks/useAgentStream'
 import { useAgentStore } from '@/stores/agentStore'
-import type { AgentState } from '@/types'
+import type { AgentState, AutopilotRun } from '@/types'
 
 const AGENT_META: Record<string, { icon: string; color: string }> = {
   discovery: { icon: '🔍', color: 'border border-indigo-100 bg-indigo-50 text-indigo-900' },
@@ -117,6 +119,9 @@ export default function AgentsPage() {
   }
 
   const activeCount = agents.filter((a) => a.status === 'active' || a.status === 'running').length
+  const { data: runHistory, mutate: refreshRunHistory } = useSWR('autopilot-runs-history', () =>
+    autopilotApi.listRuns(20)
+  )
 
   // Fallback agents for display if SSE not yet connected
   const displayAgents: AgentState[] = agents.length > 0 ? agents : [
@@ -144,6 +149,9 @@ export default function AgentsPage() {
             </div>
             <button
               type="button"
+              onClick={() => {
+                void refreshRunHistory()
+              }}
               className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#e4e5ec] bg-white px-3 py-2 text-[14px] font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
             >
               <RefreshCw size={13} />
@@ -220,6 +228,52 @@ export default function AgentsPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Run history</p>
+        <div className="card overflow-hidden">
+          {!runHistory || runHistory.length === 0 ? (
+            <div className="p-4 text-xs text-zinc-500">No runs yet.</div>
+          ) : (
+            <div className="divide-y divide-zinc-100">
+              {runHistory.map((run: AutopilotRun) => (
+                <div key={run.run_id} className="grid grid-cols-1 gap-2 p-3 text-xs sm:grid-cols-[1.5fr_0.9fr_0.8fr_1fr] sm:items-center">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-zinc-800">{run.run_id}</p>
+                    <p className="mt-0.5 text-zinc-500">
+                      {run.fresh_run === false ? 'Replay' : 'Fresh run'} · scope {run.scope}
+                    </p>
+                  </div>
+                  <div>
+                    <span
+                      className={cn(
+                        'badge text-2xs',
+                        run.status === 'done'
+                          ? 'badge-applied'
+                          : run.status === 'failed'
+                          ? 'badge-rejected'
+                          : run.status === 'running'
+                          ? 'badge-pending'
+                          : 'badge-saved'
+                      )}
+                    >
+                      {run.status}
+                    </span>
+                  </div>
+                  <div className="tabular-nums text-zinc-500">
+                    {run.item_results?.length ?? 0} items
+                  </div>
+                  <div className="text-zinc-500">
+                    {(run.replayed_at ?? run.completed_at ?? run.started_at)
+                      ? new Date(run.replayed_at ?? run.completed_at ?? run.started_at ?? '').toLocaleString()
+                      : '—'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

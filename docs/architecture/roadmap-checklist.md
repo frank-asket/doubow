@@ -63,8 +63,8 @@ Status legend: `[x] implemented`, `[~] partial`, `[ ] missing`
 - [x] TASK-045 LinkedIn OAuth connect flow
 - [~] TASK-046 Gmail status/disconnect error UX hardening
 - [x] TASK-047 Approvals panel with draft preview and channel badges
-- [~] TASK-048 Channel-aware apply handoff UX completeness
-- [~] TASK-049 Gmail status refresh control in handoff flow
+- [x] TASK-048 Channel-aware apply handoff UX completeness
+- [x] TASK-049 Gmail status refresh control in handoff flow
 
 ## Phase 5 - Interview Prep
 
@@ -82,7 +82,7 @@ Status legend: `[x] implemented`, `[~] partial`, `[ ] missing`
 - [x] TASK-058 Run-history observability fields (`replayed_at`, `fresh_run`)
 - [x] TASK-059 `GET /v1/agents/status` stream
 - [x] TASK-060 Frontend orchestrator chat component
-- [~] TASK-061 Run-history log UX in agents panel
+- [x] TASK-061 Run-history log UX in agents panel
 
 ## Phase 7 - Hardening & Production
 

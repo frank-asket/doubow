@@ -141,6 +141,8 @@ export const autopilotApi = {
     ),
   getRun: (runId: string) =>
     request<AutopilotRun>(`/v1/me/autopilot/runs/${runId}`),
+  listRuns: (limit: number = 20) =>
+    request<AutopilotRun[]>(`/v1/me/autopilot/runs?limit=${Math.max(1, Math.min(100, limit))}`),
 }
 
 // ─── Approvals ─────────────────────────────────────────────────────────────
@@ -250,6 +252,17 @@ export const googleIntegrationsApi = {
     request<{ connected: boolean; google_email: string | null }>('/v1/integrations/google/status'),
   disconnect: () =>
     request<{ ok: boolean }>('/v1/integrations/google/', { method: 'DELETE' }),
+}
+
+// ─── LinkedIn (OAuth link for note handoff) ─────────────────────────────────
+
+export const linkedinIntegrationsApi = {
+  getAuthorizationUrl: () =>
+    request<{ authorization_url: string }>('/v1/integrations/linkedin/authorize'),
+  status: () =>
+    request<{ connected: boolean; expires_at: string | null }>('/v1/integrations/linkedin/status'),
+  disconnect: () =>
+    request<{ ok: boolean }>('/v1/integrations/linkedin/', { method: 'DELETE' }),
 }
 
 // ─── Agents ────────────────────────────────────────────────────────────────

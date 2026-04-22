@@ -193,6 +193,8 @@ export interface AutopilotRun {
   status: RunStatus
   scope: AutopilotScope
   replayed: boolean
+  replayed_at?: string | null
+  fresh_run?: boolean
   item_results?: AutopilotRunItem[]
   started_at?: string
   completed_at?: string

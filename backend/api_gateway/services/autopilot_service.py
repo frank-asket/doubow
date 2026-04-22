@@ -47,3 +47,17 @@ async def run_autopilot(
     session.add(run)
     await session.commit()
     return (autopilot_run_to_response(run, replayed=False), False)
+
+
+async def list_autopilot_runs(
+    session: AsyncSession, user_id: str, limit: int = 20
+) -> list[AutopilotRunResponse]:
+    rows = (
+        await session.execute(
+            select(AutopilotRun)
+            .where(AutopilotRun.user_id == user_id)
+            .order_by(AutopilotRun.created_at.desc())
+            .limit(limit)
+        )
+    ).scalars()
+    return [autopilot_run_to_response(row, replayed=False) for row in rows]
