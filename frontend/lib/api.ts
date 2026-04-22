@@ -234,18 +234,58 @@ export const agentsApi = {
 
 // ─── SSE streams ───────────────────────────────────────────────────────────
 
+/** SSE with Clerk Bearer token — native EventSource cannot set Authorization headers. */
 export function streamAgentStatus(
   onEvent: (event: AgentState) => void,
   onError?: (err: Event) => void,
 ): () => void {
-  const es = new EventSource(`${BASE}/v1/agents/status/stream`, {
-    withCredentials: true,
-  })
-  es.onmessage = (e) => {
-    try { onEvent(JSON.parse(e.data)) } catch {}
-  }
-  if (onError) es.onerror = onError
-  return () => es.close()
+  const controller = new AbortController()
+  ;(async () => {
+    const token = authTokenGetter ? await authTokenGetter() : null
+    const headers = new Headers({ Accept: 'text/event-stream' })
+    if (token) headers.set('Authorization', `Bearer ${token}`)
+    try {
+      const res = await fetch(`${BASE}/v1/agents/status/stream`, {
+        credentials: 'include',
+        headers,
+        signal: controller.signal,
+      })
+      if (!res.ok) {
+        onError?.(new Event('error'))
+        return
+      }
+      const reader = res.body?.getReader()
+      if (!reader) {
+        onError?.(new Event('error'))
+        return
+      }
+      const decoder = new TextDecoder()
+      let buffer = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const chunks = buffer.split('\n\n')
+        buffer = chunks.pop() ?? ''
+        for (const block of chunks) {
+          for (const line of block.split('\n')) {
+            const trimmed = line.trimStart()
+            if (!trimmed.startsWith('data:')) continue
+            const payload = trimmed.slice(5).trim()
+            if (!payload || payload === '[DONE]') continue
+            try {
+              onEvent(JSON.parse(payload) as AgentState)
+            } catch {
+              /* ignore malformed chunk */
+            }
+          }
+        }
+      }
+    } catch {
+      if (!controller.signal.aborted) onError?.(new Event('error'))
+    }
+  })()
+  return () => controller.abort()
 }
 
 export function streamOrchestratorChat(

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { AuthBrandingPanel } from "@/components/auth/AuthBrandingPanel";
 
 export const metadata: Metadata = {
-  title: "Account — Daubo",
+  title: "Account — Doubow",
   description:
-    "Sign in or create your Daubo account—track jobs, tailor application materials from your résumé, and use optional Gmail drafts you send yourself.",
+    "Sign in or create your Doubow account—track jobs, tailor application materials from your résumé, and use optional Gmail drafts you send yourself.",
 };
 
 export default function AuthLayout({

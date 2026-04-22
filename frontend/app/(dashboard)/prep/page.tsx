@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, Sparkles, Loader2, BookOpen, Building2, MessageSquare, RefreshCw } from 'lucide-react'
 import { cn, relativeTime } from '@/lib/utils'
@@ -20,8 +21,11 @@ const MOCK_SESSIONS: PrepSession[] = [
         location: 'Remote · Paris', description: '', url: 'https://mistral.ai',
         discovered_at: new Date(Date.now() - 86400000 * 2).toISOString(),
       },
-      status: 'pending', channel: 'email',
-      last_updated: new Date().toISOString(), is_stale: false,
+      status: 'pending',
+      channel: 'email',
+      pipeline_stage: 'approve',
+      last_updated: new Date().toISOString(),
+      is_stale: false,
     },
     questions: [
       'Walk me through a production RAG system you built end-to-end.',
@@ -54,8 +58,11 @@ const MOCK_SESSIONS: PrepSession[] = [
         location: 'Remote', description: '', url: 'https://linear.app',
         discovered_at: new Date(Date.now() - 86400000 * 3).toISOString(),
       },
-      status: 'interview', channel: 'linkedin',
-      last_updated: new Date().toISOString(), is_stale: false,
+      status: 'interview',
+      channel: 'linkedin',
+      pipeline_stage: 'send_prep',
+      last_updated: new Date().toISOString(),
+      is_stale: false,
     },
     questions: [
       'How do you balance AI capability with product UX constraints?',
@@ -81,23 +88,23 @@ function StarStoryCard({ story, index }: { story: StarStory; index: number }) {
     ['Reflection', story.reflection],
   ]
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-800">
+    <div className="overflow-hidden rounded-[12px] border border-[#e7e8ee] bg-white shadow-sm">
       <button
         onClick={() => setOpen((x) => !x)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-zinc-950"
+        className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-zinc-50"
       >
         <div className="flex items-center gap-2">
-          <span className="rounded-full border border-zinc-300/30 bg-zinc-200/10 px-2 py-0.5 text-2xs font-medium text-zinc-100">
+          <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-2xs font-medium text-indigo-900">
             Story {index + 1}
           </span>
-          <span className="line-clamp-1 text-xs font-medium text-zinc-200">
+          <span className="line-clamp-1 text-xs font-medium text-zinc-800">
             {story.situation.slice(0, 64)}…
           </span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 ml-2">
           <div className="flex gap-1">
             {story.tags.map((t) => (
-              <span key={t} className="rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-2xs text-zinc-400">
+              <span key={t} className="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-2xs text-zinc-600">
                 {t}
               </span>
             ))}
@@ -107,13 +114,13 @@ function StarStoryCard({ story, index }: { story: StarStory; index: number }) {
       </button>
 
       {open && (
-        <div className="animate-slide-up divide-y divide-zinc-800 border-t border-zinc-800">
+        <div className="animate-slide-up divide-y divide-zinc-100 border-t border-zinc-100">
           {sections.map(([label, text]) => (
             <div key={label} className="px-4 py-3 flex gap-3">
-              <span className="w-20 flex-shrink-0 pt-0.5 text-2xs font-semibold uppercase tracking-wider text-zinc-100">
+              <span className="w-20 flex-shrink-0 pt-0.5 text-2xs font-semibold uppercase tracking-wider text-zinc-500">
                 {label}
               </span>
-              <p className="text-xs leading-relaxed text-zinc-300">{text}</p>
+              <p className="text-xs leading-relaxed text-zinc-700">{text}</p>
             </div>
           ))}
         </div>
@@ -128,12 +135,12 @@ function QuestionList({ questions }: { questions: string[] }) {
       {questions.map((q, i) => (
         <div
           key={i}
-          className="flex items-start gap-3 rounded-lg border border-zinc-800 px-4 py-3 transition-colors hover:border-zinc-700 hover:bg-zinc-950"
+          className="flex items-start gap-3 rounded-[10px] border border-[#e7e8ee] bg-white px-4 py-3 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50/50"
         >
-          <span className="w-5 flex-shrink-0 text-xs font-semibold tabular-nums text-zinc-100">
+          <span className="w-5 flex-shrink-0 text-xs font-semibold tabular-nums text-indigo-700">
             Q{i + 1}
           </span>
-          <p className="text-xs leading-relaxed text-zinc-300">{q}</p>
+          <p className="text-xs leading-relaxed text-zinc-700">{q}</p>
         </div>
       ))}
     </div>
@@ -239,15 +246,15 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
   return (
     <div className="card animate-fade-in">
       {/* Card header */}
-      <div className="border-b border-zinc-800 p-4">
+      <div className="border-b border-zinc-100 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 text-xs font-semibold text-zinc-300">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-indigo-100 bg-indigo-50 text-xs font-semibold text-indigo-800">
               {session.application.job.company.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium text-zinc-100">{session.application.job.company}</p>
-              <p className="text-xs text-zinc-400">{session.application.job.title}</p>
+              <p className="text-sm font-medium text-zinc-900">{session.application.job.company}</p>
+              <p className="text-xs text-zinc-500">{session.application.job.title}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -263,16 +270,16 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 bg-zinc-950 p-3">
+      <div className="flex gap-1 border-b border-zinc-100 bg-zinc-50/90 p-3">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={cn(
-              'px-3 py-1.5 rounded-md text-xs transition-all duration-150 flex items-center gap-1.5',
+              'flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs transition-all duration-150',
               activeTab === tab.key
-                ? 'border border-zinc-300/30 bg-zinc-200/10 font-medium text-zinc-100'
-                : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
+                ? 'border border-indigo-200 bg-indigo-50 font-medium text-indigo-900'
+                : 'text-zinc-500 hover:bg-white hover:text-zinc-800',
             )}
           >
             {tab.label}
@@ -319,10 +326,10 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             )}
 
             {(generatingStory || storyOutput) && (
-              <div className="animate-fade-in rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-200">
+              <div className="animate-fade-in rounded-[12px] border border-[#e7e8ee] bg-zinc-50 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-800">
                 {storyOutput}
                 {generatingStory && (
-                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-zinc-100 align-middle" />
+                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-indigo-400 align-middle" />
                 )}
               </div>
             )}
@@ -351,10 +358,10 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             </div>
 
             {(briefOutput || generatingBrief) ? (
-              <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-200">
+              <div className="rounded-[12px] border border-[#e7e8ee] bg-zinc-50 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-800">
                 {briefOutput}
                 {generatingBrief && (
-                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-zinc-100 align-middle" />
+                  <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-indigo-400 align-middle" />
                 )}
               </div>
             ) : (
@@ -368,7 +375,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
       </div>
 
       {/* Action bar */}
-      <div className="flex items-center gap-2 border-t border-zinc-800 px-4 pb-4 pt-3">
+      <div className="flex items-center gap-2 border-t border-zinc-100 px-4 pb-4 pt-3">
         <button onClick={generateStarStory} disabled={generatingStory} className="btn text-xs gap-1.5">
           <Sparkles size={12} />
           New STAR-R story
@@ -419,13 +426,13 @@ function ApiPrepPanel() {
   if (listLoading || apps.length === 0) return null
 
   return (
-    <div className="card mb-6 border border-zinc-300/20 p-4">
-      <p className="mb-2 text-xs font-medium text-zinc-200">Generate from your applications</p>
+    <div className="card mb-6 border border-[#e7e8ee] p-4">
+      <p className="mb-2 text-xs font-medium text-zinc-800">Generate from your applications</p>
       <div className="flex flex-wrap items-center gap-2">
         <select
           value={appId}
           onChange={(e) => setAppId(e.target.value)}
-          className="max-w-[min(100%,28rem)] rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-200"
+          className="field max-w-[min(100%,28rem)] rounded-[10px] px-3 py-2 text-xs"
         >
           {apps.map((a) => (
             <option key={a.id} value={a.id}>
@@ -477,28 +484,25 @@ export default function PrepPage() {
   const [loading] = useState(false)
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Interview prep</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Interview prep</h1>
-          <p className="mt-2 text-sm text-zinc-400 sm:text-base">STAR-R stories, tailored questions, and company briefs</p>
-        </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="flex items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5">
-            <BookOpen size={12} className="text-zinc-400" />
-            <span className="text-xs text-zinc-400">{sessions.length} sessions</span>
+    <div className="space-y-5 p-5 sm:p-7">
+      <DashboardPageHeader
+        kicker="Interview prep"
+        title="Interview prep"
+        description="STAR-R stories, tailored questions, and company briefs"
+        actions={
+          <div className="flex items-center gap-1.5 rounded-[10px] border border-indigo-100 bg-indigo-50 px-2.5 py-1.5">
+            <BookOpen size={12} className="text-indigo-600" />
+            <span className="text-xs font-medium text-indigo-900">{sessions.length} sessions</span>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <ApiPrepPanel />
 
       {/* Info banner */}
-      <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-zinc-300/30 bg-zinc-200/10 p-3.5">
-        <Sparkles size={14} className="mt-0.5 flex-shrink-0 text-zinc-100" />
-        <p className="text-xs text-zinc-200">
+      <div className="mb-5 flex items-start gap-2.5 rounded-[16px] border border-indigo-100 bg-indigo-50/90 p-3.5">
+        <Sparkles size={14} className="mt-0.5 flex-shrink-0 text-indigo-600" />
+        <p className="text-xs text-indigo-950">
           <span className="font-medium">Prep is tailored per application.</span>{' '}
           Questions and STAR-R stories are generated from your resume + the specific job description.
         </p>
@@ -511,8 +515,8 @@ export default function PrepPage() {
           : sessions.length === 0
           ? (
             <div className="py-16 text-center text-zinc-500">
-              <BookOpen size={28} className="mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-medium text-zinc-300">No prep sessions yet</p>
+              <BookOpen size={28} className="mx-auto mb-3 text-zinc-300" />
+              <p className="text-sm font-medium text-zinc-800">No prep sessions yet</p>
               <p className="text-xs mt-1">Prep sessions are created when you queue an application</p>
             </div>
           )

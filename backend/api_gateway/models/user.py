@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.session import Base
 
 if TYPE_CHECKING:
+    from models.google_oauth_credential import GoogleOAuthCredential
     from models.application import Application
     from models.approval import Approval
     from models.autopilot_run import AutopilotRun
@@ -44,4 +45,10 @@ class User(Base):
     )
     telemetry_events: Mapped[list["TelemetryEvent"]] = relationship(
         "TelemetryEvent", back_populates="user", cascade="all, delete-orphan"
+    )
+    google_oauth: Mapped["GoogleOAuthCredential | None"] = relationship(
+        "GoogleOAuthCredential",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
     )

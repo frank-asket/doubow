@@ -14,3 +14,7 @@ class AgentStatusResponse(BaseModel):
     progress: float | None = Field(default=None, ge=0.0, le=1.0)
     message: str | None = None
     items_processed: int | None = None
+
+
+class OrchestratorChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=16_000)

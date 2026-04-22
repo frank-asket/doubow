@@ -2,6 +2,7 @@
 
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import type { Route } from "next";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
 
@@ -40,18 +41,20 @@ export function Header() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <SignedOut>
-            <a
-              href="/auth/sign-in"
+            <Link
+              href={"/auth/sign-in" as Route}
+              prefetch
               className="hidden rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 sm:inline-flex sm:items-center sm:justify-center"
             >
               Log in
-            </a>
-            <a
-              href="/auth/sign-up"
+            </Link>
+            <Link
+              href={"/auth/sign-up" as Route}
+              prefetch
               className="hidden rounded-full border border-indigo-600 bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-600/20 transition hover:bg-indigo-700 hover:border-indigo-700 sm:inline-flex sm:items-center sm:justify-center"
             >
               Get started
-            </a>
+            </Link>
           </SignedOut>
           <SignedIn>
             <UserButton
@@ -90,20 +93,22 @@ export function Header() {
             ))}
             <div className="flex flex-col gap-2">
               <SignedOut>
-                <a
-                  href="/auth/sign-in"
+                <Link
+                  href={"/auth/sign-in" as Route}
+                  prefetch
                   className="block rounded-full border border-zinc-200 bg-white py-2 text-center text-sm font-semibold text-zinc-700"
                   onClick={() => setOpen(false)}
                 >
                   Log in
-                </a>
-                <a
-                  href="/auth/sign-up"
+                </Link>
+                <Link
+                  href={"/auth/sign-up" as Route}
+                  prefetch
                   className="block rounded-full border border-indigo-600 bg-indigo-600 py-2 text-center text-sm font-semibold text-white"
                   onClick={() => setOpen(false)}
                 >
                   Get started
-                </a>
+                </Link>
               </SignedOut>
               <SignedIn>
                 <div className="flex justify-center py-2">

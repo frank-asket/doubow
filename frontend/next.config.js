@@ -62,6 +62,9 @@ const nextConfig = {
     'http://127.0.0.1:3001',
     'http://localhost:3100',
     'http://127.0.0.1:3100',
+    // Playwright / IPv6 localhost (Next cross-origin dev asset checks)
+    'http://[::1]:3000',
+    'http://[::1]:3100',
   ],
   experimental: {
     typedRoutes: true,

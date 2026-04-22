@@ -12,8 +12,10 @@ from config import settings
 from db.session import SessionLocal, bind_request_user_for_rls, reset_request_user_rls
 from models.application import Application
 from models.approval import Approval
+from models.google_oauth_credential import GoogleOAuthCredential
 from models.job import Job
 from models.user import User
+from services.gmail_send_service import send_gmail_message
 from services.outbound_email import send_email_outbound
 
 logger = logging.getLogger(__name__)
@@ -47,7 +49,28 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
 
     try:
         if approval.channel == "email":
-            await send_email_outbound(to_addr=recipient, subject=subject, body=approval.draft_body)
+            gmail_row = (
+                await session.execute(select(GoogleOAuthCredential).where(GoogleOAuthCredential.user_id == user_id))
+            ).scalar_one_or_none()
+            sent_via_gmail = False
+            if gmail_row is not None and settings.google_oauth_is_configured() and gmail_row.google_email:
+                try:
+                    await send_gmail_message(
+                        refresh_token_encrypted=gmail_row.refresh_token_encrypted,
+                        from_addr=gmail_row.google_email,
+                        to_addr=recipient,
+                        subject=subject,
+                        body=approval.draft_body or "",
+                    )
+                    sent_via_gmail = True
+                except Exception:
+                    logger.exception(
+                        "send_stub: gmail failed approval_id=%s user_id=%s; falling back to SMTP/dry-run",
+                        approval_id,
+                        user_id,
+                    )
+            if not sent_via_gmail:
+                await send_email_outbound(to_addr=recipient, subject=subject, body=approval.draft_body)
         else:
             logger.info(
                 "send_stub: channel=%s has no SMTP integration; recording sent locally only",

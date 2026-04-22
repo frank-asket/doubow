@@ -268,6 +268,12 @@ body {
     backdrop-filter: blur(12px);
   }
 
+  /* Anchor targets clear the sticky header */
+  .landing-shell main section[id],
+  .landing-shell main [id='landing-main'] {
+    scroll-margin-top: 5rem;
+  }
+
   /* Professional default icon sizing for control surfaces */
   .dashboard-shell .btn svg {
     width: 14px;
@@ -328,5 +334,103 @@ body {
 
   .dashboard-subtitle {
     @apply text-zinc-500 text-xs;
+  }
+
+  /*
+   * Dashboard main content (all routes under (dashboard)): match dashboard/page.tsx —
+   * light surfaces, border-[#e7e8ee], indigo accents.
+   */
+  .app-route-shell {
+    color: #18181b;
+    --card: #ffffff;
+    --border: #e7e8ee;
+    --foreground: #18181b;
+    --muted: #71717a;
+    --surface-2: #f4f4f8;
+    --background: #f3f4f8;
+  }
+
+  .app-route-shell .card {
+    border-radius: 16px;
+    border-color: #e7e8ee;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    color: #18181b;
+  }
+
+  .app-route-shell .btn {
+    border-color: #e4e5ec;
+    background: #ffffff;
+    color: #3f3f46;
+    --tw-ring-color: rgb(79 70 229 / 0.25);
+  }
+
+  .app-route-shell .btn:hover {
+    background: #fafafa;
+    border-color: #d4d4d8;
+  }
+
+  .app-route-shell .btn-primary {
+    background: #4f46e5;
+    color: #ffffff;
+    border-color: #4f46e5;
+  }
+
+  .app-route-shell .btn-primary:hover {
+    background: #4338ca;
+    border-color: #4338ca;
+  }
+
+  .app-route-shell .field {
+    border-color: #e4e5ec;
+    background: #ffffff;
+    color: #18181b;
+  }
+
+  .app-route-shell .field:focus {
+    border-color: #a5b4fc;
+  }
+
+  .app-route-shell .skeleton {
+    @apply from-zinc-200 via-zinc-100 to-zinc-200;
+  }
+
+  .app-route-shell .fit-high {
+    @apply border border-emerald-200 bg-emerald-50 text-emerald-900;
+  }
+
+  .app-route-shell .fit-mid {
+    @apply border border-indigo-100 bg-indigo-50 text-indigo-900;
+  }
+
+  .app-route-shell .fit-low {
+    @apply border border-amber-200 bg-amber-50 text-amber-900;
+  }
+
+  .app-route-shell .badge-applied,
+  .app-route-shell .badge-interview,
+  .app-route-shell .badge-offer {
+    @apply border border-indigo-100 bg-indigo-50 text-indigo-800;
+  }
+
+  .app-route-shell .badge-pending {
+    @apply border border-amber-200 bg-amber-50 text-amber-900;
+  }
+
+  .app-route-shell .badge-rejected {
+    @apply border border-zinc-200 bg-zinc-100 text-zinc-700;
+  }
+
+  .app-route-shell .badge-saved {
+    @apply border border-zinc-200 bg-white text-zinc-700;
+  }
+
+  .app-route-shell .ch-email,
+  .app-route-shell .ch-linkedin {
+    @apply border border-sky-100 bg-sky-50 text-sky-900;
+  }
+
+  .app-route-shell .ch-site {
+    @apply border border-zinc-200 bg-zinc-50 text-zinc-800;
   }
 }

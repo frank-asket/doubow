@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { Logo } from "@/components/Logo";
 import { FooterLegalLinks } from "@/components/landing/FooterLegalLinks";
 import { productName } from "@/lib/customer-config";
@@ -56,9 +57,9 @@ export function Footer() {
               </a>
             </li>
             <li>
-              <a href="/auth/sign-up" className="hover:text-neutral-900">
+              <Link href={"/auth/sign-up" as Route} prefetch className="hover:text-neutral-900">
                 Plans
-              </a>
+              </Link>
             </li>
             <li>
               <a href="#faq" className="hover:text-neutral-900">
@@ -82,17 +83,17 @@ export function Footer() {
           <p className="text-sm font-semibold text-neutral-1000">Product</p>
           <ul className="mt-4 space-y-2 text-sm text-neutral-500">
             <li>
-              <a href="/auth/sign-in" className="hover:text-neutral-900">
+              <Link href={"/auth/sign-in" as Route} prefetch className="hover:text-neutral-900">
                 Sign in
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/auth/sign-up" className="hover:text-neutral-900">
+              <Link href={"/auth/sign-up" as Route} prefetch className="hover:text-neutral-900">
                 Create account
-              </a>
+              </Link>
             </li>
             <li>
-              <Link href="/discover" className="hover:text-neutral-900">
+              <Link href="/settings" className="hover:text-neutral-900">
                 Account settings
               </Link>
             </li>

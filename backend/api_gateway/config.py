@@ -72,5 +72,26 @@ class Settings(BaseSettings):
     posthog_personal_api_key: str | None = None
     posthog_project_api_key: str | None = None
 
+    # Google OAuth (Gmail API send). Create OAuth client (Web) in Google Cloud Console.
+    google_oauth_client_id: str | None = None
+    google_oauth_client_secret: str | None = None
+    # Backend callback URL registered in Google Cloud (e.g. http://localhost:8000/v1/integrations/google/callback).
+    google_oauth_redirect_uri: str | None = None
+    # Browser redirect after connect success/failure (query params: google_connected=1 or google_error=...).
+    google_oauth_frontend_redirect_uri: str = "http://localhost:3000/settings/integrations"
+    # HMAC secret for OAuth `state` (use a long random string).
+    google_oauth_state_secret: str | None = None
+    # Fernet key for encrypting refresh tokens at rest (`python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`).
+    google_oauth_token_fernet_key: str | None = None
+
+    def google_oauth_is_configured(self) -> bool:
+        return bool(
+            self.google_oauth_client_id
+            and self.google_oauth_client_secret
+            and self.google_oauth_redirect_uri
+            and self.google_oauth_state_secret
+            and self.google_oauth_token_fernet_key
+        )
+
 
 settings = Settings()

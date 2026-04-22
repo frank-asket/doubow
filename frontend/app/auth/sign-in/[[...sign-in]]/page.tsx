@@ -31,7 +31,6 @@ export default async function AuthSignInPage() {
       routing="path"
       signUpUrl="/auth/sign-up"
       fallbackRedirectUrl="/dashboard"
-      forceRedirectUrl="/dashboard"
     />
   );
 }

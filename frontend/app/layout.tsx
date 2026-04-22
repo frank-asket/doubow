@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import ClerkApiAuthBridge from '@/components/auth/ClerkApiAuthBridge'
+import ClerkDevOriginGuard from '@/components/auth/ClerkDevOriginGuard'
 import DevAuthNotice from '@/components/auth/DevAuthNotice'
 import PostHogProvider from '@/components/analytics/PostHogProvider'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             afterSignOutUrl="/"
           >
             <ThemeProvider>
+              <ClerkDevOriginGuard />
               <ClerkApiAuthBridge />
               <DevAuthNotice />
               <PostHogBoundary />
@@ -56,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </ClerkProvider>
         ) : (
           <ThemeProvider>
+            <ClerkDevOriginGuard />
             <PostHogBoundary />
             {children}
           </ThemeProvider>

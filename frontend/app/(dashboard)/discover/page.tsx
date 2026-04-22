@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import useSWR from 'swr'
 import { RefreshCw, SlidersHorizontal, Globe, ChevronDown, ChevronUp, ArrowRight, X, BookOpen, ShieldCheck, Timer } from 'lucide-react'
 import { cn, fitClass, fitLabel, channelLabel, channelBadgeClass, relativeTime, scoreBarWidth } from '@/lib/utils'
@@ -10,6 +11,7 @@ import { usePipeline } from '@/hooks/usePipeline'
 import { useJobStore } from '@/stores/jobStore'
 import { usePipelineStore } from '@/stores/pipelineStore'
 import { applicationsApi, resumeApi, telemetryApi } from '@/lib/api'
+import { resolveJobListingUrl } from '@/lib/jobListingUrl'
 import { clearActivationStart, getActivationStartAt, trackEvent } from '@/lib/telemetry'
 import { useDashboard } from '@/hooks/useDashboard'
 import type { JobWithScore } from '@/types'
@@ -37,13 +39,13 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center gap-2">
       <span className="w-24 flex-shrink-0 text-xs text-zinc-500">{DIMENSION_LABELS[label] ?? label}</span>
-      <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-900">
+      <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-200">
         <div
-          className="h-full rounded-full bg-zinc-200 transition-all duration-500"
+          className="h-full rounded-full bg-indigo-500 transition-all duration-500"
           style={{ width: `${scoreBarWidth(value)}%` }}
         />
       </div>
-      <span className="w-6 text-right text-xs tabular-nums text-zinc-400">{value.toFixed(1)}</span>
+      <span className="w-6 text-right text-xs tabular-nums text-zinc-500">{value.toFixed(1)}</span>
     </div>
   )
 }
@@ -76,19 +78,19 @@ function JobCard({ job }: { job: JobWithScore }) {
         {/* Top row */}
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 text-xs font-semibold text-zinc-300">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-indigo-100 bg-indigo-50 text-xs font-semibold text-indigo-800">
               {job.company.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium leading-snug text-zinc-100">{job.title}</p>
-              <p className="mt-0.5 text-xs text-zinc-400">{job.company}</p>
+              <p className="text-sm font-medium leading-snug text-zinc-900">{job.title}</p>
+              <p className="mt-0.5 text-xs text-zinc-500">{job.company}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <FitBadge score={job.score.fit_score} />
             <button
               onClick={() => dismissJob(job.id)}
-              className="text-zinc-600 transition-colors hover:text-zinc-300"
+              className="text-zinc-400 transition-colors hover:text-zinc-600"
             >
               <X size={13} />
             </button>
@@ -97,9 +99,9 @@ function JobCard({ job }: { job: JobWithScore }) {
 
         {/* Meta */}
         <div className="flex flex-wrap gap-3 mb-3">
-          <span className="text-xs text-zinc-500">📍 {job.location}</span>
+          <span className="text-xs text-zinc-600">📍 {job.location}</span>
           {job.salary_range && (
-            <span className="text-xs text-zinc-500">💰 {job.salary_range}</span>
+            <span className="text-xs text-zinc-600">💰 {job.salary_range}</span>
           )}
           <span className={cn('badge text-2xs', channelBadgeClass(job.score.channel_recommendation))}>
             via {channelLabel(job.score.channel_recommendation)}
@@ -110,7 +112,7 @@ function JobCard({ job }: { job: JobWithScore }) {
         {/* Expand/collapse */}
         <button
           onClick={() => setExpanded((x) => !x)}
-          className="mb-3 flex items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+          className="mb-3 flex items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-indigo-700"
         >
           {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           {expanded ? 'Less detail' : 'View fit breakdown'}
@@ -123,8 +125,8 @@ function JobCard({ job }: { job: JobWithScore }) {
               <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-zinc-500">Why it matches</p>
               <ul className="space-y-1">
                 {job.score.fit_reasons.map((r, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
-                    <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-zinc-200" />
+                  <li key={i} className="flex items-start gap-2 text-xs text-zinc-600">
+                    <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-indigo-400" />
                     {r}
                   </li>
                 ))}
@@ -137,8 +139,8 @@ function JobCard({ job }: { job: JobWithScore }) {
                 <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-zinc-500">Watch out</p>
                 <ul className="space-y-1">
                   {job.score.risk_flags.map((r, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
-                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-zinc-400" />
+                    <li key={i} className="flex items-start gap-2 text-xs text-zinc-600">
+                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-amber-400" />
                       {r}
                     </li>
                   ))}
@@ -159,9 +161,9 @@ function JobCard({ job }: { job: JobWithScore }) {
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-2 border-t border-zinc-800 pt-2">
+        <div className="flex items-center gap-2 border-t border-zinc-200 pt-2">
           {queued ? (
-            <span className="text-xs font-medium text-zinc-100">✓ Added to queue</span>
+            <span className="text-xs font-medium text-emerald-700">✓ Added to queue</span>
           ) : (
             <button
               onClick={handleQueue}
@@ -176,7 +178,12 @@ function JobCard({ job }: { job: JobWithScore }) {
             <BookOpen size={12} />
             Interview prep
           </button>
-          <a href={job.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost text-xs ml-auto">
+          <a
+            href={resolveJobListingUrl(job)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-ghost text-xs ml-auto"
+          >
             View JD ↗
           </a>
         </div>
@@ -357,35 +364,47 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-3 rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:flex-row sm:items-start sm:p-6">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Discover</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Discover</h1>
-          <p className="mt-2 text-sm text-zinc-400 sm:text-base">AI-matched roles based on your resume and preferences</p>
-        </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={() => setFilterOpen((x) => !x)}
-            className={cn('btn text-xs gap-1.5', filterOpen && 'border-zinc-700 bg-zinc-900')}
-          >
-            <SlidersHorizontal size={13} />
-            Filters
-          </button>
-          <button onClick={() => void handleRefresh()} className="btn text-xs gap-1.5">
-            <RefreshCw size={13} className={cn((loading || dashLoading) && 'animate-spin-slow')} />
-            Refresh
-          </button>
-        </div>
-      </div>
+    <div className="space-y-5 p-5 sm:p-7">
+      <DashboardPageHeader
+        kicker="Discover"
+        title="Discover"
+        description="AI-matched roles based on your resume and preferences"
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => setFilterOpen((x) => !x)}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-[10px] border px-3 py-2 text-[14px] font-medium shadow-sm transition-colors',
+                filterOpen
+                  ? 'border-indigo-200 bg-indigo-50 text-indigo-800'
+                  : 'border-[#e4e5ec] bg-white text-zinc-700 hover:bg-zinc-50',
+              )}
+            >
+              <SlidersHorizontal size={13} />
+              Filters
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleRefresh()}
+              className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#e4e5ec] bg-white px-3 py-2 text-[14px] font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+            >
+              <RefreshCw size={13} className={cn((loading || dashLoading) && 'animate-spin-slow')} />
+              Refresh
+            </button>
+          </>
+        }
+      />
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 section-block">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {statCards.map((s) => (
-          <div key={s.label} className="rounded-lg border border-zinc-800 bg-zinc-950 p-2.5">
-            <p className="mb-1 text-2xs uppercase tracking-wider text-zinc-500">{s.label}</p>
-            <p className="text-2xl font-semibold tabular-nums text-zinc-100">{s.value}</p>
+          <div
+            key={s.label}
+            className="rounded-[16px] border border-[#e7e8ee] bg-white p-3 shadow-sm sm:p-3.5"
+          >
+            <p className="mb-1 text-2xs font-medium uppercase tracking-wider text-zinc-500">{s.label}</p>
+            <p className="text-xl font-semibold tabular-nums text-zinc-900 sm:text-2xl">{s.value}</p>
             <p className="mt-0.5 text-2xs text-zinc-500">{s.sub}</p>
           </div>
         ))}
@@ -394,9 +413,9 @@ export default function DiscoverPage() {
       {/* Filters panel */}
       {filterOpen && (
         <div className="card p-3.5 mb-4 animate-slide-up">
-          <p className="mb-3 text-xs font-medium text-zinc-300">Filter jobs</p>
+          <p className="mb-3 text-xs font-medium text-zinc-700">Filter jobs</p>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-            <label className="flex items-center gap-2 text-xs text-zinc-300">
+            <label className="flex items-center gap-2 text-xs text-zinc-600">
               Min fit score
               <select
                 className="field w-24 text-xs py-1"
@@ -410,7 +429,7 @@ export default function DiscoverPage() {
                 <option value={4.5}>4.5+</option>
               </select>
             </label>
-            <label className="flex items-center gap-2 text-xs text-zinc-300">
+            <label className="flex items-center gap-2 text-xs text-zinc-600">
               <Globe size={12} />
               Location
               <input className="field w-32 text-xs py-1" placeholder="e.g. Remote" />
@@ -431,14 +450,14 @@ export default function DiscoverPage() {
           ? Array.from({ length: 4 }).map((_, i) => <JobSkeleton key={i} />)
           : filteredJobs.length === 0 && onboarding?.state === 'no_resume'
           ? (
-            <div className="card p-6 sm:p-8 text-zinc-300">
+            <div className="card p-6 sm:p-8 text-zinc-600">
               <div className="mx-auto max-w-2xl text-center">
-                <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-zinc-500/30 bg-zinc-800 px-2.5 py-1 text-2xs font-medium text-zinc-300">
+                <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-2xs font-medium text-amber-900">
                   No resume connected
                 </div>
-                <p className="text-lg font-medium text-zinc-100">No jobs yet — upload your resume to start matching.</p>
-                <p className="mt-2 text-sm text-zinc-400">
-                  Daubo scores your fit across tech, culture, seniority, comp, and location before showing jobs.
+                <p className="text-lg font-medium text-zinc-900">No jobs yet — upload your resume to start matching.</p>
+                <p className="mt-2 text-sm text-zinc-500">
+                  Doubow scores your fit across tech, culture, seniority, comp, and location before showing jobs.
                 </p>
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                   <Link href="/resume" className="btn btn-primary text-xs">Upload Resume</Link>
@@ -452,13 +471,17 @@ export default function DiscoverPage() {
             <div className="card p-6 sm:p-8">
               <div className="mx-auto max-w-2xl">
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <span className="badge bg-zinc-800 text-zinc-300 border-zinc-500/30 text-2xs">Scoring in progress</span>
+                  <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-2xs font-medium text-indigo-800">
+                    Scoring in progress
+                  </span>
                   {etaMinutes != null && (
-                    <span className="badge text-2xs border-zinc-700 text-zinc-300"><Timer size={10} /> ~{etaMinutes} min</span>
+                    <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-2xs text-zinc-700">
+                      <Timer size={10} className="inline" /> ~{etaMinutes} min
+                    </span>
                   )}
                 </div>
-                <p className="text-lg font-medium text-zinc-100">Great — your resume is uploaded.</p>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className="text-lg font-medium text-zinc-900">Great — your resume is uploaded.</p>
+                <p className="mt-1 text-sm text-zinc-500">
                   We are scoring your first set of jobs now. This usually takes about 1-2 minutes.
                 </p>
                 <div className="mt-5 space-y-2">
@@ -466,17 +489,22 @@ export default function DiscoverPage() {
                     const active = onboarding.current_step === step
                     const done = onboardingSteps.indexOf(onboarding.current_step as typeof onboardingSteps[number]) > onboardingSteps.indexOf(step)
                     return (
-                      <div key={step} className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2">
-                        <span className={cn('text-xs', active ? 'text-zinc-100' : 'text-zinc-400')}>{ONBOARDING_STEP_LABELS[step]}</span>
-                        <span className={cn('text-2xs', done ? 'text-zinc-100' : active ? 'text-zinc-300' : 'text-zinc-500')}>
+                      <div
+                        key={step}
+                        className="flex items-center justify-between rounded-[10px] border border-[#e7e8ee] bg-zinc-50 px-3 py-2"
+                      >
+                        <span className={cn('text-xs', active ? 'text-zinc-900' : 'text-zinc-500')}>
+                          {ONBOARDING_STEP_LABELS[step]}
+                        </span>
+                        <span className={cn('text-2xs', done ? 'text-emerald-700' : active ? 'text-indigo-700' : 'text-zinc-400')}>
                           {done ? 'Done' : active ? 'In progress' : 'Pending'}
                         </span>
                       </div>
                     )
                   })}
                 </div>
-                <div className="mt-4 flex items-start gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-400">
-                  <ShieldCheck size={13} className="mt-0.5 text-zinc-100" />
+                <div className="mt-4 flex items-start gap-2 rounded-[12px] border border-indigo-100 bg-indigo-50/80 p-3 text-xs text-indigo-900">
+                  <ShieldCheck size={13} className="mt-0.5 shrink-0 text-indigo-600" />
                   You can leave this page. We keep processing in the background.
                 </div>
               </div>
@@ -485,9 +513,9 @@ export default function DiscoverPage() {
           : filteredJobs.length === 0
           ? (
             <div className="py-16 text-center text-zinc-500">
-              <Globe size={28} className="mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-medium text-zinc-300">No matches yet</p>
-              <p className="text-xs mt-1">Upload your resume and click Refresh to discover roles</p>
+              <Globe size={28} className="mx-auto mb-3 text-zinc-300" />
+              <p className="text-sm font-medium text-zinc-800">No matches yet</p>
+              <p className="mt-1 text-xs text-zinc-500">Upload your resume and click Refresh to discover roles</p>
             </div>
           )
           : filteredJobs.map((job) => <JobCard key={job.id} job={job} />)

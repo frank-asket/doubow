@@ -14,7 +14,7 @@ export function Hero() {
             <Sparkles size={12} />
             Human-in-the-loop career agent
           </div>
-          <h1 className="mt-5 text-4xl font-bold leading-[1.08] tracking-tight text-zinc-950 sm:text-5xl lg:text-[3.25rem]">
+          <h1 className="mt-5 text-4xl font-bold capitalize leading-[1.08] tracking-tight text-black sm:text-5xl lg:text-[3.25rem]">
             A calmer way to run your job search
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg">
@@ -24,20 +24,20 @@ export function Hero() {
         </div>
 
         <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-left shadow-sm shadow-zinc-950/5">
+          <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 text-left shadow-sm shadow-zinc-950/5">
             <p className="text-2xs font-medium uppercase tracking-wider text-zinc-500">
               Time to first matches
             </p>
             <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-950">~2 min</p>
           </div>
-          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-left shadow-sm shadow-zinc-950/5">
+          <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 text-left shadow-sm shadow-zinc-950/5">
             <p className="text-2xs font-medium uppercase tracking-wider text-zinc-500">Approval safety</p>
             <p className="mt-1 flex items-center gap-1.5 text-lg font-semibold text-zinc-950">
               <ShieldCheck size={16} className="shrink-0 text-indigo-600" strokeWidth={2} />
               Always-on gate
             </p>
           </div>
-          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-left shadow-sm shadow-zinc-950/5">
+          <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 text-left shadow-sm shadow-zinc-950/5">
             <p className="text-2xs font-medium uppercase tracking-wider text-zinc-500">Fit scoring</p>
             <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-950">5 dimensions</p>
           </div>
@@ -51,7 +51,7 @@ export function Hero() {
             Get started now
           </Link>
           <a
-            href="/auth/sign-up"
+            href="#pricing"
             className="inline-flex rounded-full border border-zinc-200 bg-white px-7 py-3.5 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
           >
             See pricing

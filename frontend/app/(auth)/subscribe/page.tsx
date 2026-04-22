@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function LegacySubscribeRedirect() {
-  redirect("/sign-in");
+  redirect("/auth/sign-in");
 }

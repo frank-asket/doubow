@@ -1,6 +1,6 @@
 /**
  * Mirrors optional fields written by Clerk Billing / backend webhooks into
- * `publicMetadata` (see frontend/middleware.ts paywall helpers).
+ * `publicMetadata` (used for sidebar labels and optional backend/API plan checks).
  */
 export type ClerkPlanPublicMetadata = {
   plan?: string

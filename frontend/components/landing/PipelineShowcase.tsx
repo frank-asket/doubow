@@ -18,7 +18,7 @@ function Initial({ name }: { name: string }) {
 
 export function PipelineShowcase() {
   return (
-    <section id="product" className="border-b border-[#e7e8ee] bg-[#f3f4f8] py-20">
+    <section id="pipeline-showcase" className="border-b border-[#e7e8ee] bg-[#f3f4f8] py-20">
       <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">

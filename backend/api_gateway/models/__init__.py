@@ -1,6 +1,7 @@
 from models.application import Application
 from models.approval import Approval
 from models.autopilot_run import AutopilotRun
+from models.google_oauth_credential import GoogleOAuthCredential
 from models.job import Job
 from models.job_dismissal import JobDismissal
 from models.job_score import JobScore
@@ -20,4 +21,5 @@ __all__ = [
     "AutopilotRun",
     "PrepSession",
     "TelemetryEvent",
+    "GoogleOAuthCredential",
 ]

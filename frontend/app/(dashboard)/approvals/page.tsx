@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Check, X, Edit3, Mail, LinkIcon, Loader2, ShieldCheck, AlertCircle } from 'lucide-react'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import { cn, channelLabel, relativeTime } from '@/lib/utils'
 import { useApprovals } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approvalStore'
@@ -46,13 +47,20 @@ function ApprovalCard({ approval }: { approval: Approval }) {
 
   if (done) {
     return (
-      <div className={cn(
-        'card p-4 flex items-center gap-3 animate-fade-in transition-all',
-        done === 'approved' ? 'border-zinc-300/30 bg-zinc-200/10' : 'border-zinc-500/40 bg-zinc-800'
-      )}>
-        {done === 'approved' ? <Check size={16} className="text-zinc-100" /> : <X size={16} className="text-zinc-300" />
-        }
-        <p className="text-sm font-medium text-zinc-200">
+      <div
+        className={cn(
+          'card flex animate-fade-in items-center gap-3 p-4 transition-all',
+          done === 'approved'
+            ? 'border-emerald-200 bg-emerald-50'
+            : 'border-zinc-200 bg-zinc-100',
+        )}
+      >
+        {done === 'approved' ? (
+          <Check size={16} className="text-emerald-700" />
+        ) : (
+          <X size={16} className="text-zinc-600" />
+        )}
+        <p className="text-sm font-medium text-zinc-800">
           {done === 'approved' ? `Application to ${approval.application.job.company} queued for send` : 'Rejected'}
         </p>
       </div>
@@ -63,14 +71,14 @@ function ApprovalCard({ approval }: { approval: Approval }) {
     <div className="card animate-fade-in">
       <div className="p-4">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="mb-3 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 text-xs font-semibold text-zinc-300">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-indigo-100 bg-indigo-50 text-xs font-semibold text-indigo-800">
               {approval.application.job.company.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium text-zinc-100">{approval.application.job.company}</p>
-              <p className="text-xs text-zinc-400">{approval.application.job.title}</p>
+              <p className="text-sm font-medium text-zinc-900">{approval.application.job.company}</p>
+              <p className="text-xs text-zinc-500">{approval.application.job.title}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -81,7 +89,7 @@ function ApprovalCard({ approval }: { approval: Approval }) {
               <ChannelIcon channel={approval.channel} />
               {channelLabel(approval.channel)}
             </span>
-            <span className="text-2xs text-zinc-500">{relativeTime(approval.created_at)}</span>
+            <span className="text-2xs text-zinc-400">{relativeTime(approval.created_at)}</span>
           </div>
         </div>
 
@@ -89,31 +97,31 @@ function ApprovalCard({ approval }: { approval: Approval }) {
         {approval.subject && (
           <div className="mb-2">
             <span className="text-2xs font-medium uppercase tracking-wider text-zinc-500">Subject </span>
-            <span className="text-xs text-zinc-300">{approval.subject}</span>
+            <span className="text-xs text-zinc-700">{approval.subject}</span>
           </div>
         )}
 
         {/* Draft preview / edit */}
-        <div className="mb-3 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
+        <div className="mb-3 overflow-hidden rounded-[12px] border border-zinc-200 bg-zinc-50">
           {editing ? (
             <textarea
               value={editedBody}
               onChange={(e) => setEditedBody(e.target.value)}
-              className="min-h-[140px] w-full resize-none bg-transparent p-3 text-xs leading-relaxed text-zinc-300 focus:outline-none"
+              className="min-h-[140px] w-full resize-none bg-white p-3 text-xs leading-relaxed text-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             />
           ) : (
-            <div className="p-3 relative">
-              <p className="line-clamp-5 whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">
+            <div className="relative p-3">
+              <p className="line-clamp-5 whitespace-pre-wrap text-xs leading-relaxed text-zinc-700">
                 {approval.draft_body}
               </p>
-              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-zinc-950 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-zinc-50 to-transparent" />
             </div>
           )}
         </div>
 
         {/* HITL notice */}
-        <div className="flex items-center gap-1.5 mb-3 px-1">
-          <ShieldCheck size={12} className="text-zinc-100" />
+        <div className="mb-3 flex items-center gap-1.5 px-1">
+          <ShieldCheck size={12} className="text-indigo-600" />
           <p className="text-2xs text-zinc-500">
             Nothing is sent until you approve. You can edit before approving.
           </p>
@@ -131,7 +139,10 @@ function ApprovalCard({ approval }: { approval: Approval }) {
           </button>
           <button
             onClick={() => setEditing((x) => !x)}
-            className={cn('btn text-xs gap-1.5', editing && 'border-zinc-700 bg-zinc-900')}
+            className={cn(
+              'btn text-xs gap-1.5',
+              editing && 'border-indigo-200 bg-indigo-50 text-indigo-900',
+            )}
           >
             <Edit3 size={12} />
             {editing ? 'Done editing' : 'Edit draft'}
@@ -178,19 +189,18 @@ export default function ApprovalsPage() {
   const pending = approvals.filter((a) => a.status === 'pending')
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <section className="rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Approvals</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Pending approvals</h1>
-        <p className="mt-2 text-sm text-zinc-400 sm:text-base">Review AI-drafted applications before they are sent</p>
-      </section>
+    <div className="space-y-5 p-5 sm:p-7">
+      <DashboardPageHeader
+        kicker="Approvals"
+        title="Pending approvals"
+        description="Review AI-drafted applications before they are sent"
+      />
 
       {/* Notice */}
       {pending.length > 0 && (
-        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-zinc-300/30 bg-zinc-200/10 p-3.5">
-          <AlertCircle size={15} className="mt-0.5 flex-shrink-0 text-zinc-100" />
-          <p className="text-sm text-zinc-200">
+        <div className="mb-5 flex items-start gap-2.5 rounded-[16px] border border-indigo-100 bg-indigo-50/90 p-3.5">
+          <AlertCircle size={15} className="mt-0.5 flex-shrink-0 text-indigo-600" />
+          <p className="text-sm text-indigo-950">
             <span className="font-medium">{pending.length} application{pending.length !== 1 ? 's' : ''} ready for review.</span>{' '}
             AI drafted each one — nothing is sent until you approve.
           </p>
@@ -203,9 +213,9 @@ export default function ApprovalsPage() {
           ? Array.from({ length: 3 }).map((_, i) => <ApprovalSkeleton key={i} />)
           : pending.length === 0
           ? (
-            <div className="text-center py-16">
-              <ShieldCheck size={28} className="mx-auto mb-3 text-zinc-200 opacity-60" />
-              <p className="text-sm font-medium text-zinc-300">All caught up</p>
+            <div className="py-16 text-center">
+              <ShieldCheck size={28} className="mx-auto mb-3 text-emerald-500" />
+              <p className="text-sm font-medium text-zinc-800">All caught up</p>
               <p className="mt-1 text-xs text-zinc-500">No pending approvals right now</p>
             </div>
           )

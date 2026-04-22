@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { Suspense, useMemo } from 'react'
 import Link from 'next/link'
 import type { Route } from 'next'
 import { useSearchParams } from 'next/navigation'
@@ -18,7 +18,7 @@ const PANELS: Array<{ label: string; href: Route; hint: string }> = [
   { label: 'Settings', href: '/settings', hint: 'Account and dashboard settings' },
 ]
 
-export default function SearchPage() {
+function SearchPageContent() {
   const params = useSearchParams()
   const query = params.get('q')?.trim() ?? ''
 
@@ -63,5 +63,20 @@ export default function SearchPage() {
         )}
       </section>
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-5 p-5 sm:p-7">
+          <div className="h-14 animate-pulse rounded-xl bg-zinc-100" />
+          <div className="h-48 animate-pulse rounded-[16px] bg-zinc-100" />
+        </div>
+      }
+    >
+      <SearchPageContent />
+    </Suspense>
   )
 }

@@ -1,14 +1,17 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { isPaidPublicMetadata, type ClerkPlanPublicMetadata } from '@/lib/clerkPlan'
 
 const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
   '/discover(.*)',
   '/pipeline(.*)',
   '/approvals(.*)',
   '/prep(.*)',
   '/resume(.*)',
   '/agents(.*)',
+  '/settings(.*)',
+  '/notifications(.*)',
+  '/search(.*)',
 ])
 const isAuthEntryRoute = createRouteMatcher([
   '/auth(.*)',
@@ -17,21 +20,31 @@ const isAuthEntryRoute = createRouteMatcher([
   '/sign-up(.*)',
 ])
 
-function readPublicMetadata(sessionClaims: unknown): ClerkPlanPublicMetadata | undefined {
-  const claims = sessionClaims as Record<string, unknown> | null | undefined
-  return (claims?.public_metadata ?? claims?.publicMetadata) as
-    | ClerkPlanPublicMetadata
-    | undefined
+/**
+ * Auth only: guests → sign-in for app routes; signed-in users skip marketing `/`.
+ * Subscription / plan limits belong on the API (see backend), not middleware redirects —
+ * redirecting unpaid users back to `/dashboard` blocked every sidebar route for normal accounts.
+ */
+function isNextOrStaticAsset(pathname: string): boolean {
+  if (pathname.startsWith('/_next')) return true
+  // Next dev introspection / overlay
+  if (pathname.startsWith('/__nextjs')) return true
+  if (pathname === '/favicon.ico') return true
+  return /\.(?:ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf|eot)$/i.test(pathname)
 }
 
-/**
- * Optional paywall: set CLERK_REQUIRE_ACTIVE_SUBSCRIPTION=true only when you enforce
- * Clerk Billing / publicMetadata in production. Default is off so a normal sign-in
- * unlocks the app; subscription can still be enforced in the API per feature.
- */
 export default clerkMiddleware(async (auth, req) => {
+  // Defense-in-depth: never run auth on Next internals or static assets. If middleware
+  // touches these, chunk/CSS requests can 404 and client navigation (sidebar links) breaks.
+  if (isNextOrStaticAsset(req.nextUrl.pathname)) return
+
   if (process.env.E2E_BYPASS_AUTH === '1') return
   const { userId } = await auth()
+
+  // Signed-in users use the app only; marketing landing is for signed-out visitors.
+  if (userId && req.nextUrl.pathname === '/') {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
 
   // Hard server-side guard: never mount auth pages when already signed in.
   if (userId && isAuthEntryRoute(req)) {
@@ -46,18 +59,11 @@ export default clerkMiddleware(async (auth, req) => {
     signInUrl.searchParams.set('redirect_url', req.url)
     return NextResponse.redirect(signInUrl)
   }
-
-  const strict = process.env.CLERK_REQUIRE_ACTIVE_SUBSCRIPTION === 'true'
-  if (!strict) return
-
-  const { sessionClaims } = await auth()
-  const metadata = readPublicMetadata(sessionClaims)
-
-  if (!isPaidPublicMetadata(metadata)) {
-    return NextResponse.redirect(new URL('/', req.url))
-  }
 })
 
 export const config = {
-  matcher: ['/((?!_next|.*\\..*).*)'],
+  matcher: [
+    // Never run auth on Next.js internals — otherwise chunks/CSS can redirect or 404 (unstyled dashboard).
+    '/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+  ],
 }

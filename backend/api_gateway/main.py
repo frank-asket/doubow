@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from db.session import init_models
 from error_handlers import register_exception_handlers
-from routers import agents, applications, approvals, auth, autopilot, jobs, prep, resume, telemetry, users
+from routers import agents, applications, approvals, auth, autopilot, integrations_google, jobs, prep, resume, telemetry, users
 
 
 @asynccontextmanager
@@ -46,6 +46,7 @@ async def healthcheck() -> dict[str, str]:
 
 API_PREFIX = "/v1"
 app.include_router(auth.router, prefix=API_PREFIX)
+app.include_router(integrations_google.router, prefix=API_PREFIX)
 app.include_router(users.router, prefix=API_PREFIX)
 app.include_router(resume.router, prefix=API_PREFIX)
 app.include_router(jobs.router, prefix=API_PREFIX)

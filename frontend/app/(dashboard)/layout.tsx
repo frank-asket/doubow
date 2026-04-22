@@ -338,7 +338,7 @@ function DashboardLayoutInner({
           ) : null}
         </div>
 
-        <div className="pb-8">
+        <div className="app-route-shell pb-8">
           {children}
         </div>
       </main>

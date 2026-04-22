@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { Upload, FileText, CheckCircle, Loader2, Sparkles, X, AlertCircle } from 'lucide-react'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import { cn } from '@/lib/utils'
 import { useResumeUpload } from '@/hooks/useResumeUpload'
 import { isE2EAuthBypass } from '@/lib/e2e'
@@ -130,19 +131,20 @@ export default function ResumePage() {
   }, [handleFile])
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <section className="rounded-3xl border border-zinc-800 bg-[#080808] p-5 sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-200">Resume</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">My resume</h1>
-        <p className="mt-2 text-sm text-zinc-400 sm:text-base">Upload your resume to power matching, tailoring, and interview prep</p>
-      </section>
+    <div className="space-y-5 p-5 sm:p-7">
+      <DashboardPageHeader
+        kicker="Resume"
+        title="My resume"
+        description="Upload your resume to power matching, tailoring, and interview prep"
+      />
 
       {/* Upload zone */}
       <div
         className={cn(
-          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 mb-6',
-          dragOver ? 'border-zinc-300/40 bg-zinc-200/10' : uploaded ? 'border-zinc-300/40 bg-zinc-200/10' : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-950'
+          'mb-6 cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200',
+          dragOver || uploaded
+            ? 'border-indigo-200 bg-indigo-50/60'
+            : 'border-[#e7e8ee] hover:border-indigo-200 hover:bg-zinc-50',
         )}
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
@@ -159,46 +161,46 @@ export default function ResumePage() {
 
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 size={28} className="animate-spin text-zinc-100" />
-            <p className="text-sm text-zinc-300">Uploading {fileName}…</p>
+            <Loader2 size={28} className="animate-spin text-indigo-600" />
+            <p className="text-sm text-zinc-600">Uploading {fileName}…</p>
           </div>
         ) : uploaded ? (
           <div className="flex flex-col items-center gap-3">
-            <CheckCircle size={28} className="text-zinc-100" />
+            <CheckCircle size={28} className="text-emerald-600" />
             <div>
-              <p className="text-sm font-medium text-zinc-100">{fileName}</p>
-              <p className="mt-0.5 text-xs text-zinc-100">Uploaded successfully</p>
+              <p className="text-sm font-medium text-zinc-900">{fileName}</p>
+              <p className="mt-0.5 text-xs text-zinc-600">Uploaded successfully</p>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setUploaded(false); setFileName('') }}
-              className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+              className="flex items-center gap-1 text-xs text-zinc-500 hover:text-indigo-700"
             >
               <X size={11} /> Replace
             </button>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900">
-              <Upload size={20} className="text-zinc-500" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50">
+              <Upload size={20} className="text-indigo-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-zinc-200">Drop your resume here</p>
+              <p className="text-sm font-medium text-zinc-900">Drop your resume here</p>
               <p className="mt-1 text-xs text-zinc-500">PDF or DOCX · Up to 5 MB</p>
             </div>
           </div>
         )}
       </div>
       {uploadError && (
-        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-zinc-500/40 bg-zinc-800 p-3">
-          <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-zinc-300" />
-          <p className="text-xs text-zinc-300">{uploadError}</p>
+        <div className="mb-5 flex items-start gap-2.5 rounded-[12px] border border-rose-200 bg-rose-50 p-3">
+          <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-rose-600" />
+          <p className="text-xs text-rose-900">{uploadError}</p>
         </div>
       )}
 
       {/* Preferences — values are inferred on upload from parsed résumé and saved server-side */}
       <div className="card p-5 mb-5">
         <div className="mb-4">
-          <p className="text-sm font-medium text-zinc-100">Search preferences</p>
+          <p className="text-sm font-medium text-zinc-900">Search preferences</p>
           <p className="mt-1 text-xs text-zinc-500">
             When you upload a résumé, we fill target role, seniority, and key skills from the parsed profile. Adjust
             anything here and click Save to persist edits.
@@ -212,19 +214,19 @@ export default function ResumePage() {
         ) : null}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Target role</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Target role</label>
             <input className="field text-sm" value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. ML Engineer" />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Location</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Location</label>
             <input className="field text-sm" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Remote, London" />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Min salary (USD)</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Min salary (USD)</label>
             <input className="field text-sm" value={salary} onChange={(e) => setSalary(e.target.value)} placeholder="e.g. 140000" type="number" />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Seniority</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Seniority</label>
             <select
               className="field text-sm"
               value={seniority}
@@ -234,7 +236,7 @@ export default function ResumePage() {
             </select>
           </div>
           <div className="col-span-2">
-            <label className="mb-1.5 block text-xs font-medium text-zinc-400">Key skills</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Key skills</label>
             <input className="field text-sm" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. RAG, LLMs, Python" />
           </div>
         </div>
@@ -243,8 +245,8 @@ export default function ResumePage() {
             className={cn(
               'flex items-start gap-2 text-xs rounded-md px-3 py-2 mt-4',
               prefsStatus.type === 'success'
-                ? 'border border-zinc-300/30 bg-zinc-200/10 text-zinc-200'
-                : 'border border-zinc-500/40 bg-zinc-800 text-zinc-300'
+                ? 'border border-emerald-200 bg-emerald-50 text-emerald-900'
+                : 'border border-rose-200 bg-rose-50 text-rose-900'
             )}
           >
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
@@ -252,12 +254,12 @@ export default function ResumePage() {
           </div>
         )}
         {!loadingProfile && !resumeExists && (
-          <div className="mt-4 flex items-start gap-2 rounded-md border border-zinc-500/40 bg-zinc-800 px-3 py-2 text-xs text-zinc-300">
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
             <span>Upload a resume first to enable preference saving.</span>
           </div>
         )}
-        <div className="mt-4 flex gap-2 border-t border-zinc-800 pt-4">
+        <div className="mt-4 flex gap-2 border-t border-zinc-100 pt-4">
           <button
             onClick={() => savePreferences()}
             disabled={savingPrefs || loadingProfile || !resumeExists}
@@ -283,8 +285,8 @@ export default function ResumePage() {
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm font-medium text-zinc-100">AI profile analysis</p>
-            <p className="mt-0.5 text-xs text-zinc-400">Get archetypes, skill gaps, and target companies</p>
+            <p className="text-sm font-medium text-zinc-900">AI profile analysis</p>
+            <p className="mt-0.5 text-xs text-zinc-500">Get archetypes, skill gaps, and target companies</p>
           </div>
           <button
             onClick={() => analyzeWithAI()}
@@ -296,17 +298,19 @@ export default function ResumePage() {
           </button>
         </div>
 
-        <div className={cn(
-          'min-h-[100px] rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed whitespace-pre-wrap text-zinc-200',
-          !analysis && 'flex items-center justify-center text-zinc-500'
-        )}>
+        <div
+          className={cn(
+            'min-h-[100px] rounded-[12px] border border-[#e7e8ee] bg-zinc-50 p-4 text-xs leading-relaxed text-zinc-800 whitespace-pre-wrap',
+            !analysis && 'flex items-center justify-center text-zinc-500',
+          )}
+        >
           {analysis || (
             <div className="text-center">
               <FileText size={20} className="mx-auto mb-2 opacity-40" />
               <p>Upload your resume and click Analyze to see your profile breakdown</p>
             </div>
           )}
-          {analyzing && <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-zinc-100 align-middle" />}
+          {analyzing && <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-indigo-400 align-middle" />}
         </div>
       </div>
     </div>

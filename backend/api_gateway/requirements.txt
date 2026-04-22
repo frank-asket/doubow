@@ -12,3 +12,8 @@ PyJWT[crypto]
 pypdf
 python-docx
 langchain-core
+cryptography
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
