@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 
-import { agentsApi, streamAgentStatus, streamOrchestratorChat } from '../../../../frontend/lib/api'
+import { agentsApi, streamAgentStatus, streamOrchestratorChat } from '../../lib/api'
 import { useAgentStore } from './agentStore'
 import type { AgentName } from '@doubow/shared'
 

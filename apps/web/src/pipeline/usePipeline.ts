@@ -2,9 +2,9 @@ import { useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import useSWR from 'swr'
 
-import { isE2EAuthBypass } from '../../../../frontend/lib/e2e'
-import { applicationsApi } from '../../../../frontend/lib/api'
-import { getBrowserSupabaseClient } from '../../../../frontend/lib/supabase'
+import { isE2EAuthBypass } from '../../lib/e2e'
+import { applicationsApi } from '../../lib/api'
+import { getBrowserSupabaseClient } from '../../lib/supabase'
 import { usePipelineStore } from './pipelineStore'
 
 export function usePipeline(statusFilter?: string) {

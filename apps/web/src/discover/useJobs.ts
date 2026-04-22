@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import useSWR from 'swr'
 
-import { isE2EAuthBypass } from '../../../../frontend/lib/e2e'
-import { jobsApi } from '../../../../frontend/lib/api'
+import { isE2EAuthBypass } from '../../lib/e2e'
+import { jobsApi } from '../../lib/api'
 import { useJobStore } from './jobStore'
 
 export function useJobs() {

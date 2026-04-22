@@ -1,0 +1,35 @@
+import { SignUp } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { clerkAppearance } from "@/lib/clerk-appearance";
+
+export default async function AuthSignUpPage() {
+  const { userId } = await auth();
+  if (userId) redirect("/dashboard");
+
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  if (!publishableKey) {
+    return (
+      <div className="rounded-xl border border-zinc-500/35 bg-zinc-800 p-5 text-sm text-zinc-200">
+        <p className="font-semibold text-zinc-100">Clerk sign-up is not configured</p>
+        <p className="mt-2 text-zinc-300">
+          Set <code className="rounded bg-black/30 px-1.5 py-0.5 text-xs">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code> in{" "}
+          <code className="rounded bg-black/30 px-1.5 py-0.5 text-xs">apps/web/.env.local</code> or the repo root{" "}
+          <code className="rounded bg-black/30 px-1.5 py-0.5 text-xs">.env</code>, then restart{" "}
+          <code className="rounded bg-black/30 px-1.5 py-0.5 text-xs">next dev</code>.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <SignUp
+      appearance={clerkAppearance}
+      path="/auth/sign-up"
+      routing="path"
+      signInUrl="/auth/sign-in"
+      fallbackRedirectUrl="/dashboard"
+    />
+  );
+}

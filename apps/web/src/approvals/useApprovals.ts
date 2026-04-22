@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import useSWR from 'swr'
 
-import { approvalsApi } from '../../../../frontend/lib/api'
+import { approvalsApi } from '../../lib/api'
 import { useApprovalStore } from './approvalStore'
 
 export function useApprovals() {

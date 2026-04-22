@@ -1,0 +1,504 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Djamo-inspired RGB tokens for Tailwind alpha utilities */
+  --primary-500: 255 188 1;
+  --primary-600: 232 191 0;
+  --secondary-500: 0 28 240;
+  --secondary-600: 12 41 255;
+  --secondary-accent: 255 144 165;
+  --neutral-0: 255 255 255;
+  --neutral-50: 249 250 251;
+  --neutral-300: 209 213 219;
+  --neutral-400: 156 163 175;
+  --neutral-500: 107 114 128;
+  --neutral-600: 75 85 99;
+  --neutral-700: 55 65 81;
+  --neutral-800: 31 41 55;
+  --neutral-900: 17 24 39;
+  --neutral-1000: 0 0 0;
+  --success-500: 49 182 122;
+  --warning-500: 253 60 45;
+
+  --background: #ffffff;
+  --foreground: #111827;
+  --mint: #e8bf00;
+  --mint-bright: #ffbc01;
+  --card: #ffffff;
+  --border: #d1d5db;
+  --muted: #6b7280;
+  --surface-2: #f9fafb;
+  --sidebar-width: 224px;
+  --header-height: 56px;
+}
+
+.dark {
+  --primary-500: 255 196 26;
+  --primary-600: 242 205 64;
+  --secondary-500: 61 92 255;
+  --secondary-600: 92 119 255;
+  --secondary-accent: 255 163 181;
+  --neutral-0: 3 7 18;
+  --neutral-50: 15 23 42;
+  --neutral-300: 71 85 105;
+  --neutral-400: 100 116 139;
+  --neutral-500: 148 163 184;
+  --neutral-600: 203 213 225;
+  --neutral-700: 226 232 240;
+  --neutral-800: 241 245 249;
+  --neutral-900: 248 250 252;
+  --neutral-1000: 255 255 255;
+  --success-500: 74 222 128;
+  --warning-500: 251 113 133;
+  --background: #030712;
+  --foreground: #f8fafc;
+  --mint: #ffd64d;
+  --mint-bright: #ffe082;
+  --card: #0f172a;
+  --border: #334155;
+  --muted: #94a3b8;
+  --surface-2: #111827;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+}
+
+::selection {
+  background: rgba(52, 211, 153, 0.28);
+  color: var(--foreground);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+}
+
+@layer components {
+  /* Card */
+  .card {
+    background: var(--card);
+    color: var(--foreground);
+    @apply rounded-lg border;
+    border-color: color-mix(in oklab, var(--border), white 6%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  }
+  .card-hover {
+    @apply card transition-shadow duration-200 hover:shadow-card-hover;
+    border-color: color-mix(in oklab, var(--border), white 8%);
+  }
+
+  /* Fit score colors */
+  .fit-high { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .fit-mid  { @apply border border-zinc-700 bg-zinc-900 text-zinc-300; }
+  .fit-low  { @apply border border-zinc-600/40 bg-zinc-900/80 text-zinc-300; }
+
+  /* Status badges */
+  .badge { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium; }
+  .badge-applied   { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .badge-interview { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .badge-pending   { @apply border border-zinc-500/40 bg-zinc-800 text-zinc-300; }
+  .badge-rejected  { @apply border border-zinc-500/40 bg-zinc-800 text-zinc-300; }
+  .badge-offer     { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .badge-saved     { @apply border border-zinc-700 bg-zinc-900 text-zinc-300; }
+
+  /* Channel badges */
+  .ch-email    { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .ch-linkedin { @apply border border-zinc-300/30 bg-zinc-200/10 text-zinc-100; }
+  .ch-site     { @apply border border-zinc-700 bg-zinc-900 text-zinc-300; }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium
+           active:scale-[0.98] transition-colors duration-150 focus:outline-none focus:ring-2;
+    background: var(--surface-2);
+    color: var(--foreground);
+    border-color: var(--border);
+    --tw-ring-color: color-mix(in oklab, var(--mint), transparent 78%);
+  }
+  .btn:hover {
+    background: color-mix(in oklab, var(--surface-2), white 5%);
+    border-color: color-mix(in oklab, var(--border), white 10%);
+  }
+  .btn-primary {
+    background: #f4f4f5;
+    color: #09090b;
+    border-color: #f4f4f5;
+  }
+  .btn-primary:hover {
+    background: #ffffff;
+    border-color: #ffffff;
+  }
+  .btn-danger {
+    @apply border-danger-border text-danger-text
+           hover:bg-danger-bg;
+  }
+  .btn-ghost {
+    @apply border-transparent bg-transparent;
+  }
+  .btn-ghost:hover {
+    background: color-mix(in oklab, var(--surface-2), white 4%);
+    border-color: var(--border);
+  }
+
+  /* Input */
+  .field {
+    @apply w-full rounded-md border px-3 py-2 text-sm transition-colors duration-150
+           focus:outline-none focus:ring-2;
+    background: var(--card);
+    color: var(--foreground);
+    border-color: var(--border);
+    --tw-ring-color: color-mix(in oklab, var(--mint), transparent 78%);
+  }
+  .field::placeholder {
+    color: var(--muted);
+  }
+  .field:focus {
+    border-color: #f4f4f5;
+  }
+
+  /* Shimmer skeleton */
+  .skeleton {
+    @apply bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900
+           bg-[length:200%_100%] animate-shimmer rounded;
+  }
+
+  /* AI stream cursor */
+  .stream-cursor::after {
+    content: '';
+    @apply inline-block w-0.5 h-[1em] bg-brand-400 ml-0.5 align-text-bottom animate-pulse;
+  }
+
+  /* Dashboard polish: tighter density and cleaner rhythm */
+  .dashboard-shell {
+    @apply tracking-normal;
+    background:
+      radial-gradient(1200px 480px at 50% -10%, rgba(244, 244, 245, 0.12), transparent 55%),
+      linear-gradient(to right, rgba(63, 63, 70, 0.22) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(63, 63, 70, 0.22) 1px, transparent 1px),
+      #040405;
+    background-size: auto, 64px 64px, 64px 64px, auto;
+    color: #f4f4f5;
+  }
+
+  .dashboard-shell h1 {
+    @apply text-[1.4rem] sm:text-[1.75rem] font-bold;
+    letter-spacing: -0.025em;
+  }
+
+  .dashboard-shell h2 {
+    @apply text-[1.1rem] sm:text-[1.2rem] font-bold;
+    letter-spacing: -0.02em;
+  }
+
+  .dashboard-shell .btn {
+    @apply h-8 px-2.5 text-xs rounded-md;
+    border-color: rgba(63, 63, 70, 0.85);
+    background: linear-gradient(180deg, rgba(24, 24, 27, 0.98) 0%, rgba(9, 9, 11, 0.98) 100%);
+  }
+
+  .dashboard-shell .btn.btn-primary {
+    @apply font-semibold;
+    background: linear-gradient(180deg, #f4f4f5 0%, #d4d4d8 100%);
+    color: #030712;
+    border-color: rgba(244, 244, 245, 0.75);
+    box-shadow: 0 0 24px -8px rgba(244, 244, 245, 0.4);
+  }
+
+  .dashboard-shell .badge {
+    @apply text-[10px] px-1.5 py-[1px] rounded-md;
+  }
+
+  .dashboard-shell .field {
+    @apply h-9 text-sm;
+  }
+
+  /*
+   * Landing target-daubo theme: deep dark surfaces, high-contrast typography,
+   * and green CTA accents (matching docs/design-screens/target-daubo.png).
+   */
+  .landing-shell {
+    --neutral-0: 245 245 245;
+    --neutral-50: 39 39 42;
+    --neutral-300: 63 63 70;
+    --neutral-400: 113 113 122;
+    --neutral-500: 161 161 170;
+    --neutral-600: 212 212 216;
+    --neutral-700: 228 228 231;
+    --neutral-800: 244 244 245;
+    --neutral-900: 250 250 250;
+    --neutral-1000: 255 255 255;
+    --card: #0d0f12;
+    --border: #262a31;
+    --foreground: #f4f4f5;
+    --muted: #a1a1aa;
+    color: rgb(var(--neutral-900));
+    background-color: #050505;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  .landing-shell ::selection {
+    background: rgb(244 244 245 / 0.3);
+    color: rgb(255 255 255);
+  }
+
+  /* Marketing display (Fraunces): slightly looser tracking than geometric sans */
+  .landing-shell .font-display {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    letter-spacing: -0.022em;
+  }
+
+  .landing-shell h1:not(.font-display) {
+    letter-spacing: -0.035em;
+  }
+
+  .landing-shell main > section h2:not(.font-display) {
+    letter-spacing: -0.028em;
+  }
+
+  /* Shared landing rhythm: section titles + supporting copy */
+  .landing-shell .landing-heading {
+    @apply font-medium tracking-tight text-zinc-100;
+    font-size: clamp(1.75rem, 2.4vw + 1rem, 2.5rem);
+    line-height: 1.16;
+    letter-spacing: -0.024em;
+  }
+
+  .landing-shell .landing-lede {
+    @apply text-zinc-400;
+    font-size: clamp(1rem, 0.15vw + 0.97rem, 1.125rem);
+    line-height: 1.58;
+  }
+
+  .landing-shell .landing-section-y {
+    @apply py-20 sm:py-24 lg:py-28;
+  }
+
+  /* Primary marketing actions */
+  .landing-shell .landing-btn-primary {
+    @apply inline-flex h-11 items-center justify-center rounded-full border border-zinc-100 bg-zinc-100 px-8 text-sm font-semibold text-zinc-950 shadow-md shadow-zinc-950/25 transition;
+    @apply hover:border-white hover:bg-white;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950;
+  }
+
+  .landing-shell .landing-btn-secondary {
+    @apply inline-flex h-11 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 px-7 text-sm font-semibold text-zinc-200 shadow-sm transition;
+    @apply hover:border-zinc-600 hover:bg-zinc-800;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950;
+  }
+
+  .landing-shell .landing-header {
+    border-color: rgb(39 39 42 / 0.92);
+    background-color: rgb(5 5 5 / 0.88);
+    backdrop-filter: blur(12px);
+  }
+
+  .landing-shell .landing-surface {
+    background-color: #080a0c;
+  }
+
+  .landing-shell .landing-panel {
+    border: 0.5px solid #2b3038;
+    background: linear-gradient(180deg, rgba(20, 23, 28, 0.95), rgba(9, 10, 13, 0.95));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 16px 36px -24px rgba(0, 0, 0, 0.9);
+  }
+
+  .landing-shell .landing-kicker {
+    @apply text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-300;
+  }
+
+  .landing-shell .landing-copy-muted {
+    color: #98a2b3;
+  }
+
+  .landing-shell .landing-copy-strong {
+    color: #f5f7fa;
+  }
+
+  .landing-shell .landing-link-accent {
+    @apply text-zinc-100 transition-colors hover:text-zinc-200;
+  }
+
+  /* Anchor targets clear the sticky header */
+  .landing-shell main section[id],
+  .landing-shell main [id='landing-main'] {
+    scroll-margin-top: 5rem;
+  }
+
+  /* Professional default icon sizing for control surfaces */
+  .dashboard-shell .btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .dashboard-shell nav a svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Normalize Lucide icon stroke across dashboard + landing */
+  .dashboard-shell svg.lucide:not([stroke-width="0"]),
+  .landing-shell svg.lucide:not([stroke-width="0"]) {
+    stroke-width: 1.75;
+  }
+
+  .dashboard-shell .card {
+    @apply rounded-lg;
+    border-color: rgba(63, 63, 70, 0.72);
+    background:
+      linear-gradient(180deg, rgba(24, 24, 27, 0.92) 0%, rgba(9, 9, 11, 0.95) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 12px 28px -18px rgba(0, 0, 0, 0.9);
+  }
+
+  .dashboard-shell .section-block {
+    @apply mb-5;
+  }
+
+  .dashboard-shell .compact-header {
+    @apply mb-5;
+  }
+
+  .dashboard-panel {
+    border: 1px solid rgba(63, 63, 70, 0.72);
+    border-radius: 16px;
+    background:
+      linear-gradient(180deg, rgba(24, 24, 27, 0.92) 0%, rgba(9, 9, 11, 0.95) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 12px 28px -18px rgba(0, 0, 0, 0.9);
+  }
+
+  .dashboard-topbar {
+    border-bottom: 1px solid rgba(63, 63, 70, 0.6);
+    background:
+      radial-gradient(700px 180px at 40% -30%, rgba(244, 244, 245, 0.1), transparent 60%),
+      rgba(9, 9, 11, 0.72);
+    backdrop-filter: blur(10px);
+  }
+
+  .dashboard-title {
+    @apply text-zinc-100 font-bold;
+    letter-spacing: -0.02em;
+  }
+
+  .dashboard-subtitle {
+    @apply text-zinc-500 text-xs;
+  }
+
+  /*
+   * Dashboard main content (all routes under (dashboard)): match dashboard/page.tsx —
+   * light surfaces, border-[#e7e8ee], indigo accents.
+   */
+  .app-route-shell {
+    color: #18181b;
+    --card: #ffffff;
+    --border: #e7e8ee;
+    --foreground: #18181b;
+    --muted: #71717a;
+    --surface-2: #f4f4f8;
+    --background: #f3f4f8;
+  }
+
+  .app-route-shell .card {
+    border-radius: 16px;
+    border-color: #e7e8ee;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    color: #18181b;
+  }
+
+  .app-route-shell .btn {
+    border-color: #e4e5ec;
+    background: #ffffff;
+    color: #3f3f46;
+    --tw-ring-color: rgb(79 70 229 / 0.25);
+  }
+
+  .app-route-shell .btn:hover {
+    background: #fafafa;
+    border-color: #d4d4d8;
+  }
+
+  .app-route-shell .btn-primary {
+    background: #4f46e5;
+    color: #ffffff;
+    border-color: #4f46e5;
+  }
+
+  .app-route-shell .btn-primary:hover {
+    background: #4338ca;
+    border-color: #4338ca;
+  }
+
+  .app-route-shell .field {
+    border-color: #e4e5ec;
+    background: #ffffff;
+    color: #18181b;
+  }
+
+  .app-route-shell .field:focus {
+    border-color: #a5b4fc;
+  }
+
+  .app-route-shell .skeleton {
+    @apply from-zinc-200 via-zinc-100 to-zinc-200;
+  }
+
+  .app-route-shell .fit-high {
+    @apply border border-emerald-200 bg-emerald-50 text-emerald-900;
+  }
+
+  .app-route-shell .fit-mid {
+    @apply border border-indigo-100 bg-indigo-50 text-indigo-900;
+  }
+
+  .app-route-shell .fit-low {
+    @apply border border-amber-200 bg-amber-50 text-amber-900;
+  }
+
+  .app-route-shell .badge-applied,
+  .app-route-shell .badge-interview,
+  .app-route-shell .badge-offer {
+    @apply border border-indigo-100 bg-indigo-50 text-indigo-800;
+  }
+
+  .app-route-shell .badge-pending {
+    @apply border border-amber-200 bg-amber-50 text-amber-900;
+  }
+
+  .app-route-shell .badge-rejected {
+    @apply border border-zinc-200 bg-zinc-100 text-zinc-700;
+  }
+
+  .app-route-shell .badge-saved {
+    @apply border border-zinc-200 bg-white text-zinc-700;
+  }
+
+  .app-route-shell .ch-email,
+  .app-route-shell .ch-linkedin {
+    @apply border border-sky-100 bg-sky-50 text-sky-900;
+  }
+
+  .app-route-shell .ch-site {
+    @apply border border-zinc-200 bg-zinc-50 text-zinc-800;
+  }
+}

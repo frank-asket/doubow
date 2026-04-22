@@ -5,14 +5,14 @@
   "workspaces": ["frontend", "apps/*", "packages/*"],
   "scripts": {
     "dev": "turbo run dev",
-    "dev:web": "npm run dev -w @doubow/web-app",
+    "dev:web": "npm run dev -w @doubow/web",
     "dev:api": "npm run dev -w @doubow/api-app",
     "dev:clean": "npm run dev:clean -w @doubow/web",
     "build": "turbo run build",
-    "build:web": "npm run build -w @doubow/web-app",
+    "build:web": "npm run build -w @doubow/web",
     "build:api": "npm run build -w @doubow/api-app",
     "lint": "turbo run lint",
-    "lint:web": "npm run lint -w @doubow/web-app",
+    "lint:web": "npm run lint -w @doubow/web",
     "test": "turbo run test",
     "test:api": "npm run test -w @doubow/api-app",
     "type-check": "npm run type-check -w @doubow/web"

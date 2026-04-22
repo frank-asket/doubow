@@ -287,6 +287,13 @@ Phase C prep pass (controlled):
 - Updated remaining frontend barrels (`frontend/hooks/index.ts`, `frontend/stores/index.ts`) to export directly from canonical `apps/web/src/*` modules.
 - Kept only route bridge files in `frontend/app/(dashboard)/*/page.tsx` for migrated domains until full app-root cutover.
 
+Phase C step 1 status (apps/web runtime root):
+- Copied Next.js runtime root from `frontend/` into `apps/web/` (`app`, `components`, `hooks`, `lib`, `stores`, `public`, `tests`, config files).
+- Switched root npm scripts (`dev:web`, `build:web`, `lint:web`) to run `@doubow/web` directly.
+- Promoted `apps/web/package.json` as the canonical frontend workspace manifest.
+- Converted `frontend/package.json` to legacy wrapper mode (`@doubow/web-legacy`) proxying to `apps/web`.
+- Updated `apps/web` env loading to include repo root and legacy frontend env files during transition.
+
 Acceptance checks (per slice):
 - No mixed ownership in moved slice (code + tests + imports moved together).
 - PR passes app-local and root-level CI.

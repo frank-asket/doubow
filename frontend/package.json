@@ -1,17 +1,17 @@
 {
-  "name": "@doubow/web",
-  "version": "0.1.0",
+  "name": "@doubow/web-legacy",
+  "version": "0.1.0-legacy",
   "private": true,
   "scripts": {
-    "dev": "NEXT_IGNORE_INCORRECT_LOCKFILE=1 WATCHPACK_POLLING=true WATCHPACK_POLLING_INTERVAL=1000 next dev",
-    "clean": "rm -rf .next node_modules/.cache",
-    "dev:clean": "npm run clean && npm run dev",
-    "build": "NEXT_IGNORE_INCORRECT_LOCKFILE=1 next build",
-    "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit",
-    "test": "NO_PROXY=localhost,127.0.0.1,::1 no_proxy=localhost,127.0.0.1,::1 PLAYWRIGHT_BASE_URL=http://localhost:3100 playwright test --config=playwright.config.ts",
-    "test:smoke": "NO_PROXY=localhost,127.0.0.1,::1 no_proxy=localhost,127.0.0.1,::1 PLAYWRIGHT_BASE_URL=http://localhost:3100 playwright test --config=playwright.config.ts --grep-invert \"dashboard visual regression\""
+    "dev": "npm --prefix ../apps/web run dev",
+    "clean": "npm --prefix ../apps/web run clean",
+    "dev:clean": "npm --prefix ../apps/web run dev:clean",
+    "build": "npm --prefix ../apps/web run build",
+    "start": "npm --prefix ../apps/web run start",
+    "lint": "npm --prefix ../apps/web run lint",
+    "type-check": "npm --prefix ../apps/web run type-check",
+    "test": "npm --prefix ../apps/web run test",
+    "test:smoke": "npm --prefix ../apps/web run test:smoke"
   },
   "dependencies": {
     "@doubow/shared": "*",

@@ -1,6 +1,5 @@
-# apps/web (Phase A mirror)
+# apps/web
 
-This directory is a non-breaking mirror entrypoint for the target monorepo layout.
+Canonical Next.js runtime root for Doubow frontend.
 
-Current source of truth remains `frontend/` during Phase A.
-Use workspace scripts from this package to run the existing frontend safely.
+`frontend/` remains as a transitional legacy wrapper while Phase C cutover completes.

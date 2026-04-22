@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { Check, X, Edit3, Mail, LinkIcon, Loader2, ShieldCheck, AlertCircle } from 'lucide-react'
-import { DashboardPageHeader } from '../../../../frontend/components/dashboard/DashboardPageHeader'
-import { cn, channelLabel, relativeTime } from '../../../../frontend/lib/utils'
+import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
+import { cn, channelLabel, relativeTime } from '../../lib/utils'
 import { useApprovals } from './useApprovals'
 import { useApprovalStore } from './approvalStore'
-import { ApiError, approvalsApi, googleIntegrationsApi, linkedinIntegrationsApi } from '../../../../frontend/lib/api'
+import { ApiError, approvalsApi, googleIntegrationsApi, linkedinIntegrationsApi } from '../../lib/api'
 import type { Approval } from '@doubow/shared'
 
 function ChannelIcon({ channel }: { channel: Approval['channel'] }) {

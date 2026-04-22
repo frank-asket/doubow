@@ -2,18 +2,18 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { DashboardPageHeader } from '../../../../frontend/components/dashboard/DashboardPageHeader'
+import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
 import useSWR from 'swr'
 import { RefreshCw, SlidersHorizontal, Globe, ChevronDown, ChevronUp, ArrowRight, X, BookOpen, ShieldCheck, Timer } from 'lucide-react'
-import { cn, fitClass, fitLabel, channelLabel, channelBadgeClass, relativeTime, scoreBarWidth } from '../../../../frontend/lib/utils'
+import { cn, fitClass, fitLabel, channelLabel, channelBadgeClass, relativeTime, scoreBarWidth } from '../../lib/utils'
 import { useJobs } from './useJobs'
 import { usePipeline } from '../pipeline/usePipeline'
 import { useJobStore } from './jobStore'
 import { usePipelineStore } from '../pipeline/pipelineStore'
-import { applicationsApi, resumeApi, telemetryApi } from '../../../../frontend/lib/api'
+import { applicationsApi, resumeApi, telemetryApi } from '../../lib/api'
 import { resolveJobListingUrl } from './jobListingUrl'
-import { clearActivationStart, getActivationStartAt, trackEvent } from '../../../../frontend/lib/telemetry'
-import { useDashboard } from '../../../../frontend/hooks/useDashboard'
+import { clearActivationStart, getActivationStartAt, trackEvent } from '../../lib/telemetry'
+import { useDashboard } from '../../hooks/useDashboard'
 import type { JobWithScore } from '@doubow/shared'
 
 const DIMENSION_LABELS: Record<string, string> = {
