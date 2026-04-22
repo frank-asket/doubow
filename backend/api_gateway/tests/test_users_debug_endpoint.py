@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session import get_session
 from dependencies import get_authenticated_user
+from config import settings
 from models.user import User
 from routers import users
 
@@ -42,3 +43,41 @@ async def test_email_identity_debug_shows_multiple_ids_for_same_email(db_session
     assert payload["current_user_id"] == "user_b"
     assert payload["multiple_ids_for_same_email"] is True
     assert [row["user_id"] for row in payload["ids_for_email"]] == ["user_a", "user_b"]
+
+
+@pytest.mark.asyncio
+async def test_ai_config_debug_endpoint_returns_safe_model_resolution(db_session: AsyncSession, monkeypatch):
+    user = User(id="user_ai_cfg", email="ai@example.com")
+    db_session.add(user)
+    await db_session.commit()
+
+    monkeypatch.setattr(settings, "openrouter_api_key", "secret_should_not_leak")
+    monkeypatch.setattr(settings, "openrouter_api_url", "https://openrouter.ai/api/v1")
+    monkeypatch.setattr(settings, "openrouter_model", "anthropic/claude-sonnet-4.6")
+    monkeypatch.setattr(settings, "openrouter_model_chat", "openai/gpt-4.1-mini")
+    monkeypatch.setattr(settings, "openrouter_model_drafts", None)
+    monkeypatch.setattr(settings, "openrouter_model_prep", None)
+    monkeypatch.setattr(settings, "openrouter_model_resume", None)
+
+    app = FastAPI()
+    app.include_router(users.router, prefix="/v1")
+
+    async def _override_session() -> AsyncGenerator[AsyncSession, None]:
+        yield db_session
+
+    async def _override_user() -> User:
+        return user
+
+    app.dependency_overrides[get_session] = _override_session
+    app.dependency_overrides[get_authenticated_user] = _override_user
+
+    with TestClient(app) as client:
+        res = client.get("/v1/me/debug/ai-config")
+    assert res.status_code == 200
+    payload = res.json()
+    assert payload["openrouter_configured"] is True
+    assert payload["openrouter_api_url"] == "https://openrouter.ai/api/v1"
+    assert payload["resolved_models"]["chat"] == "openai/gpt-4.1-mini"
+    assert payload["resolved_models"]["drafts"] == "anthropic/claude-sonnet-4.6"
+    assert "openrouter_api_key" not in payload
+    assert "secret_should_not_leak" not in str(payload)

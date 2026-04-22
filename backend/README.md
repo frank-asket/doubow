@@ -92,6 +92,51 @@ make -C backend db-sync
 cd backend/api_gateway && PYTHONPATH=. python -m pytest tests/ -q
 ```
 
+## OpenRouter model matrix
+
+AI features are routed through OpenRouter with per-surface model settings. Configure in `backend/.env` (or repo-root `.env` when running uvicorn directly).
+
+Core variables:
+
+- `OPENROUTER_API_KEY` (required for AI features)
+- `OPENROUTER_MODEL` (global fallback)
+- `OPENROUTER_MODEL_CHAT`
+- `OPENROUTER_MODEL_DRAFTS`
+- `OPENROUTER_MODEL_PREP`
+- `OPENROUTER_MODEL_RESUME`
+
+Resolution order is:
+1) surface-specific variable, 2) `OPENROUTER_MODEL`, 3) `ANTHROPIC_MODEL`.
+
+Suggested baseline profile (quality-first):
+
+```env
+OPENROUTER_MODEL=anthropic/claude-sonnet-4.6
+OPENROUTER_MODEL_CHAT=anthropic/claude-sonnet-4.6
+OPENROUTER_MODEL_DRAFTS=anthropic/claude-sonnet-4.6
+OPENROUTER_MODEL_PREP=anthropic/claude-sonnet-4.6
+OPENROUTER_MODEL_RESUME=anthropic/claude-sonnet-4.6
+```
+
+Suggested cost-optimized profile (faster/cheaper drafts + prep):
+
+```env
+OPENROUTER_MODEL=anthropic/claude-sonnet-4.6
+OPENROUTER_MODEL_CHAT=anthropic/claude-sonnet-4.6
+OPENROUTER_MODEL_DRAFTS=openai/gpt-4.1-mini
+OPENROUTER_MODEL_PREP=openai/gpt-4.1-mini
+OPENROUTER_MODEL_RESUME=anthropic/claude-sonnet-4.6
+```
+
+Runtime mapping:
+- `chat` -> `/v1/agents/chat` orchestrator stream
+- `drafts` -> approvals draft generation
+- `prep` -> prep session + assist generation
+- `resume` -> resume analysis (including LangChain path)
+
+Safe diagnostics endpoint:
+- `GET /v1/me/debug/ai-config` returns model resolution and OpenRouter config health (never returns API keys).
+
 ### Troubleshooting “404” on `/v1/agents/chat`
 
 The gateway defines `POST /v1/agents/chat`. If the browser reports **404**:

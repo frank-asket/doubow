@@ -25,3 +25,10 @@ class MeEmailIdentityDebugResponse(BaseModel):
     current_user_id: str
     ids_for_email: list[EmailIdentityRow]
     multiple_ids_for_same_email: bool
+
+
+class MeAiConfigDebugResponse(BaseModel):
+    openrouter_configured: bool
+    openrouter_api_url: str
+    openrouter_http_referer: str | None = None
+    resolved_models: dict[str, str]

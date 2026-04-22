@@ -8,7 +8,13 @@ from dependencies import get_authenticated_user, get_current_user_id
 from models.user import User
 from schemas.dashboard import DashboardSummaryResponse
 from schemas.resume import UserPreferencesModel, UserPreferencesPatch
-from schemas.users import EmailIdentityRow, MeDebugResponse, MeEmailIdentityDebugResponse, MeResponse
+from schemas.users import (
+    EmailIdentityRow,
+    MeAiConfigDebugResponse,
+    MeDebugResponse,
+    MeEmailIdentityDebugResponse,
+    MeResponse,
+)
 from services.dashboard_service import get_dashboard_summary as load_dashboard_summary
 from services.resume_service import update_preferences_for_user
 from services.users_service import user_to_me_response
@@ -63,6 +69,25 @@ async def get_me_debug_email_identities(
         current_user_id=user.id,
         ids_for_email=ids_for_email,
         multiple_ids_for_same_email=len(ids_for_email) > 1,
+    )
+
+
+@router.get("/debug/ai-config", response_model=MeAiConfigDebugResponse)
+async def get_me_debug_ai_config(
+    user: User = Depends(get_authenticated_user),
+) -> MeAiConfigDebugResponse:
+    """Safe AI config diagnostics (never returns API keys)."""
+    _ = user  # ensures endpoint is authenticated
+    return MeAiConfigDebugResponse(
+        openrouter_configured=bool(settings.openrouter_api_key),
+        openrouter_api_url=settings.openrouter_api_url,
+        openrouter_http_referer=settings.openrouter_http_referer,
+        resolved_models={
+            "chat": settings.resolve_openrouter_model("chat"),
+            "drafts": settings.resolve_openrouter_model("drafts"),
+            "prep": settings.resolve_openrouter_model("prep"),
+            "resume": settings.resolve_openrouter_model("resume"),
+        },
     )
 
 
