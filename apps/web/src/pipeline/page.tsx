@@ -8,21 +8,11 @@ import { usePipeline } from './usePipeline'
 import { usePipelineStore } from './pipelineStore'
 import { ApiError, applicationsApi } from '../../../../frontend/lib/api'
 import type { Application, ApplicationStatus, IntegrityChange } from '@doubow/shared'
-
-const STATUS_TABS: { label: string; value: ApplicationStatus | 'all' }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Applied', value: 'applied' },
-  { label: 'Interview', value: 'interview' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Rejected', value: 'rejected' },
-]
+import { INTEGRITY_CHANGE_LABELS, PIPELINE_STATUS_TABS, PIPELINE_TABLE_HEADERS } from './constants'
+import { hasPipelineIntegrityIssues } from './helpers'
 
 function ChangeRow({ change }: { change: IntegrityChange }) {
-  const label = {
-    deduplicate: '⊕ Deduplicate',
-    mark_stale: '⏱ Mark stale',
-    normalize_status: '↻ Normalize status',
-  }[change.type]
+  const label = INTEGRITY_CHANGE_LABELS[change.type]
 
   return (
     <div className="flex items-start gap-3 border-b border-zinc-100 py-2.5 last:border-0">
@@ -89,7 +79,7 @@ export default function PipelinePage() {
     }
   }
 
-  const hasIntegrityIssues = applications.some((a) => a.is_stale || a.dedup_group)
+  const hasIntegrityIssues = hasPipelineIntegrityIssues(applications)
 
   return (
     <div className="space-y-5 p-5 sm:p-7">
@@ -187,7 +177,7 @@ export default function PipelinePage() {
 
       {/* Tabs */}
       <div className="mb-4 flex w-full gap-1 overflow-x-auto rounded-[12px] border border-[#e7e8ee] bg-white p-1 shadow-sm sm:w-fit">
-        {STATUS_TABS.map((tab) => {
+        {PIPELINE_STATUS_TABS.map((tab) => {
           const count = tab.value === 'all'
             ? applications.length
             : applications.filter((a) => a.status === tab.value).length
@@ -217,7 +207,7 @@ export default function PipelinePage() {
         <table className="w-full min-w-[760px]">
           <thead>
             <tr className="border-b border-zinc-200 bg-zinc-50/80">
-              {['Company', 'Role', 'Fit', 'Channel', 'Status', 'Last update', ''].map((h) => (
+              {PIPELINE_TABLE_HEADERS.map((h) => (
                 <th key={h} className="px-4 py-2.5 text-left text-2xs font-medium uppercase tracking-wider text-zinc-500">
                   {h}
                 </th>

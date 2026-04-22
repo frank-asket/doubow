@@ -248,6 +248,15 @@ Phase B Slice 2 status (started with Discover domain):
   - `frontend/hooks/usePipeline.ts`
   - `frontend/stores/pipelineStore.ts`
   - `frontend/components/pipeline/PipelineTable.tsx`
+- Moved Pipeline-local constants/helpers behind the domain boundary:
+  - `apps/web/src/pipeline/constants.ts`
+  - `apps/web/src/pipeline/helpers.ts`
+- Started Approvals domain move with canonical files under `apps/web/src/approvals/` (`page`, `useApprovals`, `approvalStore`, `components/ApprovalCard`).
+- Converted legacy frontend Approvals paths to non-breaking compatibility re-exports:
+  - `frontend/app/(dashboard)/approvals/page.tsx`
+  - `frontend/hooks/useApprovals.ts`
+  - `frontend/stores/approvalStore.ts`
+  - `frontend/components/approvals/ApprovalCard.tsx`
 
 Acceptance checks (per slice):
 - No mixed ownership in moved slice (code + tests + imports moved together).
