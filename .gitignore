@@ -8,9 +8,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
-# Next.js / frontend build
-frontend/.next/
-frontend/out/
+# Next.js / web build
+apps/web/.next/
+apps/web/out/
 
 # Env and secrets (local) — any path
 **/.env
@@ -33,5 +33,7 @@ backend/api_gateway/data/
 # Build outputs
 dist/
 build/
-frontend/playwright-report/
-frontend/test-results/
+apps/web/playwright-report/
+apps/web/test-results/
+test-results/
+playwright-report/
