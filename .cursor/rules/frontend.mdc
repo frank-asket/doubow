@@ -1,3 +1,0 @@
-All API calls go through lib/api.ts.
-Use useAgentStream for SSE.
-Conditionally show Gmail UI only for email channel with connected status.

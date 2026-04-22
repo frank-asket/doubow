@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import type { AgentName, AgentState, AutopilotRun } from '@/types'
+import type { AgentName, AgentState, AutopilotRun } from '@doubow/shared'
 
 interface AgentStore {
   agents: AgentState[]

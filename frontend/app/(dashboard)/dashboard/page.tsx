@@ -7,7 +7,7 @@ import { useAuth } from '@clerk/nextjs'
 import { useDashboard } from '@/hooks/useDashboard'
 import { applicationsApi } from '@/lib/api'
 import { isE2EAuthBypass } from '@/lib/e2e'
-import type { Application } from '@/types'
+import type { Application } from '@doubow/shared'
 import { formatApplicationStatus } from '@/components/dashboard/dashboardCopy'
 
 function sortApplicationsRecent(items: Application[]) {

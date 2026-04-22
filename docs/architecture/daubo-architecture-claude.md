@@ -173,6 +173,102 @@ doubow/
 └── README.md
 ```
 
+### Structure Decision (Team Scale)
+
+Given expected parallel teams, faster hiring/onboarding, and expanding product surfaces, Doubow adopts the
+`apps/*` + `packages/*` topology as the long-term canonical structure.
+
+- **Canonical target:** `apps/web`, `apps/api`, `packages/shared`
+- **Transitional reality:** existing `frontend/` and `backend/api_gateway/` paths remain valid until migration completes
+- **Rule:** avoid partial ad-hoc moves; migrate in planned phases to prevent import/path drift
+
+Why this is the preferred direction:
+- Clear ownership boundaries for independent frontend/backend teams
+- Faster onboarding via feature-aligned paths and predictable layering
+- Cleaner API contracts through shared types and separated service boundaries
+- Better CI partitioning and safer refactors as surfaces grow
+
+### Migration Plan (3 Phases)
+
+#### Phase A — Prepare and Mirror (no behavior change)
+
+**Goal:** introduce target topology scaffolding without breaking runtime paths.
+
+Actions:
+- Create `apps/web`, `apps/api`, and `packages/shared` directories.
+- Add compatibility barrel exports and path aliases so old and new imports both resolve.
+- Introduce/verify workspace scripts that can run per-app (`web`, `api`) from root.
+- Add a short migration guide for contributors (where to place new code during transition).
+
+Phase A status (current repo):
+- Scaffolded `apps/web`, `apps/api`, and package manifest for `packages/shared`.
+- Added initial compatibility type barrels and path aliases to enable non-breaking transition.
+- Added root per-app scripts and wrapper workspace scripts for web/api operations.
+- Added contributor guide: `docs/architecture/migration-phase-a.md`.
+
+Acceptance checks:
+- Frontend build/lint/test still pass with current paths.
+- Backend tests/migrations still run unchanged.
+- CI remains green with zero route/API behavior differences.
+
+#### Phase B — Move by Vertical Slices
+
+**Goal:** migrate code in bounded slices to reduce merge conflicts and review risk.
+
+Actions (example slices):
+- Slice 1: shared types/contracts -> `packages/shared`.
+- Slice 2: frontend feature groups (`discover`, `pipeline`, `approvals`, etc.) -> `apps/web`.
+- Slice 3: API routers/services/models/tasks -> `apps/api`.
+- For each slice: update imports, tests, and docs in the same PR.
+
+Phase B Slice 1 status (started):
+- Migrated shared contracts from `frontend/types/index.ts` into `packages/shared/types/contracts.ts`.
+- Switched `packages/shared/types/index.ts` to export migrated contracts directly.
+- Updated frontend contract imports from `@/types` to shared package imports.
+- Removed transitional shim after import cutover.
+
+Phase B Slice 1 hardening:
+- Removed transitional frontend shim (`frontend/types`) and enforced package import usage.
+- Replaced frontend imports to use `@doubow/shared` directly.
+- Tightened `@doubow/shared` with explicit `exports` for root and contract subpaths.
+- Removed redundant `packages/types` compatibility package.
+
+Phase B Slice 2 status (started with Discover domain):
+- Created canonical Discover domain files under `apps/web/src/discover/` (`page`, `useJobs`, `jobStore`, `jobListingUrl`).
+- Converted legacy frontend paths to non-breaking compatibility re-exports:
+  - `frontend/app/(dashboard)/discover/page.tsx`
+  - `frontend/hooks/useJobs.ts`
+  - `frontend/stores/jobStore.ts`
+  - `frontend/lib/jobListingUrl.ts`
+- Preserved route and runtime behavior while shifting code ownership to `apps/web`.
+- Moved Discover-specific UI modules to `apps/web/src/discover/components/` and left frontend component shims in `frontend/components/jobs/*`.
+- Started Pipeline domain move with canonical files under `apps/web/src/pipeline/` (`page`, `usePipeline`, `pipelineStore`, `components/PipelineTable`).
+- Converted legacy frontend Pipeline paths to non-breaking compatibility re-exports:
+  - `frontend/app/(dashboard)/pipeline/page.tsx`
+  - `frontend/hooks/usePipeline.ts`
+  - `frontend/stores/pipelineStore.ts`
+  - `frontend/components/pipeline/PipelineTable.tsx`
+
+Acceptance checks (per slice):
+- No mixed ownership in moved slice (code + tests + imports moved together).
+- PR passes app-local and root-level CI.
+- No duplicate source-of-truth files left behind.
+
+#### Phase C — Cutover and Cleanup
+
+**Goal:** remove transitional paths and make target structure authoritative.
+
+Actions:
+- Remove compatibility aliases and temporary re-export shims.
+- Delete legacy root-level paths once references are fully migrated.
+- Update all docs, scripts, and onboarding materials to only use target paths.
+- Lock conventions in `.cursor/rules` and CI checks (prevent regressions to legacy layout).
+
+Acceptance checks:
+- `apps/web` and `apps/api` are the only runtime code roots.
+- New-hire onboarding paths match repo reality 1:1.
+- CI enforces structure (no new files in deprecated locations).
+
 ---
 
 ## 3. Database Schema

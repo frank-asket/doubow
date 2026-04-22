@@ -1,0 +1,14 @@
+{
+  "name": "@doubow/web-app",
+  "private": true,
+  "version": "0.0.0-phase-a",
+  "scripts": {
+    "dev": "npm --prefix ../../frontend run dev",
+    "dev:clean": "npm --prefix ../../frontend run dev:clean",
+    "build": "npm --prefix ../../frontend run build",
+    "lint": "npm --prefix ../../frontend run lint",
+    "type-check": "npm --prefix ../../frontend run type-check",
+    "test": "npm --prefix ../../frontend run test",
+    "test:smoke": "npm --prefix ../../frontend run test:smoke"
+  }
+}

@@ -5,7 +5,7 @@ import type {
   DashboardSummary,
   OnboardingStatus,
   ActivationKPI,
-} from '@/types'
+} from '@doubow/shared'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 let authTokenGetter: (() => Promise<string | null>) | null = null

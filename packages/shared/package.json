@@ -1,0 +1,27 @@
+{
+  "name": "@doubow/shared",
+  "private": true,
+  "version": "0.0.0-phase-a",
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./types": {
+      "types": "./types/index.ts",
+      "default": "./types/index.ts"
+    },
+    "./types/contracts": {
+      "types": "./types/contracts.ts",
+      "default": "./types/contracts.ts"
+    }
+  },
+  "files": [
+    "index.ts",
+    "types"
+  ],
+  "sideEffects": false
+}

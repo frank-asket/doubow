@@ -1,4 +1,4 @@
-import type { Approval } from '@/types'
+import type { Approval } from '@doubow/shared'
 
 export function ApprovalCard({ approval }: { approval: Approval }) {
   return (

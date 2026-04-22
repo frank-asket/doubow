@@ -1,0 +1,11 @@
+{
+  "name": "@doubow/api-app",
+  "private": true,
+  "version": "0.0.0-phase-a",
+  "scripts": {
+    "dev": "PYTHONPATH=../../backend/api_gateway ../../.venv/bin/python -m uvicorn main:app --app-dir ../../backend/api_gateway --reload --host 127.0.0.1 --port 8000",
+    "build": "PYTHONPATH=../../backend/api_gateway ../../.venv/bin/python -m py_compile ../../backend/api_gateway/main.py",
+    "lint": "PYTHONPATH=../../backend/api_gateway ../../.venv/bin/python -m py_compile ../../backend/api_gateway/main.py",
+    "test": "PYTHONPATH=../../backend/api_gateway ../../.venv/bin/python -m pytest -q ../../backend/api_gateway/tests"
+  }
+}

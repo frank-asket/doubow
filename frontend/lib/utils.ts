@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { formatDistanceToNow, format } from 'date-fns'
-import type { ApplicationStatus, Channel } from '@/types'
+import type { ApplicationStatus, Channel } from '@doubow/shared'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

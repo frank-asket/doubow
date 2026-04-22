@@ -45,7 +45,12 @@ export interface ResumeProfile {
 
 export interface OnboardingStatus {
   state: 'no_resume' | 'scoring_in_progress' | 'ready'
-  current_step: 'upload_complete' | 'parsing_resume' | 'scoring_job_matches' | 'building_first_queue' | 'first_jobs_ready'
+  current_step:
+    | 'upload_complete'
+    | 'parsing_resume'
+    | 'scoring_job_matches'
+    | 'building_first_queue'
+    | 'first_jobs_ready'
   eta_seconds?: number | null
   has_resume: boolean
   first_jobs_ready: boolean
@@ -57,7 +62,7 @@ export interface ParsedProfile {
   experience_years: number
   skills: string[]
   top_skills: string[]
-  archetypes: string[]         // e.g. ['LLMOps', 'Agentic Systems', 'ML Platform']
+  archetypes: string[] // e.g. ['LLMOps', 'Agentic Systems', 'ML Platform']
   gaps: string[]
   summary: string
 }
@@ -98,7 +103,7 @@ export interface DimensionScores {
 
 export interface JobScore {
   job_id: string
-  fit_score: number            // 1.0 – 5.0
+  fit_score: number // 1.0 – 5.0
   fit_reasons: string[]
   risk_flags: string[]
   dimension_scores: DimensionScores
@@ -129,8 +134,7 @@ export interface DiscoverJobsResponse {
 
 // ─── Applications ──────────────────────────────────────────────────────────
 
-export type ApplicationStatus =
-  | 'saved' | 'pending' | 'applied' | 'interview' | 'offer' | 'rejected'
+export type ApplicationStatus = 'saved' | 'pending' | 'applied' | 'interview' | 'offer' | 'rejected'
 
 export type Channel = 'email' | 'linkedin' | 'company_site'
 
@@ -241,9 +245,7 @@ export interface PrepSession {
 
 // ─── Agents ────────────────────────────────────────────────────────────────
 
-export type AgentName =
-  | 'discovery' | 'scorer' | 'tailor' | 'writer'
-  | 'apply' | 'prep' | 'monitor' | 'orchestrator'
+export type AgentName = 'discovery' | 'scorer' | 'tailor' | 'writer' | 'apply' | 'prep' | 'monitor' | 'orchestrator'
 
 export type AgentStatus = 'active' | 'running' | 'idle' | 'error'
 
@@ -252,7 +254,7 @@ export interface AgentState {
   label: string
   description: string
   status: AgentStatus
-  progress?: number           // 0–1
+  progress?: number // 0–1
   message?: string
   items_processed?: number
   last_run?: string

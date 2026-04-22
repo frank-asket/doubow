@@ -2,13 +2,19 @@
   "name": "doubow",
   "private": true,
   "packageManager": "npm@9.6.4",
-  "workspaces": ["frontend", "packages/*"],
+  "workspaces": ["frontend", "apps/*", "packages/*"],
   "scripts": {
     "dev": "turbo run dev",
+    "dev:web": "npm run dev -w @doubow/web-app",
+    "dev:api": "npm run dev -w @doubow/api-app",
     "dev:clean": "npm run dev:clean -w @doubow/web",
     "build": "turbo run build",
+    "build:web": "npm run build -w @doubow/web-app",
+    "build:api": "npm run build -w @doubow/api-app",
     "lint": "turbo run lint",
+    "lint:web": "npm run lint -w @doubow/web-app",
     "test": "turbo run test",
+    "test:api": "npm run test -w @doubow/api-app",
     "type-check": "npm run type-check -w @doubow/web"
   },
   "devDependencies": {

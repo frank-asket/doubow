@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, Sparkles, Loader2, BookOpen, Building2, MessageSquare, RefreshCw } from 'lucide-react'
 import { cn, relativeTime } from '@/lib/utils'
 import { ApiError, applicationsApi, prepApi } from '@/lib/api'
-import type { Application, PrepSession, StarStory } from '@/types'
+import type { Application, PrepSession, StarStory } from '@doubow/shared'
 
 // ── Mock data for standalone demo ─────────────────────────────────────────
 

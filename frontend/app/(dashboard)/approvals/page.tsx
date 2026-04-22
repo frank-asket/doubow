@@ -7,7 +7,7 @@ import { cn, channelLabel, relativeTime } from '@/lib/utils'
 import { useApprovals } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approvalStore'
 import { ApiError, approvalsApi, googleIntegrationsApi, linkedinIntegrationsApi } from '@/lib/api'
-import type { Approval } from '@/types'
+import type { Approval } from '@doubow/shared'
 
 function ChannelIcon({ channel }: { channel: Approval['channel'] }) {
   if (channel === 'email') return <Mail size={12} />

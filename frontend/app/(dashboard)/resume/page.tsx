@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { useResumeUpload } from '@/hooks/useResumeUpload'
 import { isE2EAuthBypass } from '@/lib/e2e'
 import { ApiError, resumeApi } from '@/lib/api'
-import type { UserPreferences } from '@/types'
+import type { UserPreferences } from '@doubow/shared'
 
 const SENIORITY_OPTIONS = ['Junior', 'Mid', 'Senior', 'Lead', 'Staff', 'Principal']
 const DEFAULT_PREFS: UserPreferences = {

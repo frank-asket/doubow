@@ -1,4 +1,4 @@
-import type { ApplicationStatus } from '@/types'
+import type { ApplicationStatus } from '@doubow/shared'
 
 export function formatApplicationStatus(status: ApplicationStatus): string {
   const map: Record<ApplicationStatus, string> = {

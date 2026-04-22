@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { autopilotApi } from '@/lib/api'
 import { useAgentStream, useOrchestratorChat } from '@/hooks/useAgentStream'
 import { useAgentStore } from '@/stores/agentStore'
-import type { AgentState, AutopilotRun } from '@/types'
+import type { AgentState, AutopilotRun } from '@doubow/shared'
 
 const AGENT_META: Record<string, { icon: string; color: string }> = {
   discovery: { icon: '🔍', color: 'border border-indigo-100 bg-indigo-50 text-indigo-900' },

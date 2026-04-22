@@ -5,7 +5,7 @@ import useSWR from 'swr'
 
 import { agentsApi, streamAgentStatus, streamOrchestratorChat } from '@/lib/api'
 import { useAgentStore } from '@/stores/agentStore'
-import type { AgentName } from '@/types'
+import type { AgentName } from '@doubow/shared'
 
 export function useAgentStream() {
   const { setAgents, updateAgent } = useAgentStore()

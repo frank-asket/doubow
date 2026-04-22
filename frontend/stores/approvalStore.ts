@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import type { Approval } from '@/types'
+import type { Approval } from '@doubow/shared'
 
 interface ApprovalStore {
   approvals: Approval[]
