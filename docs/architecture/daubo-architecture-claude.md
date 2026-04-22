@@ -282,6 +282,11 @@ Slice 2 completion checklist:
 - [x] Frontend route paths and runtime behavior preserved via re-export compatibility shims.
 - [x] Frontend verification passes (lint/build/type-check after build).
 
+Phase C prep pass (controlled):
+- Removed non-route shim files for migrated Slice 2 domains from `frontend/hooks`, `frontend/stores`, `frontend/components`, and `frontend/lib/jobListingUrl.ts`.
+- Updated remaining frontend barrels (`frontend/hooks/index.ts`, `frontend/stores/index.ts`) to export directly from canonical `apps/web/src/*` modules.
+- Kept only route bridge files in `frontend/app/(dashboard)/*/page.tsx` for migrated domains until full app-root cutover.
+
 Acceptance checks (per slice):
 - No mixed ownership in moved slice (code + tests + imports moved together).
 - PR passes app-local and root-level CI.
