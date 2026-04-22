@@ -9,6 +9,7 @@ from db.session import Base
 
 if TYPE_CHECKING:
     from models.google_oauth_credential import GoogleOAuthCredential
+    from models.linkedin_oauth_credential import LinkedInOAuthCredential
     from models.application import Application
     from models.approval import Approval
     from models.autopilot_run import AutopilotRun
@@ -48,6 +49,12 @@ class User(Base):
     )
     google_oauth: Mapped["GoogleOAuthCredential | None"] = relationship(
         "GoogleOAuthCredential",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    linkedin_oauth: Mapped["LinkedInOAuthCredential | None"] = relationship(
+        "LinkedInOAuthCredential",
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",

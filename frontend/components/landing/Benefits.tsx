@@ -44,7 +44,7 @@ export function Benefits() {
                 key={item.title}
                 className="landing-panel rounded-2xl p-6 text-left transition duration-150 hover:-translate-y-0.5"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-300">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-300">
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
                 <h3 className="mt-4 text-base font-bold text-zinc-100 sm:text-lg">

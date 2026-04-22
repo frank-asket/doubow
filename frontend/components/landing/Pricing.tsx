@@ -76,7 +76,7 @@ export function Pricing() {
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <div className="relative inline-flex rounded-full border border-zinc-700 bg-zinc-900 p-1 shadow-sm shadow-zinc-950/20">
             <span
-              className={`absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-full bg-emerald-500 transition-all duration-200 ${
+              className={`absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-full bg-zinc-100 transition-all duration-200 ${
                 yearly ? "left-[calc(50%+2px)]" : "left-1"
               }`}
               aria-hidden
@@ -84,7 +84,7 @@ export function Pricing() {
             <button
               type="button"
               onClick={() => setYearly(false)}
-              className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ${
+              className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ${
                 !yearly ? "text-zinc-950" : "text-zinc-400"
               }`}
             >
@@ -93,12 +93,12 @@ export function Pricing() {
             <button
               type="button"
               onClick={() => setYearly(true)}
-              className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ${
+              className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ${
                 yearly ? "text-zinc-950" : "text-zinc-400"
               }`}
             >
               Yearly
-              <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-500/25">
+              <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-300 ring-1 ring-zinc-700">
                 20% OFF
               </span>
             </button>
@@ -109,7 +109,7 @@ export function Pricing() {
           Ready to subscribe? Open{" "}
           <a
             href="/auth/sign-up"
-            className="rounded font-semibold text-zinc-100 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
+            className="rounded font-semibold text-zinc-100 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2"
           >
             Doubow plans &amp; billing
           </a>{" "}
@@ -122,12 +122,12 @@ export function Pricing() {
               key={tier.name}
               className={`relative flex flex-col overflow-hidden rounded-2xl border p-6 sm:p-7 ${
                 tier.featured
-                  ? "border-emerald-500/35 bg-zinc-950 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/25"
+                  ? "border-zinc-600 bg-zinc-950 shadow-md shadow-zinc-950/40 ring-1 ring-zinc-700"
                   : "border-zinc-800 bg-zinc-950 shadow-sm shadow-zinc-950/30"
               }`}
             >
               {tier.featured ? (
-                <span className="absolute right-4 top-4 rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-bold uppercase text-zinc-950">
+                <span className="absolute right-4 top-4 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-bold uppercase text-zinc-950">
                   Popular
                 </span>
               ) : null}
@@ -143,7 +143,7 @@ export function Pricing() {
                 href={tier.name === "Free" ? "/auth/sign-up" : "/discover"}
                 className={`mt-8 inline-flex h-11 justify-center rounded-full px-5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                   tier.featured
-                    ? "border border-emerald-500 bg-emerald-500 text-zinc-950 shadow-md shadow-emerald-500/20 hover:border-emerald-400 hover:bg-emerald-400 focus-visible:ring-emerald-400 focus-visible:ring-offset-zinc-950"
+                    ? "border border-zinc-100 bg-zinc-100 text-zinc-950 shadow-md shadow-zinc-950/30 hover:border-white hover:bg-white focus-visible:ring-zinc-300 focus-visible:ring-offset-zinc-950"
                     : "border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-sm hover:border-zinc-600 hover:bg-zinc-800 focus-visible:ring-zinc-500 focus-visible:ring-offset-zinc-950"
                 }`}
               >
@@ -164,7 +164,7 @@ export function Pricing() {
               <ul className="space-y-3 text-sm text-zinc-400">
                 {tier.features.map((f) => (
                   <li key={f} className="flex gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" strokeWidth={1.75} />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-zinc-300" strokeWidth={1.75} />
                     {f}
                   </li>
                 ))}

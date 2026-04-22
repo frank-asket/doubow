@@ -10,17 +10,17 @@ export function Hero() {
     >
       {/* subtle depth — keeps hero readable without heavy illustration */}
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-15%,rgba(16,185,129,0.12),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-15%,rgba(244,244,245,0.11),transparent_55%)]"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-1/2 max-w-xl bg-[radial-gradient(circle_at_70%_30%,rgba(52,211,153,0.08),transparent_65%)]"
+        className="pointer-events-none absolute inset-y-0 right-0 w-1/2 max-w-xl bg-[radial-gradient(circle_at_70%_30%,rgba(228,228,231,0.08),transparent_65%)]"
         aria-hidden
       />
 
       <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-14 sm:px-6 sm:pb-16 sm:pt-20 lg:px-8 lg:pb-20 lg:pt-24">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex opacity-0 motion-reduce:animate-none motion-reduce:opacity-100 animate-landing-rise items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-3 py-1.5 text-2xs font-semibold uppercase tracking-[0.18em] text-emerald-300 shadow-sm ring-1 ring-emerald-500/20 backdrop-blur-sm">
+          <div className="inline-flex opacity-0 motion-reduce:animate-none motion-reduce:opacity-100 animate-landing-rise items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-3 py-1.5 text-2xs font-semibold uppercase tracking-[0.18em] text-zinc-300 shadow-sm ring-1 ring-zinc-500/20 backdrop-blur-sm">
             <Sparkles size={12} aria-hidden />
             Human-in-the-loop career agent
           </div>
@@ -49,14 +49,14 @@ export function Hero() {
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
                   key={i}
-                  className="h-4 w-4 fill-emerald-400 text-emerald-400"
+                  className="h-4 w-4 fill-zinc-300 text-zinc-300"
                   strokeWidth={0}
                 />
               ))}
             </span>
             <span className="font-medium tabular-nums text-zinc-100">4.9</span>
             <span
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-zinc-950"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-950"
               aria-hidden
             >
               D
@@ -73,7 +73,7 @@ export function Hero() {
             <div className="landing-panel rounded-2xl px-4 py-4 text-left transition hover:-translate-y-0.5">
               <p className="text-2xs font-medium uppercase tracking-wider text-zinc-500">Approval safety</p>
               <p className="mt-1 flex items-center gap-1.5 text-lg font-medium text-zinc-100">
-                <ShieldCheck size={16} className="shrink-0 text-emerald-400" strokeWidth={2} />
+                <ShieldCheck size={16} className="shrink-0 text-zinc-300" strokeWidth={2} />
                 Always-on gate
               </p>
             </div>

@@ -5,6 +5,7 @@ from models.google_oauth_credential import GoogleOAuthCredential
 from models.job import Job
 from models.job_dismissal import JobDismissal
 from models.job_score import JobScore
+from models.linkedin_oauth_credential import LinkedInOAuthCredential
 from models.prep_session import PrepSession
 from models.resume import Resume
 from models.telemetry_event import TelemetryEvent
@@ -22,4 +23,5 @@ __all__ = [
     "PrepSession",
     "TelemetryEvent",
     "GoogleOAuthCredential",
+    "LinkedInOAuthCredential",
 ]

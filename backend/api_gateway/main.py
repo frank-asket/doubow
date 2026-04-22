@@ -2,11 +2,32 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from config import settings
 from db.session import init_models
+from dependencies import rate_limit_key
 from error_handlers import register_exception_handlers
-from routers import agents, applications, approvals, auth, autopilot, integrations_google, jobs, prep, resume, telemetry, users
+from routers import (
+    agents,
+    applications,
+    approvals,
+    auth,
+    autopilot,
+    integrations_google,
+    integrations_linkedin,
+    jobs,
+    prep,
+    resume,
+    telemetry,
+    users,
+)
+from services.observability import setup_observability
+from services.metrics import metrics_middleware, metrics_response
+
+setup_observability()
 
 
 @asynccontextmanager
@@ -24,6 +45,11 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+app.middleware("http")(metrics_middleware)
+limiter = Limiter(key_func=rate_limit_key, default_limits=["240/minute"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 register_exception_handlers(app)
 
@@ -44,9 +70,15 @@ async def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/metrics", tags=["system"])
+async def metrics():
+    return metrics_response()
+
+
 API_PREFIX = "/v1"
 app.include_router(auth.router, prefix=API_PREFIX)
 app.include_router(integrations_google.router, prefix=API_PREFIX)
+app.include_router(integrations_linkedin.router, prefix=API_PREFIX)
 app.include_router(users.router, prefix=API_PREFIX)
 app.include_router(resume.router, prefix=API_PREFIX)
 app.include_router(jobs.router, prefix=API_PREFIX)

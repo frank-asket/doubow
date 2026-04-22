@@ -4,10 +4,11 @@ import useSWR from 'swr'
 
 import { isE2EAuthBypass } from '@/lib/e2e'
 import { applicationsApi } from '@/lib/api'
+import { getBrowserSupabaseClient } from '@/lib/supabase'
 import { usePipelineStore } from '@/stores/pipelineStore'
 
 export function usePipeline(statusFilter?: string) {
-  const { isLoaded, isSignedIn } = useAuth()
+  const { isLoaded, isSignedIn, userId } = useAuth()
   const { setApplications, setLoading } = usePipelineStore()
 
   const ready = isE2EAuthBypass() || (isLoaded && isSignedIn)
@@ -21,6 +22,32 @@ export function usePipeline(statusFilter?: string) {
     if (data) setApplications(data.items)
     setLoading(isLoading)
   }, [data, isLoading, setApplications, setLoading])
+
+  useEffect(() => {
+    if (!ready || !userId) return
+    const supabase = getBrowserSupabaseClient()
+    if (!supabase) return
+
+    const channel = supabase
+      .channel(`applications-status-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'applications',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          mutate()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [mutate, ready, userId])
 
   return { error, refresh: mutate }
 }

@@ -10,7 +10,7 @@ const roles = [
 
 function Initial({ name }: { name: string }) {
   return (
-    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/15 text-xs font-bold text-emerald-300">
+    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-xs font-bold text-zinc-300">
       {name.slice(0, 1)}
     </span>
   );
@@ -33,7 +33,7 @@ export function PipelineShowcase() {
           </p>
           <Link
             href="/discover"
-            className="landing-link-accent mt-6 inline-flex items-center gap-1 rounded-md text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+            className="landing-link-accent mt-6 inline-flex items-center gap-1 rounded-md text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
           >
             Open dashboard <span aria-hidden>&gt;</span>
           </Link>
@@ -52,7 +52,7 @@ export function PipelineShowcase() {
               <p className="font-mono text-sm text-zinc-100">{c.match}</p>
               <p
                 className={`text-xs font-semibold ${
-                  c.up ? "text-emerald-300" : "text-zinc-500"
+                  c.up ? "text-zinc-300" : "text-zinc-500"
                 }`}
               >
                 {c.delta}

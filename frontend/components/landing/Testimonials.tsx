@@ -48,13 +48,13 @@ export function Testimonials() {
           <div className="flex flex-1 flex-col gap-6 border-b border-zinc-800 p-8 lg:border-b-0 lg:border-r lg:border-zinc-800 lg:p-10">
             <div className="flex items-center gap-3">
               <div
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-lg font-bold text-zinc-950 ring-2 ring-emerald-500/30"
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-zinc-100 to-zinc-300 text-lg font-bold text-zinc-950 ring-2 ring-zinc-500/30"
                 aria-hidden
               >
                 {q.initials}
               </div>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/35 bg-emerald-500/15 text-emerald-300">
-                <Zap className="h-5 w-5 fill-emerald-300" strokeWidth={0} />
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-zinc-300">
+                <Zap className="h-5 w-5 fill-zinc-300" strokeWidth={0} />
               </span>
             </div>
             <blockquote className="text-xl font-medium leading-snug text-zinc-100 sm:text-2xl">
@@ -73,7 +73,7 @@ export function Testimonials() {
           <div className="flex flex-row justify-stretch divide-x divide-zinc-800 bg-zinc-950/80 lg:w-52 lg:flex-col lg:divide-x-0 lg:divide-y lg:divide-zinc-800">
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 py-6 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-400 lg:flex-none"
+              className="flex flex-1 items-center justify-center gap-2 py-6 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-300 lg:flex-none"
               onClick={() => setI((v) => (v - 1 + quotes.length) % quotes.length)}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -81,7 +81,7 @@ export function Testimonials() {
             </button>
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 py-6 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-400 lg:flex-none"
+              className="flex flex-1 items-center justify-center gap-2 py-6 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-300 lg:flex-none"
               onClick={() => setI((v) => (v + 1) % quotes.length)}
             >
               Next

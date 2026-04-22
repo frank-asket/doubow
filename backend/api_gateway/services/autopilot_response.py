@@ -1,5 +1,7 @@
 """Map ``AutopilotRun`` rows to API responses."""
 
+from datetime import datetime, timezone
+
 from models.autopilot_run import AutopilotRun
 from schemas.autopilot import AutopilotRunItem, AutopilotRunResponse
 
@@ -20,6 +22,8 @@ def autopilot_run_to_response(run: AutopilotRun, *, replayed: bool = False) -> A
         run_id=run.id,
         status=run.status,  # type: ignore[arg-type]
         replayed=replayed,
+        replayed_at=datetime.now(timezone.utc) if replayed else None,
+        fresh_run=not replayed,
         scope=run.scope,  # type: ignore[arg-type]
         item_results=items,
         started_at=run.started_at,

@@ -64,6 +64,8 @@ class Settings(BaseSettings):
     use_semantic_matching: bool = False
     # Blend weight for semantic score in final fit score. 0.0 disables impact.
     semantic_matching_weight: float = 0.25
+    # Jobs list cache TTL (seconds). Default: 6 hours.
+    jobs_cache_ttl_seconds: int = 21600
 
     # PostHog (optional). When configured, telemetry is mirrored to PostHog and
     # activation KPI is sourced from PostHog events.
@@ -71,6 +73,10 @@ class Settings(BaseSettings):
     posthog_project_id: str | None = None
     posthog_personal_api_key: str | None = None
     posthog_project_api_key: str | None = None
+
+    # Observability
+    sentry_dsn: str | None = None
+    sentry_traces_sample_rate: float = 0.0
 
     # Google OAuth (Gmail API send). Create OAuth client (Web) in Google Cloud Console.
     google_oauth_client_id: str | None = None
@@ -87,12 +93,31 @@ class Settings(BaseSettings):
     # Draft requires OAuth with gmail.compose scope (users reconnect after upgrade).
     gmail_approval_handoff: str = "draft"
 
+    # LinkedIn OAuth (outbound note handoff).
+    linkedin_oauth_client_id: str | None = None
+    linkedin_oauth_client_secret: str | None = None
+    linkedin_oauth_redirect_uri: str | None = None
+    linkedin_oauth_frontend_redirect_uri: str = "http://localhost:3000/settings"
+    linkedin_oauth_state_secret: str | None = None
+
+    # Portal scanner safety: deny localhost/private targets by default.
+    portal_scanner_allow_private_ips: bool = False
+
     def google_oauth_is_configured(self) -> bool:
         return bool(
             self.google_oauth_client_id
             and self.google_oauth_client_secret
             and self.google_oauth_redirect_uri
             and self.google_oauth_state_secret
+            and self.google_oauth_token_fernet_key
+        )
+
+    def linkedin_oauth_is_configured(self) -> bool:
+        return bool(
+            self.linkedin_oauth_client_id
+            and self.linkedin_oauth_client_secret
+            and self.linkedin_oauth_redirect_uri
+            and self.linkedin_oauth_state_secret
             and self.google_oauth_token_fernet_key
         )
 

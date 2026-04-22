@@ -42,7 +42,7 @@ function MockFund() {
       <p className="text-[10px] text-zinc-400">Output for Metro Health · ICU Nurse</p>
       <div className="flex h-9 items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 px-2">
         <span className="truncate text-xs text-zinc-100">Resume_Alex_MetroHealth_ICUNurse.pdf</span>
-        <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-300">
+        <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-300">
           Tailored
           <ChevronDown className="h-3 w-3 opacity-60" />
         </span>
@@ -83,7 +83,7 @@ export function HowItWorks() {
           </div>
           <Link
             href="/discover"
-            className="landing-link-accent inline-flex items-center gap-1 rounded-md text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+            className="landing-link-accent inline-flex items-center gap-1 rounded-md text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
           >
             Create account now <span aria-hidden>&gt;</span>
           </Link>
@@ -95,7 +95,7 @@ export function HowItWorks() {
               key={step.n}
               className="landing-panel rounded-2xl p-6 transition duration-150 hover:-translate-y-0.5 sm:p-7"
             >
-              <span className="text-2xl font-bold text-emerald-300">{step.n}</span>
+              <span className="text-2xl font-bold text-zinc-300">{step.n}</span>
               <h3 className="mt-2.5 text-base font-bold text-zinc-100 sm:text-lg">{step.title}</h3>
               <p className="landing-copy-muted mt-2 text-sm">{step.body}</p>
               {step.mock === "signup" ? <MockSignup /> : null}

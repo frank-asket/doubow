@@ -3,6 +3,7 @@ from functools import lru_cache
 
 import jwt
 from fastapi import Depends, Header, HTTPException, status
+from starlette.requests import Request
 from jwt import InvalidTokenError, PyJWKClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -113,3 +114,20 @@ def require_idempotency_key(idempotency_key: str | None = Header(default=None, a
             detail="Idempotency-Key must be at least 8 characters",
         )
     return idempotency_key.strip()
+
+
+def rate_limit_key(request: Request) -> str:
+    auth = request.headers.get("authorization", "")
+    if auth.startswith("Bearer "):
+        token = auth.removeprefix("Bearer ").strip()
+        if token:
+            try:
+                claims = jwt.decode(token, options={"verify_signature": False, "verify_exp": False})
+                raw_sub = claims.get("sub")
+                if isinstance(raw_sub, str) and raw_sub:
+                    return f"user:{normalize_clerk_subject(raw_sub)}"
+            except Exception:
+                pass
+
+    client_host = request.client.host if request.client else "unknown"
+    return f"ip:{client_host}"

@@ -32,7 +32,7 @@ export function Header() {
             <a
               key={item.href}
               href={item.href}
-              className="rounded-md text-sm font-medium text-zinc-400 transition hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/90 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+              className="rounded-md text-sm font-medium text-zinc-400 transition hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300/90 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               {item.label}
             </a>
@@ -51,7 +51,7 @@ export function Header() {
             <Link
               href={"/auth/sign-up" as Route}
               prefetch
-              className="hidden rounded-full border border-emerald-500 bg-emerald-500 px-5 py-2 text-xs font-semibold text-zinc-950 shadow-sm shadow-emerald-500/20 transition hover:border-emerald-400 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:inline-flex sm:items-center sm:justify-center"
+              className="hidden rounded-full border border-zinc-100 bg-zinc-100 px-5 py-2 text-xs font-semibold text-zinc-950 shadow-sm shadow-zinc-950/20 transition hover:border-white hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:inline-flex sm:items-center sm:justify-center"
             >
               Get started
             </Link>
@@ -104,7 +104,7 @@ export function Header() {
                 <Link
                   href={"/auth/sign-up" as Route}
                   prefetch
-                  className="block rounded-full border border-emerald-500 bg-emerald-500 py-2 text-center text-sm font-semibold text-zinc-950"
+                  className="block rounded-full border border-zinc-100 bg-zinc-100 py-2 text-center text-sm font-semibold text-zinc-950"
                   onClick={() => setOpen(false)}
                 >
                   Get started

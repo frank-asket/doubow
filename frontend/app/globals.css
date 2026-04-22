@@ -255,12 +255,13 @@ body {
   }
 
   .landing-shell ::selection {
-    background: rgb(34 197 94 / 0.35);
+    background: rgb(244 244 245 / 0.3);
     color: rgb(255 255 255);
   }
 
   /* Marketing display (Fraunces): slightly looser tracking than geometric sans */
   .landing-shell .font-display {
+    font-family: var(--font-sans), system-ui, sans-serif;
     letter-spacing: -0.022em;
   }
 
@@ -292,9 +293,9 @@ body {
 
   /* Primary marketing actions */
   .landing-shell .landing-btn-primary {
-    @apply inline-flex h-11 items-center justify-center rounded-full border border-emerald-500 bg-emerald-500 px-8 text-sm font-semibold text-zinc-950 shadow-md shadow-emerald-500/30 transition;
-    @apply hover:border-emerald-400 hover:bg-emerald-400;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950;
+    @apply inline-flex h-11 items-center justify-center rounded-full border border-zinc-100 bg-zinc-100 px-8 text-sm font-semibold text-zinc-950 shadow-md shadow-zinc-950/25 transition;
+    @apply hover:border-white hover:bg-white;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950;
   }
 
   .landing-shell .landing-btn-secondary {
@@ -320,7 +321,7 @@ body {
   }
 
   .landing-shell .landing-kicker {
-    @apply text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300;
+    @apply text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-300;
   }
 
   .landing-shell .landing-copy-muted {
@@ -332,7 +333,7 @@ body {
   }
 
   .landing-shell .landing-link-accent {
-    @apply text-emerald-300 transition-colors hover:text-emerald-200;
+    @apply text-zinc-100 transition-colors hover:text-zinc-200;
   }
 
   /* Anchor targets clear the sticky header */

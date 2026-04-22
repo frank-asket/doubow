@@ -80,7 +80,7 @@ export function FAQ() {
           </div>
           <Link
             href="/discover"
-            className="landing-link-accent inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+            className="landing-link-accent inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
           >
             Create account now <span aria-hidden>&gt;</span>
           </Link>
@@ -93,7 +93,7 @@ export function FAQ() {
               <div key={item.q} className="border-b border-r border-zinc-800">
                 <button
                   type="button"
-                  className={`flex w-full items-start justify-between gap-3 px-4 py-3.5 text-left text-[13px] font-medium text-zinc-100 transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-400 sm:px-5 sm:py-4 ${
+                  className={`flex w-full items-start justify-between gap-3 px-4 py-3.5 text-left text-[13px] font-medium text-zinc-100 transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-300 sm:px-5 sm:py-4 ${
                     isOpen ? "bg-zinc-900/80" : "hover:bg-zinc-900/50"
                   }`}
                   onClick={() => setOpen(isOpen ? null : idx)}
@@ -102,7 +102,7 @@ export function FAQ() {
                   <span>{item.q}</span>
                   <Plus
                     className={`h-4 w-4 shrink-0 transition ${
-                      isOpen ? "text-emerald-300" : "text-zinc-500"
+                      isOpen ? "text-zinc-300" : "text-zinc-500"
                     } ${
                       isOpen ? "rotate-45" : ""
                     }`}

@@ -32,6 +32,8 @@ class AutopilotRunResponse(BaseModel):
     run_id: str
     status: RunStatus
     replayed: bool = False
+    replayed_at: datetime | None = None
+    fresh_run: bool = True
     scope: AutopilotScope
     item_results: list[AutopilotRunItem] | None = None
     started_at: datetime | None = None

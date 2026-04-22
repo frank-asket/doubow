@@ -10,6 +10,12 @@ from models.job_dismissal import JobDismissal
 from models.job_score import JobScore
 from models.resume import Resume
 from schemas.jobs import JobsListResponse, JobWithScore
+from services.jobs_cache import (
+    get_cached_jobs_list,
+    invalidate_user_jobs_list_cache,
+    jobs_list_cache_key,
+    set_cached_jobs_list,
+)
 from services.job_score_mapping import job_score_to_api
 from services.semantic_match_service import SemanticMatcherUnavailableError, semantic_fit_score
 
@@ -75,6 +81,7 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
     semantic_enabled = bool(settings.use_semantic_matching and semantic_weight > 0.0)
 
     now = datetime.now(timezone.utc)
+    added_scores = False
     for job in jobs_with_templates:
         if job.id in scored or job.id in dismissed:
             continue
@@ -103,7 +110,10 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
                 scored_at=now,
             )
         )
+        added_scores = True
     await session.commit()
+    if added_scores:
+        await invalidate_user_jobs_list_cache(user_id)
 
 
 async def list_jobs(
@@ -114,6 +124,17 @@ async def list_jobs(
     page: int,
     per_page: int = 20,
 ) -> JobsListResponse:
+    cache_key = jobs_list_cache_key(
+        user_id=user_id,
+        min_fit=min_fit,
+        location=location,
+        page=page,
+        per_page=per_page,
+    )
+    cached = await get_cached_jobs_list(cache_key)
+    if cached is not None:
+        return cached
+
     await _sync_template_scores_for_user(session, user_id)
 
     filters = [JobScore.user_id == user_id, JobScore.fit_score >= min_fit]
@@ -139,7 +160,9 @@ async def list_jobs(
     rows = (await session.execute(list_stmt)).all()
     items = [_row_to_schema(job, score_row) for job, score_row in rows]
 
-    return JobsListResponse(items=items, total=int(total), page=page, per_page=per_page)
+    response = JobsListResponse(items=items, total=int(total), page=page, per_page=per_page)
+    await set_cached_jobs_list(cache_key, response)
+    return response
 
 
 async def dismiss_job_for_user(session: AsyncSession, user_id: str, job_id: str) -> None:
@@ -158,3 +181,4 @@ async def dismiss_job_for_user(session: AsyncSession, user_id: str, job_id: str)
         session.add(JobDismissal(user_id=user_id, job_id=job_id))
 
     await session.commit()
+    await invalidate_user_jobs_list_cache(user_id)
