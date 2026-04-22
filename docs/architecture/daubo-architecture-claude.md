@@ -8,7 +8,7 @@
 
 Doubow is a **multi-agent job search platform** composed of:
 
-- A **React + TypeScript frontend** (Next.js App Router)
+- A **React + TypeScript web app** (Next.js App Router)
 - A **Python FastAPI backend** with async task queues
 - **8 specialized AI agents** orchestrated via a deterministic layer
 - **PostgreSQL** for relational data + **Redis** for queues and idempotency
@@ -19,7 +19,7 @@ Doubow is a **multi-agent job search platform** composed of:
 - **Offline evaluation tooling** to compare baseline vs semantic precision on sampled job sets
 
 The core principle: **AI drafts, user approves, system executes.** No outbound action (email, LinkedIn message, form submission) is ever taken without an explicit user approval.
-For local multi-port frontend development, the API layer explicitly allows localhost loopback origins via CORS configuration.
+For local multi-port web development, the API layer explicitly allows localhost loopback origins via CORS configuration.
 
 ---
 
@@ -28,7 +28,7 @@ For local multi-port frontend development, the API layer explicitly allows local
 ```
 doubow/
 ├── apps/
-│   ├── web/                          # Next.js 14 App Router frontend
+│   ├── web/                          # Next.js 14 App Router web app
 │   │   ├── app/
 │   │   │   ├── (auth)/
 │   │   │   │   ├── login/page.tsx
@@ -179,16 +179,18 @@ Given expected parallel teams, faster hiring/onboarding, and expanding product s
 `apps/*` + `packages/*` topology as the long-term canonical structure.
 
 - **Canonical target:** `apps/web`, `apps/api`, `packages/shared`
-- **Transitional reality:** existing `frontend/` and `backend/api_gateway/` paths remain valid until migration completes
+- **Current reality:** web runtime is `apps/web`; backend runtime remains `backend/api_gateway`.
 - **Rule:** avoid partial ad-hoc moves; migrate in planned phases to prevent import/path drift
 
 Why this is the preferred direction:
-- Clear ownership boundaries for independent frontend/backend teams
+- Clear ownership boundaries for independent web/backend teams
 - Faster onboarding via feature-aligned paths and predictable layering
 - Cleaner API contracts through shared types and separated service boundaries
 - Better CI partitioning and safer refactors as surfaces grow
 
 ### Migration Plan (3 Phases)
+
+Historical note: migration logs below intentionally reference legacy `frontend/` paths for traceability.
 
 #### Phase A — Prepare and Mirror (no behavior change)
 
@@ -217,7 +219,7 @@ Acceptance checks:
 
 Actions (example slices):
 - Slice 1: shared types/contracts -> `packages/shared`.
-- Slice 2: frontend feature groups (`discover`, `pipeline`, `approvals`, etc.) -> `apps/web`.
+- Slice 2: web feature groups (`discover`, `pipeline`, `approvals`, etc.) -> `apps/web`.
 - Slice 3: API routers/services/models/tasks -> `apps/api`.
 - For each slice: update imports, tests, and docs in the same PR.
 
@@ -301,13 +303,13 @@ Phase C step 2.1 status (route bridge removal + CI guard):
   - `approvals/page.tsx`
   - `prep/page.tsx`
   - `agents/page.tsx`
-- Updated CI frontend job to run canonical workspace commands on `@doubow/web`.
+- Updated CI web job to run canonical workspace commands on `@doubow/web`.
 - Added a CI guard that blocks modifications to deprecated frontend runtime paths (`frontend/app`, `frontend/components`, `frontend/hooks`, `frontend/lib`, `frontend/stores`, and related runtime config files).
 
-Phase C step 2.2 status (frontend legacy wrapper minimization):
-- Removed legacy frontend runtime/source/config/test trees from `frontend/` (`app`, `components`, `hooks`, `lib`, `stores`, `public`, `tests`, runtime config files).
-- Simplified `frontend/package.json` to a script-only wrapper that proxies commands to canonical `apps/web`.
-- Updated `frontend/README.md` to reflect wrapper-only status and canonical `apps/web` usage.
+Phase C step 2.2 status (frontend hard cut):
+- Removed the legacy `frontend/` workspace entirely (including `.clerk` and all wrapper artifacts).
+- Dropped `frontend` from root npm workspaces; canonical frontend workspace is now only `apps/web` (`@doubow/web`).
+- Verified root and workspace commands execute against canonical `apps/web` runtime.
 
 Acceptance checks (per slice):
 - No mixed ownership in moved slice (code + tests + imports moved together).

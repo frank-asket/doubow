@@ -88,7 +88,7 @@ Draft filled values:
 
 - Key strengths:
   - Clear AI engineering scope with realistic product workflow (discover, scoring, approvals, prep).
-  - Solid architecture decomposition (Next.js frontend, FastAPI API gateway, Clerk auth, Postgres + Redis).
+  - Solid architecture decomposition (Next.js web app, FastAPI API gateway, Clerk auth, Postgres + Redis).
   - Strong safety posture improvements: user-scoped tenancy, typed error envelopes, idempotency checks, integration tests.
   - Dashboard UX quality significantly improved with cross-breakpoint visual regression coverage.
 - Key risks:

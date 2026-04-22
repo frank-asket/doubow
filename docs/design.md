@@ -96,7 +96,7 @@ Allowed:
 Pre-PR check (run from repo root):
 
 ```bash
-rg "emerald|amber|sky|violet|rose|cyan|lime|teal|indigo|blue-|purple|green-|red-|orange-|yellow-|pink-" frontend --glob "*.{ts,tsx,css}"
+rg "emerald|amber|sky|violet|rose|cyan|lime|teal|indigo|blue-|purple|green-|red-|orange-|yellow-|pink-" apps/web --glob "*.{ts,tsx,css}"
 ```
 
 If this command returns matches, the PR is not monochrome-compliant and must be fixed before merge.

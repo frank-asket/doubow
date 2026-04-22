@@ -1,21 +1,21 @@
-# Phase A Migration Guide (Non-Breaking)
+# Phase A Migration Guide (Historical)
 
-Phase A introduces target structure scaffolding without changing runtime behavior.
+This document records the initial migration setup before the runtime cutover to `apps/web`.
 
 ## Current Source Of Truth
 
-- Frontend runtime/source stays in `frontend/`.
+- Web runtime/source stays in `apps/web/`.
 - Backend runtime/source stays in `backend/api_gateway/`.
 
 ## New Mirror Entrypoints
 
-- `apps/web`: workspace wrapper for frontend scripts.
+- `apps/web`: canonical web workspace.
 - `apps/api`: workspace wrapper for backend scripts/tests.
 - `packages/shared`: shared barrel entrypoint for future shared contracts.
 
 ## Where To Put New Code During Transition
 
-- New product features: keep placing code in `frontend/` and `backend/api_gateway/` until the matching Phase B slice starts.
+- New product features: place web code in `apps/web/` and backend code in `backend/api_gateway/`.
 - Shared TypeScript contracts intended for cross-app use: place in `packages/shared/types/` and re-export if needed.
 - Avoid creating duplicate implementations across legacy and mirrored paths.
 

@@ -8,7 +8,7 @@ How the dashboard is meant to behave — panels, agents, and design intent — l
 
 ## Monorepo layout
 
-- **`frontend/`** — Next.js app (App Router), dashboard routes under `app/(dashboard)/`.
+- **`apps/web/`** — Next.js app (App Router), dashboard routes under `app/(dashboard)/`.
 - **`backend/api_gateway/`** — FastAPI service, Postgres via SQLAlchemy/Alembic, migrations under `db/migrations/`.
 
 ## Database migrations

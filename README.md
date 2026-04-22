@@ -3,12 +3,12 @@
 > Multi-agent job search platform where AI drafts and humans approve.
 
 <p align="left">
-  <img src="./frontend/public/favicon.svg" alt="Doubow logo" width="36" height="36" />
+  <img src="./apps/web/public/favicon.svg" alt="Doubow logo" width="36" height="36" />
 </p>
 
 ## ✨ Overview
 
-Doubow combines a modern Next.js frontend with a FastAPI backend to help users discover roles, score fit, prepare applications, and safely approve outbound actions.
+Doubow combines a modern Next.js web app with a FastAPI backend to help users discover roles, score fit, prepare applications, and safely approve outbound actions.
 
 - 🧭 Discover scored jobs
 - 🗂️ Track applications in pipeline
@@ -59,7 +59,7 @@ flowchart LR
 ```
 
 **Request path (typical):**
-- User interacts with dashboard routes in `frontend/`.
+- User interacts with dashboard routes in `apps/web/`.
 - Frontend sends authenticated requests to `backend/api_gateway`.
 - FastAPI validates Clerk identity, applies localhost-safe CORS policy, scopes every read/write to `user_id`, and orchestrates domain services.
 - Services persist state in Postgres, use Redis for transient/queue-friendly workflows, and emit telemetry to PostHog.
@@ -87,7 +87,7 @@ flowchart TB
 
 ## 🧱 Frontend + Backend Stack
 
-### Frontend (`frontend/`)
+### Web App (`apps/web/`)
 - Next.js 14 App Router + TypeScript
 - SWR data fetching + Zustand state
 - Clerk auth UI integration
@@ -104,7 +104,7 @@ flowchart TB
 
 ## 🗺️ Repo Map
 
-- `frontend/` — web application
+- `apps/web/` — web application
 - `backend/` — API, models, migrations, scripts, workers
 - `docs/` — architecture, design system, onboarding, product maps
 - `backend/infra/` — Docker snippets (Postgres/Redis dev stack, optional API/worker/nginx samples)
@@ -118,7 +118,7 @@ Primary references:
 
 ## 🎨 Design, Icons, Animation
 
-- Main logo: Doubow mark (see `frontend/public/favicon.svg` and `frontend/components/Logo.tsx`).
+- Main logo: Doubow mark (see `apps/web/public/favicon.svg` and `apps/web/components/Logo.tsx`).
 - Icon language: `lucide-react` for consistent UI semantics across dashboard and landing.
 - Product visual system is documented in `docs/design.md` and `docs/architecture/daubo-design-system.md`.
 - Core motion primitives: fade/slide progress transitions, loading indicators, and low-amplitude hover elevation.
@@ -128,7 +128,7 @@ Visual references you can embed in GitHub markdown:
 - `docs/design-screens/target-daubo.png`
 - `docs/design-screens/landing-daubo-full-redesign.png`
 - `docs/design-screens/local-daubo-after-pixel-pass.png`
-- `frontend/public/reference/landing/hero-dashboard-real.png`
+- `apps/web/public/reference/landing/hero-dashboard-real.png`
 
 Animation guidance:
 - Add short `.gif` demos in `docs/design-screens/` (Discover loading, Approvals flow, Dashboard interactions).
@@ -149,10 +149,10 @@ cp backend/.env.example backend/.env
 npm install
 ```
 
-### 3) Start frontend
+### 3) Start web app
 
 ```bash
-npm --prefix frontend run dev
+npm run dev:web
 ```
 
 ### 4) Start backend stack

@@ -6,13 +6,13 @@ on:
     branches: [main]
 
 jobs:
-  frontend:
+  web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Guard deprecated frontend runtime paths
+      - name: Guard removed legacy frontend path
         shell: bash
         run: |
           set -euo pipefail
@@ -27,11 +27,11 @@ jobs:
             echo "No changed files to validate."
             exit 0
           fi
-          if echo "${CHANGED}" | rg -n '^(frontend/(app|components|hooks|lib|stores)/|frontend/(middleware\.ts|next\.config\.js|playwright\.config\.ts|postcss\.config\.js|tailwind\.config\.js|tsconfig\.json|next-env\.d\.ts)$)'; then
-            echo "Deprecated frontend runtime paths were modified. Use apps/web instead."
+          if echo "${CHANGED}" | rg -n '^frontend/'; then
+            echo "Legacy frontend path was modified, but frontend/ has been removed. Use apps/web instead."
             exit 1
           fi
-          echo "Frontend path guard passed."
+          echo "Legacy frontend path guard passed."
       - uses: actions/setup-node@v4
         with:
           node-version: 20

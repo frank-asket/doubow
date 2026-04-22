@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1360" height="1560" viewBox="0 0 680 780">
   <title>Daubo high-level architecture</title>
-  <desc>Five-layer architecture: browser, Next.js frontend, FastAPI backend with 8 agents, semantic matching/evaluation flow, data stores, and external integrations</desc>
+  <desc>Five-layer architecture: browser, Next.js web app, FastAPI backend with 8 agents, semantic matching/evaluation flow, data stores, and external integrations</desc>
 
   <!-- Background -->
   <rect width="680" height="720" fill="#FFFFFF"/>
