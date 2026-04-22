@@ -22,19 +22,19 @@ Doubow combines a modern Next.js frontend with a FastAPI backend to help users d
 ```mermaid
 flowchart LR
   U[User Browser]
-  FE[Frontend\nNext.js App Router]
+  FE[Frontend Next.js App Router]
   CL[Clerk Auth]
-  API[API Gateway\nFastAPI + CORS guard + rate limit]
+  API[API Gateway FastAPI CORS guard rate limit]
   DB[(Supabase Postgres)]
   RD[(Redis)]
   PH[(PostHog)]
   SENTRY[(Sentry)]
-  METRICS[/Prometheus /metrics/]
-  AG[Agent Services\nDiscover • Scoring • Writing • Apply • Prep • Monitor]
-  OAUTH[Channel Integrations\nGoogle OAuth + LinkedIn OAuth]
-  SEM[Semantic Match Service\nsentence-transformers (flagged)]
-  EVAL[Offline Evaluator\nbaseline vs semantic precision]
-  AUTO[Autopilot Runs\nidempotency + run history]
+  METRICS[Prometheus metrics endpoint]
+  AG[Agent Services Discover Scoring Writing Apply Prep Monitor]
+  OAUTH[Channel Integrations Google OAuth LinkedIn OAuth]
+  SEM[Semantic Match Service feature flagged]
+  EVAL[Offline Evaluator baseline versus semantic precision]
+  AUTO[Autopilot Runs idempotency run history]
 
   U --> FE
   FE -->|JWT / session| CL
@@ -72,10 +72,10 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-  FE[Frontend Dev Server\nlocalhost:3000]
-  API[api_gateway container\nlocalhost:8000 -> :8080]
-  PG[(postgres container\n:5432)]
-  R[(redis container\n:6379)]
+  FE[Frontend Dev Server localhost 3000]
+  API[api gateway container localhost 8000 to 8080]
+  PG[(postgres container 5432)]
+  R[(redis container 6379)]
   W[worker/model containers]
 
   FE --> API
