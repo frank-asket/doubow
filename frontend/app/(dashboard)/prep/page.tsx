@@ -4,7 +4,7 @@ import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, Sparkles, Loader2, BookOpen, Building2, MessageSquare, RefreshCw } from 'lucide-react'
 import { cn, relativeTime } from '@/lib/utils'
-import { applicationsApi, prepApi } from '@/lib/api'
+import { ApiError, applicationsApi, prepApi } from '@/lib/api'
 import type { Application, PrepSession, StarStory } from '@/types'
 
 // ── Mock data for standalone demo ─────────────────────────────────────────
@@ -156,82 +156,35 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
   const [storyOutput, setStoryOutput] = useState('')
   const [briefOutput, setBriefOutput] = useState(session.company_brief ?? '')
   const [localStories, setLocalStories] = useState<StarStory[]>(session.star_stories)
+  const [assistError, setAssistError] = useState<string | null>(null)
 
   async function generateStarStory() {
+    setAssistError(null)
     setGeneratingStory(true)
     setActiveTab('stories')
     setStoryOutput('')
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 700,
-          stream: true,
-          system: 'You are Doubow, an AI job search assistant. Generate a specific, concrete STAR-R interview story. Be precise and quantitative.',
-          messages: [{
-            role: 'user',
-            content: `Generate a STAR-R story for an AI/ML engineer interviewing at ${session.application.job.company} for ${session.application.job.title}. Demonstrate building a production system. Include: Situation, Task, Action, Result (with metrics), and Reflection. Format with clear labels.`,
-          }],
-        }),
-      })
-      const reader = res.body!.getReader()
-      const dec = new TextDecoder()
-      let text = ''
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        for (const line of dec.decode(value).split('\n')) {
-          if (!line.startsWith('data:')) continue
-          const raw = line.slice(5).trim()
-          if (raw === '[DONE]') break
-          try {
-            const p = JSON.parse(raw)
-            if (p.delta?.type === 'text_delta') { text += p.delta.text; setStoryOutput(text) }
-          } catch {}
-        }
-      }
+      const { text } = await prepApi.assist(session.application.id, 'star_story')
+      setStoryOutput(text)
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.detail : 'Could not generate story.'
+      setAssistError(msg)
     } finally {
       setGeneratingStory(false)
     }
   }
 
   async function generateBrief() {
+    setAssistError(null)
     setGeneratingBrief(true)
     setActiveTab('brief')
     setBriefOutput('')
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 500,
-          stream: true,
-          system: 'You are Doubow. Create a concise company brief for interview preparation.',
-          messages: [{
-            role: 'user',
-            content: `Company brief for ${session.application.job.company} — ${session.application.job.title} role. Cover: (1) what the company does and recent news, (2) tech stack signals from public info, (3) culture and engineering values, (4) 2 smart questions to ask interviewers. Be specific and concise.`,
-          }],
-        }),
-      })
-      const reader = res.body!.getReader()
-      const dec = new TextDecoder()
-      let text = ''
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        for (const line of dec.decode(value).split('\n')) {
-          if (!line.startsWith('data:')) continue
-          const raw = line.slice(5).trim()
-          if (raw === '[DONE]') break
-          try {
-            const p = JSON.parse(raw)
-            if (p.delta?.type === 'text_delta') { text += p.delta.text; setBriefOutput(text) }
-          } catch {}
-        }
-      }
+      const { text } = await prepApi.assist(session.application.id, 'company_brief')
+      setBriefOutput(text)
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.detail : 'Could not generate brief.'
+      setAssistError(msg)
     } finally {
       setGeneratingBrief(false)
     }
@@ -268,6 +221,15 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
           </div>
         </div>
       </div>
+
+      {assistError && (
+        <div
+          role="alert"
+          className="mx-4 mt-3 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-900"
+        >
+          {assistError}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-zinc-100 bg-zinc-50/90 p-3">
@@ -395,6 +357,7 @@ function ApiPrepPanel() {
   const [session, setSession] = useState<PrepSession | null>(null)
   const [loading, setLoading] = useState(false)
   const [listLoading, setListLoading] = useState(true)
+  const [genError, setGenError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -414,10 +377,21 @@ function ApiPrepPanel() {
 
   async function onGenerate() {
     if (!appId) return
+    setGenError(null)
     setLoading(true)
     try {
       const s = await prepApi.generate(appId)
       setSession(s)
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setGenError(
+          e.status === 404
+            ? 'That application was not found for your account—refresh the page or add a role from Discover first.'
+            : e.detail || 'Prep generation failed.',
+        )
+      } else {
+        setGenError('Prep generation failed.')
+      }
     } finally {
       setLoading(false)
     }
@@ -428,6 +402,14 @@ function ApiPrepPanel() {
   return (
     <div className="card mb-6 border border-[#e7e8ee] p-4">
       <p className="mb-2 text-xs font-medium text-zinc-800">Generate from your applications</p>
+      {genError && (
+        <div
+          role="alert"
+          className="mb-3 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-900"
+        >
+          {genError}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <select
           value={appId}

@@ -176,6 +176,11 @@ export const prepApi = {
       method: 'POST',
       body: JSON.stringify({ application_id: applicationId }),
     }),
+  assist: (applicationId: string, kind: 'company_brief' | 'star_story') =>
+    request<{ text: string }>('/v1/me/prep/assist', {
+      method: 'POST',
+      body: JSON.stringify({ application_id: applicationId, kind }),
+    }),
 }
 
 // ─── Resume ────────────────────────────────────────────────────────────────

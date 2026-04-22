@@ -5,7 +5,8 @@ import pytest
 from models.application import Application
 from models.job import Job
 from models.user import User
-from services.prep_service import generate_prep_for_application, get_prep_detail_for_user
+from services.prep_assist_service import generate_prep_assist_text
+from services.prep_service import PrepApplicationNotFoundError, generate_prep_for_application, get_prep_detail_for_user
 
 
 @pytest.mark.asyncio
@@ -39,3 +40,13 @@ async def test_generate_prep_creates_session_and_get_returns_detail(db_session):
     loaded = await get_prep_detail_for_user(db_session, uid, aid)
     assert loaded is not None
     assert loaded.id == detail.id
+
+
+@pytest.mark.asyncio
+async def test_prep_assist_unknown_application_raises(db_session):
+    uid = "user_prep_assist_missing"
+    db_session.add(User(id=uid, email="miss@example.com"))
+    await db_session.commit()
+
+    with pytest.raises(PrepApplicationNotFoundError):
+        await generate_prep_assist_text(db_session, uid, "app_does_not_exist", "company_brief")

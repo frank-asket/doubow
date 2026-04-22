@@ -18,6 +18,13 @@ class PrepApplicationNotFoundError(LookupError):
     pass
 
 
+async def fetch_application_job_for_user(
+    session: AsyncSession, user_id: str, application_id: str
+) -> tuple[Application, Job, JobScoreRow | None]:
+    """Public export for prep assist (same lookup as prep generation)."""
+    return await _application_job_score(session, user_id, application_id)
+
+
 async def _application_job_score(
     session: AsyncSession, user_id: str, application_id: str
 ) -> tuple[Application, Job, JobScoreRow | None]:
