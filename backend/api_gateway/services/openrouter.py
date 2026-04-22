@@ -36,12 +36,14 @@ async def chat_completion(
     *,
     user_message: str,
     system_message: str,
+    use_case: str | None = None,
+    model_override: str | None = None,
 ) -> str:
     key = settings.openrouter_api_key
     if not key:
         raise RuntimeError("OpenRouter is not configured (missing OPENROUTER_API_KEY)")
 
-    model_raw = (settings.openrouter_model or settings.anthropic_model or "").strip()
+    model_raw = (model_override or settings.resolve_openrouter_model(use_case)).strip()
     if not model_raw:
         raise RuntimeError("OpenRouter model not set (OPENROUTER_MODEL or ANTHROPIC_MODEL)")
     model = normalize_openrouter_model_id(model_raw)
@@ -94,13 +96,15 @@ async def stream_chat_completion_chunks(
     *,
     user_message: str,
     system_message: str,
+    use_case: str | None = None,
+    model_override: str | None = None,
 ):
     """Yield text fragments from OpenRouter streaming chat completions (OpenAI-compatible SSE)."""
     key = settings.openrouter_api_key
     if not key:
         raise RuntimeError("OpenRouter is not configured (missing OPENROUTER_API_KEY)")
 
-    model_raw = (settings.openrouter_model or settings.anthropic_model or "").strip()
+    model_raw = (model_override or settings.resolve_openrouter_model(use_case)).strip()
     if not model_raw:
         raise RuntimeError("OpenRouter model not set (OPENROUTER_MODEL or ANTHROPIC_MODEL)")
     model = normalize_openrouter_model_id(model_raw)

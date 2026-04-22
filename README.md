@@ -22,9 +22,10 @@ Doubow combines a modern Next.js web app with a FastAPI backend to help users di
 ```mermaid
 flowchart LR
   U[User Browser]
-  FE[Frontend Next.js App Router]
+  FE[Web App Next.js App Router]
   CL[Clerk Auth]
   API[API Gateway FastAPI CORS guard rate limit]
+  LLM[OpenRouter LLM Models chat drafts prep resume]
   DB[(Supabase Postgres)]
   RD[(Redis)]
   PH[(PostHog)]
@@ -43,12 +44,14 @@ flowchart LR
   API --> DB
   API --> RD
   API --> AG
+  API --> LLM
   API --> OAUTH
   API --> METRICS
   API --> SENTRY
   API --> AUTO
   AG --> DB
   AG --> RD
+  AG --> LLM
   AG --> SEM
   AUTO --> DB
   AUTO --> RD
@@ -62,6 +65,7 @@ flowchart LR
 - User interacts with dashboard routes in `apps/web/`.
 - Frontend sends authenticated requests to `backend/api_gateway`.
 - FastAPI validates Clerk identity, applies localhost-safe CORS policy, scopes every read/write to `user_id`, and orchestrates domain services.
+- OpenRouter LLM calls power orchestrator chat, draft generation, resume analysis, and interview-prep generation.
 - Services persist state in Postgres, use Redis for transient/queue-friendly workflows, and emit telemetry to PostHog.
 - Semantic matching is feature-flagged and blended into scoring when enabled; offline evaluator scripts compare baseline vs semantic precision.
 - Approval handoff is channel-aware (email + LinkedIn) with explicit user approval before outbound actions.
@@ -72,8 +76,9 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-  FE[Frontend Dev Server localhost 3000]
+  FE[Web App Dev Server localhost 3000]
   API[api gateway container localhost 8000 to 8080]
+  LLM[OpenRouter HTTPS API]
   PG[(postgres container 5432)]
   R[(redis container 6379)]
   W[worker/model containers]
@@ -81,6 +86,7 @@ flowchart TB
   FE --> API
   API --> PG
   API --> R
+  API --> LLM
   W --> PG
   W --> R
 ```

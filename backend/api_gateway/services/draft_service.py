@@ -65,7 +65,7 @@ async def _llm_draft(job: Job, channel: str) -> tuple[str, str | None]:
             f"Role: {job.title}\nCompany: {job.company}\nLocation: {job.location or 'unspecified'}\n\n"
             f"Job description excerpt:\n{desc}\n"
         )
-    raw = await chat_completion(system_message=sys_msg, user_message=user_msg)
+    raw = await chat_completion(system_message=sys_msg, user_message=user_msg, use_case="drafts")
     raw = raw.strip()
     if channel == "linkedin":
         return raw[:4000], None

@@ -12,7 +12,7 @@ Doubow is a **multi-agent job search platform** composed of:
 - A **Python FastAPI backend** with async task queues
 - **8 specialized AI agents** orchestrated via a deterministic layer
 - **PostgreSQL** for relational data + **Redis** for queues and idempotency
-- **Anthropic Claude** (claude-sonnet-4-20250514) as the AI backbone
+- **OpenRouter-managed LLM models** as the AI backbone (chat, drafts, prep, resume)
 - **Gmail OAuth** and **LinkedIn OAuth** for channel-aware apply
 - **Supabase** for auth, file storage (resumes), and real-time subscriptions
 - **Feature-flagged semantic matching** (`sentence-transformers`) blended into fit scoring
@@ -20,6 +20,45 @@ Doubow is a **multi-agent job search platform** composed of:
 
 The core principle: **AI drafts, user approves, system executes.** No outbound action (email, LinkedIn message, form submission) is ever taken without an explicit user approval.
 For local multi-port web development, the API layer explicitly allows localhost loopback origins via CORS configuration.
+
+### High-Level Runtime Flow
+
+```mermaid
+flowchart LR
+  U[User Browser]
+  FE[Web App Next.js App Router]
+  CL[Clerk Auth]
+  API[API Gateway FastAPI CORS guard rate limit]
+  LLM[OpenRouter LLM Models chat drafts prep resume]
+  DB[(Supabase Postgres)]
+  RD[(Redis)]
+  AG[Agent Services Discover Scoring Writing Apply Prep Monitor]
+  OAUTH[Channel Integrations Google OAuth LinkedIn OAuth]
+  SEM[Semantic Match Service feature flagged]
+  EVAL[Offline Evaluator baseline versus semantic precision]
+
+  U --> FE
+  FE -->|JWT / session| CL
+  FE -->|Bearer Clerk JWT| API
+  API -->|Validate claims + ensure user| CL
+  API --> AG
+  API --> LLM
+  API --> DB
+  API --> RD
+  API --> OAUTH
+  AG --> LLM
+  AG --> DB
+  AG --> RD
+  AG --> SEM
+  EVAL --> DB
+  EVAL --> SEM
+```
+
+LLM effect by product surface:
+- `/agents` orchestrator chat streams from OpenRouter-backed completions.
+- `/approvals` draft generation uses LLM text generation before human approval.
+- `/prep` interview prep and STAR-R assistance use LLM generation.
+- `/resume` analysis uses LLM summarization/feedback when OpenRouter is configured.
 
 ---
 

@@ -72,6 +72,7 @@ async def orchestrator_chat(
             async for fragment in stream_chat_completion_chunks(
                 user_message=payload.message,
                 system_message=system_prompt,
+                use_case="chat",
             ):
                 chunk = json.dumps({"delta": {"text": fragment}})
                 yield f"data: {chunk}\n\n"

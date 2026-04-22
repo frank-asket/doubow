@@ -325,7 +325,7 @@ async def analyze_resume_for_user(session: AsyncSession, user_id: str) -> str:
     if settings.openrouter_api_key:
         try:
             system, user = _openrouter_analysis_prompt(parsed, prefs)
-            return await chat_completion(system_message=system, user_message=user)
+            return await chat_completion(system_message=system, user_message=user, use_case="resume")
         except Exception:
             return build_profile_analysis(parsed, prefs)
 

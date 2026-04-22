@@ -52,6 +52,11 @@ class Settings(BaseSettings):
     openrouter_api_key: str | None = None
     # OpenRouter requires `provider/model` (see openrouter.ai/models). Default: Claude Sonnet 4.6.
     openrouter_model: str = "anthropic/claude-sonnet-4.6"
+    # Optional per-surface model overrides. If unset, OPENROUTER_MODEL is used.
+    openrouter_model_chat: str | None = None
+    openrouter_model_drafts: str | None = None
+    openrouter_model_prep: str | None = None
+    openrouter_model_resume: str | None = None
     openrouter_api_url: str = "https://openrouter.ai/api/v1"
     # OpenRouter optional attribution header (e.g. your app URL).
     openrouter_http_referer: str | None = "http://localhost:3000"
@@ -102,6 +107,18 @@ class Settings(BaseSettings):
 
     # Portal scanner safety: deny localhost/private targets by default.
     portal_scanner_allow_private_ips: bool = False
+
+    def resolve_openrouter_model(self, use_case: str | None = None) -> str:
+        """Resolve model by use-case with fallback to global OpenRouter/Anthropic model."""
+        key = (use_case or "").strip().lower()
+        per_case = {
+            "chat": self.openrouter_model_chat,
+            "drafts": self.openrouter_model_drafts,
+            "prep": self.openrouter_model_prep,
+            "resume": self.openrouter_model_resume,
+        }
+        candidate = (per_case.get(key) or self.openrouter_model or self.anthropic_model or "").strip()
+        return candidate
 
     def google_oauth_is_configured(self) -> bool:
         return bool(

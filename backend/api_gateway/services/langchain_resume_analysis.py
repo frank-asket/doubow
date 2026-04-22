@@ -57,6 +57,6 @@ async def analyze_resume_with_langchain(parsed: ParsedProfileModel, prefs: UserP
     )
     system_message = str(messages[0].content)
     user_message = str(messages[1].content)
-    raw = await chat_completion(system_message=system_message, user_message=user_message)
+    raw = await chat_completion(system_message=system_message, user_message=user_message, use_case="resume")
     structured = parser.parse(raw)
     return _as_text(structured)

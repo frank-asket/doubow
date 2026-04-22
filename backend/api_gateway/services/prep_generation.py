@@ -81,7 +81,7 @@ async def generate_prep_structured(job: Job) -> PrepStructured:
 
     if settings.openrouter_api_key:
         try:
-            raw = await chat_completion(system_message=sys_msg, user_message=user_msg)
+            raw = await chat_completion(system_message=sys_msg, user_message=user_msg, use_case="prep")
             data = _extract_json_object(raw)
             structured = PrepStructured.model_validate(data)
             if not structured.questions:

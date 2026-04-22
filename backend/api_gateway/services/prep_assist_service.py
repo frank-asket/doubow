@@ -40,4 +40,4 @@ async def generate_prep_assist_text(
     else:
         raise ValueError(f"unknown assist kind: {kind!r}")
 
-    return await chat_completion(system_message=system, user_message=user)
+    return await chat_completion(system_message=system, user_message=user, use_case="prep")
