@@ -326,7 +326,19 @@ export function streamOrchestratorChat(
       signal: controller.signal,
     })
   })().then(async (res) => {
-    if (!res.ok) { onError?.('Request failed'); return }
+    if (!res.ok) {
+      if (res.status === 404) {
+        onError?.(
+          'Agents chat API not found (404). Restart the backend from backend/api_gateway so POST /v1/agents/chat is loaded, ' +
+            'or confirm NEXT_PUBLIC_API_URL matches the gateway you run locally.',
+        )
+      } else if (res.status === 401) {
+        onError?.('Sign in required to use orchestrator chat.')
+      } else {
+        onError?.(`Request failed (${res.status}).`)
+      }
+      return
+    }
     const reader = res.body?.getReader()
     if (!reader) return
     const decoder = new TextDecoder()

@@ -68,6 +68,15 @@ make -C backend db-sync
 cd backend/api_gateway && PYTHONPATH=. python -m pytest tests/ -q
 ```
 
+### Troubleshooting “404” on `/v1/agents/chat`
+
+The gateway defines `POST /v1/agents/chat`. If the browser reports **404**:
+
+1. Restart uvicorn from **`backend/api_gateway`** with `PYTHONPATH=.` so an old process isn’t running.
+2. Open **`http://localhost:8000/docs`** (or your port) and confirm **POST `/v1/agents/chat`** exists.
+3. If using Docker, rebuild/restart the API container so it picks up current code.
+4. Ensure **`NEXT_PUBLIC_API_URL`** points at this gateway (not another service).
+
 ## Outbound email (SMTP)
 
 After a user **approves** an **email-channel** draft, the API can send via SMTP (see `services/outbound_email.py`). Configure in **`backend/.env`** (used by `docker compose`) and/or the repo-root **`.env`** (loaded by `config.Settings` when running `uvicorn` locally).
