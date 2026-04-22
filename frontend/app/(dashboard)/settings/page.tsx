@@ -1,5 +1,7 @@
 import { Settings } from 'lucide-react'
 
+import ConnectGmailCard from '@/components/settings/ConnectGmailCard'
+
 export default function SettingsPage() {
   return (
     <div className="space-y-5 p-5 sm:p-7">
@@ -14,6 +16,7 @@ export default function SettingsPage() {
       </header>
 
       <section className="grid gap-4 lg:grid-cols-2">
+        <ConnectGmailCard />
         <article className="rounded-[16px] border border-[#e7e8ee] bg-white p-6">
           <h2 className="text-sm font-semibold text-zinc-900">Notifications</h2>
           <p className="mt-1 text-sm text-zinc-600">Email and in-app alert preferences.</p>

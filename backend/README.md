@@ -84,6 +84,15 @@ After a user **approves** an **email-channel** draft, the API can send via SMTP 
 
 Copy commented defaults from **`backend/.env.example`** or **`.env.example`** at repo root. Restart the API after changes.
 
+## Gmail OAuth (alternative to SMTP)
+
+Users can link a Google account so **email-channel** approvals can send via **`gmail.users.messages.send`** when stored credentials exist (`services/gmail_send_service.py`). SMTP remains the fallback.
+
+1. In Google Cloud Console, create an OAuth **Web** client and add redirect URI **`GOOGLE_OAUTH_REDIRECT_URI`** (must match exactly, e.g. `http://localhost:8000/v1/integrations/google/callback`).
+2. Enable the **Gmail API** for the project and use scope `https://www.googleapis.com/auth/gmail.send`.
+3. Set `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_OAUTH_STATE_SECRET`, and `GOOGLE_OAUTH_TOKEN_FERNET_KEY` (see **`backend/.env.example`**). Optional: `GOOGLE_OAUTH_FRONTEND_REDIRECT_URI` (default `http://localhost:3000/settings` after OAuth).
+4. From the app **Settings** page, **Connect Gmail** calls `GET /v1/integrations/google/authorize` and opens Google’s URL.
+
 ## Activation KPI via PostHog
 
 When PostHog environment variables are configured, activation telemetry is mirrored to PostHog and the

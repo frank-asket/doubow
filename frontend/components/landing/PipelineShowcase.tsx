@@ -18,10 +18,10 @@ function Initial({ name }: { name: string }) {
 
 export function PipelineShowcase() {
   return (
-    <section id="pipeline-showcase" className="border-b border-[#e7e8ee] bg-[#f3f4f8] py-20">
+    <section id="pipeline-showcase" className="border-b border-zinc-200/80 bg-zinc-50 py-20">
       <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
         <div>
-          <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
+          <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
             Every sector, matched worldwide
           </h2>
           <p className="mt-4 text-lg text-neutral-700">
@@ -42,7 +42,7 @@ export function PipelineShowcase() {
           {roles.concat(roles).map((c, i) => (
             <div
               key={`${c.title}-${i}`}
-              className="flex min-w-[140px] flex-col gap-2 rounded-2xl border border-neutral-300 bg-white p-4"
+              className="flex min-w-[140px] flex-col gap-2 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5"
             >
               <div className="flex items-center gap-2">
                 <Initial name={c.company} />

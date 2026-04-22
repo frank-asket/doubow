@@ -64,7 +64,7 @@ export function Pricing() {
     <section id="pricing" className="border-b border-zinc-200/80 bg-zinc-50 py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+          <h2 className="max-w-xl text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
             Choose your plan. Start today.
           </h2>
           <p className="max-w-md text-base leading-relaxed text-zinc-600 sm:text-lg lg:text-right">
@@ -117,7 +117,7 @@ export function Pricing() {
           {tiers.map((tier) => (
             <div
               key={tier.name}
-              className={`relative flex flex-col overflow-hidden rounded-xl border p-5 sm:p-6 ${
+              className={`relative flex flex-col overflow-hidden rounded-2xl border p-6 sm:p-7 ${
                 tier.featured
                   ? "border-indigo-200 bg-white shadow-md shadow-zinc-950/[0.08] ring-1 ring-indigo-500/15"
                   : "border-zinc-200 bg-white shadow-sm shadow-zinc-950/5"
@@ -128,7 +128,7 @@ export function Pricing() {
                   Popular
                 </span>
               ) : null}
-              <h3 className="text-base font-semibold text-zinc-950 sm:text-lg">{tier.name}</h3>
+              <h3 className="text-base font-bold text-black sm:text-lg">{tier.name}</h3>
               <div className="mt-4 flex items-baseline gap-1">
                 <span className="text-3xl font-semibold tabular-nums text-zinc-950 sm:text-4xl">
                   {yearly ? tier.yearly : tier.monthly}

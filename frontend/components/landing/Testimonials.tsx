@@ -31,11 +31,11 @@ export function Testimonials() {
   return (
     <section
       id="testimonials"
-      className="border-b border-zinc-200/80 bg-gradient-to-b from-white via-zinc-50/90 to-zinc-50 py-20"
+      className="border-b border-zinc-200/80 bg-white py-20"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+          <h2 className="max-w-xl text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
             Trusted by serious job seekers
           </h2>
           <p className="max-w-md text-lg text-zinc-600 lg:text-right">

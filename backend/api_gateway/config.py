@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     # Backend callback URL registered in Google Cloud (e.g. http://localhost:8000/v1/integrations/google/callback).
     google_oauth_redirect_uri: str | None = None
     # Browser redirect after connect success/failure (query params: google_connected=1 or google_error=...).
-    google_oauth_frontend_redirect_uri: str = "http://localhost:3000/settings/integrations"
+    google_oauth_frontend_redirect_uri: str = "http://localhost:3000/settings"
     # HMAC secret for OAuth `state` (use a long random string).
     google_oauth_state_secret: str | None = None
     # Fernet key for encrypting refresh tokens at rest (`python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`).

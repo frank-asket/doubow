@@ -226,6 +226,17 @@ export const authApi = {
   meDebug: () => request<{ user_id: string; auth_source: 'clerk_jwt' }>('/v1/me/debug'),
 }
 
+// ─── Google / Gmail (OAuth link for approval sends) ────────────────────────
+
+export const googleIntegrationsApi = {
+  getAuthorizationUrl: () =>
+    request<{ authorization_url: string }>('/v1/integrations/google/authorize'),
+  status: () =>
+    request<{ connected: boolean; google_email: string | null }>('/v1/integrations/google/status'),
+  disconnect: () =>
+    request<{ ok: boolean }>('/v1/integrations/google/', { method: 'DELETE' }),
+}
+
 // ─── Agents ────────────────────────────────────────────────────────────────
 
 export const agentsApi = {

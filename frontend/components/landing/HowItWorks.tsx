@@ -68,11 +68,11 @@ function MockTrade() {
 
 export function HowItWorks() {
   return (
-    <section id="how" className="border-b border-[#e7e8ee] bg-[#f3f4f8] py-16 sm:py-20">
+    <section id="how" className="border-b border-zinc-200/80 bg-white py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
+            <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
               How it works
             </h2>
             <p className="mt-3 max-w-xl text-base leading-relaxed text-neutral-700 sm:text-lg">
@@ -93,10 +93,10 @@ export function HowItWorks() {
           {steps.map((step) => (
             <div
               key={step.n}
-              className="rounded-xl border border-neutral-300 bg-white p-5 transition-colors duration-150 hover:border-neutral-400 sm:p-6"
+              className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm shadow-zinc-950/5 transition-colors duration-150 hover:border-zinc-300 hover:shadow-md hover:shadow-zinc-950/10 sm:p-7"
             >
-              <span className="text-2xl font-semibold text-indigo-600">{step.n}</span>
-              <h3 className="mt-2.5 text-base font-semibold text-neutral-1000 sm:text-lg">{step.title}</h3>
+              <span className="text-2xl font-bold text-indigo-600">{step.n}</span>
+              <h3 className="mt-2.5 text-base font-bold text-black sm:text-lg">{step.title}</h3>
               <p className="mt-2 text-sm text-neutral-700">{step.body}</p>
               {step.mock === "signup" ? <MockSignup /> : null}
               {step.mock === "fund" ? <MockFund /> : null}

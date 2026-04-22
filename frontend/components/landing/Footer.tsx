@@ -7,9 +7,9 @@ import { productName } from "@/lib/customer-config";
 export function FooterCTA() {
   return (
     <section className="border-t border-zinc-200/80 bg-gradient-to-b from-zinc-50 to-white px-4 py-16 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl rounded-2xl border border-zinc-200 bg-white px-8 py-14 text-center shadow-lg shadow-zinc-950/[0.06] ring-1 ring-indigo-500/[0.07] sm:px-12 sm:py-16">
+      <div className="mx-auto max-w-4xl rounded-2xl border border-zinc-200 bg-white px-8 py-14 text-center shadow-md shadow-zinc-950/10 sm:px-12 sm:py-16">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Career momentum</p>
-        <h2 className="text-3xl font-semibold tracking-tight text-neutral-1000 sm:text-4xl">
+        <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
           Ready to organize your next career move?
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-neutral-700">

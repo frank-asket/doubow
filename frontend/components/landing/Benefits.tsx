@@ -25,9 +25,9 @@ const items = [
 
 export function Benefits() {
   return (
-    <section id="why" className="border-b border-zinc-200/80 bg-zinc-50 py-16 sm:py-20">
+    <section id="why" className="border-b border-zinc-200/80 bg-white py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+        <h2 className="text-3xl font-bold capitalize tracking-tight text-black sm:text-4xl">
           Why choose Doubow?
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg">
@@ -42,12 +42,12 @@ export function Benefits() {
             return (
               <article
                 key={item.title}
-                className="rounded-xl border border-zinc-200 bg-white p-5 text-left shadow-sm shadow-zinc-950/5 transition-colors duration-150 hover:border-zinc-300 sm:p-6"
+                className="rounded-2xl border border-zinc-200 bg-white p-6 text-left shadow-sm shadow-zinc-950/5 transition-colors duration-150 hover:border-zinc-300 hover:shadow-md hover:shadow-zinc-950/10"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-indigo-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-indigo-600">
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-zinc-950 sm:text-lg">
+                <h3 className="mt-4 text-base font-bold text-black sm:text-lg">
                   {item.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-600">
