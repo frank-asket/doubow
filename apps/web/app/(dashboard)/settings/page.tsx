@@ -1,8 +1,11 @@
 import { Settings } from 'lucide-react'
 
+import AiConfigDebugCard from '@/components/settings/AiConfigDebugCard'
 import ConnectGmailCard from '@/components/settings/ConnectGmailCard'
 
 export default function SettingsPage() {
+  const showAiDebugCard = process.env.NODE_ENV !== 'production'
+
   return (
     <div className="space-y-5 p-5 sm:p-7">
       <header className="flex items-center gap-3">
@@ -17,6 +20,7 @@ export default function SettingsPage() {
 
       <section className="grid gap-4 lg:grid-cols-2">
         <ConnectGmailCard />
+        {showAiDebugCard ? <AiConfigDebugCard /> : null}
         <article className="rounded-[16px] border border-[#e7e8ee] bg-white p-6">
           <h2 className="text-sm font-semibold text-zinc-900">Notifications</h2>
           <p className="mt-1 text-sm text-zinc-600">Email and in-app alert preferences.</p>

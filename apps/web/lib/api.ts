@@ -241,6 +241,13 @@ export const telemetryApi = {
 
 export const authApi = {
   meDebug: () => request<{ user_id: string; auth_source: 'clerk_jwt' }>('/v1/me/debug'),
+  aiConfig: () =>
+    request<{
+      openrouter_configured: boolean
+      openrouter_api_url: string
+      openrouter_http_referer: string | null
+      resolved_models: Record<string, string>
+    }>('/v1/me/debug/ai-config'),
 }
 
 // ─── Google / Gmail (OAuth link for approval sends) ────────────────────────
