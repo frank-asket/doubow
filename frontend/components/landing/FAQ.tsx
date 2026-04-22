@@ -67,7 +67,7 @@ export function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="landing-section-y border-b border-zinc-200/80 bg-white">
+    <section id="faq" className="landing-section-y landing-surface border-b border-zinc-800/80">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-xl">
@@ -80,21 +80,21 @@ export function FAQ() {
           </div>
           <Link
             href="/discover"
-            className="inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-semibold text-neutral-800 transition hover:text-neutral-1000 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            className="landing-link-accent inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
           >
             Create account now <span aria-hidden>&gt;</span>
           </Link>
         </div>
 
-        <div className="mt-14 grid overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 sm:grid-cols-2">
+        <div className="landing-panel mt-10 grid overflow-hidden rounded-2xl sm:grid-cols-2">
           {faqs.map((item, idx) => {
             const isOpen = open === idx;
             return (
-              <div key={item.q} className="border-b border-r border-zinc-200">
+              <div key={item.q} className="border-b border-r border-zinc-800">
                 <button
                   type="button"
-                  className={`flex w-full items-start justify-between gap-4 p-5 text-left text-sm font-semibold text-black transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 sm:p-6 ${
-                    isOpen ? "bg-indigo-50/60" : "hover:bg-zinc-50"
+                  className={`flex w-full items-start justify-between gap-3 px-4 py-3.5 text-left text-[13px] font-medium text-zinc-100 transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-400 sm:px-5 sm:py-4 ${
+                    isOpen ? "bg-zinc-900/80" : "hover:bg-zinc-900/50"
                   }`}
                   onClick={() => setOpen(isOpen ? null : idx)}
                   aria-expanded={isOpen}
@@ -102,14 +102,14 @@ export function FAQ() {
                   <span>{item.q}</span>
                   <Plus
                     className={`h-4 w-4 shrink-0 transition ${
-                      isOpen ? "text-indigo-600" : "text-neutral-500"
+                      isOpen ? "text-emerald-300" : "text-zinc-500"
                     } ${
                       isOpen ? "rotate-45" : ""
                     }`}
                   />
                 </button>
                 {isOpen ? (
-                  <div className="border-t border-zinc-200 bg-zinc-50/80 px-5 pb-5 pt-0 text-sm leading-relaxed text-neutral-700 sm:px-6 sm:pb-6">
+                  <div className="border-t border-zinc-800 bg-zinc-950/70 px-4 pb-4 pt-0 text-[13px] leading-relaxed text-zinc-400 sm:px-5 sm:pb-5">
                     {item.a}
                   </div>
                 ) : null}

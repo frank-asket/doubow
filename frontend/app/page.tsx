@@ -1,3 +1,4 @@
+import LandingGateRedirect from '@/components/landing/LandingGateRedirect'
 import { Benefits } from '@/components/landing/Benefits'
 import { FAQ } from '@/components/landing/FAQ'
 import { Footer, FooterCTA } from '@/components/landing/Footer'
@@ -10,7 +11,6 @@ import { Pricing } from '@/components/landing/Pricing'
 import { ProcessStrip } from '@/components/landing/ProcessStrip'
 import { Tagline } from '@/components/landing/Tagline'
 import { Testimonials } from '@/components/landing/Testimonials'
-import LandingGateRedirect from '@/components/landing/LandingGateRedirect'
 
 export default function RootPage() {
   return (
@@ -22,21 +22,21 @@ export default function RootPage() {
       >
         Skip to main content
       </a>
-      <Header />
-      <main id="landing-main" tabIndex={-1} className="min-w-0">
+      <main id="landing-main" className="min-w-0">
+        <Header />
         <Hero />
         <Tagline />
-        <FutureOfResumes />
         <Benefits />
         <PipelineShowcase />
         <HowItWorks />
         <ProcessStrip />
+        <FutureOfResumes />
         <Testimonials />
         <Pricing />
         <FAQ />
         <FooterCTA />
+        <Footer />
       </main>
-      <Footer />
     </div>
   )
 }

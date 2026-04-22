@@ -181,6 +181,28 @@ export const prepApi = {
       method: 'POST',
       body: JSON.stringify({ application_id: applicationId, kind }),
     }),
+  /**
+   * Lightweight route capability probe:
+   * - 422/400 => route exists (invalid payload is expected)
+   * - 404 => route missing on current backend instance
+   */
+  checkAssistCapability: async (): Promise<{ available: boolean }> => {
+    try {
+      await request<{ text: string }>('/v1/me/prep/assist', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      })
+      return { available: true }
+    } catch (e) {
+      if (e instanceof ApiError && (e.status === 422 || e.status === 400)) {
+        return { available: true }
+      }
+      if (e instanceof ApiError && e.status === 404) {
+        return { available: false }
+      }
+      throw e
+    }
+  },
 }
 
 // ─── Resume ────────────────────────────────────────────────────────────────

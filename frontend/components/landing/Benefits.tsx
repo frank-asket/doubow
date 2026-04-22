@@ -25,32 +25,32 @@ const items = [
 
 export function Benefits() {
   return (
-    <section id="why" className="landing-section-y border-b border-zinc-200/80 bg-white">
+    <section id="why" className="landing-section-y landing-surface border-b border-zinc-800/80">
       <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
         <h2 className="landing-heading text-balance">
           Why choose Doubow?
         </h2>
         <p className="landing-lede mx-auto mt-4 max-w-2xl text-pretty">
-          Built for <span className="font-medium text-zinc-900">people in any field</span>: care, trades,
+          Built for <span className="landing-copy-strong font-medium">people in any field</span>: care, trades,
           office work, clinical roles, hospitality, technology—any title you’re pursuing. You
           keep control of applying; we help with preparation and clarity.
         </p>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => {
             const Icon = item.icon;
             return (
               <article
                 key={item.title}
-                className="rounded-2xl border border-zinc-200 bg-white p-6 text-left shadow-sm shadow-zinc-950/5 transition-colors duration-150 hover:border-zinc-300 hover:shadow-md hover:shadow-zinc-950/10"
+                className="landing-panel rounded-2xl p-6 text-left transition duration-150 hover:-translate-y-0.5"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-indigo-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-300">
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
-                <h3 className="mt-4 text-base font-bold text-black sm:text-lg">
+                <h3 className="mt-4 text-base font-bold text-zinc-100 sm:text-lg">
                   {item.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+                <p className="landing-copy-muted mt-2 text-sm leading-relaxed">
                   {item.body}
                 </p>
               </article>

@@ -20,7 +20,7 @@ export function Header() {
   const mobileNavId = "landing-mobile-nav";
 
   return (
-    <header className="landing-header sticky top-0 z-50 border-b shadow-[0_1px_0_0_rgb(24_24_27_/_0.06)]">
+    <header className="landing-header sticky top-0 z-50 border-b border-zinc-800/80 shadow-[0_1px_0_0_rgb(255_255_255_/_0.03)]">
       <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8 lg:py-4">
         <Logo href="/" />
 
@@ -32,7 +32,7 @@ export function Header() {
             <a
               key={item.href}
               href={item.href}
-              className="rounded-md text-sm font-medium text-zinc-600 transition hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/90 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              className="rounded-md text-sm font-medium text-zinc-400 transition hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/90 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               {item.label}
             </a>
@@ -44,14 +44,14 @@ export function Header() {
             <Link
               href={"/auth/sign-in" as Route}
               prefetch
-              className="hidden rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:inline-flex sm:items-center sm:justify-center"
+              className="hidden rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-200 shadow-sm transition hover:border-zinc-600 hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:inline-flex sm:items-center sm:justify-center"
             >
               Log in
             </Link>
             <Link
               href={"/auth/sign-up" as Route}
               prefetch
-              className="hidden rounded-full border border-indigo-600 bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-600/20 transition hover:border-indigo-700 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:inline-flex sm:items-center sm:justify-center"
+              className="hidden rounded-full border border-emerald-500 bg-emerald-500 px-5 py-2 text-xs font-semibold text-zinc-950 shadow-sm shadow-emerald-500/20 transition hover:border-emerald-400 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:inline-flex sm:items-center sm:justify-center"
             >
               Get started
             </Link>
@@ -67,7 +67,7 @@ export function Header() {
           </SignedIn>
           <button
             type="button"
-            className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 md:hidden"
+            className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 md:hidden"
             aria-expanded={open}
             aria-controls={mobileNavId}
             aria-label={open ? "Close menu" : "Open menu"}
@@ -79,13 +79,13 @@ export function Header() {
       </div>
 
       {open ? (
-        <div id={mobileNavId} className="border-t border-zinc-200 bg-white px-4 py-4 md:hidden">
+        <div id={mobileNavId} className="border-t border-zinc-800 bg-zinc-950 px-4 py-4 md:hidden">
           <div className="flex flex-col gap-3">
             {nav.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="text-sm text-zinc-700"
+                className="text-sm text-zinc-300"
                 onClick={() => setOpen(false)}
               >
                 {item.label}
@@ -96,7 +96,7 @@ export function Header() {
                 <Link
                   href={"/auth/sign-in" as Route}
                   prefetch
-                  className="block rounded-full border border-zinc-200 bg-white py-2 text-center text-sm font-semibold text-zinc-700"
+                  className="block rounded-full border border-zinc-700 bg-zinc-900 py-2 text-center text-sm font-semibold text-zinc-200"
                   onClick={() => setOpen(false)}
                 >
                   Log in
@@ -104,7 +104,7 @@ export function Header() {
                 <Link
                   href={"/auth/sign-up" as Route}
                   prefetch
-                  className="block rounded-full border border-indigo-600 bg-indigo-600 py-2 text-center text-sm font-semibold text-white"
+                  className="block rounded-full border border-emerald-500 bg-emerald-500 py-2 text-center text-sm font-semibold text-zinc-950"
                   onClick={() => setOpen(false)}
                 >
                   Get started

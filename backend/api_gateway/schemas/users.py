@@ -13,3 +13,15 @@ class MeResponse(BaseModel):
 class MeDebugResponse(BaseModel):
     user_id: str
     auth_source: Literal["clerk_jwt"]
+
+
+class EmailIdentityRow(BaseModel):
+    user_id: str
+    created_at: str | None = None
+
+
+class MeEmailIdentityDebugResponse(BaseModel):
+    email: str
+    current_user_id: str
+    ids_for_email: list[EmailIdentityRow]
+    multiple_ids_for_same_email: bool

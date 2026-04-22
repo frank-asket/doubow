@@ -1,12 +1,14 @@
+from sqlalchemy import func, select
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from db.session import get_session
 from dependencies import get_authenticated_user, get_current_user_id
 from models.user import User
 from schemas.dashboard import DashboardSummaryResponse
 from schemas.resume import UserPreferencesModel, UserPreferencesPatch
-from schemas.users import MeDebugResponse, MeResponse
+from schemas.users import EmailIdentityRow, MeDebugResponse, MeEmailIdentityDebugResponse, MeResponse
 from services.dashboard_service import get_dashboard_summary as load_dashboard_summary
 from services.resume_service import update_preferences_for_user
 from services.users_service import user_to_me_response
@@ -35,6 +37,33 @@ async def get_dashboard(
 @router.get("/debug", response_model=MeDebugResponse)
 async def get_me_debug(user_id: str = Depends(get_current_user_id)) -> MeDebugResponse:
     return MeDebugResponse(user_id=user_id, auth_source="clerk_jwt")
+
+
+@router.get("/debug/email-identities", response_model=MeEmailIdentityDebugResponse)
+async def get_me_debug_email_identities(
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> MeEmailIdentityDebugResponse:
+    """Dev-only diagnostic for identity splits (same email, multiple users.id)."""
+    if settings.environment.lower() == "production":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
+    rows = (
+        await session.execute(
+            select(User.id, User.created_at, User.email)
+            .where(func.lower(User.email) == func.lower(user.email))
+            .order_by(User.created_at.asc())
+        )
+    ).all()
+    ids_for_email = [
+        EmailIdentityRow(user_id=row[0], created_at=row[1].isoformat() if row[1] is not None else None) for row in rows
+    ]
+    return MeEmailIdentityDebugResponse(
+        email=user.email,
+        current_user_id=user.id,
+        ids_for_email=ids_for_email,
+        multiple_ids_for_same_email=len(ids_for_email) > 1,
+    )
 
 
 @router.patch("/preferences", response_model=UserPreferencesModel)

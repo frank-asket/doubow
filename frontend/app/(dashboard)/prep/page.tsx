@@ -148,8 +148,9 @@ function QuestionList({ questions }: { questions: string[] }) {
 }
 
 type Tab = 'questions' | 'stories' | 'brief'
+type AssistCapability = 'checking' | 'available' | 'missing' | 'error'
 
-function PrepSessionCard({ session }: { session: PrepSession }) {
+function PrepSessionCard({ session, assistCapability }: { session: PrepSession; assistCapability: AssistCapability }) {
   const [activeTab, setActiveTab] = useState<Tab>('questions')
   const [generatingStory, setGeneratingStory] = useState(false)
   const [generatingBrief, setGeneratingBrief] = useState(false)
@@ -167,7 +168,12 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
       const { text } = await prepApi.assist(session.application.id, 'star_story')
       setStoryOutput(text)
     } catch (e) {
-      const msg = e instanceof ApiError ? e.detail : 'Could not generate story.'
+      const msg =
+        e instanceof ApiError && e.status === 404
+          ? 'Prep assist endpoint is unavailable (404). Restart backend and verify /v1/me/prep/assist exists.'
+          : e instanceof ApiError
+            ? e.detail
+            : 'Could not generate story.'
       setAssistError(msg)
     } finally {
       setGeneratingStory(false)
@@ -183,7 +189,12 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
       const { text } = await prepApi.assist(session.application.id, 'company_brief')
       setBriefOutput(text)
     } catch (e) {
-      const msg = e instanceof ApiError ? e.detail : 'Could not generate brief.'
+      const msg =
+        e instanceof ApiError && e.status === 404
+          ? 'Prep assist endpoint is unavailable (404). Restart backend and verify /v1/me/prep/assist exists.'
+          : e instanceof ApiError
+            ? e.detail
+            : 'Could not generate brief.'
       setAssistError(msg)
     } finally {
       setGeneratingBrief(false)
@@ -272,8 +283,8 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-medium text-zinc-500">STAR + Reflection method</p>
               <button
-                onClick={generateStarStory}
-                disabled={generatingStory}
+                onClick={() => void generateStarStory()}
+                disabled={generatingStory || assistCapability === 'missing' || assistCapability === 'error'}
                 className="btn btn-primary text-xs gap-1.5"
               >
                 {generatingStory ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
@@ -310,8 +321,8 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-medium text-zinc-500">Company intelligence for your interview</p>
               <button
-                onClick={generateBrief}
-                disabled={generatingBrief}
+                onClick={() => void generateBrief()}
+                disabled={generatingBrief || assistCapability === 'missing' || assistCapability === 'error'}
                 className="btn btn-primary text-xs gap-1.5"
               >
                 {generatingBrief ? <Loader2 size={12} className="animate-spin" /> : <Building2 size={12} />}
@@ -338,11 +349,19 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
 
       {/* Action bar */}
       <div className="flex items-center gap-2 border-t border-zinc-100 px-4 pb-4 pt-3">
-        <button onClick={generateStarStory} disabled={generatingStory} className="btn text-xs gap-1.5">
+        <button
+          onClick={() => void generateStarStory()}
+          disabled={generatingStory || assistCapability === 'missing' || assistCapability === 'error'}
+          className="btn text-xs gap-1.5"
+        >
           <Sparkles size={12} />
           New STAR-R story
         </button>
-        <button onClick={generateBrief} disabled={generatingBrief} className="btn text-xs gap-1.5">
+        <button
+          onClick={() => void generateBrief()}
+          disabled={generatingBrief || assistCapability === 'missing' || assistCapability === 'error'}
+          className="btn text-xs gap-1.5"
+        >
           <Building2 size={12} />
           Company brief
         </button>
@@ -351,7 +370,7 @@ function PrepSessionCard({ session }: { session: PrepSession }) {
   )
 }
 
-function ApiPrepPanel() {
+function ApiPrepPanel({ assistCapability }: { assistCapability: AssistCapability }) {
   const [apps, setApps] = useState<Application[]>([])
   const [appId, setAppId] = useState('')
   const [session, setSession] = useState<PrepSession | null>(null)
@@ -402,6 +421,18 @@ function ApiPrepPanel() {
   return (
     <div className="card mb-6 border border-[#e7e8ee] p-4">
       <p className="mb-2 text-xs font-medium text-zinc-800">Generate from your applications</p>
+      {assistCapability === 'missing' && (
+        <div className="mb-3 rounded-[10px] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          Prep assist is unavailable on this backend instance (`/v1/me/prep/assist` returned 404). Restart/update
+          the API before generating STAR-R stories or company briefs.
+        </div>
+      )}
+      {assistCapability === 'error' && (
+        <div className="mb-3 rounded-[10px] border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-700">
+          Could not verify prep assist capability right now. You can continue, but generation may fail if the backend
+          route is missing.
+        </div>
+      )}
       {genError && (
         <div
           role="alert"
@@ -434,7 +465,7 @@ function ApiPrepPanel() {
       </div>
       {session && (
         <div className="mt-5">
-          <PrepSessionCard session={session} />
+          <PrepSessionCard session={session} assistCapability={assistCapability} />
         </div>
       )}
     </div>
@@ -464,6 +495,24 @@ function PrepSkeleton() {
 export default function PrepPage() {
   const [sessions] = useState<PrepSession[]>(MOCK_SESSIONS)
   const [loading] = useState(false)
+  const [assistCapability, setAssistCapability] = useState<AssistCapability>('checking')
+
+  useEffect(() => {
+    let cancelled = false
+    prepApi
+      .checkAssistCapability()
+      .then((r) => {
+        if (cancelled) return
+        setAssistCapability(r.available ? 'available' : 'missing')
+      })
+      .catch(() => {
+        if (cancelled) return
+        setAssistCapability('error')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <div className="space-y-5 p-5 sm:p-7">
@@ -479,7 +528,7 @@ export default function PrepPage() {
         }
       />
 
-      <ApiPrepPanel />
+      <ApiPrepPanel assistCapability={assistCapability} />
 
       {/* Info banner */}
       <div className="mb-5 flex items-start gap-2.5 rounded-[16px] border border-indigo-100 bg-indigo-50/90 p-3.5">
@@ -489,6 +538,11 @@ export default function PrepPage() {
           Questions and STAR-R stories are generated from your resume + the specific job description.
         </p>
       </div>
+      {assistCapability === 'checking' && (
+        <div className="mb-5 rounded-[12px] border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-600">
+          Checking backend prep assist capability…
+        </div>
+      )}
 
       {/* Sessions */}
       <div className="space-y-4">
@@ -502,7 +556,9 @@ export default function PrepPage() {
               <p className="text-xs mt-1">Prep sessions are created when you queue an application</p>
             </div>
           )
-          : sessions.map((s) => <PrepSessionCard key={s.id} session={s} />)
+          : sessions.map((s) => (
+            <PrepSessionCard key={s.id} session={s} assistCapability={assistCapability} />
+          ))
         }
       </div>
     </div>
