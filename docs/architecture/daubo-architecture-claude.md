@@ -257,6 +257,18 @@ Phase B Slice 2 status (started with Discover domain):
   - `frontend/hooks/useApprovals.ts`
   - `frontend/stores/approvalStore.ts`
   - `frontend/components/approvals/ApprovalCard.tsx`
+- Started Prep domain move with canonical files under `apps/web/src/prep/` (`page`, `components/PrepCard`, `components/StarStoryPanel`).
+- Converted legacy frontend Prep paths to non-breaking compatibility re-exports:
+  - `frontend/app/(dashboard)/prep/page.tsx`
+  - `frontend/components/prep/PrepCard.tsx`
+  - `frontend/components/prep/StarStoryPanel.tsx`
+- Started Agents domain move with canonical files under `apps/web/src/agents/` (`page`, `useAgentStream`, `agentStore`, `components/AgentStatusCard`, `components/OrchestratorChat`).
+- Converted legacy frontend Agents paths to non-breaking compatibility re-exports:
+  - `frontend/app/(dashboard)/agents/page.tsx`
+  - `frontend/hooks/useAgentStream.ts`
+  - `frontend/stores/agentStore.ts`
+  - `frontend/components/agents/AgentStatusCard.tsx`
+  - `frontend/components/agents/OrchestratorChat.tsx`
 
 Acceptance checks (per slice):
 - No mixed ownership in moved slice (code + tests + imports moved together).
