@@ -9,7 +9,6 @@ import { HowItWorks } from '@/components/landing/HowItWorks'
 import { PipelineShowcase } from '@/components/landing/PipelineShowcase'
 import { Pricing } from '@/components/landing/Pricing'
 import { ProcessStrip } from '@/components/landing/ProcessStrip'
-import { Tagline } from '@/components/landing/Tagline'
 import { Testimonials } from '@/components/landing/Testimonials'
 
 export default function RootPage() {
@@ -25,7 +24,6 @@ export default function RootPage() {
       <main id="landing-main" className="min-w-0">
         <Header />
         <Hero />
-        <Tagline />
         <Benefits />
         <PipelineShowcase />
         <HowItWorks />

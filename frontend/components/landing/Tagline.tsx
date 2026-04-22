@@ -1,13 +1,12 @@
 export function Tagline() {
   return (
-    <section className="border-b border-zinc-200/80 bg-zinc-50 py-16 sm:py-20">
+    <section className="landing-section-y landing-surface border-b border-zinc-800/80">
       <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-        <div className="rounded-2xl border border-zinc-200 bg-white px-6 py-8 shadow-sm shadow-zinc-950/5 sm:px-10 sm:py-10">
+        <div className="landing-panel rounded-2xl px-6 py-8 sm:px-10 sm:py-10">
           <p className="landing-lede text-pretty font-medium">
-            Built for <span className="text-indigo-700">every industry</span> and{" "}
-            <span className="text-neutral-1000">wherever you want to work</span>: one workspace to track
-            roles, shape materials from your résumé, and practice interviews—with optional Gmail{" "}
-            <span className="text-neutral-1000">drafts you choose to send</span>.
+            Built for <span className="landing-copy-strong">every industry</span>, wherever you want to
+            work: one workspace to track roles, shape materials from your résumé, and practice interviews,
+            with optional Gmail <span className="landing-copy-strong">drafts you review and send</span>.
           </p>
         </div>
       </div>

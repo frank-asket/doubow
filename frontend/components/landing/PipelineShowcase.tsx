@@ -1,20 +1,6 @@
 import Link from "next/link";
-
-const roles = [
-  { title: "ICU Nurse", company: "Metro Health", match: "94%", delta: "+4.2%", up: true },
-  { title: "Warehouse Lead", company: "Continental Line", match: "89%", delta: "+2.1%", up: true },
-  { title: "High School Teacher", company: "Northfield District", match: "87%", delta: "-0.6%", up: false },
-  { title: "Field Accountant", company: "Summit Co-op", match: "91%", delta: "+3.4%", up: true },
-  { title: "DevOps Engineer", company: "Ioncraft", match: "85%", delta: "+1.8%", up: true },
-];
-
-function Initial({ name }: { name: string }) {
-  return (
-    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-xs font-bold text-zinc-300">
-      {name.slice(0, 1)}
-    </span>
-  );
-}
+import Image from "next/image";
+import dashboardScreenshot from "@/tests/dashboard_visual.spec.ts-snapshots/dashboard-tablet-1024-firefox-darwin.png";
 
 export function PipelineShowcase() {
   return (
@@ -38,27 +24,19 @@ export function PipelineShowcase() {
             Open dashboard <span aria-hidden>&gt;</span>
           </Link>
         </div>
-        <div className="mt-1 flex flex-wrap justify-center gap-3 sm:justify-end">
-          {roles.concat(roles).map((c, i) => (
-            <div
-              key={`${c.title}-${i}`}
-              className="landing-panel flex min-w-[140px] flex-col gap-2 rounded-2xl p-4 transition hover:-translate-y-0.5"
-            >
-              <div className="flex items-center gap-2">
-                <Initial name={c.company} />
-                <span className="text-sm font-semibold text-zinc-100">{c.title}</span>
-              </div>
-              <p className="text-xs text-zinc-500">{c.company}</p>
-              <p className="font-mono text-sm text-zinc-100">{c.match}</p>
-              <p
-                className={`text-xs font-semibold ${
-                  c.up ? "text-zinc-300" : "text-zinc-500"
-                }`}
-              >
-                {c.delta}
-              </p>
+        <div className="mt-1 sm:justify-end">
+          <div className="landing-panel overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+            <div className="mb-2 flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950/70 px-3 py-1.5">
+              <span className="text-[11px] font-medium tracking-wide text-zinc-300">Real product screenshot</span>
+              <span className="text-[11px] text-zinc-500">Dashboard</span>
             </div>
-          ))}
+            <Image
+              src={dashboardScreenshot}
+              alt="Doubow dashboard preview"
+              priority
+              className="h-auto w-full rounded-xl border border-zinc-800 object-cover"
+            />
+          </div>
         </div>
       </div>
     </section>

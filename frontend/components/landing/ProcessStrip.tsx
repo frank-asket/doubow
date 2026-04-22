@@ -15,15 +15,15 @@ const cols = [
 
 export function ProcessStrip() {
   return (
-    <section className="landing-section-y border-b border-zinc-200/80 bg-zinc-50">
+    <section className="landing-section-y landing-surface border-b border-zinc-800/80">
       <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:grid-cols-3 sm:px-6 lg:px-8">
         {cols.map((c) => (
           <div
             key={c.title}
-            className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm shadow-zinc-950/5 sm:p-7"
+            className="landing-panel rounded-2xl p-6 sm:p-7"
           >
-            <h3 className="text-lg font-bold text-black">{c.title}</h3>
-            <p className="mt-3 text-sm leading-relaxed text-neutral-700">{c.body}</p>
+            <h3 className="text-lg font-bold text-zinc-100">{c.title}</h3>
+            <p className="landing-copy-muted mt-3 text-sm leading-relaxed">{c.body}</p>
           </div>
         ))}
       </div>
