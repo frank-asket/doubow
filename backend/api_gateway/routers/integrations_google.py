@@ -15,7 +15,7 @@ from db.session import bind_request_user_for_rls, get_session, reset_request_use
 from dependencies import get_authenticated_user
 from models.google_oauth_credential import GoogleOAuthCredential
 from models.user import User
-from services.gmail_send_service import GMAIL_SEND_SCOPE
+from services.gmail_send_service import GMAIL_API_SCOPES
 from services.google_oauth_service import build_authorization_url, exchange_code_for_refresh_and_email
 from services.google_oauth_state import sign_oauth_state, verify_oauth_state
 from services.google_token_crypto import encrypt_refresh_token
@@ -74,7 +74,7 @@ async def google_callback(
             session.add(row)
         row.refresh_token_encrypted = enc
         row.google_email = gemail
-        row.scopes = GMAIL_SEND_SCOPE
+        row.scopes = " ".join(GMAIL_API_SCOPES)
         await session.commit()
     except Exception:
         logger.exception("google oauth callback failed user_id=%s", user_id)

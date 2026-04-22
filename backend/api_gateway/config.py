@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     google_oauth_state_secret: str | None = None
     # Fernet key for encrypting refresh tokens at rest (`python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`).
     google_oauth_token_fernet_key: str | None = None
+    # After approve (email channel): ``draft`` = Gmail API draft in user's mailbox first; ``send`` = immediate send.
+    # Draft requires OAuth with gmail.compose scope (users reconnect after upgrade).
+    gmail_approval_handoff: str = "draft"
 
     def google_oauth_is_configured(self) -> bool:
         return bool(

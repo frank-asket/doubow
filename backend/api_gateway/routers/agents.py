@@ -11,14 +11,15 @@ from dependencies import get_authenticated_user
 from models.user import User
 from schemas.agents import AgentStatusResponse, OrchestratorChatRequest
 from services.agents_service import list_agent_status
+from services.openrouter import stream_chat_completion_chunks
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
-_ORCH_STUB_REPLY = (
-    "Orchestrator chat is not fully wired to a model yet. "
-    "Use Pipeline to generate drafts and Approvals to review them."
+_ORCH_SYSTEM = (
+    "You are Doubow's orchestrator agent. Help with job search strategy, pipeline prioritization, "
+    "drafts and approvals, and interview prep. Be concise and actionable."
 )
 
 
@@ -51,16 +52,31 @@ async def orchestrator_chat(
     payload: OrchestratorChatRequest,
     user: User = Depends(get_authenticated_user),
 ) -> StreamingResponse:
-    """SSE stream compatible with ``streamOrchestratorChat`` in the web client."""
-
-    async def reply_stream():
-        chunk = json.dumps({"delta": {"text": _ORCH_STUB_REPLY}})
-        yield f"data: {chunk}\n\n"
-        yield "data: [DONE]\n\n"
+    """SSE stream compatible with ``streamOrchestratorChat`` in the web client (OpenRouter)."""
 
     logger.debug(
         "orchestrator_chat user=%s message_chars=%s",
         user.id,
         len(payload.message),
     )
+
+    async def reply_stream():
+        try:
+            async for fragment in stream_chat_completion_chunks(
+                user_message=payload.message,
+                system_message=_ORCH_SYSTEM,
+            ):
+                chunk = json.dumps({"delta": {"text": fragment}})
+                yield f"data: {chunk}\n\n"
+            yield "data: [DONE]\n\n"
+        except RuntimeError as exc:
+            err = json.dumps({"delta": {"text": f"(Configure OpenRouter.) {exc}"}})
+            yield f"data: {err}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception:
+            logger.exception("orchestrator_chat stream failed user=%s", user.id)
+            err = json.dumps({"delta": {"text": "(Error) Could not complete response."}})
+            yield f"data: {err}\n\n"
+            yield "data: [DONE]\n\n"
+
     return StreamingResponse(reply_stream(), media_type="text/event-stream")

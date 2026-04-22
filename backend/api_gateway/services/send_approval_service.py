@@ -15,7 +15,7 @@ from models.approval import Approval
 from models.google_oauth_credential import GoogleOAuthCredential
 from models.job import Job
 from models.user import User
-from services.gmail_send_service import send_gmail_message
+from services.gmail_send_service import create_gmail_draft, send_gmail_message
 from services.outbound_email import send_email_outbound
 
 logger = logging.getLogger(__name__)
@@ -54,15 +54,41 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
             ).scalar_one_or_none()
             sent_via_gmail = False
             if gmail_row is not None and settings.google_oauth_is_configured() and gmail_row.google_email:
+                body_text = approval.draft_body or ""
+                handoff = (settings.gmail_approval_handoff or "draft").strip().lower()
                 try:
-                    await send_gmail_message(
-                        refresh_token_encrypted=gmail_row.refresh_token_encrypted,
-                        from_addr=gmail_row.google_email,
-                        to_addr=recipient,
-                        subject=subject,
-                        body=approval.draft_body or "",
-                    )
-                    sent_via_gmail = True
+                    if handoff == "draft":
+                        try:
+                            await create_gmail_draft(
+                                refresh_token_encrypted=gmail_row.refresh_token_encrypted,
+                                from_addr=gmail_row.google_email,
+                                to_addr=recipient,
+                                subject=subject,
+                                body=body_text,
+                            )
+                            sent_via_gmail = True
+                        except Exception:
+                            logger.exception(
+                                "send_stub: gmail draft failed approval_id=%s; falling back to gmail send",
+                                approval_id,
+                            )
+                            await send_gmail_message(
+                                refresh_token_encrypted=gmail_row.refresh_token_encrypted,
+                                from_addr=gmail_row.google_email,
+                                to_addr=recipient,
+                                subject=subject,
+                                body=body_text,
+                            )
+                            sent_via_gmail = True
+                    else:
+                        await send_gmail_message(
+                            refresh_token_encrypted=gmail_row.refresh_token_encrypted,
+                            from_addr=gmail_row.google_email,
+                            to_addr=recipient,
+                            subject=subject,
+                            body=body_text,
+                        )
+                        sent_via_gmail = True
                 except Exception:
                     logger.exception(
                         "send_stub: gmail failed approval_id=%s user_id=%s; falling back to SMTP/dry-run",

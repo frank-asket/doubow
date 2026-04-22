@@ -7,7 +7,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 
 from config import settings
-from services.gmail_send_service import GMAIL_SEND_SCOPE
+from services.gmail_send_service import GMAIL_API_SCOPES
 
 
 def google_client_config() -> dict:
@@ -23,7 +23,7 @@ def google_client_config() -> dict:
 
 
 def build_authorization_url(*, state: str) -> str:
-    scopes = [GMAIL_SEND_SCOPE]
+    scopes = list(GMAIL_API_SCOPES)
     flow = Flow.from_client_config(google_client_config(), scopes=scopes)
     flow.redirect_uri = settings.google_oauth_redirect_uri
     uri, _ = flow.authorization_url(
@@ -37,7 +37,7 @@ def build_authorization_url(*, state: str) -> str:
 
 def exchange_code_for_refresh_and_email(*, code: str) -> tuple[str, str | None]:
     """Return (refresh_token, google_email). Email from Gmail profile."""
-    scopes = [GMAIL_SEND_SCOPE]
+    scopes = list(GMAIL_API_SCOPES)
     flow = Flow.from_client_config(google_client_config(), scopes=scopes)
     flow.redirect_uri = settings.google_oauth_redirect_uri
     flow.fetch_token(code=code)
