@@ -10,7 +10,7 @@ from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
 from schemas.agents import AgentStatusResponse, OrchestratorChatRequest
-from services.agents_service import list_agent_status
+from services.agents_service import build_orchestrator_user_context, list_agent_status
 from services.openrouter import stream_chat_completion_chunks
 
 logger = logging.getLogger(__name__)
@@ -50,6 +50,7 @@ async def status_stream(
 @router.post("/chat")
 async def orchestrator_chat(
     payload: OrchestratorChatRequest,
+    session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> StreamingResponse:
     """SSE stream compatible with ``streamOrchestratorChat`` in the web client (OpenRouter)."""
@@ -59,12 +60,18 @@ async def orchestrator_chat(
         user.id,
         len(payload.message),
     )
+    user_context = await build_orchestrator_user_context(session=session, user_id=user.id)
+    system_prompt = (
+        f"{_ORCH_SYSTEM}\n\n"
+        "You are given live pipeline context from the user's account. Use it directly; do not claim you lack access.\n"
+        f"{user_context}"
+    )
 
     async def reply_stream():
         try:
             async for fragment in stream_chat_completion_chunks(
                 user_message=payload.message,
-                system_message=_ORCH_SYSTEM,
+                system_message=system_prompt,
             ):
                 chunk = json.dumps({"delta": {"text": fragment}})
                 yield f"data: {chunk}\n\n"

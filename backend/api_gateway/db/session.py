@@ -56,8 +56,41 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
+def _connection_refused_message(exc: BaseException) -> str | None:
+    """Detect unreachable Postgres so we can print a helpful hint."""
+    chain: list[BaseException] = []
+    cur: BaseException | None = exc
+    while cur is not None and len(chain) < 8:
+        chain.append(cur)
+        cur = cur.__cause__ or cur.__context__
+    for e in chain:
+        if isinstance(e, ConnectionRefusedError):
+            return (
+                "Cannot connect to PostgreSQL (connection refused). "
+                "Start Postgres first, then restart the API. From repo root:\n"
+                "  docker compose -f backend/infra/docker-compose.yml up -d\n"
+                "If your shell is already in backend/, use:\n"
+                "  docker compose -f infra/docker-compose.yml up -d\n"
+                "Ensure DATABASE_URL matches (default host port is often 5433 → localhost:5433)."
+            )
+        msg = str(e).lower()
+        if "connection refused" in msg or "errno 61" in msg:
+            return (
+                "Cannot connect to PostgreSQL. Start the database, confirm DATABASE_URL, then restart uvicorn.\n"
+                "  (repo root) docker compose -f backend/infra/docker-compose.yml up -d\n"
+                "  (from backend/) docker compose -f infra/docker-compose.yml up -d"
+            )
+    return None
+
+
 async def init_models() -> None:
     import models  # noqa: F401
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as exc:
+        hint = _connection_refused_message(exc)
+        if hint:
+            raise RuntimeError(hint) from exc
+        raise

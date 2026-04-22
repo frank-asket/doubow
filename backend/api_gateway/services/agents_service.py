@@ -2,7 +2,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.approval import Approval
+from models.application import Application
 from models.autopilot_run import AutopilotRun
+from models.job import Job
 from models.job_score import JobScore
 from schemas.agents import AgentStatusResponse
 
@@ -87,3 +89,47 @@ async def list_agent_status(session: AsyncSession, user_id: str) -> list[AgentSt
             items_processed=int(pending_approvals),
         ),
     ]
+
+
+async def build_orchestrator_user_context(session: AsyncSession, user_id: str) -> str:
+    """Concise pipeline/profile snapshot used to ground orchestrator chat replies."""
+    rows = (
+        await session.execute(
+            select(Application, Job)
+            .join(Job, Job.id == Application.job_id)
+            .where(Application.user_id == user_id)
+            .order_by(Application.last_updated.desc())
+            .limit(6)
+        )
+    ).all()
+
+    status_rows = (
+        await session.execute(
+            select(Application.status, func.count(Application.id))
+            .where(Application.user_id == user_id)
+            .group_by(Application.status)
+        )
+    ).all()
+    status_counts = {str(status): int(count) for status, count in status_rows}
+
+    pending_approvals = (
+        await session.execute(
+            select(func.count(Approval.id)).where(Approval.user_id == user_id, Approval.status == "pending")
+        )
+    ).scalar_one()
+
+    if not rows:
+        return "No applications in pipeline yet."
+
+    recent_lines = []
+    for app, job in rows[:5]:
+        recent_lines.append(
+            f"- {job.company} — {job.title} (status={app.status}, channel={app.channel})"
+        )
+
+    status_text = ", ".join(f"{k}:{v}" for k, v in sorted(status_counts.items()))
+    return (
+        f"Applications: {len(rows)} recent shown; status mix [{status_text}]. "
+        f"Pending approvals: {int(pending_approvals)}.\n"
+        f"Recent pipeline items:\n" + "\n".join(recent_lines)
+    )

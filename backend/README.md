@@ -13,6 +13,26 @@ Backend services and data workflows for Doubow.
 
 ## Run locally
 
+### Database first
+
+The API needs **PostgreSQL** at **`DATABASE_URL`** (defaults include `localhost:5433` in many `.env` examples). If uvicorn exits with **connection refused** on startup, start Postgres.
+
+Paths are relative to your shell’s **current directory**:
+
+- From the **repository root** (`doubow/`):
+
+```bash
+docker compose -f backend/infra/docker-compose.yml up -d
+```
+
+- From **`backend/`** (do **not** prefix `backend/` again):
+
+```bash
+docker compose -f infra/docker-compose.yml up -d
+```
+
+Then run migrations from repo root: `make -C backend db-migrate` (or `alembic upgrade head` from `backend/api_gateway` with `DATABASE_URL` set).
+
 From repo root:
 
 ```bash
@@ -34,16 +54,20 @@ docker compose --env-file .env down
 
 ### Postgres + Redis only (no app services)
 
-Use this when you only need local databases (same port **5433** as documented in the repo-root `.env.example`):
+Use this when you only need local databases (same port **5433** as documented in the repo-root `.env.example`).
+
+From **repo root**:
 
 ```bash
 docker compose -f backend/infra/docker-compose.yml up -d
+docker compose -f backend/infra/docker-compose.yml down
 ```
 
-Stop:
+From **`backend/`**:
 
 ```bash
-docker compose -f backend/infra/docker-compose.yml down
+docker compose -f infra/docker-compose.yml up -d
+docker compose -f infra/docker-compose.yml down
 ```
 
 ## Database workflow
