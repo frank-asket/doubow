@@ -148,7 +148,7 @@ function QuestionList({ questions }: { questions: string[] }) {
 }
 
 type Tab = 'questions' | 'stories' | 'brief'
-type AssistCapability = 'checking' | 'available' | 'missing' | 'error'
+type AssistCapability = 'checking' | 'available' | 'missing' | 'error' | 'llm_missing'
 
 function PrepSessionCard({ session, assistCapability }: { session: PrepSession; assistCapability: AssistCapability }) {
   const [activeTab, setActiveTab] = useState<Tab>('questions')
@@ -284,7 +284,12 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
               <p className="text-xs font-medium text-zinc-500">STAR + Reflection method</p>
               <button
                 onClick={() => void generateStarStory()}
-                disabled={generatingStory || assistCapability === 'missing' || assistCapability === 'error'}
+                disabled={
+                  generatingStory ||
+                  assistCapability === 'missing' ||
+                  assistCapability === 'error' ||
+                  assistCapability === 'llm_missing'
+                }
                 className="btn btn-primary text-xs gap-1.5"
               >
                 {generatingStory ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
@@ -322,7 +327,12 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
               <p className="text-xs font-medium text-zinc-500">Company intelligence for your interview</p>
               <button
                 onClick={() => void generateBrief()}
-                disabled={generatingBrief || assistCapability === 'missing' || assistCapability === 'error'}
+                disabled={
+                  generatingBrief ||
+                  assistCapability === 'missing' ||
+                  assistCapability === 'error' ||
+                  assistCapability === 'llm_missing'
+                }
                 className="btn btn-primary text-xs gap-1.5"
               >
                 {generatingBrief ? <Loader2 size={12} className="animate-spin" /> : <Building2 size={12} />}
@@ -351,7 +361,12 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
       <div className="flex items-center gap-2 border-t border-zinc-100 px-4 pb-4 pt-3">
         <button
           onClick={() => void generateStarStory()}
-          disabled={generatingStory || assistCapability === 'missing' || assistCapability === 'error'}
+          disabled={
+            generatingStory ||
+            assistCapability === 'missing' ||
+            assistCapability === 'error' ||
+            assistCapability === 'llm_missing'
+          }
           className="btn text-xs gap-1.5"
         >
           <Sparkles size={12} />
@@ -359,7 +374,12 @@ function PrepSessionCard({ session, assistCapability }: { session: PrepSession; 
         </button>
         <button
           onClick={() => void generateBrief()}
-          disabled={generatingBrief || assistCapability === 'missing' || assistCapability === 'error'}
+          disabled={
+            generatingBrief ||
+            assistCapability === 'missing' ||
+            assistCapability === 'error' ||
+            assistCapability === 'llm_missing'
+          }
           className="btn text-xs gap-1.5"
         >
           <Building2 size={12} />
@@ -433,6 +453,11 @@ function ApiPrepPanel({ assistCapability }: { assistCapability: AssistCapability
           route is missing.
         </div>
       )}
+      {assistCapability === 'llm_missing' && (
+        <div className="mb-3 rounded-[10px] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          Prep assist route is available, but LLM is not configured on backend (`OPENROUTER_API_KEY` missing).
+        </div>
+      )}
       {genError && (
         <div
           role="alert"
@@ -503,7 +528,11 @@ export default function PrepPage() {
       .checkAssistCapability()
       .then((r) => {
         if (cancelled) return
-        setAssistCapability(r.available ? 'available' : 'missing')
+        if (!r.available) {
+          setAssistCapability('missing')
+          return
+        }
+        setAssistCapability(r.llmConfigured ? 'available' : 'llm_missing')
       })
       .catch(() => {
         if (cancelled) return

@@ -20,6 +20,11 @@ class PrepGenerateRequest(BaseModel):
     application_id: str
 
 
+class PrepCapabilitiesResponse(BaseModel):
+    assist_route_available: bool
+    llm_configured: bool
+
+
 class PrepSessionDetailResponse(BaseModel):
     """Prep payload aligned with frontend ``PrepSession`` (nested application)."""
 

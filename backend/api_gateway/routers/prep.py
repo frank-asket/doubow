@@ -1,15 +1,31 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
 from schemas.errors import ErrorResponse
-from schemas.prep import PrepAssistRequest, PrepAssistResponse, PrepGenerateRequest, PrepSessionDetailResponse
+from schemas.prep import (
+    PrepAssistRequest,
+    PrepAssistResponse,
+    PrepCapabilitiesResponse,
+    PrepGenerateRequest,
+    PrepSessionDetailResponse,
+)
 from services.prep_assist_service import generate_prep_assist_text
 from services.prep_service import PrepApplicationNotFoundError, generate_prep_for_application, get_prep_detail_for_user
 
 router = APIRouter(prefix="/me/prep", tags=["prep"])
+
+
+@router.get("/capabilities", response_model=PrepCapabilitiesResponse)
+async def prep_capabilities_route(user: User = Depends(get_authenticated_user)) -> PrepCapabilitiesResponse:
+    _ = user
+    return PrepCapabilitiesResponse(
+        assist_route_available=True,
+        llm_configured=bool(settings.openrouter_api_key),
+    )
 
 
 @router.get("", response_model=PrepSessionDetailResponse)
