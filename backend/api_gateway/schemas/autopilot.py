@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 AutopilotScope = Literal["all", "failed_only", "gmail_failed_only"]
 RunStatus = Literal["queued", "running", "done", "failed"]
@@ -9,7 +9,13 @@ ItemStatus = Literal["success", "failed", "skipped"]
 
 
 class AutopilotRunRequest(BaseModel):
-    scope: AutopilotScope = "all"
+    scope: AutopilotScope = Field(
+        default="all",
+        description=(
+            "`all`: up to 100 apps for the user. `failed_only` / `gmail_failed_only`: retry targets "
+            "derived from the latest completed autopilot run with item_results."
+        ),
+    )
     application_ids: list[str] | None = None
 
 

@@ -44,7 +44,6 @@ async def run_autopilot_route(
                 execute_autopilot_run_background,
                 response.run_id,
                 user.id,
-                payload.scope,
                 payload.application_ids,
             )
         return response

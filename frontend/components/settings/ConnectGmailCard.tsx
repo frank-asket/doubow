@@ -17,7 +17,11 @@ export default function ConnectGmailCard() {
     const connected = params.get('google_connected')
     const googleErr = params.get('google_error')
     if (connected === '1') {
-      setBanner({ type: 'ok', msg: 'Gmail connected. Approved drafts can send from your inbox when the API is configured.' })
+      setBanner({
+        type: 'ok',
+        msg:
+          'Google connected. After approving an email draft, Doubow can save it to your Gmail Drafts or send via Gmail—depending on server settings. If we add new Gmail permissions, use Disconnect then Connect again.',
+      })
       window.history.replaceState(null, '', window.location.pathname)
     } else if (googleErr) {
       setBanner({
@@ -83,9 +87,16 @@ export default function ConnectGmailCard() {
         </div>
         <div className="min-w-0 flex-1 space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-zinc-900">Email sending (Gmail)</h2>
+            <h2 className="text-sm font-semibold text-zinc-900">Google & Gmail</h2>
             <p className="mt-1 text-sm text-zinc-600">
-              Connect Google so approval emails can be sent via Gmail when your backend uses the Gmail API path.
+              Connect Google so Doubow can use your Gmail account after you approve drafts—typically saving to{' '}
+              <strong className="font-medium text-zinc-800">Drafts</strong> for you to edit and send from your own address,
+              or sending directly when configured on the API.
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+              If you connected before your team enabled “compose” permissions, reconnect here so Gmail can create drafts.
+              In Google Cloud Console, add the Gmail compose/send scopes your app uses to the OAuth consent screen (production
+              may require verification).
             </p>
           </div>
 
@@ -112,9 +123,14 @@ export default function ConnectGmailCard() {
             <p className="text-xs text-zinc-500">Checking connection…</p>
           ) : status?.connected ? (
             <div className="flex flex-wrap items-center gap-3">
-              <p className="text-sm text-zinc-700">
-                Connected as <span className="font-medium">{status.google_email ?? 'your Google account'}</span>
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm text-zinc-700">
+                  Connected as <span className="font-medium">{status.google_email ?? 'your Google account'}</span>
+                </p>
+                <p className="text-xs text-zinc-500">
+                  Drafts or send not working after an upgrade? Disconnect and connect again to refresh Gmail permissions.
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => void disconnect()}

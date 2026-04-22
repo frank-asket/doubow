@@ -86,12 +86,20 @@ Copy commented defaults from **`backend/.env.example`** or **`.env.example`** at
 
 ## Gmail OAuth (alternative to SMTP)
 
-Users can link a Google account so **email-channel** approvals can send via **`gmail.users.messages.send`** when stored credentials exist (`services/gmail_send_service.py`). SMTP remains the fallback.
+Users can link a Google account so **email-channel** approvals use the Gmail API (`services/gmail_send_service.py`): **`gmail.compose`** creates drafts in the user’s mailbox (default approval handoff), and **`gmail.send`** sends messages directly. SMTP remains the fallback.
 
 1. In Google Cloud Console, create an OAuth **Web** client and add redirect URI **`GOOGLE_OAUTH_REDIRECT_URI`** (must match exactly, e.g. `http://localhost:8000/v1/integrations/google/callback`).
-2. Enable the **Gmail API** for the project and use scope `https://www.googleapis.com/auth/gmail.send`.
-3. Set `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_OAUTH_STATE_SECRET`, and `GOOGLE_OAUTH_TOKEN_FERNET_KEY` (see **`backend/.env.example`**). Optional: `GOOGLE_OAUTH_FRONTEND_REDIRECT_URI` (default `http://localhost:3000/settings` after OAuth).
-4. From the app **Settings** page, **Connect Gmail** calls `GET /v1/integrations/google/authorize` and opens Google’s URL.
+2. Enable the **Gmail API** for the project. Under **OAuth consent screen**, include the scopes your backend requests (`gmail.send` and `gmail.compose`). Sensitive/restricted scopes may require verification for production users; testing mode can use trusted test users without full verification.
+3. Set `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_OAUTH_STATE_SECRET`, and `GOOGLE_OAUTH_TOKEN_FERNET_KEY` (see **`backend/.env.example`**). Optional: `GOOGLE_OAUTH_FRONTEND_REDIRECT_URI` (default `http://localhost:3000/settings` after OAuth). Optional: **`GMAIL_APPROVAL_HANDOFF`**=`draft` (save draft first) or `send` (send immediately).
+4. From the app **Settings** page, **Connect Gmail** calls `GET /v1/integrations/google/authorize` and opens Google’s URL. After changing scopes on the backend, users should **disconnect and reconnect** so Google issues a refresh token covering the new scopes.
+
+## Autopilot scopes
+
+Autopilot **`scope`** (`schemas/autopilot.py`) controls which applications get draft generation in a run:
+
+- **`all`** — up to 100 applications for the user (optionally filtered by `application_ids`).
+- **`failed_only`** — only applications that **failed** in the **latest completed** autopilot run that has `item_results` (retry failed draft generations).
+- **`gmail_failed_only`** — subset of those failures whose error text looks Gmail/OAuth-related (heuristic for send/compose issues).
 
 ## Activation KPI via PostHog
 

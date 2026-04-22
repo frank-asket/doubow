@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "NEXT_IGNORE_INCORRECT_LOCKFILE=1 WATCHPACK_POLLING=true WATCHPACK_POLLING_INTERVAL=1000 next dev",
-    "dev:clean": "rm -rf .next && npm run dev",
+    "clean": "rm -rf .next node_modules/.cache",
+    "dev:clean": "npm run clean && npm run dev",
     "build": "NEXT_IGNORE_INCORRECT_LOCKFILE=1 next build",
     "start": "next start",
     "lint": "next lint",
