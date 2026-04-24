@@ -562,6 +562,46 @@ body {
     color: #ffffff;
   }
 
+  /*
+   * Dashboard dark mode readability pass:
+   * - default copy set in gray utility classes => bold white
+   * - muted helper copy stays slightly dim for hierarchy
+   * Accent colors (teal/indigo/amber/etc.) are untouched.
+   */
+  .dark .app-route-shell :is(
+    [class*='text-zinc-'],
+    [class*='text-slate-'],
+    [class*='text-neutral-'],
+    [class*='text-gray-']
+  ) {
+    color: #ffffff !important;
+    font-weight: 700;
+  }
+
+  .dark .app-route-shell :is(
+    [class*='text-zinc-400'],
+    [class*='text-zinc-500'],
+    [class*='text-zinc-600'],
+    [class*='text-zinc-400/'],
+    [class*='text-zinc-500/'],
+    [class*='text-zinc-600/'],
+    [class*='text-slate-400'],
+    [class*='text-slate-500'],
+    [class*='text-slate-600'],
+    [class*='text-slate-400/'],
+    [class*='text-slate-500/'],
+    [class*='text-slate-600/'],
+    [class*='text-neutral-400'],
+    [class*='text-neutral-500'],
+    [class*='text-neutral-600'],
+    [class*='text-gray-400'],
+    [class*='text-gray-500'],
+    [class*='text-gray-600']
+  ) {
+    color: #cbd5e1 !important;
+    font-weight: 600;
+  }
+
   .dark .app-route-shell .card {
     border-color: #253047;
     background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
