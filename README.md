@@ -35,7 +35,8 @@ flowchart LR
   OAUTH[Channel Integrations Google OAuth LinkedIn OAuth]
   SEM[Semantic Match Service feature flagged]
   EVAL[Offline Evaluator baseline versus semantic precision]
-  AUTO[Autopilot Runs idempotency run history]
+  LG[LangGraph autopilot parity graph optional]
+  AUTO[Autopilot runs idempotency history resume API]
 
   U --> FE
   FE -->|JWT / session| CL
@@ -49,12 +50,14 @@ flowchart LR
   API --> METRICS
   API --> SENTRY
   API --> AUTO
+  AUTO --> LG
   AG --> DB
   AG --> RD
   AG --> LLM
   AG --> SEM
   AUTO --> DB
   AUTO --> RD
+  LG --> DB
   EVAL --> DB
   EVAL --> SEM
   FE --> PH
@@ -69,7 +72,8 @@ flowchart LR
 - Services persist state in Postgres, use Redis for transient/queue-friendly workflows, and emit telemetry to PostHog.
 - Semantic matching is feature-flagged and blended into scoring when enabled; offline evaluator scripts compare baseline vs semantic precision.
 - Approval handoff is channel-aware (email + LinkedIn) with explicit user approval before outbound actions.
-- Autopilot supports idempotent execution and run-history retrieval for operations visibility.
+- **Autopilot** runs as background work with idempotent keys and run history; when `USE_LANGGRAPH_AUTOPILOT` is enabled it executes through a **LangGraph** parity graph (`mark_running` → `resolve_targets` → `process_items` → `persist_*`) inside the API gateway/worker process. Optional **`USE_LANGGRAPH_AUTOPILOT_CHECKPOINT`** persists **`graph_checkpoint`** JSON in Postgres after each node so a replacement worker can resume; the UI/agents surface can call **`POST /v1/me/autopilot/runs/{run_id}/resume`** for stuck **`running`** runs when a checkpoint exists. On LangGraph failure the runner falls back to the legacy executor.
+- Structured resume parsing can use optional **LangChain** boundaries when `USE_LANGCHAIN` is enabled (see `.env.example`).
 - API exposes `/metrics` for Prometheus scraping and Sentry hooks for error observability.
 
 ### Deployment View (Local)
@@ -91,6 +95,8 @@ flowchart TB
   W --> R
 ```
 
+Workers share Postgres, Redis, and LLM access with the gateway; **autopilot** (including optional **LangGraph** parity execution and checkpoint persistence) runs in these processes when enabled—see **`backend/README.md`** (Autopilot scopes / LangGraph flags).
+
 ## 🧱 Frontend + Backend Stack
 
 ### Web App (`apps/web/`)
@@ -106,6 +112,8 @@ flowchart TB
 - SQLAlchemy + Alembic migrations
 - Postgres + Redis-friendly architecture
 - Agent/service modules for discovery, scoring, writing, apply, prep, monitor
+- Optional **LangGraph** autopilot runner (feature flags): parity graph nodes, **`graph_checkpoint`** on `autopilot_runs`, resume API for stuck runs
+- Optional **LangChain** (`langchain-core`) for structured resume analysis when `USE_LANGCHAIN` is on
 - PostHog-backed activation KPI endpoint
 
 ## 🗺️ Repo Map
@@ -177,7 +185,7 @@ docker compose -f backend/docker-compose.yml --env-file backend/.env down
 
 - Frontend: `http://localhost:3000`
 - Auth route: `http://localhost:3000/auth/sign-up`
-- API health: `http://localhost:8000/healthz`
+- API health: `http://localhost:8000/healthz` (liveness), `http://localhost:8000/ready` (readiness — Postgres + Redis status)
 - Week 1 KPI snapshot: `./.venv-test/bin/python scripts/baseline_report.py`
 - Phase 3 offline semantic precision eval:
   `./.venv-test/bin/python scripts/semantic_precision_eval.py --user-id <clerk_user_id>`
@@ -229,11 +237,13 @@ Behavior:
 - `/approvals` — human approval gate for outbound actions
 - `/prep` — role-specific interview preparation
 - `/resume` — resume upload, parse, preferences
-- `/agents` — multi-agent status + orchestration context
+- `/agents` — Assistant (chat + background activity); primary nav uses jobs-first IA with this under **Assistant** in the sidebar
+- `/billing` — subscription & billing (layout from `docs/mockup/subscription_billing`)
 
 ## 📚 Documentation
 
-- Architecture: `docs/architecture/`
+- Capstone rubric + readiness (eval notes, deployment checklist, demo script, risk register): `docs/capstone-scoring-sheet.md`, `docs/capstone-readiness.md`
+- Architecture: `docs/architecture/` (including `docs/architecture/resilience.md` — health probes, rate limits, OpenRouter circuit behavior)
 - Design system: `docs/architecture/daubo-design-system.md`
 - Product panel behavior: `docs/product-panels.md`
 - Onboarding notes: `docs/onboarding.md`

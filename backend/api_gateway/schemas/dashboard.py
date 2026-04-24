@@ -23,3 +23,17 @@ class DashboardSummaryResponse(BaseModel):
         description="Applications in pending, applied, or interview status",
     )
     total_scored_jobs: int = Field(..., description="Total job_scores rows for this user")
+    profile_views: int | None = Field(
+        default=None,
+        description=(
+            "Employer/recruiter profile impressions for this user when tracked; "
+            "omit/null until analytics populates — clients may show discover coverage instead."
+        ),
+    )
+    response_rate_pct: int | None = Field(
+        None,
+        description=(
+            "Share of submitted applications (applied+) that reached an employer-visible outcome "
+            "(interview, offer, or rejection). Null when there are no submitted applications."
+        ),
+    )

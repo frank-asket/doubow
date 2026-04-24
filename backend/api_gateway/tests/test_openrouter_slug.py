@@ -1,4 +1,15 @@
+import pytest
+
 from services.openrouter import normalize_openrouter_model_id
+
+
+@pytest.fixture(autouse=True)
+def _reset_openrouter_circuit_state():
+    from services import openrouter as openrouter_service
+
+    openrouter_service._reset_openrouter_circuit_state_for_tests()
+    yield
+    openrouter_service._reset_openrouter_circuit_state_for_tests()
 
 
 def test_preserves_provider_slash_format():

@@ -16,12 +16,15 @@ const CASES: ViewportCase[] = [
 test.describe('dashboard visual regression', () => {
   for (const item of CASES) {
     test(`dashboard shell at ${item.name}`, async ({ page }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('doubow.dashboard.onboarding.v2:anon', '1')
+      })
       await page.setViewportSize({ width: item.width, height: item.height })
       await page.goto('/dashboard')
 
       const desktopSearch = page.getByRole('textbox', { name: 'Search dashboard desktop' })
       const mobileSearch = page.getByRole('textbox', { name: 'Search dashboard mobile' })
-      const dashboardNavLink = page.getByRole('link', { name: 'Dashboard', exact: true }).first()
+      const dashboardNavLink = page.getByRole('link', { name: 'Overview', exact: true }).first()
 
       if (item.expectDesktopShell) {
         await expect(desktopSearch).toBeVisible()

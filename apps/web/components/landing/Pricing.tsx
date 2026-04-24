@@ -61,22 +61,22 @@ export function Pricing() {
   const [yearly, setYearly] = useState(false);
 
   return (
-    <section id="pricing" className="landing-section-y landing-surface border-b border-zinc-800/80">
+    <section id="pricing" className="py-[80px] bg-[#f7f9fb] border-b border-[#c6c6cd]/40">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <h2 className="landing-heading max-w-xl text-balance">
+          <h2 className="font-display max-w-xl text-balance text-[36px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#000000]">
             Choose your plan. Start today.
           </h2>
-          <p className="landing-lede max-w-md lg:text-right">
+          <p className="max-w-md text-[16px] leading-[1.5] text-[#45464d] lg:text-right">
             Free to explore; Pro unlocks tailored resume exports and applying
             through your own email with full approval control.
           </p>
         </div>
 
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <div className="relative inline-flex rounded-full border border-zinc-700 bg-zinc-900 p-1 shadow-sm shadow-zinc-950/20">
+          <div className="relative inline-flex rounded-full border border-[#c6c6cd] bg-white p-1 shadow-sm">
             <span
-              className={`absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-full bg-zinc-100 transition-all duration-200 ${
+              className={`absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-full bg-[#006a61] transition-all duration-200 ${
                 yearly ? "left-[calc(50%+2px)]" : "left-1"
               }`}
               aria-hidden
@@ -84,8 +84,8 @@ export function Pricing() {
             <button
               type="button"
               onClick={() => setYearly(false)}
-              className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ${
-                !yearly ? "text-zinc-950" : "text-zinc-400"
+              className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2 ${
+                !yearly ? "text-white" : "text-[#45464d]"
               }`}
             >
               Monthly
@@ -93,23 +93,23 @@ export function Pricing() {
             <button
               type="button"
               onClick={() => setYearly(true)}
-              className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ${
-                yearly ? "text-zinc-950" : "text-zinc-400"
+              className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2 ${
+                yearly ? "text-white" : "text-[#45464d]"
               }`}
             >
               Yearly
-              <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-300 ring-1 ring-zinc-700">
+              <span className="rounded-full bg-[#131b2e] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#86f2e4]">
                 20% OFF
               </span>
             </button>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-sm text-zinc-400">
+        <p className="mt-8 text-center text-sm text-[#45464d]">
           Ready to subscribe? Open{" "}
           <a
             href="/auth/sign-up"
-            className="rounded font-semibold text-zinc-100 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-2"
+            className="rounded font-semibold text-[#006a61] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2"
           >
             Doubow plans &amp; billing
           </a>{" "}
@@ -122,29 +122,29 @@ export function Pricing() {
               key={tier.name}
               className={`relative flex flex-col overflow-hidden rounded-2xl border p-6 sm:p-7 ${
                 tier.featured
-                  ? "border-zinc-600 bg-zinc-950 shadow-md shadow-zinc-950/40 ring-1 ring-zinc-700"
-                  : "border-zinc-800 bg-zinc-950 shadow-sm shadow-zinc-950/30"
+                  ? "border-[#006a61] bg-white shadow-md ring-1 ring-[#86f2e4]"
+                  : "border-[#c6c6cd] bg-white shadow-sm"
               }`}
             >
               {tier.featured ? (
-                <span className="absolute right-4 top-4 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-bold uppercase text-zinc-950">
+                <span className="absolute right-4 top-4 rounded-full bg-[#006a61] px-2.5 py-0.5 text-[10px] font-bold uppercase text-white">
                   Popular
                 </span>
               ) : null}
-              <h3 className="text-base font-bold text-zinc-100 sm:text-lg">{tier.name}</h3>
+              <h3 className="text-base font-bold text-[#191c1e] sm:text-lg">{tier.name}</h3>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-semibold tabular-nums text-zinc-100 sm:text-4xl">
+                <span className="text-3xl font-semibold tabular-nums text-[#191c1e] sm:text-4xl">
                   {yearly ? tier.yearly : tier.monthly}
                 </span>
-                <span className="text-sm text-zinc-500">/month</span>
+                <span className="text-sm text-[#45464d]">/month</span>
               </div>
-              <p className="mt-3 text-sm text-zinc-400">{tier.blurb}</p>
+              <p className="mt-3 text-sm text-[#45464d]">{tier.blurb}</p>
               <a
                 href={tier.name === "Free" ? "/auth/sign-up" : "/discover"}
                 className={`mt-8 inline-flex h-11 justify-center rounded-full px-5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                   tier.featured
-                    ? "border border-zinc-100 bg-zinc-100 text-zinc-950 shadow-md shadow-zinc-950/30 hover:border-white hover:bg-white focus-visible:ring-zinc-300 focus-visible:ring-offset-zinc-950"
-                    : "border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-sm hover:border-zinc-600 hover:bg-zinc-800 focus-visible:ring-zinc-500 focus-visible:ring-offset-zinc-950"
+                    ? "border border-[#006a61] bg-[#006a61] text-white shadow-sm hover:bg-[#005049] focus-visible:ring-[#006a61]/30"
+                    : "border border-[#c6c6cd] bg-white text-[#191c1e] shadow-sm hover:bg-[#f2f4f6] focus-visible:ring-[#006a61]/20"
                 }`}
               >
                 {tier.name === "Free" ? "Create account" : "Subscribe"}
@@ -152,19 +152,19 @@ export function Pricing() {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center" aria-hidden>
-                  <div className="w-full border-t border-zinc-800" />
+                  <div className="w-full border-t border-[#c6c6cd]" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-zinc-950 px-3 text-xs font-medium text-zinc-500">
+                  <span className="bg-white px-3 text-xs font-medium text-[#45464d]">
                     {tier.includedLabel}
                   </span>
                 </div>
               </div>
 
-              <ul className="space-y-3 text-sm text-zinc-400">
+              <ul className="space-y-3 text-sm text-[#45464d]">
                 {tier.features.map((f) => (
                   <li key={f} className="flex gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-zinc-300" strokeWidth={1.75} />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#006a61]" strokeWidth={1.75} />
                     {f}
                   </li>
                 ))}

@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -23,6 +24,7 @@ from routers import (
     resume,
     telemetry,
     users,
+    webhooks,
 )
 from services.observability import setup_observability
 from services.metrics import metrics_middleware, metrics_response
@@ -57,8 +59,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     # Keep local multi-port frontend workflows working (3000/3001/3100/etc),
-    # even if CORS_ORIGINS env parsing/drift misses a local origin.
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    # including common container/dev hosts, even if CORS_ORIGINS drifts.
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|host\.docker\.internal)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,12 +68,25 @@ app.add_middleware(
 
 
 @app.get("/healthz", tags=["system"])
-async def healthcheck() -> dict[str, str]:
+@limiter.exempt
+async def healthcheck(_request: Request) -> dict[str, str]:
+    """Liveness: process is up (no dependency checks — safe for frequent kube/docker probes)."""
     return {"status": "ok"}
 
 
+@app.get("/ready", tags=["system"])
+@limiter.exempt
+async def readiness(_request: Request) -> JSONResponse:
+    """Readiness: Postgres required; Redis reported as ok or degraded (cache/Celery optional)."""
+    from services.health_checks import gather_readiness
+
+    body, status_code = await gather_readiness()
+    return JSONResponse(content=body, status_code=status_code)
+
+
 @app.get("/metrics", tags=["system"])
-async def metrics():
+@limiter.exempt
+async def metrics(_request: Request):
     return metrics_response()
 
 
@@ -88,3 +103,4 @@ app.include_router(approvals.router, prefix=API_PREFIX)
 app.include_router(prep.router, prefix=API_PREFIX)
 app.include_router(agents.router, prefix=API_PREFIX)
 app.include_router(telemetry.router, prefix=API_PREFIX)
+app.include_router(webhooks.router, prefix=API_PREFIX)

@@ -6,12 +6,14 @@ pydantic-settings
 sqlalchemy
 greenlet
 asyncpg
+psycopg2-binary
 alembic
 celery
 PyJWT[crypto]
 pypdf
 python-docx
 langchain-core
+langgraph
 cryptography
 google-auth
 google-auth-oauthlib

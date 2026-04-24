@@ -7,7 +7,7 @@ import type {
   ActivationKPI,
 } from '@doubow/shared'
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? '/api'
 let authTokenGetter: (() => Promise<string | null>) | null = null
 
 export class ApiError extends Error {
@@ -143,6 +143,12 @@ export const autopilotApi = {
     request<AutopilotRun>(`/v1/me/autopilot/runs/${runId}`),
   listRuns: (limit: number = 20) =>
     request<AutopilotRun[]>(`/v1/me/autopilot/runs?limit=${Math.max(1, Math.min(100, limit))}`),
+  /** Re-enqueue a stuck ``running`` run that has a LangGraph checkpoint (after worker loss). */
+  resumeRun: (runId: string) =>
+    request<{ run_id: string; enqueued: boolean; detail?: string | null }>(
+      `/v1/me/autopilot/runs/${encodeURIComponent(runId)}/resume`,
+      { method: 'POST' },
+    ),
 }
 
 // ─── Approvals ─────────────────────────────────────────────────────────────
@@ -278,6 +284,50 @@ export const agentsApi = {
   status: () => request<AgentState[]>('/v1/agents/status'),
 }
 
+export type ChatThreadSummary = {
+  id: string
+  title: string
+  updated_at: string
+  created_at: string
+}
+
+export type ChatThreadMessage = {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  created_at: string
+}
+
+export type ChatThreadDetail = {
+  thread: ChatThreadSummary
+  messages: ChatThreadMessage[]
+  has_more_messages?: boolean
+}
+
+export type ChatThreadListResult = {
+  threads: ChatThreadSummary[]
+  has_more: boolean
+}
+
+export const agentChatApi = {
+  listThreads: (limit: number = 20, offset: number = 0) =>
+    request<ChatThreadListResult>(
+      `/v1/agents/chat/threads?limit=${Math.max(1, Math.min(100, limit))}&offset=${Math.max(0, offset)}`,
+    ),
+  getThread: (
+    threadId: string,
+    opts?: { limit?: number; beforeMessageId?: string },
+  ) => {
+    const q = new URLSearchParams()
+    if (opts?.limit) q.set('limit', String(opts.limit))
+    if (opts?.beforeMessageId) q.set('before_message_id', opts.beforeMessageId)
+    const qs = q.toString()
+    return request<ChatThreadDetail>(
+      `/v1/agents/chat/threads/${encodeURIComponent(threadId)}${qs ? `?${qs}` : ''}`,
+    )
+  },
+}
+
 // ─── SSE streams ───────────────────────────────────────────────────────────
 
 /** SSE with Clerk Bearer token — native EventSource cannot set Authorization headers. */
@@ -337,6 +387,7 @@ export function streamAgentStatus(
 export function streamOrchestratorChat(
   message: string,
   onChunk: (text: string) => void,
+  options?: { threadId?: string | null; onMeta?: (meta: { thread_id?: string }) => void },
   onDone?: () => void,
   onError?: (err: string) => void,
 ): () => void {
@@ -351,7 +402,7 @@ export function streamOrchestratorChat(
     return fetch(`${BASE}/v1/agents/chat`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, thread_id: options?.threadId ?? null }),
       credentials: 'include',
       signal: controller.signal,
     })
@@ -386,6 +437,10 @@ export function streamOrchestratorChat(
         if (data === '[DONE]') { onDone?.(); return }
         try {
           const parsed = JSON.parse(data)
+          if (parsed.meta && typeof parsed.meta === 'object') {
+            options?.onMeta?.(parsed.meta as { thread_id?: string })
+            continue
+          }
           if (parsed.delta?.text) onChunk(parsed.delta.text)
         } catch {}
       }

@@ -3,6 +3,7 @@ node_modules/
 
 # Python
 .venv/
+.venv-*/
 venv/
 __pycache__/
 *.py[cod]
@@ -11,6 +12,7 @@ __pycache__/
 # Next.js / web build
 apps/web/.next/
 apps/web/out/
+*.tsbuildinfo
 
 # Env and secrets (local) — any path
 **/.env
@@ -37,3 +39,11 @@ apps/web/playwright-report/
 apps/web/test-results/
 test-results/
 playwright-report/
+
+# Coverage / logs
+coverage/
+.coverage
+htmlcov/
+*.log
+npm-debug.log*
+pnpm-debug.log*

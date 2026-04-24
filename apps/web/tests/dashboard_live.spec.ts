@@ -17,8 +17,8 @@ test.describe('dashboard routes live backend', () => {
     await expect(page.getByRole('heading', { name: 'Pending approvals', exact: true })).toBeVisible()
   })
 
-  test('agents page renders with live backend', async ({ page }) => {
-    await page.goto('/agents')
-    await expect(page.getByRole('heading', { name: 'Agent status', exact: true })).toBeVisible()
+  test('assistant page renders with live backend', async ({ page }) => {
+    await page.goto('/messages')
+    await expect(page.getByRole('heading', { name: 'Doubow Assistant', exact: true })).toBeVisible()
   })
 })

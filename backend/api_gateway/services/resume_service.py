@@ -18,6 +18,7 @@ from schemas.resume import (
 )
 from services.langchain_resume_analysis import LangChainUnavailableError
 from services.langchain_resume_analysis import analyze_resume_with_langchain
+from services.llm_prompts import resume_profile_analysis_system
 from services.openrouter import chat_completion
 from services.resume_parser import parse_resume
 
@@ -294,11 +295,7 @@ def build_profile_analysis(profile: ParsedProfileModel, prefs: UserPreferencesMo
 
 
 def _openrouter_analysis_prompt(parsed: ParsedProfileModel, prefs: UserPreferencesModel) -> tuple[str, str]:
-    system = (
-        "You are a concise career coach. Given structured résumé data and job-search preferences, "
-        "write a short profile analysis: strengths, gaps, fit for the stated target role/location, "
-        "and 3–5 concrete next steps. Use plain text with short paragraphs or bullet lines; no markdown headings."
-    )
+    system = resume_profile_analysis_system()
     user = (
         f"Parsed profile:\n{parsed.model_dump_json(indent=2)}\n\n"
         f"Preferences:\n{prefs.model_dump_json(indent=2)}"

@@ -8,6 +8,7 @@ const isProtectedRoute = createRouteMatcher([
   '/approvals(.*)',
   '/prep(.*)',
   '/resume(.*)',
+  '/messages(.*)',
   '/agents(.*)',
   '/settings(.*)',
   '/notifications(.*)',
@@ -21,9 +22,8 @@ const isAuthEntryRoute = createRouteMatcher([
 ])
 
 /**
- * Auth only: guests → sign-in for app routes; signed-in users skip marketing `/`.
- * Subscription / plan limits belong on the API (see backend), not middleware redirects —
- * redirecting unpaid users back to `/dashboard` blocked every sidebar route for normal accounts.
+ * Auth only: guests -> sign-in for app routes; signed-in users skip marketing `/`.
+ * Subscription / plan limits belong on the API (see backend), not proxy redirects.
  */
 function isNextOrStaticAsset(pathname: string): boolean {
   if (pathname.startsWith('/_next')) return true
@@ -34,8 +34,7 @@ function isNextOrStaticAsset(pathname: string): boolean {
 }
 
 export default clerkMiddleware(async (auth, req) => {
-  // Defense-in-depth: never run auth on Next internals or static assets. If middleware
-  // touches these, chunk/CSS requests can 404 and client navigation (sidebar links) breaks.
+  // Defense-in-depth: never run auth on Next internals or static assets.
   if (isNextOrStaticAsset(req.nextUrl.pathname)) return
 
   if (process.env.E2E_BYPASS_AUTH === '1') return
@@ -63,7 +62,7 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Never run auth on Next.js internals — otherwise chunks/CSS can redirect or 404 (unstyled dashboard).
+    // Never run auth on Next.js internals.
     '/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 }

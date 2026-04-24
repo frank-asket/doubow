@@ -15,6 +15,7 @@ from models.job import Job
 from models.job_score import JobScore as JobScoreRow
 from schemas.approvals import Approval as ApprovalSchema
 from services.approvals_service import build_approval_schema
+from services.llm_prompts import draft_email_system, draft_linkedin_system
 from services.openrouter import chat_completion
 
 
@@ -48,10 +49,7 @@ def _fallback_draft(job: Job, channel: str) -> tuple[str, str | None]:
 async def _llm_draft(job: Job, channel: str) -> tuple[str, str | None]:
     desc = (job.description or "").strip()
     desc = desc[:6000]
-    sys_msg = (
-        "You write concise, professional outbound messages for job applications. "
-        "Follow the user's channel constraints exactly."
-    )
+    sys_msg = draft_linkedin_system() if channel == "linkedin" else draft_email_system()
     if channel == "linkedin":
         user_msg = (
             f"Write a short LinkedIn outreach note (under 1200 characters, no subject line).\n"

@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from config import settings
 from models.job import Job
+from services.llm_prompts import prep_json_only_system
 from services.openrouter import chat_completion
 
 logger = logging.getLogger(__name__)
@@ -68,9 +69,7 @@ def _fallback_prep(job: Job) -> PrepStructured:
 
 async def generate_prep_structured(job: Job) -> PrepStructured:
     posting = (job.description or "").strip()[:8000]
-    sys_msg = (
-        "You help candidates prepare for interviews. Reply with ONLY valid JSON matching the schema, no prose."
-    )
+    sys_msg = prep_json_only_system()
     user_msg = (
         "Produce interview prep as JSON with keys: questions (array of 5 strings), "
         "star_stories (array of up to 2 objects with keys situation, task, action, result, reflection, tags), "

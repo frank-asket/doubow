@@ -1,4 +1,6 @@
 from models.application import Application
+from models.chat_message import ChatMessage
+from models.chat_thread import ChatThread
 from models.approval import Approval
 from models.autopilot_run import AutopilotRun
 from models.google_oauth_credential import GoogleOAuthCredential
@@ -18,6 +20,8 @@ __all__ = [
     "JobScore",
     "JobDismissal",
     "Application",
+    "ChatThread",
+    "ChatMessage",
     "Approval",
     "AutopilotRun",
     "PrepSession",

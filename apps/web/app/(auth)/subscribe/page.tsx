@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+import { redirect } from 'next/navigation'
+import type { Route } from 'next'
 
-export default function LegacySubscribeRedirect() {
-  redirect("/auth/sign-in");
+/** Legacy URL from marketing — subscription UI lives under the dashboard. */
+export default function SubscribeRedirect() {
+  redirect('/billing' as Route)
 }

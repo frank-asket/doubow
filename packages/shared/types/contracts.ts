@@ -20,6 +20,13 @@ export interface DashboardSummary {
   avg_fit_score: number | null
   applied_awaiting_reply: number
   total_scored_jobs: number
+  /**
+   * Recruiter/employer profile impressions when tracked.
+   * `null`/`undefined` = not wired yet — UI may show discover coverage instead.
+   */
+  profile_views?: number | null
+  /** 0–100: submitted applications that reached interview, offer, or rejection; null if none submitted */
+  response_rate_pct: number | null
 }
 
 export interface UserPreferences {
@@ -200,6 +207,12 @@ export interface AutopilotRun {
   replayed_at?: string | null
   fresh_run?: boolean
   item_results?: AutopilotRunItem[]
+  /** Present when status is failed (LangGraph / runner structured failure). */
+  failure_code?: string | null
+  failure_detail?: string | null
+  failure_node?: string | null
+  /** When true, UI may offer resume after a stuck worker (see POST …/autopilot/runs/{id}/resume). */
+  resumable?: boolean
   started_at?: string
   completed_at?: string
 }

@@ -67,6 +67,17 @@ class Settings(BaseSettings):
     use_langchain: bool = False
     # Feature flag: blend semantic resume/job similarity into fit scoring.
     use_semantic_matching: bool = False
+    # Feature flag: run autopilot executor through LangGraph wrapper (parity mode).
+    use_langgraph_autopilot: bool = False
+    # Feature flag: log per-node LangGraph autopilot trace events (debug only).
+    use_langgraph_autopilot_trace: bool = False
+    # Max retries for retryable LangGraph autopilot node failures.
+    use_langgraph_autopilot_max_retries: int = 2
+    # Persist per-node graph state to autopilot_runs.graph_checkpoint for resume after worker loss.
+    use_langgraph_autopilot_checkpoint: bool = True
+    # Orchestrator chat: recent transcript bounds (tail of thread for LLM context).
+    orchestrator_chat_transcript_max_messages: int = 24
+    orchestrator_chat_transcript_max_chars: int = 12000
     # Blend weight for semantic score in final fit score. 0.0 disables impact.
     semantic_matching_weight: float = 0.25
     # Jobs list cache TTL (seconds). Default: 6 hours.
@@ -104,6 +115,9 @@ class Settings(BaseSettings):
     linkedin_oauth_redirect_uri: str | None = None
     linkedin_oauth_frontend_redirect_uri: str = "http://localhost:3000/settings"
     linkedin_oauth_state_secret: str | None = None
+
+    # Optional shared secret for POST /v1/webhooks/profile-impression (ATS / analytics workers).
+    profile_impression_webhook_secret: str | None = None
 
     # Portal scanner safety: deny localhost/private targets by default.
     portal_scanner_allow_private_ips: bool = False

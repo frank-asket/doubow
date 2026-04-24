@@ -92,6 +92,18 @@ make -C backend db-sync
 cd backend/api_gateway && PYTHONPATH=. python -m pytest tests/ -q
 ```
 
+Focused autopilot parity check (legacy vs LangGraph item_results):
+
+```bash
+make -C backend api-test-autopilot-parity
+```
+
+Full autopilot suite (service, scopes, graph control-flow, execution/parity):
+
+```bash
+make -C backend api-test-autopilot
+```
+
 ## OpenRouter model matrix
 
 AI features are routed through OpenRouter with per-surface model settings. Configure in `backend/.env` (or repo-root `.env` when running uvicorn directly).
@@ -178,6 +190,15 @@ Autopilot **`scope`** (`schemas/autopilot.py`) controls which applications get d
 - **`all`** — up to 100 applications for the user (optionally filtered by `application_ids`).
 - **`failed_only`** — only applications that **failed** in the **latest completed** autopilot run that has `item_results` (retry failed draft generations).
 - **`gmail_failed_only`** — subset of those failures whose error text looks Gmail/OAuth-related (heuristic for send/compose issues).
+
+LangGraph flags for autopilot execution:
+- `USE_LANGGRAPH_AUTOPILOT=true` routes background autopilot execution through explicit LangGraph nodes.
+- `USE_LANGGRAPH_AUTOPILOT_TRACE=true` emits node lifecycle trace logs (`start`/`end`/`error`) for debugging.
+- `USE_LANGGRAPH_AUTOPILOT_MAX_RETRIES=2` sets retry budget for retryable node failures before persisting run failure.
+- `USE_LANGGRAPH_AUTOPILOT_CHECKPOINT=true` (default) writes `graph_checkpoint` JSON after each successful node so a subsequent worker invocation can resume via `resume_entry_node` routing.
+- `ORCHESTRATOR_CHAT_TRANSCRIPT_MAX_MESSAGES` / `ORCHESTRATOR_CHAT_TRANSCRIPT_MAX_CHARS` bound the tail of thread history sent to the orchestrator LLM.
+
+When a checkpointed LangGraph run is stuck in **`running`** after a worker crash, **`POST /v1/me/autopilot/runs/{run_id}/resume`** (authenticated) re-enqueues execution. Requires a stored checkpoint when LangGraph checkpointing is enabled.
 
 ## Activation KPI via PostHog
 

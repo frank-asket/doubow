@@ -1,0 +1,37 @@
+# Example Prometheus alert rules for Doubow API gateway.
+# Copy into your Prometheus config and adjust metric names/labels to match your scrape setup.
+# Histograms from services/metrics.py typically expose _bucket / _sum / _count suffixes.
+
+groups:
+  - name: doubow-api
+    rules:
+      - alert: DoubowAPIDown
+        expr: up{job="doubow-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Doubow API target is down"
+          description: "Prometheus cannot scrape the API for 2m. Check pods/processes and load balancer."
+
+      - alert: DoubowHigh5xxRate
+        expr: |
+          sum(rate(http_requests_total{job="doubow-api",status=~"5.."}[5m]))
+            /
+          sum(rate(http_requests_total{job="doubow-api"}[5m])) > 0.01
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Elevated 5xx rate on Doubow API"
+          description: "More than 1% of HTTP responses are 5xx over 10m. Replace metric names with your ingress/app labels."
+
+      - alert: DoubowLLMErrorBurst
+        expr: |
+          sum(rate(doubow_llm_calls_total{status="error"}[10m])) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "OpenRouter / LLM errors elevated"
+          description: "Metric `doubow_llm_calls_total` from services/metrics.py; verify labels at GET /metrics."

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 from schemas.resume import ParsedProfileModel, UserPreferencesModel
+from services.llm_prompts import langchain_resume_json_system
 from services.openrouter import chat_completion
 
 
@@ -42,7 +43,7 @@ async def analyze_resume_with_langchain(parsed: ParsedProfileModel, prefs: UserP
         [
             (
                 "system",
-                "You are a concise career coach. Return only valid JSON matching the schema.",
+                langchain_resume_json_system(),
             ),
             (
                 "human",

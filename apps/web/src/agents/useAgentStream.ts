@@ -46,6 +46,7 @@ export function useOrchestratorChat() {
         acc += chunk
         setMessages((m) => [...m.slice(0, -1), { role: 'ai', text: acc }])
       },
+      undefined,
       () => setStreaming(false),
       (error) => {
         setMessages((m) => [...m.slice(0, -1), { role: 'ai', text: `Error: ${error}` }])

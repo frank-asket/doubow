@@ -1,24 +1,25 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { Send, Bot, User, Loader2, RefreshCw, Zap } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Send, Bot, User, Loader2, RefreshCw, Zap, AlertTriangle, RotateCcw } from 'lucide-react'
 import useSWR from 'swr'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
+import { candidatePageShell } from '../../lib/candidateUi'
 import { cn } from '../../lib/utils'
-import { autopilotApi } from '../../lib/api'
+import { autopilotApi, ApiError } from '../../lib/api'
 import { useAgentStream, useOrchestratorChat } from './useAgentStream'
 import { useAgentStore } from './agentStore'
 import type { AgentState, AutopilotRun } from '@doubow/shared'
 
 const AGENT_META: Record<string, { icon: string; color: string }> = {
-  discovery: { icon: '🔍', color: 'border border-indigo-100 bg-indigo-50 text-indigo-900' },
+  discovery: { icon: '🔍', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
   scorer: { icon: '◆', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
-  tailor: { icon: '✂', color: 'border border-indigo-100 bg-indigo-50 text-indigo-900' },
+  tailor: { icon: '✂', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
   writer: { icon: '✏', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
   apply: { icon: '📤', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
-  prep: { icon: '🎯', color: 'border border-indigo-100 bg-indigo-50 text-indigo-900' },
+  prep: { icon: '🎯', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
   monitor: { icon: '⚙', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
-  orchestrator: { icon: '⊕', color: 'border border-indigo-100 bg-indigo-50 text-indigo-900' },
+  orchestrator: { icon: '⊕', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
 }
 
 const SUGGESTED_PROMPTS = [
@@ -33,7 +34,7 @@ function StatusDot({ status }: { status: AgentState['status'] }) {
     <span
       className={cn(
         'h-2 w-2 flex-shrink-0 rounded-full',
-        status === 'running' && 'animate-pulse bg-indigo-400',
+        status === 'running' && 'animate-pulse bg-teal-400',
         status === 'active' && 'bg-emerald-500',
         status === 'idle' && 'bg-zinc-300',
         status === 'error' && 'bg-rose-500',
@@ -62,7 +63,7 @@ function AgentCard({ agent }: { agent: AgentState }) {
         {agent.status === 'running' && agent.progress !== undefined && (
           <div className="mt-2 h-0.5 overflow-hidden rounded-full bg-zinc-200">
             <div
-              className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+              className="h-full rounded-full bg-teal-500 transition-all duration-500"
               style={{ width: `${Math.round(agent.progress * 100)}%` }}
             />
           </div>
@@ -83,14 +84,14 @@ function ChatMessage({ role, text }: { role: 'user' | 'ai'; text: string }) {
     <div className={cn('flex items-start gap-2.5', role === 'user' && 'flex-row-reverse')}>
       <div className={cn(
         'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
-        role === 'ai' ? 'border border-indigo-100 bg-indigo-50 text-indigo-800' : 'bg-zinc-200 text-zinc-900'
+        role === 'ai' ? 'border border-teal-100 bg-teal-50 text-teal-900' : 'bg-zinc-200 text-zinc-900'
       )}>
         {role === 'ai' ? <Bot size={12} /> : <User size={12} />}
       </div>
       <div className={cn(
         'max-w-[80%] px-3 py-2 rounded-lg text-xs leading-relaxed',
         role === 'ai'
-          ? 'border border-[#e7e8ee] bg-white text-zinc-800 shadow-sm'
+          ? 'border border-[#e7e8ee] bg-white dark:bg-slate-900 text-zinc-800 shadow-sm'
           : 'border border-[#e7e8ee] bg-zinc-50 text-zinc-900'
       )}>
         {text || <span className="animate-pulse opacity-60">●●●</span>}
@@ -102,6 +103,9 @@ function ChatMessage({ role, text }: { role: 'user' | 'ai'; text: string }) {
 export default function AgentsPage() {
   const agents = useAgentStore((s) => s.agents)
   useAgentStream()
+
+  const [resumeBusyRunId, setResumeBusyRunId] = useState<string | null>(null)
+  const [resumeNotice, setResumeNotice] = useState<{ tone: 'ok' | 'err'; text: string } | null>(null)
 
   const { messages, streaming, send } = useOrchestratorChat()
   const [input, setInput] = useState('')
@@ -123,6 +127,27 @@ export default function AgentsPage() {
     autopilotApi.listRuns(20)
   )
 
+  const handleResumeRun = useCallback(
+    async (runId: string) => {
+      setResumeNotice(null)
+      setResumeBusyRunId(runId)
+      try {
+        await autopilotApi.resumeRun(runId)
+        setResumeNotice({
+          tone: 'ok',
+          text: 'Resume queued. Execution continues in the background.',
+        })
+        await refreshRunHistory()
+      } catch (err) {
+        const msg = err instanceof ApiError ? err.detail : 'Could not resume this run.'
+        setResumeNotice({ tone: 'err', text: msg })
+      } finally {
+        setResumeBusyRunId(null)
+      }
+    },
+    [refreshRunHistory],
+  )
+
   // Fallback agents for display if SSE not yet connected
   const displayAgents: AgentState[] = agents.length > 0 ? agents : [
     { name: 'discovery', label: 'Discovery agent', description: 'Scans 45+ portals — Ashby, Greenhouse, Lever, Wellfound', status: 'active' },
@@ -136,23 +161,25 @@ export default function AgentsPage() {
   ]
 
   return (
-    <div className="space-y-5 p-5 sm:p-7">
+    <div className={candidatePageShell}>
       <DashboardPageHeader
-        kicker="Agents"
-        title="Agent status"
-        description="Multi-agent orchestration layer"
+        kicker="Assistant"
+        title="Ask Doubow"
+        description="Chat about your search and pipeline — plus what’s running in the background."
         actions={
           <>
-            <div className="flex items-center gap-1.5 rounded-[10px] border border-indigo-100 bg-indigo-50 px-2.5 py-1.5">
-              <Zap size={12} className="text-indigo-700" />
-              <span className="text-xs font-medium text-indigo-900">{activeCount} agents active</span>
+            <div className="flex items-center gap-1.5 rounded-[10px] border border-teal-100 bg-teal-50 px-2.5 py-1.5">
+              <Zap size={12} className="text-teal-800" />
+              <span className="text-xs font-medium text-teal-900">
+                {activeCount > 0 ? `${activeCount} task${activeCount === 1 ? '' : 's'} running` : 'Ready'}
+              </span>
             </div>
             <button
               type="button"
               onClick={() => {
                 void refreshRunHistory()
               }}
-              className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#e4e5ec] bg-white px-3 py-2 text-[14px] font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+              className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#e4e5ec] bg-white dark:bg-slate-900 px-3 py-2 text-[14px] font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
             >
               <RefreshCw size={13} />
               Refresh
@@ -164,7 +191,7 @@ export default function AgentsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Agent grid */}
         <div>
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Agent roster</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Background activity</p>
           <div className="space-y-2">
             {displayAgents.map((agent) => (
               <AgentCard key={agent.name} agent={agent} />
@@ -174,14 +201,14 @@ export default function AgentsPage() {
 
         {/* Orchestrator chat */}
         <div className="flex flex-col">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Orchestrator chat</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Chat</p>
           <div className="card flex flex-col flex-1 min-h-[520px]">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 py-8">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-indigo-100 bg-indigo-50">
-                    <Bot size={18} className="text-indigo-700" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-teal-100 bg-teal-50">
+                    <Bot size={18} className="text-teal-800" />
                   </div>
                   <p className="text-center text-xs text-zinc-500">Ask me anything about your pipeline</p>
                   <div className="grid grid-cols-1 gap-2 w-full">
@@ -189,7 +216,7 @@ export default function AgentsPage() {
                       <button
                         key={p}
                         onClick={() => send(p)}
-                        className="rounded-[10px] border border-[#e7e8ee] bg-white px-3 py-2 text-left text-xs text-zinc-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50"
+                        className="rounded-[10px] border border-[#e7e8ee] bg-white dark:bg-slate-900 px-3 py-2 text-left text-xs text-zinc-700 shadow-sm transition-colors hover:border-teal-200 hover:bg-teal-50"
                       >
                         {p}
                       </button>
@@ -211,7 +238,7 @@ export default function AgentsPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                  placeholder="Ask the orchestrator…"
+                  placeholder="Ask anything about your job search…"
                   className="field text-xs py-2 flex-1"
                   disabled={streaming}
                 />
@@ -232,46 +259,121 @@ export default function AgentsPage() {
       </div>
 
       <div>
-        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Run history</p>
+        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Automation history</p>
+        {resumeNotice ? (
+          <div
+            className={cn(
+              'mb-3 rounded-[10px] border px-3 py-2 text-xs',
+              resumeNotice.tone === 'ok'
+                ? 'border-teal-200 bg-teal-50 text-teal-900'
+                : 'border-rose-200 bg-rose-50 text-rose-900',
+            )}
+          >
+            {resumeNotice.text}
+          </div>
+        ) : null}
         <div className="card overflow-hidden">
           {!runHistory || runHistory.length === 0 ? (
             <div className="p-4 text-xs text-zinc-500">No runs yet.</div>
           ) : (
             <div className="divide-y divide-zinc-100">
-              {runHistory.map((run: AutopilotRun) => (
-                <div key={run.run_id} className="grid grid-cols-1 gap-2 p-3 text-xs sm:grid-cols-[1.5fr_0.9fr_0.8fr_1fr] sm:items-center">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-zinc-800">{run.run_id}</p>
-                    <p className="mt-0.5 text-zinc-500">
-                      {run.fresh_run === false ? 'Replay' : 'Fresh run'} · scope {run.scope}
-                    </p>
+              {runHistory.map((run: AutopilotRun) => {
+                const failureMeta =
+                  run.failure_code || run.failure_detail || run.failure_node
+                return (
+                  <div key={run.run_id}>
+                    <div className="grid grid-cols-1 gap-2 p-3 text-xs sm:grid-cols-[1.5fr_0.9fr_0.8fr_1fr] sm:items-center">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-zinc-800">{run.run_id}</p>
+                        <p className="mt-0.5 text-zinc-500">
+                          {run.fresh_run === false ? 'Replay' : 'Fresh run'} · scope {run.scope}
+                        </p>
+                        {run.status === 'running' && run.resumable !== false ? (
+                          <div className="mt-2">
+                            <button
+                              type="button"
+                              title="Re-enqueue if the worker stopped after saving a checkpoint (e.g. deploy or crash)."
+                              onClick={() => void handleResumeRun(run.run_id)}
+                              disabled={resumeBusyRunId === run.run_id}
+                              className="inline-flex items-center gap-1.5 rounded-[8px] border border-teal-200 bg-teal-50 px-2.5 py-1 text-2xs font-semibold uppercase tracking-wide text-teal-900 shadow-sm transition-colors hover:bg-teal-100 disabled:opacity-50"
+                            >
+                              {resumeBusyRunId === run.run_id ? (
+                                <Loader2 size={12} className="animate-spin" aria-hidden />
+                              ) : (
+                                <RotateCcw size={12} aria-hidden />
+                              )}
+                              Resume run
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                      <div>
+                        <span
+                          className={cn(
+                            'badge text-2xs',
+                            run.status === 'done'
+                              ? 'badge-applied'
+                              : run.status === 'failed'
+                              ? 'badge-rejected'
+                              : run.status === 'running'
+                              ? 'badge-pending'
+                              : 'badge-saved'
+                          )}
+                        >
+                          {run.status}
+                        </span>
+                      </div>
+                      <div className="tabular-nums text-zinc-500">
+                        {run.item_results?.length ?? 0} items
+                      </div>
+                      <div className="text-zinc-500">
+                        {(run.replayed_at ?? run.completed_at ?? run.started_at)
+                          ? new Date(run.replayed_at ?? run.completed_at ?? run.started_at ?? '').toLocaleString()
+                          : '—'}
+                      </div>
+                    </div>
+                    {run.status === 'failed' && (
+                      <div className="border-t border-zinc-100 bg-rose-50/50 px-3 py-2.5">
+                        <div className="flex gap-2">
+                          <AlertTriangle
+                            className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-rose-600"
+                            aria-hidden
+                          />
+                          <div className="min-w-0 space-y-1 text-2xs leading-snug text-rose-950">
+                            <p className="font-medium text-rose-900">Run failed</p>
+                            {failureMeta ? (
+                              <div className="space-y-1">
+                                {run.failure_code ? (
+                                  <p>
+                                    <span className="text-rose-700">Code </span>
+                                    <span className="font-mono text-rose-900">{run.failure_code}</span>
+                                  </p>
+                                ) : null}
+                                {run.failure_node ? (
+                                  <p>
+                                    <span className="text-rose-700">Node </span>
+                                    <span className="font-mono text-rose-900">{run.failure_node}</span>
+                                  </p>
+                                ) : null}
+                                {run.failure_detail ? (
+                                  <p className="whitespace-pre-wrap break-words text-rose-900">
+                                    <span className="text-rose-700">Detail </span>
+                                    {run.failure_detail}
+                                  </p>
+                                ) : null}
+                              </div>
+                            ) : (
+                              <p className="text-rose-800">
+                                No structured error metadata for this run. Check server logs or retry the run.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <span
-                      className={cn(
-                        'badge text-2xs',
-                        run.status === 'done'
-                          ? 'badge-applied'
-                          : run.status === 'failed'
-                          ? 'badge-rejected'
-                          : run.status === 'running'
-                          ? 'badge-pending'
-                          : 'badge-saved'
-                      )}
-                    >
-                      {run.status}
-                    </span>
-                  </div>
-                  <div className="tabular-nums text-zinc-500">
-                    {run.item_results?.length ?? 0} items
-                  </div>
-                  <div className="text-zinc-500">
-                    {(run.replayed_at ?? run.completed_at ?? run.started_at)
-                      ? new Date(run.replayed_at ?? run.completed_at ?? run.started_at ?? '').toLocaleString()
-                      : '—'}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

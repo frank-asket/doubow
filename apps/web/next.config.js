@@ -52,6 +52,7 @@ for (const [key, value] of Object.entries(fromFiles)) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  typedRoutes: true,
   // Exposed so Edge middleware can read the flag after monorepo `.env` merge above.
   env: {
     CLERK_REQUIRE_ACTIVE_SUBSCRIPTION: process.env.CLERK_REQUIRE_ACTIVE_SUBSCRIPTION ?? '',
@@ -71,14 +72,23 @@ const nextConfig = {
     'http://[::1]:3000',
     'http://[::1]:3100',
   ],
-  experimental: {
-    typedRoutes: true,
+  turbopack: {
+    root: path.join(__dirname, '..', '..'),
   },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: 'logo.clearbit.com' },
     ],
+  },
+  async rewrites() {
+    const apiTarget = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${apiTarget}/:path*`,
+      },
+    ]
   },
 }
 

@@ -10,6 +10,7 @@ Labeling modes:
 
 Usage:
   ./.venv-test/bin/python scripts/semantic_precision_eval.py --user-id <clerk_user_id>
+  ./.venv-test/bin/python scripts/semantic_precision_eval.py --user-id <clerk_user_id> --min-delta-pp 1.5 --min-semantic-precision 0.70
 """
 
 from __future__ import annotations
@@ -77,7 +78,13 @@ def _outcome_label(app_statuses: list[str], approval_statuses: list[str], sent_c
 
 
 async def _run_eval(
-    user_id: str, sample_size: int, label_threshold: float, blend_weight: float, label_mode: str
+    user_id: str,
+    sample_size: int,
+    label_threshold: float,
+    blend_weight: float,
+    label_mode: str,
+    min_delta_pp: float | None,
+    min_semantic_precision: float | None,
 ) -> int:
     async with SessionLocal() as session:
         latest_resume = (
@@ -221,7 +228,36 @@ async def _run_eval(
             delta_pp = (blend_precision - baseline_precision) * 100
             print(f"delta_precision_pp: {delta_pp:+.2f}")
         else:
+            delta_pp = None
             print("delta_precision_pp: n/a")
+
+        # Optional quality gates for automated CI-style checks.
+        gate_failures: list[str] = []
+        if min_delta_pp is not None:
+            if delta_pp is None:
+                gate_failures.append("min_delta_pp gate could not be evaluated (missing precision values)")
+            elif delta_pp < min_delta_pp:
+                gate_failures.append(
+                    f"delta_precision_pp {delta_pp:+.2f} < required {min_delta_pp:+.2f}"
+                )
+        if min_semantic_precision is not None:
+            if blend_precision is None:
+                gate_failures.append(
+                    "min_semantic_precision gate could not be evaluated (no semantic predicted positives)"
+                )
+            elif blend_precision < min_semantic_precision:
+                gate_failures.append(
+                    f"semantic_blend_precision {blend_precision:.2%} < required {min_semantic_precision:.2%}"
+                )
+
+        if min_delta_pp is not None or min_semantic_precision is not None:
+            print("")
+            print("quality_gates:")
+            if gate_failures:
+                for failure in gate_failures:
+                    print(f"- FAIL: {failure}")
+                return 2
+            print("- PASS")
 
         return 0
 
@@ -238,6 +274,18 @@ def _parse_args() -> argparse.Namespace:
         default="auto",
         help="Label source for relevance (default: auto)",
     )
+    parser.add_argument(
+        "--min-delta-pp",
+        type=float,
+        default=None,
+        help="Optional gate: require semantic precision uplift (percentage points) >= this value.",
+    )
+    parser.add_argument(
+        "--min-semantic-precision",
+        type=float,
+        default=None,
+        help="Optional gate: require semantic blend precision >= this ratio (0..1).",
+    )
     return parser.parse_args()
 
 
@@ -251,6 +299,8 @@ if __name__ == "__main__":
                 label_threshold=args.threshold,
                 blend_weight=args.blend_weight,
                 label_mode=args.label_mode,
+                min_delta_pp=args.min_delta_pp,
+                min_semantic_precision=args.min_semantic_precision,
             )
         )
     )

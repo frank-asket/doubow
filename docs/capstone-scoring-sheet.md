@@ -31,6 +31,31 @@ Rate each criterion from 1-5, then multiply by its weight.
 | Presentation | 15% | Demo quality | 3.5 |  |
 | Presentation | 15% | Communication clarity | 4.0 |  |
 
+## Implementation Evidence Map (for raising scores to 5)
+
+- **Technical Depth: Problem selection and scope**
+  - `apps/web/src/prep/usePrepSessions.ts` + `apps/web/src/prep/page.tsx` — loads prep sessions per application via `prepApi`; STAR builder and readiness derive from the selected API-backed session, with UI fallbacks when none is loaded.
+  - `backend/api_gateway/routers/prep.py` — `/capabilities`, scoped `/generate` and `/assist` routes tied to authenticated user + application IDs.
+  - `apps/web/app/(dashboard)/messages/page.tsx` — unified **Doubow Assistant** chat (`streamOrchestratorChat`); single surface for mixed career intents aligned with product scope.
+  - `backend/api_gateway/routers/agents.py` + `services/agent_chat_service.py` — orchestrator chat SSE, threaded transcript persistence, unified assistant system prompt.
+- **Technical Depth: Prompt/model interaction quality**
+  - `backend/api_gateway/services/openrouter.py` — `_USE_CASE_DEFAULTS` (`temperature`, `max_tokens`, `top_p`, optional `frequency_penalty` for drafts), debug logging with `use_case` + model, Prometheus hooks on success/failure paths.
+  - `backend/api_gateway/services/llm_prompts.py` — centralized system prompts + **grounding rules** (anti-hallucination) per channel (draft email/LinkedIn, prep JSON/assist, resume analysis, orchestrator).
+  - `backend/api_gateway/services/draft_service.py` / `prep_generation.py` / `resume_service.py` / `prep_assist_service.py` / `langchain_resume_analysis.py` — prompts imported from `llm_prompts`; LLM calls pass explicit `use_case` into OpenRouter helpers.
+  - `backend/api_gateway/tests/test_openrouter_model_routing.py` — asserts `resolve_openrouter_model(use_case)`, payload merging, retries, and circuit-open behavior; see also `test_openrouter_slug.py` for model-id normalization.
+- **Technical Depth: Orchestration and control flow**
+  - `backend/api_gateway/services/openrouter.py` — `_USE_CASE_RUNTIME_POLICY` (timeouts), `async_retry` with backoff, `_circuit_state` / `_circuit_is_open` cooldown after consecutive failures.
+  - `backend/api_gateway/tests/test_openrouter_model_routing.py` — circuit reset fixture; tests exercise failure paths and model selection (mocked HTTP, no live OpenRouter).
+- **Production Readiness: Evaluation strategy**
+  - `scripts/semantic_precision_eval.py` — CLI gates `--min-delta-pp`, `--min-semantic-precision`; non-zero exit on breach for CI.
+  - `backend/api_gateway/services/generative_quality_rubric.py` + `tests/test_generative_output_rubric.py` — deterministic pass/fail on generated strings (length, emptiness, repetition) per `use_case`; semantic “reads well” quality remains optional/next step (`docs/capstone-readiness.md`).
+- **Engineering Practices: Observability**
+  - `backend/api_gateway/services/metrics.py` — Prometheus counters/histograms for LLM calls by `use_case`, `model`, `mode`, status.
+  - `backend/api_gateway/services/openrouter.py` — records latency/outcomes on chat completion and streaming paths via `observe_llm_call`.
+  - `docs/operations/slo-and-incidents.md` + `deploy/prometheus/doubow-api-alerts.example.yml` — draft SLOs, incident steps, example alert rules (`doubow_llm_calls_total`, etc.).
+- **Production Readiness: Tenancy (application layer)**
+  - `backend/api_gateway/tests/test_user_data_isolation.py` — list applications and prep detail scoped to owning user (complements Postgres RLS checks in staging).
+
 ## Category Scoring Formula
 
 For each category:
@@ -95,9 +120,9 @@ Draft filled values:
   - Evaluation strategy for LLM quality is still light (limited quantitative quality benchmarks and acceptance gates).
   - Observability is good for events but not yet full production ops (alerts, SLOs, tracing depth).
   - Deployment hardening and rollback playbooks need tighter explicit documentation.
-- Must-fix before production:
-  - Add formal eval suite for prompt/model outputs (quality rubric + pass/fail thresholds).
-  - Define and document SLOs, alert conditions, and incident-response basics.
-  - Validate production auth/RLS posture end-to-end with non-superuser data access guarantees.
+- Must-fix before production (status):
+  - **Generative QA:** Baseline rubric + CI tests **delivered**; add LLM-as-judge / exported golden outputs when you need semantic scoring beyond length/repetition gates.
+  - **SLOs / incidents / alerts:** Draft **delivered** in `docs/operations/slo-and-incidents.md` and example Prometheus rules; **wire** alerts and tune thresholds in your environment.
+  - **Auth / RLS:** Service-layer isolation tests **delivered**; **still validate** Postgres RLS + app DB role in staging (non-superuser).
 - Recommended next step:
-  - Ship a `docs/capstone-readiness.md` package containing: eval metrics dashboard, deployment checklist, demo script, and final risk register.
+  - Delivered: `docs/capstone-readiness.md` (eval metrics notes, deployment checklist, demo script, risk register).

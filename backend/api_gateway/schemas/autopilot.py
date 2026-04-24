@@ -36,6 +36,13 @@ class AutopilotRunResponse(BaseModel):
     fresh_run: bool = True
     scope: AutopilotScope
     item_results: list[AutopilotRunItem] | None = None
+    failure_code: str | None = None
+    failure_detail: str | None = None
+    failure_node: str | None = None
+    resumable: bool = Field(
+        default=False,
+        description="True when POST /runs/{run_id}/resume may enqueue execution (running + checkpoint rules).",
+    )
     started_at: datetime | None = None
     completed_at: datetime | None = None
 
@@ -44,3 +51,9 @@ class IdempotencyConflictResponse(BaseModel):
     error: Literal["idempotency_conflict"] = "idempotency_conflict"
     detail: str
     prior_run_id: str
+
+
+class AutopilotResumeResponse(BaseModel):
+    run_id: str
+    enqueued: bool = True
+    detail: str | None = None

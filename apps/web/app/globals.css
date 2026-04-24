@@ -23,7 +23,8 @@
   --warning-500: 253 60 45;
 
   --background: #ffffff;
-  --foreground: #111827;
+  /* Light theme: bold gray body copy (dark mode overrides via .dark) */
+  --foreground: #3f3f46;
   --mint: #e8bf00;
   --mint-bright: #ffbc01;
   --card: #ffffff;
@@ -53,12 +54,13 @@
   --success-500: 74 222 128;
   --warning-500: 251 113 133;
   --background: #030712;
-  --foreground: #f8fafc;
+  /* Higher-contrast type on dark backgrounds */
+  --foreground: #fafafa;
   --mint: #ffd64d;
   --mint-bright: #ffe082;
   --card: #0f172a;
   --border: #334155;
-  --muted: #94a3b8;
+  --muted: #cbd5e1;
   --surface-2: #111827;
 }
 
@@ -78,6 +80,11 @@ body {
 }
 
 @layer base {
+  html:not(.dark) body {
+    font-weight: 700;
+    color: var(--foreground);
+  }
+
   * {
     border-color: var(--border);
   }
@@ -416,6 +423,20 @@ body {
     --muted: #71717a;
     --surface-2: #f4f4f8;
     --background: #f3f4f8;
+
+    /* Candidate mockup palette (inline styles via candidateUi.ts) */
+    --cand-surface: #f5faf8;
+    --cand-on-surface: #171d1c;
+    --cand-on-variant: #3d4947;
+    --cand-outline: #bcc9c6;
+    --cand-primary: #00685f;
+    --cand-secondary: #0051d5;
+    --cand-insight-blue: #316bf3;
+    --cand-primary-fixed: #89f5e7;
+    --cand-on-primary-fixed-variant: #005049;
+    --cand-surface-high: #e4e9e7;
+    --cand-surface-low: #f0f5f2;
+    --cand-amber: #d97706;
   }
 
   .app-route-shell .card {
@@ -501,4 +522,209 @@ body {
   .app-route-shell .ch-site {
     @apply border border-zinc-200 bg-zinc-50 text-zinc-800;
   }
+
+  .dark .app-route-shell {
+    color: #ffffff;
+    font-weight: 700;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --card: #0f172a;
+    --border: #253047;
+    --foreground: #ffffff;
+    --muted: #ffffff;
+    --surface-2: #111827;
+    --background: #020617;
+
+    --cand-surface: #020617;
+    --cand-on-surface: #ffffff;
+    --cand-on-variant: #ffffff;
+    --cand-outline: #475569;
+    --cand-primary: #5eead4;
+    --cand-secondary: #93c5fd;
+    --cand-insight-blue: #93c5fd;
+    --cand-primary-fixed: #115e59;
+    --cand-on-primary-fixed-variant: #ecfdf5;
+    --cand-surface-high: #334155;
+    --cand-surface-low: #1e293b;
+    --cand-amber: #fcd34d;
+  }
+
+  .dark .app-route-shell h1,
+  .dark .app-route-shell h2 {
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+  }
+
+  .dark .app-route-shell h3,
+  .dark .app-route-shell h4 {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .dark .app-route-shell .card {
+    border-color: #253047;
+    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    color: #ffffff;
+  }
+
+  .dark .app-route-shell .btn {
+    border-color: #334155;
+    background: #111827;
+    color: #ffffff;
+    font-weight: 700;
+    --tw-ring-color: rgb(20 184 166 / 0.3);
+  }
+
+  .dark .app-route-shell .btn:hover {
+    background: #0b1220;
+    border-color: #3b4a64;
+  }
+
+  .dark .app-route-shell .btn-primary {
+    background: #0f766e;
+    color: #f8fafc;
+    border-color: #0f766e;
+  }
+
+  .dark .app-route-shell .btn-primary:hover {
+    background: #0d9488;
+    border-color: #0d9488;
+  }
+
+  .dark .app-route-shell .field {
+    border-color: #334155;
+    background: #0b1220;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  .dark .app-route-shell .field:focus {
+    border-color: #2dd4bf;
+  }
+
+  .dark .app-route-shell .skeleton {
+    @apply from-slate-700 via-slate-600 to-slate-700;
+  }
+
+  .dark .app-route-shell .fit-high {
+    @apply border border-emerald-500/30 bg-emerald-500/10 text-emerald-200;
+  }
+
+  .dark .app-route-shell .fit-mid {
+    @apply border border-indigo-500/30 bg-indigo-500/10 text-indigo-200;
+  }
+
+  .dark .app-route-shell .fit-low {
+    @apply border border-amber-500/30 bg-amber-500/10 text-amber-200;
+  }
+
+  .dark .app-route-shell .badge-applied,
+  .dark .app-route-shell .badge-interview,
+  .dark .app-route-shell .badge-offer {
+    @apply border border-indigo-500/30 bg-indigo-500/10 text-indigo-200;
+  }
+
+  .dark .app-route-shell .badge-pending {
+    @apply border border-amber-500/30 bg-amber-500/10 text-amber-200;
+  }
+
+  .dark .app-route-shell .badge-rejected {
+    @apply border border-slate-600 bg-slate-700/40 text-slate-200;
+  }
+
+  .dark .app-route-shell .badge-saved {
+    @apply border border-slate-600 bg-slate-800 text-slate-200;
+  }
+
+  .dark .app-route-shell .ch-email,
+  .dark .app-route-shell .ch-linkedin {
+    @apply border border-sky-500/30 bg-sky-500/10 text-sky-200;
+  }
+
+  .dark .app-route-shell .ch-site {
+    @apply border border-slate-600 bg-slate-800 text-slate-200;
+  }
+
+/* Premium micro-interactions for dashboard shell */
+.app-route-shell .card,
+.app-route-shell .btn,
+.app-route-shell a,
+.app-route-shell input,
+.app-route-shell button {
+  transition-duration: 220ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Motion tiers: intentional by surface type */
+.motion-nav {
+  transition-property: transform, background-color, border-color, color, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.motion-icon {
+  transition-property: transform, color, background-color, border-color, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.motion-card {
+  transition-property: transform, box-shadow, border-color, background-color;
+  transition-duration: 240ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.motion-cta {
+  transition-property: transform, box-shadow, filter, background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.app-route-shell .card {
+  transition-property: box-shadow, border-color, transform, background-color;
+}
+
+.app-route-shell .card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 20px -14px rgba(15, 23, 42, 0.35),
+    0 2px 6px rgba(15, 23, 42, 0.06);
+  border-color: #d9dbeb;
+}
+
+.dark .app-route-shell .card:hover {
+  box-shadow:
+    0 14px 30px -18px rgba(0, 0, 0, 0.65),
+    0 3px 8px rgba(2, 6, 23, 0.5);
+  border-color: #334155;
+}
+
+.app-route-shell .btn {
+  transition-property: transform, background-color, border-color, box-shadow, color;
+}
+
+.app-route-shell .btn:hover {
+  transform: translateY(-1.5px);
+}
+
+.app-route-shell .btn:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.app-route-shell .btn-primary:hover {
+  box-shadow: 0 10px 24px -14px rgba(79, 70, 229, 0.7);
+}
+
+.dark .app-route-shell .btn-primary:hover {
+  box-shadow: 0 10px 24px -12px rgba(20, 184, 166, 0.65);
+}
+
+.app-route-shell input:focus-visible,
+.app-route-shell button:focus-visible,
+.app-route-shell a:focus-visible {
+  outline: 2px solid rgba(20, 184, 166, 0.45);
+  outline-offset: 2px;
+}
 }

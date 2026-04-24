@@ -1,11 +1,14 @@
 from collections.abc import AsyncGenerator
 from contextvars import ContextVar, Token
+import logging
 
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Session
 
 from config import settings
+
+logger = logging.getLogger(__name__)
 
 # Set in dependencies.get_authenticated_user before DB work; applied each transaction via after_begin.
 request_user_ctx: ContextVar[str | None] = ContextVar("request_user_ctx", default=None)
@@ -89,6 +92,29 @@ async def init_models() -> None:
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            # `create_all` does not alter existing tables; keep local/dev DBs from breaking
+            # when a new nullable column was added via migrations but migrations were skipped.
+            if conn.dialect.name == "postgresql":
+                has_profile_views = await conn.scalar(
+                    text(
+                        """
+                        SELECT EXISTS (
+                          SELECT 1
+                          FROM information_schema.columns
+                          WHERE table_schema = current_schema()
+                            AND table_name = 'users'
+                            AND column_name = 'profile_views'
+                        )
+                        """
+                    )
+                )
+                if not has_profile_views:
+                    await conn.execute(
+                        text("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_views INTEGER")
+                    )
+                    logger.info(
+                        "DB self-heal applied: added missing users.profile_views column."
+                    )
     except Exception as exc:
         hint = _connection_refused_message(exc)
         if hint:

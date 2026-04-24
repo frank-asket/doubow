@@ -67,10 +67,12 @@ async def test_dashboard_summary_counts(db_session):
     assert summary.high_fit_count == 1
     assert summary.pipeline_count == 1
     assert summary.pending_approvals == 1
+    assert summary.profile_views is None
     assert summary.total_scored_jobs == 1
     assert summary.applied_awaiting_reply == 1
     assert summary.avg_fit_score == pytest.approx(4.5)
     assert summary.evaluated_this_week >= 1
+    assert summary.response_rate_pct == 0
 
 
 @pytest.mark.asyncio
@@ -106,3 +108,16 @@ async def test_high_fit_threshold_boundary(db_session):
 
     summary = await get_dashboard_summary(db_session, uid)
     assert summary.high_fit_count == 0
+    assert summary.profile_views is None
+    assert summary.response_rate_pct is None
+
+
+@pytest.mark.asyncio
+async def test_dashboard_profile_views_when_set(db_session):
+    uid = "user_dash_pv"
+    db_session.add(User(id=uid, email="pv@example.com", profile_views=342))
+    await db_session.commit()
+
+    summary = await get_dashboard_summary(db_session, uid)
+    assert summary.profile_views == 342
+    assert summary.total_scored_jobs == 0

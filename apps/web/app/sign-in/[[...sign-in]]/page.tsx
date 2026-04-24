@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import type { Route } from "next";
 
 function queryString(
   searchParams: Record<string, string | string[] | undefined>,
@@ -22,5 +23,5 @@ export default function LegacySignInRedirect({
 }) {
   const parts = params["sign-in"] ?? [];
   const suffix = parts.length ? `/${parts.join("/")}` : "";
-  redirect(`/auth/sign-in${suffix}${queryString(searchParams)}`);
+  redirect(`/auth/sign-in${suffix}${queryString(searchParams)}` as Route);
 }

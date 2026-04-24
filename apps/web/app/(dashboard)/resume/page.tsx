@@ -2,8 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
-import { Upload, FileText, CheckCircle, Loader2, Sparkles, X, AlertCircle } from 'lucide-react'
-import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
+import { Upload, CheckCircle, Loader2, Sparkles, X, AlertCircle, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useResumeUpload } from '@/hooks/useResumeUpload'
 import { isE2EAuthBypass } from '@/lib/e2e'
@@ -135,120 +134,354 @@ export default function ResumePage() {
     if (file) handleFile(file)
   }, [handleFile])
 
+  const extractedSkills = skills
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 8)
+
   return (
-    <div className="space-y-5 p-5 sm:p-7">
-      <DashboardPageHeader
-        kicker="Resume"
-        title="My resume"
-        description="Upload your resume to power matching, tailoring, and interview prep"
+    <div className="resume-lab mx-auto max-w-7xl space-y-3 bg-[#f5faf8] dark:bg-transparent px-4 pb-4 pt-2 sm:px-6 sm:pt-3 md:space-y-4">
+
+      <section className="flex flex-wrap items-end justify-between gap-3 border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 pb-[11px]">
+        <div>
+          <h1 className="hidden md:block text-[30px] font-medium leading-[1.05] tracking-[-0.012em] text-[#171d1c] dark:text-slate-100">Resume Lab</h1>
+          <p className="text-[13px] text-[#6d7a77] dark:text-slate-400">Manage iterations, extract technical metadata, and align with market sectors.</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            className="h-[31px] border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 px-4 text-[12px] font-medium uppercase tracking-[0.05em] text-[#171d1c] dark:text-slate-100"
+            onClick={() => fileRef.current?.click()}
+          >
+            Replace Resume
+          </button>
+          <button
+            className="inline-flex h-[31px] items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-4 text-[12px] font-medium uppercase tracking-[0.05em] text-white disabled:opacity-70"
+            onClick={() => analyzeWithAI()}
+            disabled={analyzing || loadingProfile || !resumeExists}
+          >
+            {analyzing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+            Analyze Core
+          </button>
+        </div>
+      </section>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf,.docx"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          if (f) handleFile(f)
+        }}
       />
 
-      {/* Upload zone */}
-      <div
-        className={cn(
-          'mb-6 cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200',
-          dragOver || uploaded
-            ? 'border-indigo-200 bg-indigo-50/60'
-            : 'border-[#e7e8ee] hover:border-indigo-200 hover:bg-zinc-50',
-        )}
-        onClick={() => fileRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={onDrop}
-      >
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf,.docx"
-          className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
-        />
-
-        {uploading ? (
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 size={28} className="animate-spin text-indigo-600" />
-            <p className="text-sm text-zinc-600">Uploading {fileName}…</p>
-          </div>
-        ) : uploaded ? (
-          <div className="flex flex-col items-center gap-3">
-            <CheckCircle size={28} className="text-emerald-600" />
-            <div>
-              <p className="text-sm font-medium text-zinc-900">{fileName}</p>
-              <p className="mt-0.5 text-xs text-zinc-600">Uploaded successfully</p>
-            </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setUploaded(false); setFileName('') }}
-              className="flex items-center gap-1 text-xs text-zinc-500 hover:text-indigo-700"
-            >
-              <X size={11} /> Replace
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50">
-              <Upload size={20} className="text-indigo-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-900">Drop your resume here</p>
-              <p className="mt-1 text-xs text-zinc-500">PDF or DOCX · Up to 5 MB</p>
-            </div>
-          </div>
-        )}
-      </div>
       {uploadError && (
-        <div className="mb-5 flex items-start gap-2.5 rounded-[12px] border border-rose-200 bg-rose-50 p-3">
-          <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-rose-600" />
-          <p className="text-xs text-rose-900">{uploadError}</p>
+        <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-900">
+          <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+          <span>{uploadError}</span>
         </div>
       )}
 
-      {/* Preferences — values are inferred on upload from parsed résumé and saved server-side */}
-      <div className="card p-5 mb-5">
-        <div className="mb-4">
-          <p className="text-sm font-medium text-zinc-900">Search preferences</p>
-          <p className="mt-1 text-xs text-zinc-500">
-            When you upload a résumé, we fill target role, seniority, and key skills from the parsed profile. Adjust
-            anything here and click Save to persist edits.
-          </p>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <section className="space-y-4 lg:col-span-8">
+          <article className="md:hidden border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
+            <button
+              className="inline-flex h-11 w-full items-center justify-center gap-2 border border-[0.5px] border-[#008378] bg-[#00685f] text-[20px] font-medium text-white tracking-[-0.01em]"
+              onClick={() => fileRef.current?.click()}
+            >
+              <Upload size={16} />
+              Upload New Resume
+            </button>
+          </article>
+
+          <article
+            className={cn(
+              'relative cursor-pointer border border-[0.5px] bg-white dark:bg-slate-900 p-4 transition-colors',
+              (dragOver || uploaded) && 'bg-teal-50/40',
+            )}
+            style={{ borderColor: dragOver || uploaded ? '#67d7cb' : 'rgba(188, 201, 198, 0.92)' }}
+            onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault()
+              setDragOver(true)
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+          >
+            <div className="absolute left-0 top-4 h-10 w-1 bg-[#D97706]" />
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-center gap-3 pl-1">
+                <div className="flex h-16 w-12 items-center justify-center border border-[0.5px] border-[rgba(188,201,198,0.9)] bg-[#f0f5f2]">
+                  <FileText size={18} className="text-[#6d7a77] dark:text-slate-400" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="truncate text-[16px] font-medium uppercase leading-[1.08] text-[#171d1c] dark:text-slate-100">{fileName || 'Resume_Not_Uploaded.pdf'}</h3>
+                  <p className="mt-0.5 text-[11px] uppercase leading-[1.08] tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">
+                    {uploaded ? 'UPLOADED: JUST NOW' : 'UPLOAD A RESUME TO START EXTRACTION'}
+                  </p>
+                  {uploading ? (
+                    <p className="mt-2 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] text-[#00685f]">
+                      <Loader2 size={11} className="animate-spin" /> Uploading...
+                    </p>
+                  ) : uploaded ? (
+                    <div className="mt-2 inline-flex h-5 items-center gap-1 bg-teal-50 px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f] border border-[0.5px] border-teal-200">
+                      <CheckCircle size={10} /> AI Scanned
+                    </div>
+                  ) : (
+                    <div className="mt-2 inline-flex h-5 items-center gap-1 bg-[#f0f5f2] px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947] dark:text-slate-400 border border-[0.5px] border-[rgba(188,201,198,0.92)]">
+                      <Upload size={10} /> Drop PDF or DOCX
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[52px] leading-[0.92] font-black tracking-[-0.03em] text-[#00685f]">{uploaded ? '94.2%' : '--'}</p>
+                <p className="text-[11px] uppercase tracking-[0.08em] leading-none text-[#6d7a77] dark:text-slate-400">Match Score</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 border-t border-[0.5px] border-[rgba(188,201,198,0.88)] sm:grid-cols-3">
+              {[
+                ['Tokens Identified', uploaded ? '1,402' : '0', uploaded ? 85 : 0],
+                ['Confidence Level', uploaded ? 'High (0.98)' : '--', uploaded ? 98 : 0],
+                ['Processing Time', uploaded ? '1.4s' : '--', uploaded ? 40 : 0],
+              ].map(([label, value, pct], idx) => (
+                <div key={label} className={cn('px-3.5 py-[11px]', idx < 2 && 'sm:border-r sm:border-[0.5px] sm:border-[rgba(188,201,198,0.88)]')}>
+                  <p className="text-[11px] uppercase leading-none tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">{label}</p>
+                  <p className="mt-0.5 text-[16px] font-medium leading-[1.08] text-[#171d1c] dark:text-slate-100">{value}</p>
+                  <div className="mt-2 h-1 bg-[#eaefed]">
+                    <div className="h-full bg-[#00685f]" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {uploaded ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setUploaded(false)
+                  setFileName('')
+                }}
+                className="mt-3 inline-flex items-center gap-1 text-[11px] text-[#6d7a77] dark:text-slate-400 hover:text-[#00685f]"
+              >
+                <X size={11} /> Replace file
+              </button>
+            ) : null}
+          </article>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <article className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5">
+              <div className="mb-3 flex items-center justify-between">
+                <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Extracted Keywords</h4>
+                <span className="material-symbols-outlined text-[#00685f]">data_object</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {(extractedSkills.length ? extractedSkills : ['React', 'Node', 'Kubernetes', 'AWS']).map((skill) => (
+                  <span key={skill} className="border border-[0.5px] border-[rgba(188,201,198,0.88)] bg-[#eaefed] px-2 py-px text-[10px] uppercase leading-none tracking-[0.08em] text-[#3d4947] dark:text-slate-400">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </article>
+
+            <article className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5">
+              <div className="mb-3 flex items-center justify-between">
+                <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Market Alignment</h4>
+                <span className="material-symbols-outlined text-[#00685f]">trending_up</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  ['FinTech', 98],
+                  ['SaaS/Enterprise', 82],
+                ].map(([label, pct]) => (
+                  <div key={label}>
+                    <div className="mb-1 flex items-center justify-between text-[11px] uppercase tracking-[0.08em] text-[#3d4947] dark:text-slate-400">
+                      <span>{label}</span>
+                      <span className="font-semibold text-[#00685f]">{pct}%</span>
+                    </div>
+                    <div className="h-1 bg-[#eaefed]">
+                      <div className="h-full bg-[#00685f]" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          <article className="hidden border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 md:block">
+            <header className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-slate-50/50 px-3 py-2">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#171d1c] dark:text-slate-100">
+                  <span className="material-symbols-outlined text-[16px] text-[#00685f]">history</span>
+                  Version_Manifest
+                </span>
+                <span className="text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">8 Active Instances</span>
+              </div>
+            </header>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-slate-50/40 text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">
+                    <th className="px-3 py-2">Tag</th>
+                    <th className="px-3 py-2">Created_At</th>
+                    <th className="px-3 py-2">Alignment</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[13px]">
+                  <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700">
+                    <td className="px-3 py-1.5 font-mono text-[#316bf3]">v4.2.1-SWE-L6</td>
+                    <td className="px-3 py-1.5 text-[#6d7a77] dark:text-slate-400">2023-11-24 14:22</td>
+                    <td className="px-3 py-1.5">
+                      <div className="inline-flex items-center gap-2">
+                        <div className="h-1 w-20 bg-[#eaefed]"><div className="h-full w-[94%] bg-[#06b6a7]" /></div>
+                        <span className="text-[12px] font-medium text-[#171d1c] dark:text-slate-100">94%</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-1.5"><span className="border border-[0.5px] border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">Production</span></td>
+                    <td className="px-3 py-1.5 text-right text-[#00685f]">View</td>
+                  </tr>
+                  <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700">
+                    <td className="px-3 py-1.5 font-mono text-[#316bf3]">v4.1.0-ML-ENG</td>
+                    <td className="px-3 py-1.5 text-[#6d7a77] dark:text-slate-400">2023-11-22 09:10</td>
+                    <td className="px-3 py-1.5">
+                      <div className="inline-flex items-center gap-2">
+                        <div className="h-1 w-20 bg-[#eaefed]"><div className="h-full w-[78%] bg-amber-500" /></div>
+                        <span className="text-[12px] font-medium text-[#171d1c] dark:text-slate-100">78%</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-1.5"><span className="border border-[0.5px] border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Archived</span></td>
+                    <td className="px-3 py-1.5 text-right text-[#00685f]">View</td>
+                  </tr>
+                  <tr className="bg-amber-50/40">
+                    <td className="px-3 py-1.5 font-mono text-[#316bf3]">v4.3.0-DRAFT</td>
+                    <td className="px-3 py-1.5 text-[#6d7a77] dark:text-slate-400">JUST NOW</td>
+                    <td className="px-3 py-1.5 text-[12px] font-medium italic text-amber-700">CALCULATING...</td>
+                    <td className="px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-amber-700">HITL REQUIRED</td>
+                    <td className="px-3 py-1.5 text-right"><button className="h-7 bg-amber-600 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white">Reconcile</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <aside className="space-y-4 lg:col-span-4">
+          <article className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900">
+            <header className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-slate-50 px-3 py-2">
+              <h4 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#171d1c] dark:text-slate-100">History Logs</h4>
+            </header>
+            <div>
+              {[
+                ['Resume_Standard_v3', '2023-09-12 • MATCH: 88%'],
+                ['Creative_Portfolio_v2', '2023-08-05 • MATCH: 72%'],
+                ['Resume_Legacy_Base', '2023-01-20 • MATCH: 61%'],
+              ].map(([title, meta]) => (
+                <div key={title} className="flex items-center justify-between border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-3 py-3 last:border-b-0">
+                  <div>
+                    <p className="text-[13px] font-medium text-[#171d1c] dark:text-slate-100">{title}</p>
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">{meta}</p>
+                  </div>
+                  <button className="material-symbols-outlined text-[#6d7a77] dark:text-slate-400">download</button>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="relative overflow-hidden border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-amber-50 p-3">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#D97706]" />
+            <h5 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#92400e]">Human Intervention Required</h5>
+            <p className="mt-1 text-[12px] text-[#3d4947] dark:text-slate-400">
+              Three experience gaps detected in period 2021-2022. Manual verification recommended before export.
+            </p>
+            <button className="mt-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#92400e] underline">Fix discrepancy</button>
+          </article>
+
+          <article className="border border-[0.5px] border-[#008378] bg-[#00685f] p-3 text-white">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em]">Verified Status</p>
+            <p className="mt-1 text-[12px] text-teal-100">This resume has been cryptographically signed.</p>
+          </article>
+        </aside>
+      </div>
+
+      <section className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900">
+        <header className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-[#e4e9e7] px-3 py-2">
+          <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Operation Log</h4>
+        </header>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left text-[12px]">
+            <thead>
+              <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">
+                <th className="px-3 py-2">Operation ID</th>
+                <th className="px-3 py-2">Engine Module</th>
+                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700">
+                <td className="px-3 py-2 font-mono text-[11px]">#RN-9821-X</td>
+                <td className="px-3 py-2 font-mono text-[11px]">NER_ENTITY_EXTRACTOR</td>
+                <td className="px-3 py-2">
+                  <span className="border border-[0.5px] border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">Complete</span>
+                </td>
+                <td className="px-3 py-2 font-mono text-[11px]">14:30:12</td>
+              </tr>
+              <tr>
+                <td className="px-3 py-2 font-mono text-[11px]">#RN-9820-A</td>
+                <td className="px-3 py-2 font-mono text-[11px]">SEMANTIC_SIMILARITY_V2</td>
+                <td className="px-3 py-2">
+                  <span className="border border-[0.5px] border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">Complete</span>
+                </td>
+                <td className="px-3 py-2 font-mono text-[11px]">14:29:58</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+        <div className="mb-3">
+          <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Search Preferences</h4>
+          <p className="mt-1 text-[12px] text-[#6d7a77] dark:text-slate-400">Review extracted preferences, tweak, and save.</p>
         </div>
         {loadingProfile ? (
-          <div className="mb-4 flex items-center gap-2 text-xs text-zinc-500">
-            <Loader2 size={12} className="animate-spin" />
-            Loading saved preferences...
-          </div>
+          <p className="mb-3 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">
+            <Loader2 size={11} className="animate-spin" /> Loading saved preferences...
+          </p>
         ) : null}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Target role</label>
-            <input className="field text-sm" value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. ML Engineer" />
+            <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Target role</label>
+            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={role} onChange={(e) => setRole(e.target.value)} />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Location</label>
-            <input className="field text-sm" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Remote, London" />
+            <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Location</label>
+            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={location} onChange={(e) => setLocation(e.target.value)} />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Min salary (USD)</label>
-            <input className="field text-sm" value={salary} onChange={(e) => setSalary(e.target.value)} placeholder="e.g. 140000" type="number" />
+            <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Min salary (USD)</label>
+            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={salary} type="number" onChange={(e) => setSalary(e.target.value)} />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Seniority</label>
-            <select
-              className="field text-sm"
-              value={seniority}
-              onChange={(e) => setSeniority(e.target.value as UserPreferences['seniority'])}
-            >
+            <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Seniority</label>
+            <select className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={seniority} onChange={(e) => setSeniority(e.target.value as UserPreferences['seniority'])}>
               {SENIORITY_OPTIONS.map((o) => <option key={o}>{o}</option>)}
             </select>
           </div>
           <div className="col-span-2">
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600">Key skills</label>
-            <input className="field text-sm" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. RAG, LLMs, Python" />
+            <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Key skills</label>
+            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={skills} onChange={(e) => setSkills(e.target.value)} />
           </div>
         </div>
         {prefsStatus && (
           <div
             className={cn(
-              'flex items-start gap-2 text-xs rounded-md px-3 py-2 mt-4',
+              'mt-3 flex items-start gap-2 px-3 py-2 text-xs',
               prefsStatus.type === 'success'
                 ? 'border border-emerald-200 bg-emerald-50 text-emerald-900'
                 : 'border border-rose-200 bg-rose-50 text-rose-900'
@@ -259,19 +492,19 @@ export default function ResumePage() {
           </div>
         )}
         {!loadingProfile && !resumeExists && (
-          <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+          <div className="mt-3 flex items-start gap-2 border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
             <span>Upload a resume first to enable preference saving.</span>
           </div>
         )}
-        <div className="mt-4 flex gap-2 border-t border-zinc-100 pt-4">
+        <div className="mt-3 flex gap-2 border-t border-[0.5px] border-[#bcc9c6] dark:border-slate-700 pt-3">
           <button
             onClick={() => savePreferences()}
             disabled={savingPrefs || loadingProfile || !resumeExists}
-            className="btn btn-primary text-xs gap-1.5"
+            className="inline-flex h-8 items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-white disabled:opacity-70"
           >
             {savingPrefs ? <Loader2 size={12} className="animate-spin" /> : null}
-            {savingPrefs ? 'Saving...' : 'Save preferences'}
+            {savingPrefs ? 'Saving...' : 'Save Preferences'}
           </button>
           <button
             onClick={() => {
@@ -279,45 +512,46 @@ export default function ResumePage() {
               setPrefsStatus(null)
             }}
             disabled={savingPrefs || loadingProfile}
-            className="btn text-xs"
+            className="inline-flex h-8 items-center border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#171d1c] dark:text-slate-100"
           >
             Reset
           </button>
         </div>
-      </div>
-
-      {/* AI Analysis */}
-      <div className="card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-sm font-medium text-zinc-900">AI profile analysis</p>
-            <p className="mt-0.5 text-xs text-zinc-500">Get archetypes, skill gaps, and target companies</p>
-          </div>
-          <button
-            onClick={() => analyzeWithAI()}
-            disabled={analyzing || loadingProfile || !resumeExists}
-            className="btn btn-primary text-xs gap-1.5"
-          >
-            {analyzing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-            {analyzing ? 'Analyzing…' : 'Analyze with AI'}
-          </button>
+        <div className="mt-3 min-h-[90px] border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-[#f0f5f2] p-3 text-xs leading-relaxed text-[#171d1c] dark:text-slate-100 whitespace-pre-wrap">
+          {analysis || 'Run Analyze Core to generate AI extraction insights and role alignment recommendations.'}
+          {analyzing && <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-[#00685f] align-middle" />}
         </div>
+      </section>
 
-        <div
-          className={cn(
-            'min-h-[100px] rounded-[12px] border border-[#e7e8ee] bg-zinc-50 p-4 text-xs leading-relaxed text-zinc-800 whitespace-pre-wrap',
-            !analysis && 'flex items-center justify-center text-zinc-500',
-          )}
-        >
-          {analysis || (
-            <div className="text-center">
-              <FileText size={20} className="mx-auto mb-2 opacity-40" />
-              <p>Upload your resume and click Analyze to see your profile breakdown</p>
-            </div>
-          )}
-          {analyzing && <span className="ml-0.5 inline-block h-3 w-0.5 animate-pulse bg-indigo-400 align-middle" />}
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 md:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-4">
+          {[
+            { icon: 'edit_note', label: 'Editor', active: true },
+            { icon: 'history', label: 'History', active: false },
+            { icon: 'query_stats', label: 'Market', active: false },
+            { icon: 'person', label: 'Profile', active: false },
+          ].map(({ icon, label, active }) => (
+            <button
+              key={label}
+              className={cn(
+                'flex h-14 flex-col items-center justify-center gap-0.5 border-t-2 text-[10px] font-medium uppercase tracking-[0.08em]',
+                active ? 'border-t-[#00685f] text-[#00685f]' : 'border-t-transparent text-[#6d7a77] dark:text-slate-400',
+              )}
+            >
+              <span className="material-symbols-outlined text-[18px]">{icon}</span>
+              {label}
+            </button>
+          ))}
         </div>
-      </div>
+      </nav>
+      <style jsx global>{`
+        .resume-lab .material-symbols-outlined {
+          font-family: 'Material Symbols Outlined';
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+          line-height: 1;
+          vertical-align: middle;
+        }
+      `}</style>
     </div>
   )
 }

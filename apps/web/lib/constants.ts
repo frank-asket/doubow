@@ -6,6 +6,9 @@ export const ROUTES = {
   approvals: '/approvals',
   prep: '/prep',
   resume: '/resume',
-  agents: '/agents',
+  /** Unified Assistant (chat); `/agents` redirects here */
+  assistant: '/messages',
+  /** @deprecated Use `assistant`; kept for deep links — `/agents` redirects to `/messages` */
+  agents: '/messages',
   designReference: '/design-reference',
 } as const

@@ -6,9 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.application import Application
 from models.approval import Approval
 from models.job_score import JobScore
+from models.user import User
 from schemas.dashboard import DashboardSummaryResponse
 
 HIGH_FIT_THRESHOLD = 4.0
+
+# Submitted = user sent an application; responded = progressed to a stage implying employer reply.
+_SUBMITTED_STATUSES = ("applied", "interview", "offer", "rejected")
+_REPLIED_STATUSES = ("interview", "offer", "rejected")
 
 
 def _utc_start_of_iso_week() -> datetime:
@@ -21,6 +26,9 @@ def _utc_start_of_iso_week() -> datetime:
 
 
 async def get_dashboard_summary(session: AsyncSession, user_id: str) -> DashboardSummaryResponse:
+    user_row = await session.get(User, user_id)
+    profile_views: int | None = user_row.profile_views if user_row else None
+
     total_scored = (
         await session.execute(select(func.count()).select_from(JobScore).where(JobScore.user_id == user_id))
     ).scalar_one()
@@ -77,6 +85,27 @@ async def get_dashboard_summary(session: AsyncSession, user_id: str) -> Dashboar
         )
     ).scalar_one()
 
+    submitted_ct = (
+        await session.execute(
+            select(func.count())
+            .select_from(Application)
+            .where(Application.user_id == user_id, Application.status.in_(_SUBMITTED_STATUSES))
+        )
+    ).scalar_one()
+    replied_ct = (
+        await session.execute(
+            select(func.count())
+            .select_from(Application)
+            .where(Application.user_id == user_id, Application.status.in_(_REPLIED_STATUSES))
+        )
+    ).scalar_one()
+    submitted_int = int(submitted_ct)
+    response_rate_pct: int | None
+    if submitted_int == 0:
+        response_rate_pct = None
+    else:
+        response_rate_pct = int(round(100 * int(replied_ct) / submitted_int))
+
     return DashboardSummaryResponse(
         high_fit_count=int(high_fit),
         pipeline_count=int(pipeline_count),
@@ -85,4 +114,6 @@ async def get_dashboard_summary(session: AsyncSession, user_id: str) -> Dashboar
         avg_fit_score=avg_fit,
         applied_awaiting_reply=int(applied_awaiting),
         total_scored_jobs=total_scored_int,
+        profile_views=profile_views,
+        response_rate_pct=response_rate_pct,
     )

@@ -8,6 +8,7 @@ const dashboardFixture = {
   avg_fit_score: 3.9,
   applied_awaiting_reply: 3,
   total_scored_jobs: 10,
+  response_rate_pct: 68,
 }
 
 async function mockDashboardApis(page: Page) {
@@ -68,6 +69,9 @@ async function mockDashboardApis(page: Page) {
 
 test.describe('dashboard routes smoke', () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('doubow.dashboard.onboarding.v2:anon', '1')
+    })
     await mockDashboardApis(page)
   })
 
@@ -86,8 +90,14 @@ test.describe('dashboard routes smoke', () => {
     await expect(page.getByRole('heading', { name: 'Interview prep', exact: true })).toBeVisible()
   })
 
-  test('agents page renders', async ({ page }) => {
+  test('assistant page renders', async ({ page }) => {
+    await page.goto('/messages')
+    await expect(page.getByRole('heading', { name: 'Doubow Assistant', exact: true })).toBeVisible()
+  })
+
+  test('legacy /agents redirects to assistant', async ({ page }) => {
     await page.goto('/agents')
-    await expect(page.getByRole('heading', { name: 'Agent status', exact: true })).toBeVisible()
+    await expect(page).toHaveURL(/\/messages/)
+    await expect(page.getByRole('heading', { name: 'Doubow Assistant', exact: true })).toBeVisible()
   })
 })

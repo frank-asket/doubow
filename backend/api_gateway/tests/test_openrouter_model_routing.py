@@ -1,7 +1,17 @@
 import pytest
+import httpx
 
 from config import settings
 from services.openrouter import normalize_openrouter_model_id
+
+
+@pytest.fixture(autouse=True)
+def _reset_openrouter_circuit_state():
+    from services import openrouter as openrouter_service
+
+    openrouter_service._reset_openrouter_circuit_state_for_tests()
+    yield
+    openrouter_service._reset_openrouter_circuit_state_for_tests()
 
 
 def test_resolve_openrouter_model_uses_use_case_override(monkeypatch):
@@ -66,3 +76,42 @@ async def test_openrouter_chat_completion_uses_use_case_model(monkeypatch):
 
     assert result == "ok"
     assert captured["json"]["model"] == "openai/gpt-4.1-mini"
+    assert captured["json"]["temperature"] == 0.45
+    assert captured["json"]["max_tokens"] == 900
+    assert captured["json"]["top_p"] == 0.9
+    assert captured["json"]["frequency_penalty"] == 0.12
+
+
+@pytest.mark.asyncio
+async def test_openrouter_chat_circuit_opens_after_repeated_failures(monkeypatch):
+    from services import openrouter as openrouter_service
+
+    openrouter_service._reset_openrouter_circuit_state_for_tests()
+    monkeypatch.setattr(settings, "openrouter_api_key", "test_key")
+    monkeypatch.setattr(settings, "openrouter_api_url", "https://openrouter.ai/api/v1")
+    monkeypatch.setattr(settings, "openrouter_model", "anthropic/claude-sonnet-4.6")
+    monkeypatch.setattr(settings, "openrouter_max_retries", 1)
+
+    class _FailingClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def post(self, url, json, headers):
+            raise httpx.TimeoutException("timeout")
+
+    monkeypatch.setattr(openrouter_service.httpx, "AsyncClient", _FailingClient)
+
+    with pytest.raises(httpx.TimeoutException):
+        await openrouter_service.chat_completion(user_message="hello", system_message="system", use_case="chat")
+
+    with pytest.raises(httpx.TimeoutException):
+        await openrouter_service.chat_completion(user_message="hello", system_message="system", use_case="chat")
+
+    with pytest.raises(RuntimeError, match="circuit temporarily open"):
+        await openrouter_service.chat_completion(user_message="hello", system_message="system", use_case="chat")

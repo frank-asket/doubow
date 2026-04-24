@@ -15,6 +15,16 @@ REQUEST_LATENCY = Histogram(
     "API request latency in seconds",
     ["method", "path"],
 )
+LLM_CALL_COUNT = Counter(
+    "doubow_llm_calls_total",
+    "Total LLM calls by use-case/model/mode/status",
+    ["use_case", "model", "mode", "status"],
+)
+LLM_CALL_LATENCY = Histogram(
+    "doubow_llm_call_duration_seconds",
+    "LLM call latency in seconds by use-case/model/mode",
+    ["use_case", "model", "mode"],
+)
 
 
 async def metrics_middleware(request: Request, call_next):
@@ -29,3 +39,16 @@ async def metrics_middleware(request: Request, call_next):
 
 def metrics_response() -> Response:
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+def observe_llm_call(
+    *,
+    use_case: str,
+    model: str,
+    mode: str,
+    status: str,
+    elapsed_s: float,
+) -> None:
+    """Record backend LLM call metrics."""
+    LLM_CALL_COUNT.labels(use_case, model, mode, status).inc()
+    LLM_CALL_LATENCY.labels(use_case, model, mode).observe(max(0.0, elapsed_s))

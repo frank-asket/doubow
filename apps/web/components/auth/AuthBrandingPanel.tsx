@@ -1,36 +1,44 @@
-import Link from "next/link";
-import { Logo } from "@/components/Logo";
+import Link from 'next/link'
+import { LogoMark } from '@/components/Logo'
 
 const highlights = [
-  "One place for jobs you’re pursuing",
-  "Suggestions tied to each posting’s wording",
-  "Interview practice from the same context",
-];
+  'Discover and score roles in one Candidate Hub',
+  'Tailored drafts you review before anything goes out',
+  'Interview prep grounded in the roles you pursue',
+]
 
 export function AuthBrandingPanel() {
   return (
-    <aside className="relative flex flex-col justify-between overflow-hidden border-b border-zinc-800/80 bg-[#050505] px-8 py-10 lg:min-h-screen lg:border-b-0 lg:border-r lg:px-12 lg:py-14">
+    <aside className="relative flex flex-col justify-between overflow-hidden border-b border-slate-200/90 bg-gradient-to-b from-[#f0f5f2] to-[#f5faf8] px-8 py-10 lg:min-h-screen lg:border-b-0 lg:border-r lg:px-12 lg:py-14 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950">
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        className="pointer-events-none absolute inset-0 opacity-90"
         aria-hidden
       >
-        <div className="absolute -left-1/4 top-0 h-80 w-80 rounded-full bg-zinc-200/15 blur-[100px]" />
-        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-zinc-300/10 blur-[80px]" />
+        <div className="absolute -right-1/4 top-12 h-72 w-72 rounded-full bg-teal-400/15 blur-[90px]" />
+        <div className="absolute bottom-8 left-0 h-56 w-56 rounded-full bg-[#FFBC01]/20 blur-[72px]" />
       </div>
 
-      <div className="relative">
-        <Logo href="/" />
-        <p className="mt-10 text-2xl font-semibold leading-snug tracking-tight text-white sm:text-3xl">
-          Your experience stays yours—we help you show it clearly.
+      <div className="relative border-l-[3px] border-teal-600 pl-5 dark:border-teal-500">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+        >
+          <LogoMark className="h-9 w-9 shrink-0" />
+          <span className="text-xl font-black uppercase tracking-tighter text-teal-600 dark:text-teal-400">
+            Doubow
+          </span>
+        </Link>
+        <p className="font-display mt-10 text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-[#171d1c] dark:text-slate-100 sm:text-[1.65rem]">
+          Your next role, orchestrated—with you in control.
         </p>
-        <p className="mt-4 max-w-md text-sm leading-relaxed text-zinc-500">
-          Sign in to track roles, get application wording that matches what employers ask for, and prep
-          for interviews. You stay in control: real sites for applying, drafts—not auto-send—for email.
+        <p className="mt-4 max-w-md text-sm leading-relaxed text-[#3d4947] dark:text-slate-400">
+          Create an account to track your pipeline, generate drafts that match each posting, and prep for
+          interviews. Nothing sends without your approval on the real channels you use.
         </p>
         <ul className="mt-10 space-y-3">
           {highlights.map((line) => (
-            <li key={line} className="flex gap-3 text-sm text-zinc-300">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-200/10 text-zinc-100">
+            <li key={line} className="flex gap-3 text-sm leading-snug text-[#2c3130] dark:text-slate-300">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-600/12 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300">
                 <svg
                   className="h-3 w-3"
                   viewBox="0 0 24 24"
@@ -53,12 +61,12 @@ export function AuthBrandingPanel() {
         </ul>
       </div>
 
-      <p className="relative mt-12 text-xs text-zinc-600 lg:mt-0">
-        Need the marketing site?{" "}
-        <Link href="/" className="font-medium text-zinc-100 hover:text-zinc-200">
-          Back to daubo.com home
+      <p className="relative mt-12 text-xs text-slate-500 dark:text-slate-500 lg:mt-0">
+        Explore the product story on{' '}
+        <Link href="/" className="font-semibold text-teal-700 underline-offset-2 hover:text-teal-800 hover:underline dark:text-teal-400 dark:hover:text-teal-300">
+          the Doubow home page
         </Link>
       </p>
     </aside>
-  );
+  )
 }

@@ -10,6 +10,7 @@ import { ApiError, applicationsApi } from '../../lib/api'
 import type { Application, ApplicationStatus, IntegrityChange } from '@doubow/shared'
 import { INTEGRITY_CHANGE_LABELS, PIPELINE_STATUS_TABS, PIPELINE_TABLE_HEADERS } from './constants'
 import { hasPipelineIntegrityIssues } from './helpers'
+import { candidatePageShell, candidateTokens } from '../../lib/candidateUi'
 
 function ChangeRow({ change }: { change: IntegrityChange }) {
   const label = INTEGRITY_CHANGE_LABELS[change.type]
@@ -24,7 +25,7 @@ function ChangeRow({ change }: { change: IntegrityChange }) {
         {label}
       </span>
       <p className="flex-1 text-xs text-zinc-600">{change.reason}</p>
-      <button type="button" className="text-2xs whitespace-nowrap text-indigo-700 hover:underline">
+      <button type="button" className="text-2xs whitespace-nowrap text-teal-700 hover:underline">
         Jump to row
       </button>
     </div>
@@ -63,6 +64,11 @@ export default function PipelinePage() {
   const filtered = activeTab === 'all'
     ? applications
     : applications.filter((a) => a.status === activeTab)
+  const interviewCount = applications.filter((a) => a.status === 'interview').length
+  const staleCount = applications.filter((a) => a.is_stale).length
+  const avgFit = applications.length
+    ? applications.reduce((sum, app) => sum + (app.score?.fit_score ?? 0), 0) / applications.length
+    : null
 
   async function runIntegrity(mode: 'dry_run' | 'apply') {
     if (mode === 'apply') setApplying(true)
@@ -82,22 +88,38 @@ export default function PipelinePage() {
   const hasIntegrityIssues = hasPipelineIntegrityIssues(applications)
 
   return (
-    <div className="space-y-5 p-5 sm:p-7">
+    <div className={candidatePageShell}>
       <DashboardPageHeader
-        kicker="Pipeline"
-        title="Pipeline"
-        description="Track and manage all your applications"
+        kicker="Applications"
+        title="My applications"
+        description="Manage your active recruitment pipelines and match scores."
         actions={
           <button
             type="button"
             onClick={() => refresh()}
-            className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#e4e5ec] bg-white px-3 py-2 text-[14px] font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-3 py-2 text-[14px] font-medium shadow-sm hover:bg-[#f0f5f2]"
+            style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
           >
             <RefreshCw size={13} />
             Refresh
           </button>
         }
       />
+
+      <div
+        className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 px-3 py-2"
+        style={{ borderColor: 'rgba(109,122,119,0.45)' }}
+      >
+        <p className="text-2xs font-semibold uppercase tracking-wider text-zinc-500">
+          Application Pipeline
+        </p>
+        <div className="inline-flex items-center overflow-hidden rounded-sm border border-[0.5px]" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
+          <button className="bg-teal-50 px-3 py-1.5 text-2xs font-semibold text-teal-800">List</button>
+          <button className="border-l border-[0.5px] px-3 py-1.5 text-2xs font-semibold text-zinc-500" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
+            Kanban
+          </button>
+        </div>
+      </div>
 
       {draftError && (
         <div
@@ -129,7 +151,7 @@ export default function PipelinePage() {
               type="button"
               onClick={() => runIntegrity('dry_run')}
               disabled={integrityLoading}
-              className="inline-flex items-center gap-1 rounded-[10px] border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-950 shadow-sm hover:bg-amber-100 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-[10px] border border-amber-300 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-amber-950 shadow-sm hover:bg-amber-100 disabled:opacity-50"
             >
               {integrityLoading ? <Loader2 size={12} className="animate-spin" /> : null}
               Preview cleanup
@@ -175,8 +197,11 @@ export default function PipelinePage() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="mb-4 flex w-full gap-1 overflow-x-auto rounded-[12px] border border-[#e7e8ee] bg-white p-1 shadow-sm sm:w-fit">
+      {/* Tabs — mock: Active / Archived / Drafts segmented control */}
+      <div
+        className="mb-4 flex w-full gap-0 overflow-x-auto rounded border border-[0.5px] bg-[#f0f5f2] p-1 sm:w-fit"
+        style={{ borderColor: candidateTokens.outline }}
+      >
         {PIPELINE_STATUS_TABS.map((tab) => {
           const count = tab.value === 'all'
             ? applications.length
@@ -187,10 +212,10 @@ export default function PipelinePage() {
               type="button"
               onClick={() => setActiveTab(tab.value)}
               className={cn(
-                'rounded-[10px] px-3 py-1.5 text-xs transition-all duration-150',
+                'rounded-md border-[0.5px] px-3 py-1.5 text-xs font-medium transition-all duration-150',
                 activeTab === tab.value
-                  ? 'border border-indigo-200 bg-indigo-50 font-medium text-indigo-800'
-                  : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800',
+                  ? 'border-teal-600/30 bg-white dark:bg-slate-900 font-semibold text-teal-800 shadow-sm'
+                  : 'border-transparent text-zinc-500 hover:bg-white dark:bg-slate-900/70 hover:text-zinc-800',
               )}
             >
               {tab.label}
@@ -202,13 +227,49 @@ export default function PipelinePage() {
         })}
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <article
+          className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-3 shadow-sm"
+          style={{ borderColor: 'rgba(109,122,119,0.45)' }}
+        >
+          <p className="text-2xs uppercase tracking-wider text-zinc-500">In interview stage</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">{interviewCount}</p>
+          <p className="mt-0.5 text-2xs text-zinc-500">Focus these first in prep</p>
+        </article>
+        <article
+          className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-3 shadow-sm"
+          style={{ borderColor: 'rgba(109,122,119,0.45)' }}
+        >
+          <p className="text-2xs uppercase tracking-wider text-zinc-500">Average fit</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">
+            {avgFit != null ? avgFit.toFixed(1) : '—'}
+          </p>
+          <p className="mt-0.5 text-2xs text-zinc-500">Across visible applications</p>
+        </article>
+        <article
+          className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-3 shadow-sm"
+          style={{ borderColor: 'rgba(109,122,119,0.45)' }}
+        >
+          <p className="text-2xs uppercase tracking-wider text-zinc-500">Needs cleanup</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">{staleCount}</p>
+          <p className="mt-0.5 text-2xs text-zinc-500">Stale records flagged</p>
+        </article>
+      </section>
+
       {/* Table */}
-      <div className="card overflow-x-auto">
+      <div
+        className="overflow-x-auto border-[0.5px] bg-white dark:bg-slate-900 shadow-sm"
+        style={{ borderColor: candidateTokens.outline }}
+      >
         <table className="w-full min-w-[760px]">
           <thead>
-            <tr className="border-b border-zinc-200 bg-zinc-50/80">
+            <tr className="border-b border-[0.5px] bg-[#f0f5f2]" style={{ borderColor: candidateTokens.outline }}>
               {PIPELINE_TABLE_HEADERS.map((h) => (
-                <th key={h} className="px-4 py-2.5 text-left text-2xs font-medium uppercase tracking-wider text-zinc-500">
+                <th
+                  key={h}
+                  className="px-4 py-2.5 text-left text-[11px] font-normal uppercase tracking-tight"
+                  style={{ color: candidateTokens.onVariant }}
+                >
                   {h}
                 </th>
               ))}
@@ -223,10 +284,14 @@ export default function PipelinePage() {
               </tr>
             ) : (
               filtered.map((app) => (
-                <tr key={app.id} className="group border-b border-zinc-100 transition-colors hover:bg-zinc-50/80">
+                <tr
+                  key={app.id}
+                  className="group border-b border-[0.5px] transition-colors hover:bg-[#f5faf8]"
+                  style={{ borderColor: candidateTokens.outline }}
+                >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded border border-indigo-100 bg-indigo-50 text-2xs font-semibold text-indigo-800">
+                      <div className="flex h-6 w-6 items-center justify-center rounded border border-teal-100 bg-teal-50 text-2xs font-semibold text-teal-900">
                         {app.job.company.slice(0, 2).toUpperCase()}
                       </div>
                       <span className="text-sm font-medium text-zinc-900">{app.job.company}</span>
@@ -256,23 +321,33 @@ export default function PipelinePage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs tabular-nums text-zinc-500">
-                    {app.applied_at ? shortDate(app.applied_at) : '—'}
+                    {shortDate(app.last_updated)}
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => generateDraft(app)}
-                      disabled={draftingId === app.id}
-                      title="Generate outreach draft (opens in Approvals)"
-                      className="inline-flex items-center gap-1 rounded-lg border border-[#e4e5ec] bg-white px-2 py-1 text-2xs font-medium text-zinc-700 shadow-sm hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800 disabled:opacity-50"
-                    >
-                      {draftingId === app.id ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : (
-                        <FileEdit size={12} />
-                      )}
-                      Draft
-                    </button>
+                    <div className="inline-flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => generateDraft(app)}
+                        disabled={draftingId === app.id}
+                        title="Generate outreach draft (opens in Approvals)"
+                        className="inline-flex items-center gap-1 rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-teal-300 hover:bg-teal-50 hover:text-teal-900 disabled:opacity-50"
+                        style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
+                      >
+                        {draftingId === app.id ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <FileEdit size={12} />
+                        )}
+                        Draft
+                      </button>
+                      <a
+                        href="/prep"
+                        className="inline-flex items-center rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-teal-300 hover:bg-teal-50 hover:text-teal-900"
+                        style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
+                      >
+                        Prep
+                      </a>
+                    </div>
                   </td>
                 </tr>
               ))

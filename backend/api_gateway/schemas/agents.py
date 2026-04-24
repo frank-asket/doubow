@@ -18,3 +18,29 @@ class AgentStatusResponse(BaseModel):
 
 class OrchestratorChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=16_000)
+    thread_id: str | None = None
+
+
+class ChatThreadSummaryResponse(BaseModel):
+    id: str
+    title: str
+    updated_at: str
+    created_at: str
+
+
+class ChatMessageResponse(BaseModel):
+    id: str
+    role: Literal["user", "assistant"]
+    content: str
+    created_at: str
+
+
+class ChatThreadDetailResponse(BaseModel):
+    thread: ChatThreadSummaryResponse
+    messages: list[ChatMessageResponse]
+    has_more_messages: bool = False
+
+
+class ChatThreadListResponse(BaseModel):
+    threads: list[ChatThreadSummaryResponse]
+    has_more: bool = False

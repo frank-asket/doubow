@@ -4,7 +4,7 @@ PYTHON ?= python3
 ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
 
-.PHONY: db-migrate db-seed db-verify db-sync db-reset-demo
+.PHONY: db-migrate db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot
 
 # libpq/psql does not accept SQLAlchemy async URLs (postgresql+asyncpg://). Strip the driver for psql targets.
 define PSQL_CMD
@@ -17,7 +17,7 @@ db-migrate:
 	@cd "$(API_PY_PATH)" && PYTHONPATH=. \
 		DATABASE_URL="$${DATABASE_URL}" \
 		ALEMBIC_DATABASE_URL="$${DATABASE_URL}" \
-		uv run python -m alembic -c alembic.ini upgrade head
+		uv run --with-requirements requirements.txt python -m alembic -c alembic.ini upgrade head
 
 db-seed:
 	@if [ -z "$$DATABASE_URL" ]; then echo "DATABASE_URL is required"; exit 1; fi
@@ -35,3 +35,27 @@ db-reset-demo:
 
 db-sync: db-migrate db-seed db-verify
 	@echo "Doubow DB sync complete."
+
+# Focused autopilot parity test (legacy runner vs LangGraph nodes produce identical item_results).
+api-test-autopilot-parity:
+	@cd "$(API_PY_PATH)" && PYTHONPATH=. \
+		uv run \
+			--with-requirements requirements.txt \
+			--with pytest \
+			--with pytest-asyncio \
+			--with aiosqlite \
+			python -m pytest tests/test_autopilot_execution.py -k "langgraph_and_legacy_produce_identical_item_results" -q
+
+# Full autopilot suite (idempotency/service + scope resolution + execution/parity).
+api-test-autopilot:
+	@cd "$(API_PY_PATH)" && PYTHONPATH=. \
+		uv run \
+			--with-requirements requirements.txt \
+			--with pytest \
+			--with pytest-asyncio \
+			--with aiosqlite \
+			python -m pytest \
+				tests/test_autopilot.py \
+				tests/test_autopilot_scopes.py \
+				tests/test_autopilot_langgraph.py \
+				tests/test_autopilot_execution.py -q

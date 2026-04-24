@@ -68,6 +68,10 @@ test.describe('smoke flows', () => {
       })
     })
 
+    await page.addInitScript(() => {
+      localStorage.setItem('doubow.dashboard.onboarding.v2:anon', '1')
+    })
+
     await page.goto('/resume')
     await expect(page.getByRole('heading', { name: 'My resume' })).toBeVisible()
 
@@ -106,6 +110,7 @@ test.describe('smoke flows', () => {
           avg_fit_score: 3.8,
           applied_awaiting_reply: 1,
           total_scored_jobs: 2,
+          response_rate_pct: 50,
         }),
       })
     })
@@ -177,6 +182,10 @@ test.describe('smoke flows', () => {
           page_size: 20,
         }),
       })
+    })
+
+    await page.addInitScript(() => {
+      localStorage.setItem('doubow.dashboard.onboarding.v2:anon', '1')
     })
 
     await page.goto('/discover')

@@ -8,8 +8,10 @@ from models.user import User
 from schemas.autopilot import (
     AutopilotRunRequest,
     AutopilotRunResponse,
+    AutopilotResumeResponse,
     IdempotencyConflictResponse,
 )
+from services.autopilot_resume import release_resume_slot, try_acquire_resume_slot, validate_resume_eligibility
 from services.autopilot_runner import execute_autopilot_run_background
 from services.autopilot_service import (
     get_autopilot_run as get_autopilot_run_service,
@@ -18,6 +20,17 @@ from services.autopilot_service import (
 )
 
 router = APIRouter(prefix="/me/autopilot", tags=["autopilot"])
+
+
+async def _execute_autopilot_resume_task(
+    run_id: str,
+    user_id: str,
+    application_ids: list[str] | None,
+) -> None:
+    try:
+        await execute_autopilot_run_background(run_id, user_id, application_ids)
+    finally:
+        release_resume_slot(run_id)
 
 
 @router.post(
@@ -54,6 +67,41 @@ async def run_autopilot_route(
             prior_run_id=str(exc),
         )
         return JSONResponse(status_code=status.HTTP_409_CONFLICT, content=body.model_dump())
+
+
+@router.post(
+    "/runs/{run_id}/resume",
+    response_model=AutopilotResumeResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def resume_autopilot_run_route(
+    run_id: str,
+    background_tasks: BackgroundTasks,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> AutopilotResumeResponse:
+    """Re-enqueue execution for a **running** autopilot run (e.g. worker crashed after checkpoint).
+
+    Requires a stored LangGraph checkpoint when checkpointing is enabled.
+    """
+    _, reason = await validate_resume_eligibility(session=session, user_id=user.id, run_id=run_id)
+    if reason:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=reason)
+
+    acquired = await try_acquire_resume_slot(run_id)
+    if not acquired:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Resume already in progress for this run",
+        )
+
+    background_tasks.add_task(
+        _execute_autopilot_resume_task,
+        run_id,
+        user.id,
+        None,
+    )
+    return AutopilotResumeResponse(run_id=run_id, enqueued=True, detail=None)
 
 
 @router.get("/runs/{run_id}", response_model=AutopilotRunResponse)
