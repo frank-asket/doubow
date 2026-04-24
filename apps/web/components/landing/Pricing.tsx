@@ -107,12 +107,12 @@ export function Pricing() {
 
         <p className="mt-8 text-center text-sm text-[#45464d]">
           Ready to subscribe? Open{" "}
-          <a
+          <Link
             href="/auth/sign-up"
             className="rounded font-semibold text-[#006a61] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2"
           >
             Doubow plans &amp; billing
-          </a>{" "}
+          </Link>{" "}
           and finish checkout from your account.
         </p>
 

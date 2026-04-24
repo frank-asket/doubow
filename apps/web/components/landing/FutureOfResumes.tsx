@@ -34,12 +34,12 @@ export function FutureOfResumes() {
           </div>
         </div>
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a
+          <Link
             href="/auth/sign-up"
             className="landing-btn-primary px-8 py-3.5"
           >
             Open your workspace
-          </a>
+          </Link>
           <Link
             href="/discover"
             className="text-sm font-semibold text-zinc-300 underline-offset-4 hover:text-zinc-100 hover:underline"
