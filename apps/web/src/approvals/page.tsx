@@ -434,8 +434,8 @@ export default function ApprovalsPage() {
             key={workspaceBoundaryKey}
             onReset={() => setWorkspaceBoundaryKey((v) => v + 1)}
           >
-          <section className="mx-auto w-full max-w-[1700px] flex-1 overflow-x-auto bg-[#f0f5f2] p-4 dark:bg-slate-950">
-            <div className="grid min-w-[1120px] grid-cols-1 gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(520px,2fr)_minmax(280px,1fr)] lg:gap-4">
+          <section className="mx-auto w-full max-w-[1900px] flex-1 overflow-x-auto bg-[#f0f5f2] p-4 dark:bg-slate-950">
+            <div className="grid min-w-[1320px] grid-cols-1 gap-4 lg:grid-cols-[minmax(230px,0.9fr)_minmax(760px,2.8fr)_minmax(240px,0.9fr)] lg:gap-4">
             <aside className={`${dashboardUi.utilityCard} min-w-0 border-[#d6e5df] dark:border-slate-700 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto`}>
               <div className="flex items-center justify-between px-2 pb-2">
                 <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Queue</h2>
@@ -560,7 +560,7 @@ export default function ApprovalsPage() {
                 <textarea
                   value={draftBody}
                   onChange={(event) => setDraftBody(event.target.value)}
-                  className={dashboardUi.composerSurface}
+                  className={`${dashboardUi.composerSurface} min-h-[680px]`}
                 />
                 <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-2 border-t border-[#d6e5df] bg-white/95 px-4 py-3 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95">
                   <button type="button" onClick={() => current && setDraftBody(current.draft_body)} className={`${dashboardUi.actionButton} border border-[#d6e5df] font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300`}>
