@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Component, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Bookmark, CheckCircle2, CircleHelp, Link2, List, Loader2, Shield, TrendingUp, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { approvalsApi } from '../../lib/api'
@@ -91,6 +91,65 @@ function ApprovalsLoadingShell() {
   )
 }
 
+type ApprovalsWorkspaceBoundaryProps = {
+  children: ReactNode
+  onReset?: () => void
+}
+
+type ApprovalsWorkspaceBoundaryState = {
+  hasError: boolean
+}
+
+class ApprovalsWorkspaceBoundary extends Component<
+  ApprovalsWorkspaceBoundaryProps,
+  ApprovalsWorkspaceBoundaryState
+> {
+  state: ApprovalsWorkspaceBoundaryState = { hasError: false }
+
+  static getDerivedStateFromError(): ApprovalsWorkspaceBoundaryState {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: unknown) {
+    console.error('Approvals workspace render failure:', error)
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false })
+    this.props.onReset?.()
+  }
+
+  render() {
+    if (!this.state.hasError) return this.props.children
+    return (
+      <section className="mx-auto grid w-full max-w-[1700px] flex-1 place-items-center bg-[#f0f5f2] p-6 dark:bg-slate-950">
+        <div className="w-full max-w-xl rounded-2xl border border-[#d6e5df] bg-white p-6 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-sm font-semibold text-slate-900 dark:text-white">Approvals workspace hit a rendering issue.</p>
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+            Your draft data is safe. Reload this panel to continue.
+          </p>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={this.handleReset}
+              className={`${dashboardUi.actionButton} border border-[#d6e5df] font-medium text-slate-700 dark:border-slate-700 dark:text-slate-200`}
+            >
+              Reload panel
+            </button>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className={`${dashboardUi.actionButton} bg-[#00685f] px-4 font-semibold text-white`}
+            >
+              Reload page
+            </button>
+          </div>
+        </div>
+      </section>
+    )
+  }
+}
+
 export default function ApprovalsPage() {
   const searchParams = useSearchParams()
   const { approvals, loading, removeApproval } = useApprovalStore()
@@ -118,6 +177,7 @@ export default function ApprovalsPage() {
   const [submitting, setSubmitting] = useState<'approve' | 'reject' | null>(null)
   const [saveToastOpen, setSaveToastOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [workspaceBoundaryKey, setWorkspaceBoundaryKey] = useState(0)
 
   const originalBase = parseBaseSalary(current?.application?.job?.salary_range)
   const targetBonus = 15
@@ -370,8 +430,13 @@ export default function ApprovalsPage() {
             </div>
           </section>
         ) : (
-          <section className="mx-auto grid w-full max-w-[1700px] flex-1 grid-cols-1 gap-4 bg-[#f0f5f2] p-4 dark:bg-slate-950 lg:grid-cols-12 lg:gap-4">
-            <aside className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700 lg:col-span-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto`}>
+          <ApprovalsWorkspaceBoundary
+            key={workspaceBoundaryKey}
+            onReset={() => setWorkspaceBoundaryKey((v) => v + 1)}
+          >
+          <section className="mx-auto w-full max-w-[1700px] flex-1 overflow-x-auto bg-[#f0f5f2] p-4 dark:bg-slate-950">
+            <div className="grid min-w-[1120px] grid-cols-1 gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(520px,2fr)_minmax(280px,1fr)] lg:gap-4">
+            <aside className={`${dashboardUi.utilityCard} min-w-0 border-[#d6e5df] dark:border-slate-700 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto`}>
               <div className="flex items-center justify-between px-2 pb-2">
                 <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Queue</h2>
                 <span className="rounded-full border border-[#d6e5df] bg-white px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
@@ -452,8 +517,8 @@ export default function ApprovalsPage() {
               </div>
             </aside>
 
-            <div className="lg:col-span-6">
-              <div className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700 flex min-h-[640px] flex-col p-0`}>
+            <div className="min-w-0">
+              <div className={`${dashboardUi.utilityCard} min-w-0 border-[#d6e5df] dark:border-slate-700 flex min-h-[640px] flex-col p-0`}>
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#d6e5df] bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/50">
                   <div className="min-w-0">
                     <p className="truncate text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
@@ -524,7 +589,7 @@ export default function ApprovalsPage() {
               </div>
             </div>
 
-            <div className="space-y-4 lg:col-span-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
+            <div className="min-w-0 space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
               <div className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700`}>
                 <h3 className="mb-3 text-[12px] font-medium uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Offer Snapshot</h3>
                 <div className="space-y-2 text-[13px]">
@@ -711,7 +776,9 @@ export default function ApprovalsPage() {
                 </div>
               </div>
             </div>
+            </div>
           </section>
+          </ApprovalsWorkspaceBoundary>
         )}
       </main>
     </div>
