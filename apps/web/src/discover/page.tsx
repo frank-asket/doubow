@@ -74,6 +74,40 @@ function FitBadge({ score }: { score: number }) {
   )
 }
 
+function CompanyLogo({
+  company,
+  logoUrl,
+  imageSize,
+  className,
+}: {
+  company: string
+  logoUrl?: string | null
+  imageSize: number
+  className?: string
+}) {
+  const [failed, setFailed] = useState(false)
+  const initials = company.slice(0, 2).toUpperCase()
+
+  useEffect(() => {
+    setFailed(false)
+  }, [logoUrl, company])
+
+  if (!logoUrl || failed) {
+    return <span className={cn('text-xs font-semibold text-zinc-700', className)}>{initials}</span>
+  }
+
+  return (
+    <Image
+      src={logoUrl}
+      alt={`${company} logo`}
+      width={imageSize}
+      height={imageSize}
+      className={cn('object-contain opacity-90', className)}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 function JobCard({ job }: { job: JobWithScore }) {
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
@@ -105,17 +139,7 @@ function JobCard({ job }: { job: JobWithScore }) {
         <div className="mb-2 flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-[0.5px] border-zinc-200 bg-zinc-50">
-              {job.logo_url ? (
-                <Image
-                  src={job.logo_url}
-                  alt={`${job.company} logo`}
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 object-contain opacity-90"
-                />
-              ) : (
-                <span className="text-xs font-semibold text-zinc-700">{job.company.slice(0, 2).toUpperCase()}</span>
-              )}
+              <CompanyLogo company={job.company} logoUrl={job.logo_url} imageSize={32} className="h-8 w-8" />
             </div>
             <div>
               <p className="text-sm font-medium leading-snug text-zinc-900">{job.title}</p>
@@ -244,17 +268,7 @@ function CatalogFeaturedMatch({ job }: { job: JobWithScore }) {
             className="flex h-16 w-16 flex-shrink-0 items-center justify-center border-[0.5px] bg-[#f0f5f2] text-sm font-bold text-teal-900"
             style={{ borderColor: candidateTokens.outline }}
           >
-            {job.logo_url ? (
-              <Image
-                src={job.logo_url}
-                alt={`${job.company} logo`}
-                width={44}
-                height={44}
-                className="h-11 w-11 object-contain"
-              />
-            ) : (
-              job.company.slice(0, 2).toUpperCase()
-            )}
+            <CompanyLogo company={job.company} logoUrl={job.logo_url} imageSize={44} className="h-11 w-11 text-sm font-bold text-teal-900" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
