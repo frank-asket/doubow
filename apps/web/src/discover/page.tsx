@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
@@ -44,6 +45,27 @@ const ONBOARDING_STEP_LABELS: Record<string, string> = {
   first_jobs_ready: 'First jobs ready',
 }
 
+const SOURCE_LABELS: Record<JobWithScore['source'], string> = {
+  ashby: 'Ashby',
+  greenhouse: 'Greenhouse',
+  lever: 'Lever',
+  linkedin: 'LinkedIn',
+  wellfound: 'Wellfound',
+  manual: 'Manual',
+  catalog: 'Company site',
+}
+
+function sourceLabel(source: JobWithScore['source']): string {
+  return SOURCE_LABELS[source] ?? 'Source'
+}
+
+function descriptionPreview(text?: string, max = 180): string {
+  const normalized = (text ?? '').replace(/\s+/g, ' ').trim()
+  if (!normalized) return 'No source description available for this listing.'
+  if (normalized.length <= max) return normalized
+  return `${normalized.slice(0, max).trimEnd()}…`
+}
+
 function FitBadge({ score }: { score: number }) {
   return (
     <span className={cn('badge text-xs px-2 py-0.5', fitClass(score))}>
@@ -84,8 +106,13 @@ function JobCard({ job }: { job: JobWithScore }) {
           <div className="flex items-start gap-3">
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-[0.5px] border-zinc-200 bg-zinc-50">
               {job.logo_url ? (
-                // Match mockup treatment: square logo tile when available.
-                <img src={job.logo_url} alt={`${job.company} logo`} className="h-8 w-8 object-contain opacity-80" />
+                <Image
+                  src={job.logo_url}
+                  alt={`${job.company} logo`}
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 object-contain opacity-90"
+                />
               ) : (
                 <span className="text-xs font-semibold text-zinc-700">{job.company.slice(0, 2).toUpperCase()}</span>
               )}
@@ -122,7 +149,15 @@ function JobCard({ job }: { job: JobWithScore }) {
           <span className={cn('badge text-2xs', channelBadgeClass(job.score.channel_recommendation))}>
             via {channelLabel(job.score.channel_recommendation)}
           </span>
+          <span className="text-xs font-medium text-zinc-500">Source: {sourceLabel(job.source)}</span>
           <span className="text-xs text-zinc-500">{relativeTime(job.discovered_at)}</span>
+        </div>
+
+        <div className="rounded-sm border border-[0.5px] bg-zinc-50 p-3 text-xs leading-relaxed text-zinc-700" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            Description from {sourceLabel(job.source)}
+          </p>
+          <p>{descriptionPreview(job.description, 210)}</p>
         </div>
 
         <div className="mt-3 grid grid-cols-5 gap-4 border-t border-[0.5px] pt-3" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
@@ -209,7 +244,17 @@ function CatalogFeaturedMatch({ job }: { job: JobWithScore }) {
             className="flex h-16 w-16 flex-shrink-0 items-center justify-center border-[0.5px] bg-[#f0f5f2] text-sm font-bold text-teal-900"
             style={{ borderColor: candidateTokens.outline }}
           >
-            {job.company.slice(0, 2).toUpperCase()}
+            {job.logo_url ? (
+              <Image
+                src={job.logo_url}
+                alt={`${job.company} logo`}
+                width={44}
+                height={44}
+                className="h-11 w-11 object-contain"
+              />
+            ) : (
+              job.company.slice(0, 2).toUpperCase()
+            )}
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -254,6 +299,16 @@ function CatalogFeaturedMatch({ job }: { job: JobWithScore }) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div
+        className="mt-4 rounded-sm border border-[0.5px] bg-[#f7faf8] p-3"
+        style={{ borderColor: candidateTokens.outline }}
+      >
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          Description from {sourceLabel(job.source)}
+        </p>
+        <p className="text-xs leading-relaxed text-zinc-700">{descriptionPreview(job.description, 260)}</p>
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-4">

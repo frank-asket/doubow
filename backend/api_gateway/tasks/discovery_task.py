@@ -12,6 +12,7 @@ from db.session import SessionLocal
 from models.user import User
 from schemas.jobs import DiscoverJobItem, DiscoverJobsRequest
 from services.job_discovery_service import discover_upsert_jobs
+from services.job_ingestion_sanitizer import normalize_optional_http_url
 from services.portal_scanner import scan
 from tasks.celery_app import celery_app
 
@@ -21,16 +22,20 @@ logger = logging.getLogger(__name__)
 def _normalize_job_payload(raw_jobs: list[dict]) -> DiscoverJobsRequest:
     jobs: list[DiscoverJobItem] = []
     for raw in raw_jobs:
+        safe_url = normalize_optional_http_url(raw.get("url"))
+        safe_logo_url = normalize_optional_http_url(raw.get("logo_url"))
         jobs.append(
             DiscoverJobItem(
                 source=str(raw.get("source", "manual")),
-                external_id=str(raw.get("external_id") or raw.get("url") or f"generated-{len(jobs)}"),
+                external_id=str(raw.get("external_id") or safe_url or f"generated-{len(jobs)}"),
                 title=str(raw.get("title", "Untitled role")),
                 company=str(raw.get("company", "Unknown company")),
                 location=raw.get("location"),
                 salary_range=raw.get("salary_range"),
+                logo_url=safe_logo_url,
+                description_raw=str(raw.get("description_raw", raw.get("description", ""))),
                 description=str(raw.get("description", "")),
-                url=str(raw.get("url", "")),
+                url=safe_url or "",
                 posted_at=raw.get("posted_at"),
                 score_template=raw.get("score_template"),
             )

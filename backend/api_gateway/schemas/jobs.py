@@ -33,7 +33,11 @@ class Job(BaseModel):
     company: str
     location: str
     salary_range: str | None = None
+    logo_url: str | None = None
+    description_raw: str = ""
+    description_clean: str = ""
     description: str
+    canonical_url: str = ""
     url: str
     posted_at: datetime | None = None
     discovered_at: datetime
@@ -57,6 +61,8 @@ class DiscoverJobItem(BaseModel):
     company: str = Field(min_length=1, max_length=255)
     location: str | None = Field(default=None, max_length=255)
     salary_range: str | None = Field(default=None, max_length=128)
+    logo_url: str | None = Field(default=None, max_length=1000)
+    description_raw: str = ""
     description: str = ""
     url: str = ""
     posted_at: datetime | None = None

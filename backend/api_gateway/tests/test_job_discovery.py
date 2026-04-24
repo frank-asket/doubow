@@ -34,4 +34,9 @@ async def test_discover_creates_job_and_visible_in_list(db_session):
 
     listing = await list_jobs(db_session, uid, min_fit=0.0, location=None, page=1)
     assert listing.total >= 1
-    assert any(j.company == "TestCorp" for j in listing.items)
+    match = next((j for j in listing.items if j.company == "TestCorp"), None)
+    assert match is not None
+    assert match.logo_url is not None and match.logo_url.startswith("https://")
+    assert match.description_raw == "Build systems"
+    assert match.description_clean == "Build systems"
+    assert match.canonical_url.startswith("https://")

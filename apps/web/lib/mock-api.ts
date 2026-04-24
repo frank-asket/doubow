@@ -90,6 +90,19 @@ const COMPANIES = [
   'Tailspin Aerospace',
 ] as const
 
+const COMPANY_DOMAINS = [
+  'meridiananalytics.com',
+  'harborcloud.com',
+  'cobaltsystems.com',
+  'northwindlabs.com',
+  'contoso.ai',
+  'fabrikamhealth.com',
+  'litwarerobotics.com',
+  'adventure-works.com',
+  'wideworldtraders.com',
+  'tailspinaerospace.com',
+] as const
+
 const TITLES = [
   'Senior Full-Stack Engineer',
   'Staff Backend Engineer',
@@ -107,6 +120,28 @@ const SOURCES: JobSource[] = ['ashby', 'greenhouse', 'lever', 'linkedin', 'catal
 
 function isoMinutesAgo(min: number): string {
   return new Date(Date.now() - min * 60_000).toISOString()
+}
+
+function sourceSiteLabel(source: JobSource): string {
+  const labels: Record<JobSource, string> = {
+    ashby: 'Ashby',
+    greenhouse: 'Greenhouse',
+    lever: 'Lever',
+    linkedin: 'LinkedIn',
+    wellfound: 'Wellfound',
+    manual: 'Company site',
+    catalog: 'Company site',
+  }
+  return labels[source]
+}
+
+function buildSourceUrl(source: JobSource, domain: string, i: number): string {
+  const slug = domain.replace(/\.[^.]+$/, '').replace(/[^a-z0-9-]/gi, '-')
+  if (source === 'greenhouse') return `https://boards.greenhouse.io/${slug}/jobs/${9000 + i}`
+  if (source === 'lever') return `https://jobs.lever.co/${slug}/${i.toString(16)}`
+  if (source === 'ashby') return `https://jobs.ashbyhq.com/${slug}/${i.toString(36)}`
+  if (source === 'linkedin') return `https://www.linkedin.com/jobs/view/${1200000 + i}/`
+  return `https://${domain}/careers/${slug}-${i}`
 }
 
 function makeScore(jobId: string, fit: number): JobScore {
@@ -130,19 +165,21 @@ function makeScore(jobId: string, fit: number): JobScore {
 function makeJob(i: number): JobWithScore {
   const id = `job-mock-${String(i + 1).padStart(4, '0')}`
   const fit = 2.8 + (i % 7) * 0.28
+  const source = SOURCES[i % SOURCES.length]
+  const domain = COMPANY_DOMAINS[i % COMPANY_DOMAINS.length]
   const job: Job = {
     id,
-    source: SOURCES[i % SOURCES.length],
+    source,
     external_id: `ext-${i}`,
     title: `${TITLES[i % TITLES.length]}`,
     company: COMPANIES[i % COMPANIES.length],
     location: LOCATIONS[i % LOCATIONS.length],
     salary_range: i % 3 === 0 ? '€90k – €120k' : '€110k – €145k',
-    description: `Demo posting #${i + 1}. We are building reliable systems for customers who care about quality. You will partner with product and design, ship iteratively, and help raise the bar for engineering craft.`,
-    url: `https://example.com/jobs/${id}`,
+    description: `Excerpt from ${sourceSiteLabel(source)} posting on ${domain}: Demo posting #${i + 1}. We are building reliable systems for customers who care about quality. You will partner with product and design, ship iteratively, and help raise the bar for engineering craft.`,
+    url: buildSourceUrl(source, domain, i),
     posted_at: isoMinutesAgo(60 * 24 + i * 17),
     discovered_at: isoMinutesAgo(200 + i),
-    logo_url: undefined,
+    logo_url: `https://logo.clearbit.com/${domain}`,
   }
   return { ...job, score: makeScore(id, fit) }
 }

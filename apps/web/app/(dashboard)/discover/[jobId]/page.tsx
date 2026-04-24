@@ -136,7 +136,7 @@ export default function JobDetailPage() {
   return (
     <div className={candidatePageShell}>
       <div className="mb-1">
-        <Link href="/discover" className="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-800">
+        <Link href="/discover" className="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:font-bold dark:text-white dark:hover:text-white">
           <ArrowLeft size={12} />
           Back to catalog
         </Link>
@@ -144,7 +144,7 @@ export default function JobDetailPage() {
 
       {isLoading ? (
         <section className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-4" style={{ borderColor: SURFACE_BORDER }}>
-          <p className="text-sm text-zinc-500">Loading job detail...</p>
+          <p className="text-sm text-zinc-500 dark:font-bold dark:text-white">Loading job detail...</p>
         </section>
       ) : error || !job ? (
         <section className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-4" style={{ borderColor: SURFACE_BORDER }}>
@@ -158,22 +158,22 @@ export default function JobDetailPage() {
           <section className="space-y-4 lg:col-span-8">
             <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
               <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 items-center justify-center border border-[0.5px] bg-zinc-50 text-xs font-bold text-zinc-700" style={{ borderColor: SURFACE_BORDER }}>
+                <div className="flex h-14 w-14 items-center justify-center border border-[0.5px] bg-zinc-50 text-xs font-bold text-zinc-700 dark:text-white" style={{ borderColor: SURFACE_BORDER }}>
                   {job.company.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <h1 className="text-xl font-semibold tracking-tight text-zinc-900">{job.title}</h1>
+                  <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:font-bold dark:text-white">{job.title}</h1>
                     <span className="rounded bg-[#89f5e7] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#005049]">
                       Open
                     </span>
                   </div>
-                  <p className="text-sm text-zinc-600">{job.company} • {job.location || 'Location TBD'}</p>
+                  <p className="text-sm text-zinc-600 dark:font-bold dark:text-white">{job.company} • {job.location || 'Location TBD'}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <span className="rounded-sm border border-[0.5px] bg-zinc-50 px-2 py-1 text-xs text-zinc-600" style={{ borderColor: SURFACE_BORDER }}>
+                    <span className="rounded-sm border border-[0.5px] bg-zinc-50 px-2 py-1 text-xs text-zinc-600 dark:font-bold dark:text-white" style={{ borderColor: SURFACE_BORDER }}>
                       {job.salary_range || 'Salary not listed'}
                     </span>
-                    <span className="rounded-sm border border-[0.5px] bg-zinc-50 px-2 py-1 text-xs text-zinc-600" style={{ borderColor: SURFACE_BORDER }}>
+                    <span className="rounded-sm border border-[0.5px] bg-zinc-50 px-2 py-1 text-xs text-zinc-600 dark:font-bold dark:text-white" style={{ borderColor: SURFACE_BORDER }}>
                       Posted {relativeTime(job.posted_at ?? job.discovered_at)}
                     </span>
                   </div>
@@ -182,18 +182,18 @@ export default function JobDetailPage() {
             </article>
 
             <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
-              <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Job description</h2>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">
+              <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:font-bold dark:text-white">Job description</h2>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:font-bold dark:text-white">
                 {job.description || 'No description provided for this role.'}
               </p>
             </article>
 
             <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
-              <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Why Doubow matched this</h2>
+              <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:font-bold dark:text-white">Why Doubow matched this</h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {job.score.fit_reasons.slice(0, 4).map((reason, i) => (
                   <div key={i} className="rounded-sm border border-[0.5px] bg-zinc-50 p-3" style={{ borderColor: SURFACE_BORDER }}>
-                    <p className="text-sm text-zinc-700">{reason}</p>
+                    <p className="text-sm text-zinc-700 dark:font-bold dark:text-white">{reason}</p>
                   </div>
                 ))}
               </div>
@@ -202,12 +202,12 @@ export default function JobDetailPage() {
 
           <aside className="space-y-4 lg:col-span-4">
             <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
-              <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Match analytics</h2>
+              <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:font-bold dark:text-white">Match analytics</h2>
               <div className="space-y-3">
                 {Object.entries(job.score.dimension_scores).map(([key, value]) => (
                   <div key={key}>
                     <div className="mb-1 flex items-end justify-between">
-                      <span className="text-xs font-semibold text-zinc-800">{DIMENSION_LABELS[key] ?? key}</span>
+                      <span className="text-xs font-semibold text-zinc-800 dark:font-bold dark:text-white">{DIMENSION_LABELS[key] ?? key}</span>
                       <span className="text-[11px] font-semibold text-teal-700">{Math.round(scoreBarWidth(value))}%</span>
                     </div>
                     <div className="h-1.5 w-full bg-zinc-100">
@@ -221,12 +221,12 @@ export default function JobDetailPage() {
             <article className="rounded-2xl border border-[0.5px] bg-white shadow-sm dark:bg-slate-900 lg:sticky lg:top-20" style={{ borderColor: SURFACE_BORDER }}>
               <div className="border-b border-[0.5px] bg-zinc-50 px-4 py-4" style={{ borderColor: SURFACE_BORDER }}>
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Draft workspace</p>
-                  <span className="rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:font-bold dark:text-white">Draft workspace</p>
+                  <span className="rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600 dark:font-bold dark:text-white">
                     human review
                   </span>
                 </div>
-                <p className="mt-1 text-sm font-medium text-zinc-800">Subject: Interest in {job.title}</p>
+                <p className="mt-1 text-sm font-medium text-zinc-800 dark:font-bold dark:text-white">Subject: Interest in {job.title}</p>
               </div>
               <div className="p-4">
                 <textarea
@@ -238,7 +238,7 @@ export default function JobDetailPage() {
                     setDraftBody(e.target.value)
                     if (actionState !== 'idle') setActionState('idle')
                   }}
-                  className="h-56 w-full resize-none rounded-xl border border-[0.5px] p-4 text-sm leading-relaxed text-zinc-700 outline-none focus:border-teal-600"
+                  className="h-56 w-full resize-none rounded-xl border border-[0.5px] p-4 text-sm leading-relaxed text-zinc-700 outline-none focus:border-teal-600 dark:font-bold dark:text-white"
                   style={{ borderColor: SURFACE_BORDER }}
                 />
               </div>
@@ -267,7 +267,7 @@ export default function JobDetailPage() {
                 </div>
               ) : null}
               {actionState === 'rejected' ? (
-                <p className="mx-4 mb-3 text-xs font-medium text-zinc-600">
+                <p className="mx-4 mb-3 text-xs font-medium text-zinc-600 dark:font-bold dark:text-white">
                   Draft rejected. Generate or edit a new one any time.
                 </p>
               ) : null}
