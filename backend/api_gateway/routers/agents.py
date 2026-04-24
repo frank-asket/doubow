@@ -26,7 +26,7 @@ from services.agent_chat_service import (
     recent_thread_transcript,
 )
 from services.agents_service import build_orchestrator_user_context, list_agent_status
-from services.llm_prompts import ORCHESTRATOR_SYSTEM
+from services.llm_prompts import ORCHESTRATOR_SYSTEM, normalize_orchestrator_response
 from services.openrouter import stream_chat_completion_chunks
 
 logger = logging.getLogger(__name__)
@@ -108,11 +108,12 @@ async def orchestrator_chat(
                 use_case="chat",
             ):
                 acc += fragment
-                chunk = json.dumps({"delta": {"text": fragment}})
-                yield f"data: {chunk}\n\n"
+            normalized = normalize_orchestrator_response(acc)
+            chunk = json.dumps({"delta": {"text": normalized}})
+            yield f"data: {chunk}\n\n"
             row = await session.get(ChatThread, thread.id)
             if row is not None and row.user_id == user.id:
-                await append_chat_message(session=session, thread=row, role="assistant", content=acc)
+                await append_chat_message(session=session, thread=row, role="assistant", content=normalized)
                 await session.commit()
             yield "data: [DONE]\n\n"
         except RuntimeError as exc:

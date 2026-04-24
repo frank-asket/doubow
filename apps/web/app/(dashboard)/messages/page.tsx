@@ -1,6 +1,6 @@
 'use client'
 
-import { Bot, Briefcase, ChevronRight, Loader2, Mic, Plus, SearchCheck, SendHorizonal, Settings, Sparkles, StopCircle, User } from 'lucide-react'
+import { Bot, Briefcase, ChevronRight, CheckCircle2, Lightbulb, ListChecks, Loader2, Mic, Plus, SearchCheck, SendHorizonal, Settings, Sparkles, StopCircle, User } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { candidatePageShell, candidateTokens as tk } from '@/lib/candidateUi'
 import useSWR from 'swr'
@@ -63,6 +63,68 @@ const AGENT_TASKS: AgentTask[] = [
 
 const ATTENTION_ITEMS = ['Review Stripe Draft', 'Schedule 1:1 Coaching'] as const
 const LOCAL_STORAGE_NS = 'doubow.messages.history.v1'
+
+function sectionIconForLine(line: string) {
+  const lower = line.toLowerCase()
+  if (lower.includes('next') || lower.includes('plan') || lower.includes('action')) return ListChecks
+  if (lower.includes('tip') || lower.includes('idea') || lower.includes('suggest')) return Lightbulb
+  return CheckCircle2
+}
+
+function renderAssistantBody(text: string, isStreaming: boolean) {
+  if (!text && isStreaming) {
+    return (
+      <span className="inline-flex items-center gap-2 text-zinc-600 dark:text-slate-200">
+        <Loader2 size={14} className="animate-spin" />
+        <span className="inline-flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-teal-600 [animation:ping_1.2s_infinite]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-teal-600 [animation:ping_1.2s_infinite_150ms]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-teal-600 [animation:ping_1.2s_infinite_300ms]" />
+        </span>
+        Thinking...
+      </span>
+    )
+  }
+
+  const lines = text
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .filter((line, index, all) => line.length > 0 || (index > 0 && all[index - 1].length > 0))
+
+  return (
+    <div className="space-y-2">
+      {lines.map((line, index) => {
+        const isBullet = /^[-*•]\s+/.test(line)
+        const isNumbered = /^\d+\.\s+/.test(line)
+        const isSection = /:$/.test(line) || /^#{1,3}\s+/.test(line)
+        if (isSection) {
+          const Icon = sectionIconForLine(line)
+          const cleaned = line.replace(/^#{1,3}\s+/, '').replace(/:$/, '')
+          return (
+            <p key={`${index}-${cleaned}`} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-teal-700 dark:text-teal-300">
+              <Icon size={13} />
+              {cleaned}
+            </p>
+          )
+        }
+        if (isBullet || isNumbered) {
+          const cleaned = line.replace(/^[-*•]\s+/, '').replace(/^\d+\.\s+/, '')
+          return (
+            <p key={`${index}-${cleaned}`} className="flex items-start gap-2 text-[14px] leading-relaxed text-zinc-800 dark:text-slate-100">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-600" />
+              <span>{cleaned}</span>
+            </p>
+          )
+        }
+        return (
+          <p key={`${index}-${line}`} className="text-[14px] leading-relaxed text-zinc-800 dark:text-slate-100">
+            {line}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
 
 function taskToneClasses(tone: AgentTask['tone']) {
   if (tone === 'amber') {
@@ -384,12 +446,25 @@ export default function MessagesPage() {
                     ) : null}
                     <div className={`space-y-2 ${isUser ? 'text-right' : 'w-full'}`}>
                       <div
-                        className={`rounded-lg px-4 py-3 text-[15px] font-medium leading-relaxed ${
-                          isUser ? 'text-white' : 'border border-zinc-200 text-zinc-800 dark:border-slate-600 dark:text-white'
+                        className={`rounded-lg px-4 py-3 text-[15px] font-medium leading-relaxed transition-all duration-200 ${
+                          isUser
+                            ? 'text-white'
+                            : `border border-zinc-200 text-zinc-800 dark:border-slate-600 dark:text-white ${
+                                streaming && message.id === messages[messages.length - 1]?.id
+                                  ? 'shadow-[0_0_0_1px_rgba(13,148,136,0.25)]'
+                                  : ''
+                              }`
                         }`}
                         style={isUser ? { backgroundColor: tk.primary } : { backgroundColor: tk.surfaceLow }}
                       >
-                        {message.text || (streaming ? <span className="inline-flex items-center gap-2"><Loader2 size={14} className="animate-spin" />Thinking…</span> : null)}
+                        {isUser ? (
+                          message.text || (streaming ? <span className="inline-flex items-center gap-2"><Loader2 size={14} className="animate-spin" />Thinking...</span> : null)
+                        ) : (
+                          renderAssistantBody(
+                            message.text,
+                            streaming && message.id === messages[messages.length - 1]?.id,
+                          )
+                        )}
                       </div>
                       {message.roleCards?.length ? (
                         <div className="mt-4 space-y-2">

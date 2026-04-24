@@ -67,6 +67,7 @@ export default function ApprovalsPage() {
   const [flowVariant, setFlowVariant] = useState<DraftVariant>('base-1')
   const [submitting, setSubmitting] = useState<'approve' | 'reject' | null>(null)
   const [saveToastOpen, setSaveToastOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   const originalBase = parseBaseSalary(current?.application?.job?.salary_range)
   const targetBonus = 15
@@ -81,6 +82,10 @@ export default function ApprovalsPage() {
   const showSaveScenarioAction = variant === 'whatif-3' || variant === 'whatif-4'
   const showSavedToast = variant === 'whatif-4' || saveToastOpen
   const approvalIdFromUrl = searchParams.get('approvalId')
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!approvalIdFromUrl) return
@@ -221,6 +226,10 @@ export default function ApprovalsPage() {
     } finally {
       setSubmitting(null)
     }
+  }
+
+  if (!mounted) {
+    return <div className="p-6 text-sm text-slate-500 dark:text-slate-400">Loading drafts...</div>
   }
 
   if (loading && pending.length === 0) {
