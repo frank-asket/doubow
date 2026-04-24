@@ -141,7 +141,8 @@ export default function DashboardOnboardingDialog({
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
   const initialDelayDone = useRef(false)
-  const initialDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** Browser timer handle (`number`); avoid `NodeJS.Timeout` from global `setTimeout` typing. */
+  const initialDelayTimerRef = useRef<number | null>(null)
 
   function clearResumeMarker() {
     if (!onboardingUserId || typeof window === 'undefined') return

@@ -83,7 +83,9 @@ export default function ApprovalsPage() {
         setBaseSalary(typeof parsed.baseSalary === 'number' ? parsed.baseSalary : 205000)
         setEquityUnits(typeof parsed.equityUnits === 'number' ? parsed.equityUnits : 600)
         setSignOnBonus(typeof parsed.signOnBonus === 'number' ? parsed.signOnBonus : 25000)
-        setFlowVariant(isDraftVariant(parsed.variant ?? null) ? parsed.variant : 'base-1')
+        setFlowVariant(
+          parsed.variant != null && isDraftVariant(parsed.variant) ? parsed.variant : 'base-1',
+        )
         return
       } catch {
         // Fall through to defaults if stored payload is invalid.
