@@ -602,6 +602,38 @@ body {
     font-weight: 600;
   }
 
+  /* Approvals: preserve contrast hierarchy and weight parity in dark mode */
+  .dark .app-route-shell .approvals-surface [class*='text-slate-9'] {
+    color: #f8fafc !important;
+    font-weight: 600 !important;
+  }
+
+  .dark .app-route-shell .approvals-surface :is(
+    [class*='text-slate-8'],
+    [class*='text-slate-7'],
+    [class*='text-zinc-8'],
+    [class*='text-zinc-7']
+  ) {
+    color: #e2e8f0 !important;
+    font-weight: 600 !important;
+  }
+
+  .dark .app-route-shell .approvals-surface :is(
+    [class*='text-slate-6'],
+    [class*='text-slate-5'],
+    [class*='text-zinc-6'],
+    [class*='text-zinc-5']
+  ) {
+    color: #cbd5e1 !important;
+    font-weight: 500 !important;
+  }
+
+  .dark .app-route-shell .approvals-surface textarea {
+    color: #f8fafc;
+    font-weight: 500;
+    caret-color: #5eead4;
+  }
+
   .dark .app-route-shell .card {
     border-color: #253047;
     background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
