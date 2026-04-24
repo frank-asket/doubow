@@ -18,6 +18,11 @@ type PersistedDraftState = {
   variant: DraftVariant
 }
 
+type ActionToast = {
+  kind: 'success' | 'error'
+  message: string
+}
+
 function isDraftVariant(value: string | null): value is DraftVariant {
   return value === 'base-1'
     || value === 'base-2'
@@ -178,6 +183,9 @@ export default function ApprovalsPage() {
   const [saveToastOpen, setSaveToastOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [workspaceBoundaryKey, setWorkspaceBoundaryKey] = useState(0)
+  const [actionToast, setActionToast] = useState<ActionToast | null>(null)
+  const [autosaveState, setAutosaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
 
   const originalBase = parseBaseSalary(current?.application?.job?.salary_range)
   const targetBonus = 15
@@ -201,6 +209,33 @@ export default function ApprovalsPage() {
     : draftWordCount > 220
       ? 'Consider tightening to keep it skimmable for recruiters.'
       : 'Length looks healthy for a concise recruiter-ready note.'
+  const savedAtLabel = useMemo(() => {
+    if (!lastSavedAt) return null
+    return new Date(lastSavedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  }, [lastSavedAt])
+  const hasDraftChanges = useMemo(() => {
+    if (!current) return false
+    return (
+      draftBody !== current.draft_body
+      || baseSalary !== 205000
+      || equityUnits !== 600
+      || signOnBonus !== 25000
+      || variant !== 'base-1'
+    )
+  }, [current, draftBody, baseSalary, equityUnits, signOnBonus, variant])
+
+  function persistDraftState() {
+    if (!current || typeof window === 'undefined') return
+    const key = storageKeyForApproval(current.id)
+    const payload: PersistedDraftState = {
+      body: draftBody,
+      baseSalary,
+      equityUnits,
+      signOnBonus,
+      variant,
+    }
+    window.localStorage.setItem(key, JSON.stringify(payload))
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -310,18 +345,30 @@ export default function ApprovalsPage() {
   }, [saveToastOpen, flowVariant, urlVariant])
 
   useEffect(() => {
-    if (!current) return
-    if (typeof window === 'undefined') return
-    const key = storageKeyForApproval(current.id)
-    const payload: PersistedDraftState = {
-      body: draftBody,
-      baseSalary,
-      equityUnits,
-      signOnBonus,
-      variant,
+    if (!current || !hasDraftChanges) {
+      setAutosaveState('idle')
+      return
     }
-    window.localStorage.setItem(key, JSON.stringify(payload))
-  }, [current?.id, draftBody, baseSalary, equityUnits, signOnBonus, variant])
+    setAutosaveState('saving')
+    const timer = window.setTimeout(() => {
+      persistDraftState()
+      setAutosaveState('saved')
+      setLastSavedAt(Date.now())
+    }, 500)
+    return () => window.clearTimeout(timer)
+  }, [current?.id, draftBody, baseSalary, equityUnits, signOnBonus, variant, hasDraftChanges])
+
+  useEffect(() => {
+    if (autosaveState !== 'saved') return
+    const timer = window.setTimeout(() => setAutosaveState('idle'), 2200)
+    return () => window.clearTimeout(timer)
+  }, [autosaveState])
+
+  useEffect(() => {
+    if (!actionToast) return
+    const timer = window.setTimeout(() => setActionToast(null), 2600)
+    return () => window.clearTimeout(timer)
+  }, [actionToast])
 
   async function submitApproval() {
     if (!current) return
@@ -330,6 +377,9 @@ export default function ApprovalsPage() {
       await approvalsApi.approve(current.id, draftBody)
       if (typeof window !== 'undefined') window.localStorage.removeItem(storageKeyForApproval(current.id))
       await refresh()
+      setActionToast({ kind: 'success', message: 'Draft approved and saved to Gmail.' })
+    } catch {
+      setActionToast({ kind: 'error', message: 'Could not send via Gmail. Please try again.' })
     } finally {
       setSubmitting(null)
     }
@@ -342,6 +392,9 @@ export default function ApprovalsPage() {
       await approvalsApi.reject(current.id)
       if (typeof window !== 'undefined') window.localStorage.removeItem(storageKeyForApproval(current.id))
       removeApproval(current.id)
+      setActionToast({ kind: 'success', message: 'Draft rejected successfully.' })
+    } catch {
+      setActionToast({ kind: 'error', message: 'Could not reject this draft right now.' })
     } finally {
       setSubmitting(null)
     }
@@ -356,7 +409,7 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5faf8] text-[#171d1c] dark:bg-slate-950 dark:text-slate-100">
+    <div className="approvals-surface min-h-screen bg-[#f5faf8] text-[#171d1c] dark:bg-slate-950 dark:text-slate-100">
       {showSavedToast ? (
         <div className="fixed left-1/2 top-[17px] z-[120] flex -translate-x-1/2 items-center gap-2 rounded-md border border-white/20 bg-[#0d9488] px-4 py-3 text-sm font-medium leading-none text-white shadow-md">
           <CheckCircle2 size={17} />
@@ -364,6 +417,17 @@ export default function ApprovalsPage() {
           <button type="button" onClick={() => setSaveToastOpen(false)} className="ml-1 inline-flex items-center opacity-80 hover:opacity-100">
             <X size={14} />
           </button>
+        </div>
+      ) : null}
+      {actionToast ? (
+        <div
+          className={`fixed left-1/2 top-[64px] z-[119] flex -translate-x-1/2 items-center gap-2 rounded-md border px-4 py-2 text-xs font-semibold leading-none shadow-md ${
+            actionToast.kind === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+              : 'border-rose-200 bg-rose-50 text-rose-900'
+          }`}
+        >
+          {actionToast.message}
         </div>
       ) : null}
 
@@ -396,6 +460,17 @@ export default function ApprovalsPage() {
               </div>
             </div>
           </div>
+          <p className="mt-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            {autosaveState === 'saving'
+              ? 'Saving changes...'
+              : autosaveState === 'saved' && savedAtLabel
+                ? `Saved at ${savedAtLabel}`
+                : hasDraftChanges
+                  ? 'Unsaved changes'
+                  : savedAtLabel
+                    ? `Saved at ${savedAtLabel}`
+                    : 'All changes saved'}
+          </p>
         </section>
 
         {!current ? (
@@ -581,6 +656,10 @@ export default function ApprovalsPage() {
                       type="button"
                       onClick={() => {
                         if (!isDraftVariant(urlVariant)) setFlowVariant('whatif-1')
+                        persistDraftState()
+                        setAutosaveState('saved')
+                        setLastSavedAt(Date.now())
+                        setActionToast({ kind: 'success', message: 'Draft progress saved.' })
                       }}
                       className="inline-flex h-7 items-center rounded-[2px] border border-[#d9e1dd] bg-white px-2.5 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                     >
