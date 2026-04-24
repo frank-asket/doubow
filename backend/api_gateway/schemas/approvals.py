@@ -7,6 +7,14 @@ from schemas.applications import Application
 
 ApprovalType = Literal["cover_letter", "linkedin_note", "follow_up"]
 ApprovalStatus = Literal["pending", "approved", "rejected", "edited"]
+ApprovalDeliveryStatus = Literal[
+    "not_sent",
+    "queued",
+    "draft_created",
+    "provider_accepted",
+    "provider_confirmed",
+    "failed",
+]
 Channel = Literal["email", "linkedin", "company_site"]
 
 
@@ -20,6 +28,12 @@ class Approval(BaseModel):
     status: ApprovalStatus
     approved_at: datetime | None = None
     sent_at: datetime | None = None
+    send_provider: str | None = None
+    delivery_status: ApprovalDeliveryStatus = "not_sent"
+    delivery_error: str | None = None
+    provider_message_id: str | None = None
+    provider_thread_id: str | None = None
+    provider_confirmed_at: datetime | None = None
     idempotency_key: str
     created_at: datetime
 

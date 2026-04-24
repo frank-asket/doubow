@@ -1,4 +1,4 @@
-"""Outbound send after approval — SMTP when configured; otherwise durable state only."""
+"""Outbound send after approval with provider-confirmed delivery metadata."""
 
 from __future__ import annotations
 
@@ -19,6 +19,35 @@ from services.gmail_send_service import create_gmail_draft, send_gmail_message
 from services.outbound_email import send_email_outbound
 
 logger = logging.getLogger(__name__)
+
+
+async def _send_user_confirmation(
+    *,
+    user_email: str,
+    sender_email: str | None,
+    via_gmail_token: str | None,
+    subject: str,
+    provider: str,
+    provider_message_id: str | None,
+) -> None:
+    """Send a confirmation copy to the user's inbox after successful dispatch."""
+    confirm_subject = f"Delivery confirmation: {subject}"
+    confirm_body = (
+        "Your outbound application message was dispatched.\n\n"
+        f"Provider: {provider}\n"
+        f"Provider message id: {provider_message_id or '(not available)'}\n"
+        f"Original subject: {subject}\n"
+    )
+    if via_gmail_token and sender_email:
+        await send_gmail_message(
+            refresh_token_encrypted=via_gmail_token,
+            from_addr=sender_email,
+            to_addr=user_email,
+            subject=confirm_subject,
+            body=confirm_body,
+        )
+        return
+    await send_email_outbound(to_addr=user_email, subject=confirm_subject, body=confirm_body)
 
 
 async def execute_approval_send_stub(session: AsyncSession, approval_id: str, user_id: str) -> None:
@@ -44,8 +73,13 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
 
     job = await session.get(Job, app_row.job_id)
 
+    # NOTE: Today this uses user email (or override) as recipient.
+    # A dedicated recruiter-recipient source should replace this for real applications.
     recipient = settings.outbound_send_recipient_override or user.email
     subject = approval.subject or (f"Application — {job.title}" if job else "Application")
+    now = datetime.now(timezone.utc)
+    approval.delivery_status = "queued"
+    approval.delivery_error = None
 
     try:
         if approval.channel == "email":
@@ -53,26 +87,37 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                 await session.execute(select(GoogleOAuthCredential).where(GoogleOAuthCredential.user_id == user_id))
             ).scalar_one_or_none()
             sent_via_gmail = False
+            gmail_sender_email: str | None = None
+            gmail_token: str | None = None
             if gmail_row is not None and settings.google_oauth_is_configured() and gmail_row.google_email:
+                gmail_sender_email = gmail_row.google_email
+                gmail_token = gmail_row.refresh_token_encrypted
                 body_text = approval.draft_body or ""
                 handoff = (settings.gmail_approval_handoff or "draft").strip().lower()
                 try:
                     if handoff == "draft":
                         try:
-                            await create_gmail_draft(
+                            draft_id = await create_gmail_draft(
                                 refresh_token_encrypted=gmail_row.refresh_token_encrypted,
                                 from_addr=gmail_row.google_email,
                                 to_addr=recipient,
                                 subject=subject,
                                 body=body_text,
                             )
-                            sent_via_gmail = True
+                            approval.send_provider = "gmail"
+                            approval.delivery_status = "draft_created"
+                            approval.provider_message_id = draft_id or None
+                            approval.provider_thread_id = None
+                            approval.provider_confirmed_at = None
+                            approval.delivery_error = None
+                            await session.commit()
+                            return
                         except Exception:
                             logger.exception(
                                 "send_stub: gmail draft failed approval_id=%s; falling back to gmail send",
                                 approval_id,
                             )
-                            await send_gmail_message(
+                            send_res = await send_gmail_message(
                                 refresh_token_encrypted=gmail_row.refresh_token_encrypted,
                                 from_addr=gmail_row.google_email,
                                 to_addr=recipient,
@@ -80,8 +125,14 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                                 body=body_text,
                             )
                             sent_via_gmail = True
+                            approval.send_provider = "gmail"
+                            approval.delivery_status = "provider_confirmed"
+                            approval.provider_message_id = send_res.get("id") or None
+                            approval.provider_thread_id = send_res.get("threadId") or None
+                            approval.provider_confirmed_at = now
+                            approval.sent_at = now
                     else:
-                        await send_gmail_message(
+                        send_res = await send_gmail_message(
                             refresh_token_encrypted=gmail_row.refresh_token_encrypted,
                             from_addr=gmail_row.google_email,
                             to_addr=recipient,
@@ -89,27 +140,59 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                             body=body_text,
                         )
                         sent_via_gmail = True
+                        approval.send_provider = "gmail"
+                        approval.delivery_status = "provider_confirmed"
+                        approval.provider_message_id = send_res.get("id") or None
+                        approval.provider_thread_id = send_res.get("threadId") or None
+                        approval.provider_confirmed_at = now
+                        approval.sent_at = now
                 except Exception:
                     logger.exception(
                         "send_stub: gmail failed approval_id=%s user_id=%s; falling back to SMTP/dry-run",
                         approval_id,
                         user_id,
                     )
+                    approval.delivery_error = "gmail_send_failed_fallback_to_smtp"
             if not sent_via_gmail:
                 await send_email_outbound(to_addr=recipient, subject=subject, body=approval.draft_body)
+                approval.send_provider = "smtp"
+                approval.delivery_status = "provider_accepted"
+                approval.provider_message_id = None
+                approval.provider_thread_id = None
+                approval.provider_confirmed_at = None
+                approval.sent_at = now
+            # send confirmation copy to user inbox after successful dispatch
+            await _send_user_confirmation(
+                user_email=user.email,
+                sender_email=gmail_sender_email,
+                via_gmail_token=gmail_token if sent_via_gmail else None,
+                subject=subject,
+                provider=approval.send_provider or "smtp",
+                provider_message_id=approval.provider_message_id,
+            )
+            app_row.status = "applied"
+            app_row.applied_at = now
         else:
             logger.info(
                 "send_stub: channel=%s has no SMTP integration; recording sent locally only",
                 approval.channel,
             )
+            approval.send_provider = "internal"
+            approval.delivery_status = "provider_accepted"
+            approval.provider_message_id = None
+            approval.provider_thread_id = None
+            approval.provider_confirmed_at = None
+            approval.sent_at = now
+            app_row.status = "applied"
+            app_row.applied_at = now
     except Exception:
         logger.exception("send_stub: outbound dispatch failed approval_id=%s", approval_id)
+        approval.delivery_status = "failed"
+        approval.delivery_error = "dispatch_failed"
+        await session.commit()
         return
 
-    now = datetime.now(timezone.utc)
-    approval.sent_at = now
-    app_row.status = "applied"
-    app_row.applied_at = now
+    approval.delivery_error = None
     await session.commit()
 
 

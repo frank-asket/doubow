@@ -33,6 +33,12 @@ def build_approval_schema(
         status=approval.status,
         approved_at=approval.approved_at,
         sent_at=approval.sent_at,
+        send_provider=approval.send_provider,
+        delivery_status=approval.delivery_status,
+        delivery_error=approval.delivery_error,
+        provider_message_id=approval.provider_message_id,
+        provider_thread_id=approval.provider_thread_id,
+        provider_confirmed_at=approval.provider_confirmed_at,
         idempotency_key=approval.idempotency_key or f"approval-{approval.id}",
         created_at=approval.created_at,
     )
@@ -80,6 +86,13 @@ async def approve_approval(
         approval.status = "edited"
     else:
         approval.status = "approved"
+    approval.delivery_status = "queued"
+    approval.delivery_error = None
+    approval.send_provider = None
+    approval.provider_message_id = None
+    approval.provider_thread_id = None
+    approval.provider_confirmed_at = None
+    approval.sent_at = None
     approval.approved_at = datetime.now(timezone.utc)
     await session.commit()
     return ApproveApprovalResponse(

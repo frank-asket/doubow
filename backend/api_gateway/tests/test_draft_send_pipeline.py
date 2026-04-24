@@ -48,6 +48,8 @@ async def test_create_draft_then_approve_then_send_updates_state(db_session):
 
     row = (await db_session.execute(select(ApprovalRow).where(ApprovalRow.id == approval_schema.id))).scalar_one()
     assert row.sent_at is not None
+    assert row.delivery_status in {"provider_accepted", "provider_confirmed"}
+    assert row.send_provider in {"smtp", "gmail", "internal"}
 
     app_row = await db_session.get(Application, aid)
     assert app_row is not None

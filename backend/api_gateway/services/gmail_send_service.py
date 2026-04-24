@@ -33,7 +33,9 @@ def _build_credentials(*, refresh_token_plain: str) -> Credentials:
     )
 
 
-def _send_raw_sync(*, refresh_token_plain: str, from_addr: str, to_addr: str, subject: str, body: str) -> None:
+def _send_raw_sync(
+    *, refresh_token_plain: str, from_addr: str, to_addr: str, subject: str, body: str
+) -> dict[str, str]:
     creds = _build_credentials(refresh_token_plain=refresh_token_plain)
     creds.refresh(Request())
 
@@ -44,7 +46,15 @@ def _send_raw_sync(*, refresh_token_plain: str, from_addr: str, to_addr: str, su
     raw = base64.urlsafe_b64encode(mime.as_bytes()).decode("ascii")
 
     service = build("gmail", "v1", credentials=creds, cache_discovery=False)
-    service.users().messages().send(userId="me", body={"raw": raw}).execute()
+    sent = service.users().messages().send(userId="me", body={"raw": raw}).execute()
+    msg_id = (sent or {}).get("id")
+    if not msg_id:
+        return {"id": "", "threadId": ""}
+    fetched = service.users().messages().get(userId="me", id=msg_id, format="metadata").execute()
+    return {
+        "id": str((fetched or {}).get("id") or msg_id),
+        "threadId": str((fetched or {}).get("threadId") or ""),
+    }
 
 
 def _create_draft_raw_sync(*, refresh_token_plain: str, from_addr: str, to_addr: str, subject: str, body: str) -> str:
@@ -97,15 +107,15 @@ async def send_gmail_message(
     to_addr: str,
     subject: str,
     body: str,
-) -> bool:
-    """Send one message as the connected Gmail account."""
+) -> dict[str, str]:
+    """Send one message as the connected Gmail account and verify it exists."""
     try:
         refresh_plain = decrypt_refresh_token(refresh_token_encrypted)
     except GoogleTokenCryptoError:
         logger.exception("gmail send: decrypt failed")
         raise
 
-    await asyncio.to_thread(
+    result = await asyncio.to_thread(
         _send_raw_sync,
         refresh_token_plain=refresh_plain,
         from_addr=from_addr,
@@ -113,5 +123,5 @@ async def send_gmail_message(
         subject=subject,
         body=body,
     )
-    logger.info("gmail send ok to=%s subject=%s", to_addr, subject[:120])
-    return True
+    logger.info("gmail send ok to=%s subject=%s message_id=%s", to_addr, subject[:120], result.get("id", ""))
+    return result

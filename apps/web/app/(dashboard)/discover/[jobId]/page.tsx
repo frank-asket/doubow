@@ -8,6 +8,7 @@ import { AlertTriangle, ArrowLeft, Loader2, Send, X } from 'lucide-react'
 
 import { ApiError, applicationsApi, approvalsApi, jobsApi } from '@/lib/api'
 import { candidatePageShell, candidateTokens } from '@/lib/candidateUi'
+import { dashboardUi } from '@/lib/dashboardUi'
 import { relativeTime, scoreBarWidth } from '@/lib/utils'
 import type { Approval, JobWithScore } from '@doubow/shared'
 
@@ -155,7 +156,7 @@ export default function JobDetailPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
           <section className="space-y-4 lg:col-span-8">
-            <article className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-4" style={{ borderColor: SURFACE_BORDER }}>
+            <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
               <div className="flex items-start gap-4">
                 <div className="flex h-14 w-14 items-center justify-center border border-[0.5px] bg-zinc-50 text-xs font-bold text-zinc-700" style={{ borderColor: SURFACE_BORDER }}>
                   {job.company.slice(0, 2).toUpperCase()}
@@ -180,14 +181,14 @@ export default function JobDetailPage() {
               </div>
             </article>
 
-            <article className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-4" style={{ borderColor: SURFACE_BORDER }}>
+            <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
               <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Job description</h2>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">
                 {job.description || 'No description provided for this role.'}
               </p>
             </article>
 
-            <article className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-4" style={{ borderColor: SURFACE_BORDER }}>
+            <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
               <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Why Doubow matched this</h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {job.score.fit_reasons.slice(0, 4).map((reason, i) => (
@@ -200,7 +201,7 @@ export default function JobDetailPage() {
           </section>
 
           <aside className="space-y-4 lg:col-span-4">
-            <article className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-4" style={{ borderColor: SURFACE_BORDER }}>
+            <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
               <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Match analytics</h2>
               <div className="space-y-3">
                 {Object.entries(job.score.dimension_scores).map(([key, value]) => (
@@ -217,9 +218,14 @@ export default function JobDetailPage() {
               </div>
             </article>
 
-            <article className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900" style={{ borderColor: SURFACE_BORDER }}>
-              <div className="border-b border-[0.5px] bg-zinc-50 px-4 py-3" style={{ borderColor: SURFACE_BORDER }}>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">AI generated outreach</p>
+            <article className="rounded-2xl border border-[0.5px] bg-white shadow-sm dark:bg-slate-900 lg:sticky lg:top-20" style={{ borderColor: SURFACE_BORDER }}>
+              <div className="border-b border-[0.5px] bg-zinc-50 px-4 py-4" style={{ borderColor: SURFACE_BORDER }}>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Draft workspace</p>
+                  <span className="rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
+                    human review
+                  </span>
+                </div>
                 <p className="mt-1 text-sm font-medium text-zinc-800">Subject: Interest in {job.title}</p>
               </div>
               <div className="p-4">
@@ -232,12 +238,12 @@ export default function JobDetailPage() {
                     setDraftBody(e.target.value)
                     if (actionState !== 'idle') setActionState('idle')
                   }}
-                  className="h-48 w-full resize-none rounded-sm border border-[0.5px] p-3 text-sm leading-relaxed text-zinc-700 outline-none focus:border-teal-600"
+                  className="h-56 w-full resize-none rounded-xl border border-[0.5px] p-4 text-sm leading-relaxed text-zinc-700 outline-none focus:border-teal-600"
                   style={{ borderColor: SURFACE_BORDER }}
                 />
               </div>
-              <div className="mx-4 mb-4 flex items-start gap-2 border-l-2 border-amber-500 bg-amber-50 p-3">
-                <AlertTriangle size={14} className="mt-0.5 text-amber-700" />
+              <div className="mx-4 mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <AlertTriangle size={dashboardUi.actionIcon} className="mt-0.5 text-amber-700" />
                 <p className="text-xs leading-snug text-amber-900">
                   Human-in-the-loop: review this draft before sequence initiation.
                 </p>
@@ -253,7 +259,7 @@ export default function JobDetailPage() {
                   {approval ? (
                     <Link
                       href={`/approvals?approvalId=${encodeURIComponent(approval.id)}`}
-                      className="inline-flex items-center rounded-sm border border-emerald-300 bg-white dark:bg-slate-900 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                  className={`${dashboardUi.actionButton} rounded-lg border border-emerald-300 bg-white dark:bg-slate-900 text-emerald-700 hover:bg-emerald-100`}
                     >
                       Open in Approvals
                     </Link>
@@ -269,17 +275,17 @@ export default function JobDetailPage() {
                 <button
                   onClick={() => void handleReject()}
                   disabled={approving || rejecting || loadingDraft}
-                  className="inline-flex items-center justify-center gap-1 rounded-sm border border-rose-300 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
+                  className={`${dashboardUi.actionButton} border border-rose-300 text-rose-700 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70`}
                 >
-                  {rejecting || loadingDraft ? <Loader2 size={12} className="animate-spin" /> : <X size={12} />}
+                  {rejecting || loadingDraft ? <Loader2 size={dashboardUi.actionIcon} className="animate-spin" /> : <X size={dashboardUi.actionIcon} />}
                   {rejecting ? 'Rejecting...' : 'Reject'}
                 </button>
                 <button
                   onClick={() => void handleApprove()}
                   disabled={approving || rejecting || loadingDraft}
-                  className="inline-flex items-center justify-center gap-1 rounded-sm bg-teal-600 py-2 text-xs font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  className={`${dashboardUi.actionButton} bg-teal-600 text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70`}
                 >
-                  {approving || loadingDraft ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                  {approving || loadingDraft ? <Loader2 size={dashboardUi.actionIcon} className="animate-spin" /> : <Send size={dashboardUi.actionIcon} />}
                   {approving ? 'Queuing...' : 'Approve & send'}
                 </button>
               </div>

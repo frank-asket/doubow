@@ -26,6 +26,12 @@ class Approval(Base):
     status: Mapped[str] = mapped_column(String(32), default="pending")
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    send_provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    delivery_status: Mapped[str] = mapped_column(String(32), default="not_sent")
+    delivery_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    provider_message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    provider_thread_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    provider_confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

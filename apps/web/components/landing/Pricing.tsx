@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { Check } from "lucide-react";
 import { useState } from "react";
 
@@ -108,7 +109,7 @@ export function Pricing() {
         <p className="mt-8 text-center text-sm text-[#45464d]">
           Ready to subscribe? Open{" "}
           <Link
-            href="/auth/sign-up"
+            href={"/auth/sign-up" as Route}
             className="rounded font-semibold text-[#006a61] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2"
           >
             Doubow plans &amp; billing

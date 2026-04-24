@@ -221,6 +221,13 @@ export interface AutopilotRun {
 
 export type ApprovalType = 'cover_letter' | 'linkedin_note' | 'follow_up'
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'edited'
+export type ApprovalDeliveryStatus =
+  | 'not_sent'
+  | 'queued'
+  | 'draft_created'
+  | 'provider_accepted'
+  | 'provider_confirmed'
+  | 'failed'
 
 export interface Approval {
   id: string
@@ -232,6 +239,12 @@ export interface Approval {
   status: ApprovalStatus
   approved_at?: string
   sent_at?: string
+  send_provider?: string
+  delivery_status?: ApprovalDeliveryStatus
+  delivery_error?: string
+  provider_message_id?: string
+  provider_thread_id?: string
+  provider_confirmed_at?: string
   idempotency_key: string
   created_at: string
 }

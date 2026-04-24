@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 
 /** Narrative block: résumé loop + Doubow’s guardrailed assistant (not a public “digital twin” product). */
 export function FutureOfResumes() {
@@ -35,7 +36,7 @@ export function FutureOfResumes() {
         </div>
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            href="/auth/sign-up"
+            href={"/auth/sign-up" as Route}
             className="landing-btn-primary px-8 py-3.5"
           >
             Open your workspace
