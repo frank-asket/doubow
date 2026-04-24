@@ -192,6 +192,15 @@ export default function ApprovalsPage() {
   const showSaveScenarioAction = variant === 'whatif-3' || variant === 'whatif-4'
   const showSavedToast = variant === 'whatif-4' || saveToastOpen
   const approvalIdFromUrl = searchParams.get('approvalId')
+  const draftWordCount = useMemo(
+    () => draftBody.trim().split(/\s+/).filter(Boolean).length,
+    [draftBody],
+  )
+  const draftGuidance = draftWordCount < 80
+    ? 'Add more specifics (role fit, outcomes, and next step) to strengthen this message.'
+    : draftWordCount > 220
+      ? 'Consider tightening to keep it skimmable for recruiters.'
+      : 'Length looks healthy for a concise recruiter-ready note.'
 
   useEffect(() => {
     setMounted(true)
@@ -387,6 +396,12 @@ export default function ApprovalsPage() {
               </div>
             </div>
           </div>
+          <div className="mt-4 rounded-xl border border-[#d6e5df] bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900">
+            <p className="font-semibold text-slate-800 dark:text-slate-100">How this works</p>
+            <p className="mt-1 text-slate-600 dark:text-slate-300">
+              1) Pick a draft in Queue, 2) Edit in plain language, 3) Approve to save to Gmail drafts. Nothing sends automatically.
+            </p>
+          </div>
         </section>
 
         {!current ? (
@@ -557,14 +572,21 @@ export default function ApprovalsPage() {
                   </button>
                 </div>
                 </div>
+                <div className="flex items-center justify-between border-b border-[#d6e5df] bg-white px-4 py-2 text-xs dark:border-slate-700 dark:bg-slate-900">
+                  <span className="font-medium text-slate-600 dark:text-slate-300">
+                    Word count: <span className="font-semibold text-slate-900 dark:text-slate-100">{draftWordCount}</span>
+                  </span>
+                  <span className="text-slate-500 dark:text-slate-400">{draftGuidance}</span>
+                </div>
                 <textarea
                   value={draftBody}
                   onChange={(event) => setDraftBody(event.target.value)}
+                  aria-label="Draft editor"
                   className={`${dashboardUi.composerSurface} min-h-[680px]`}
                 />
                 <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-2 border-t border-[#d6e5df] bg-white/95 px-4 py-3 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95">
                   <button type="button" onClick={() => current && setDraftBody(current.draft_body)} className={`${dashboardUi.actionButton} border border-[#d6e5df] font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300`}>
-                    Cancel
+                    Discard edits
                   </button>
                   <div className="flex items-center gap-2">
                     <button
@@ -574,15 +596,15 @@ export default function ApprovalsPage() {
                       }}
                       className={`${dashboardUi.actionButton} border border-[#d6e5df] font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300`}
                     >
-                      Save as Draft
+                      Save progress
                     </button>
                     <button type="button" onClick={() => void submitApproval()} disabled={!current || submitting !== null} className={`${dashboardUi.actionButton} bg-[#00685f] px-5 font-semibold text-white disabled:opacity-60`}>
                       {submitting === 'approve' ? <Loader2 size={dashboardUi.actionIcon} className="animate-spin" /> : null}
-                      Send via Gmail
+                      Approve & save to Gmail draft
                     </button>
                     <button type="button" onClick={() => void rejectApproval()} disabled={!current || submitting !== null} className={`${dashboardUi.actionButton} border border-[#d6e5df] font-medium text-slate-700 dark:border-slate-700 dark:text-slate-300 disabled:opacity-60`}>
                       {submitting === 'reject' ? <Loader2 size={dashboardUi.actionIcon} className="animate-spin" /> : <X size={dashboardUi.actionIcon} />}
-                      Reject
+                      Request changes
                     </button>
                   </div>
                 </div>
