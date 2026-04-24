@@ -41,6 +41,56 @@ function parseBaseSalary(salaryRange?: string | null) {
   return numbers[0] ?? 185000
 }
 
+function ApprovalsLoadingShell() {
+  return (
+    <div className="min-h-screen bg-[#f5faf8] text-[#171d1c] dark:bg-slate-950 dark:text-slate-100">
+      <main className="flex min-h-screen flex-col">
+        <section className="border-b border-[#d6e5df] bg-white/75 px-6 py-5 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/65">
+          <div className="h-3 w-36 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="mt-3 h-7 w-48 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="mt-2 h-4 w-80 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+        </section>
+        <section className="mx-auto grid w-full max-w-[1700px] flex-1 grid-cols-1 gap-4 bg-[#f0f5f2] p-4 dark:bg-slate-950 lg:grid-cols-12 lg:gap-4">
+          <aside className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700 lg:col-span-3`}>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={`queue-skeleton-${i}`} className="rounded-xl border border-[#d6e5df] bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                  <div className="h-4 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="mt-2 h-3 w-36 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </div>
+              ))}
+            </div>
+          </aside>
+          <div className="lg:col-span-6">
+            <div className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700 min-h-[640px] p-0`}>
+              <div className="border-b border-[#d6e5df] p-4 dark:border-slate-700">
+                <div className="h-3 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="mt-2 h-5 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+              </div>
+              <div className="p-6 space-y-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={`composer-skeleton-${i}`} className="h-4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4 lg:col-span-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={`side-skeleton-${i}`} className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700`}>
+                <div className="h-4 w-32 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="mt-3 space-y-2">
+                  <div className="h-3 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-3 w-3/4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
+  )
+}
+
 export default function ApprovalsPage() {
   const searchParams = useSearchParams()
   const { approvals, loading, removeApproval } = useApprovalStore()
@@ -229,11 +279,11 @@ export default function ApprovalsPage() {
   }
 
   if (!mounted) {
-    return <div className="p-6 text-sm text-slate-500 dark:text-slate-400">Loading drafts...</div>
+    return <ApprovalsLoadingShell />
   }
 
   if (loading && pending.length === 0) {
-    return <div className="p-6 text-sm text-slate-500 dark:text-slate-400">Loading drafts...</div>
+    return <ApprovalsLoadingShell />
   }
 
   return (
