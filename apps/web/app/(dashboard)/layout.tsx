@@ -7,7 +7,7 @@ import Link from 'next/link'
 import type { Route } from 'next'
 import {
   LayoutDashboard, Compass, ListFilter, CheckSquare, BookOpen,
-  FileText, Bell, Settings, LogOut, Menu, Search, ChevronRight,   HelpCircle, Sun, Moon,
+  FileText, Bell, Settings, LogOut, Menu, Search, ChevronRight,   HelpCircle, Sun, Moon, FileEdit,
   Sparkles,
 } from 'lucide-react'
 import { useClerk, useUser } from '@clerk/nextjs'
@@ -23,7 +23,8 @@ const NAV: Array<{ href: Route; label: string; icon: React.ElementType; badge: s
   { href: '/dashboard', label: 'Overview',       icon: LayoutDashboard, badge: null },
   { href: '/discover',  label: 'Job matches',    icon: Compass,         badge: 'jobs' },
   { href: '/pipeline',  label: 'Pipeline',       icon: ListFilter,      badge: 'pipeline' },
-  { href: '/drafts',    label: 'Drafts',         icon: CheckSquare,     badge: 'approvals', urgent: true },
+  { href: '/drafts',    label: 'Drafts',         icon: FileEdit,        badge: null },
+  { href: '/approvals', label: 'Approvals',      icon: CheckSquare,     badge: 'approvals', urgent: true },
   { href: '/messages' as Route, label: 'Assistant', icon: Sparkles, badge: null },
   { href: '/prep',      label: 'Interviews',     icon: BookOpen,        badge: null },
   { href: '/resume',    label: 'Resume',         icon: FileText,        badge: null },

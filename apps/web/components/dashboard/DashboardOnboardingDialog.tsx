@@ -97,7 +97,7 @@ const STEPS: Step[] = [
   {
     title: 'Pipeline & approvals',
     description:
-      'Pipeline tracks every application. When Doubow drafts outreach or follow-ups, Drafts is where you review and send — nothing goes out without you.',
+      'Pipeline tracks every application. When Doubow drafts outreach or follow-ups, Approvals is where you review and send — nothing goes out without you.',
     icon: ListFilter,
     hints: [
       'Move stages as you hear back from employers.',

@@ -254,14 +254,14 @@ export default function JobDetailPage() {
               {actionState === 'approved' ? (
                 <div className="mx-4 mb-3 flex items-center justify-between gap-2 rounded-sm border border-emerald-200 bg-emerald-50 p-2">
                   <p className="text-xs font-medium text-emerald-700">
-                    Approved and queued for send. Continue in drafts.
+                    Approved and queued for send. Continue in approvals.
                   </p>
                   {approval ? (
                     <Link
-                      href={`/drafts?approvalId=${encodeURIComponent(approval.id)}`}
+                      href={`/approvals?approvalId=${encodeURIComponent(approval.id)}`}
                   className={`${dashboardUi.actionButton} rounded-lg border border-emerald-300 bg-white dark:bg-slate-900 text-emerald-700 hover:bg-emerald-100`}
                     >
-                      Open in Drafts
+                      Open in Approvals
                     </Link>
                   ) : null}
                 </div>
