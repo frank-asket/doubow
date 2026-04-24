@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AlertTriangle, RefreshCw, Loader2, FileEdit } from 'lucide-react'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
@@ -33,19 +35,24 @@ function ChangeRow({ change }: { change: IntegrityChange }) {
 }
 
 export default function PipelinePage() {
+  const router = useRouter()
   const { applications, integrityResult, integrityLoading, setIntegrityResult, setIntegrityLoading } = usePipelineStore()
   const { refresh } = usePipeline()
   const [activeTab, setActiveTab] = useState<ApplicationStatus | 'all'>('all')
   const [applying, setApplying] = useState(false)
   const [draftingId, setDraftingId] = useState<string | null>(null)
   const [draftError, setDraftError] = useState<string | null>(null)
+  const [draftSuccess, setDraftSuccess] = useState<string | null>(null)
 
   async function generateDraft(app: Application) {
     setDraftError(null)
     setDraftingId(app.id)
     try {
-      await applicationsApi.createDraft(app.id)
+      const approval = await applicationsApi.createDraft(app.id)
       await refresh()
+      setDraftSuccess('Draft ready - opening Approvals...')
+      await new Promise((resolve) => setTimeout(resolve, 450))
+      router.push(`/approvals?approvalId=${encodeURIComponent(approval.id)}`)
     } catch (e) {
       if (e instanceof ApiError && e.status === 404) {
         setDraftError(
@@ -89,6 +96,11 @@ export default function PipelinePage() {
 
   return (
     <div className={candidatePageShell}>
+      {draftSuccess && (
+        <div className="pointer-events-none fixed right-4 top-20 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-900 shadow-sm">
+          {draftSuccess}
+        </div>
+      )}
       <DashboardPageHeader
         kicker="Applications"
         title="My applications"
@@ -340,13 +352,13 @@ export default function PipelinePage() {
                         )}
                         Draft
                       </button>
-                      <a
-                        href="/prep"
+                      <Link
+                        href={`/prep?applicationId=${encodeURIComponent(app.id)}`}
                         className="inline-flex items-center rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-teal-300 hover:bg-teal-50 hover:text-teal-900"
                         style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
                       >
                         Prep
-                      </a>
+                      </Link>
                     </div>
                   </td>
                 </tr>
