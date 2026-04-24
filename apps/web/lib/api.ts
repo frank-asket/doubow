@@ -7,6 +7,8 @@ import type {
   ActivationKPI,
 } from '@doubow/shared'
 
+import { handleMockRequest, isMockApiEnabled, mockAgentStatusSnapshot, MockHttpError } from './mock-api'
+
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? '/api'
 let authTokenGetter: (() => Promise<string | null>) | null = null
 
@@ -50,6 +52,19 @@ async function request<T>(
   }
   for (const [key, value] of Object.entries(headers)) {
     mergedHeaders.set(key, value)
+  }
+
+  if (isMockApiEnabled()) {
+    try {
+      const headerRecord: Record<string, string> = {}
+      mergedHeaders.forEach((value, key) => {
+        headerRecord[key] = value
+      })
+      return await handleMockRequest<T>(path, init, headerRecord)
+    } catch (e) {
+      if (e instanceof MockHttpError) throw new ApiError(e.status, e.detail)
+      throw e
+    }
   }
 
   const res = await fetch(`${BASE}${path}`, {
@@ -335,6 +350,22 @@ export function streamAgentStatus(
   onEvent: (event: AgentState) => void,
   onError?: (err: Event) => void,
 ): () => void {
+  if (isMockApiEnabled()) {
+    if (typeof window === 'undefined') {
+      return () => {}
+    }
+    const states = mockAgentStatusSnapshot()
+    states.forEach((s, idx) => {
+      window.setTimeout(() => onEvent(s), 40 * idx)
+    })
+    let i = 0
+    const id = window.setInterval(() => {
+      onEvent(states[i % states.length])
+      i += 1
+    }, 2800)
+    return () => clearInterval(id)
+  }
+
   const controller = new AbortController()
   ;(async () => {
     const token = authTokenGetter ? await authTokenGetter() : null
@@ -391,6 +422,33 @@ export function streamOrchestratorChat(
   onDone?: () => void,
   onError?: (err: string) => void,
 ): () => void {
+  if (isMockApiEnabled()) {
+    if (typeof window === 'undefined') {
+      return () => {}
+    }
+    let aborted = false
+    const reply = `Demo assistant (mock API): you said “${message.slice(0, 120)}${message.length > 120 ? '…' : ''}”. There is no live model in this mode—text is generated locally.`
+    const parts = reply.split(/(\s+)/)
+    let idx = 0
+    queueMicrotask(() => {
+      options?.onMeta?.({ thread_id: options?.threadId ?? 'thread-mock-1' })
+    })
+    const step = () => {
+      if (aborted) return
+      if (idx < parts.length) {
+        onChunk(parts[idx])
+        idx += 1
+        window.setTimeout(step, 22)
+      } else {
+        onDone?.()
+      }
+    }
+    window.setTimeout(step, 0)
+    return () => {
+      aborted = true
+    }
+  }
+
   let aborted = false
   const controller = new AbortController()
 

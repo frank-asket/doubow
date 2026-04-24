@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { isMockApiEnabled } from '@/lib/mock-api'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
@@ -34,6 +35,12 @@ function ApiConnectionHealthInner({ showAuthLine }: { showAuthLine: boolean }) {
   const check = useCallback(async () => {
     setStatus('checking')
     setLastError('')
+    if (isMockApiEnabled()) {
+      setStatus('ok')
+      setMs(0)
+      setLastError('')
+      return
+    }
     const t0 = typeof performance !== 'undefined' ? performance.now() : 0
     try {
       const res = await fetch(`${BASE.replace(/\/$/, '')}/healthz`, {
@@ -69,11 +76,14 @@ function ApiConnectionHealthInner({ showAuthLine }: { showAuthLine: boolean }) {
   }, [check])
 
   const hostLabel = (() => {
-    try {
-      return new URL(BASE).host || BASE
-    } catch {
-      return BASE
-    }
+    const suffix = (() => {
+      try {
+        return new URL(BASE).host || BASE
+      } catch {
+        return BASE
+      }
+    })()
+    return isMockApiEnabled() ? `mock · ${suffix}` : suffix
   })()
 
   return (
@@ -93,8 +103,17 @@ function ApiConnectionHealthInner({ showAuthLine }: { showAuthLine: boolean }) {
             (status === 'idle' || status === 'checking') && 'text-slate-500',
           )}
         >
-          API {status === 'checking' ? '…' : status === 'ok' ? 'reachable' : status === 'error' ? 'unreachable' : '—'}
-          {ms != null && status === 'ok' ? ` · ${ms}ms` : null}
+          API{' '}
+          {status === 'checking'
+            ? '…'
+            : status === 'ok'
+              ? isMockApiEnabled()
+                ? 'mock data'
+                : 'reachable'
+              : status === 'error'
+                ? 'unreachable'
+                : '—'}
+          {ms != null && status === 'ok' && !isMockApiEnabled() ? ` · ${ms}ms` : null}
           {status === 'error' && lastError ? ` · ${lastError}` : null}
         </span>
         {showAuthLine ? <ClerkSessionLine /> : <span className="text-slate-400">No Clerk</span>}
