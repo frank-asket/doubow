@@ -10,7 +10,7 @@ const PANELS: Array<{ label: string; href: Route; hint: string }> = [
   { label: 'Dashboard', href: '/dashboard', hint: 'Overview and monthly KPIs' },
   { label: 'Discover', href: '/discover', hint: 'Job discovery and fit scores' },
   { label: 'Pipeline', href: '/pipeline', hint: 'Application pipeline tracking' },
-  { label: 'Approvals', href: '/approvals', hint: 'Approve/reject outbound drafts' },
+  { label: 'Drafts', href: '/drafts', hint: 'Review and send outbound drafts' },
   { label: 'Interview prep', href: '/prep', hint: 'Role-specific interview prep' },
   { label: 'My resume', href: '/resume', hint: 'Resume profile and analysis' },
   {

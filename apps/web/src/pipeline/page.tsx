@@ -50,9 +50,9 @@ export default function PipelinePage() {
     try {
       const approval = await applicationsApi.createDraft(app.id)
       await refresh()
-      setDraftSuccess('Draft ready - opening Approvals...')
+      setDraftSuccess('Draft ready - opening Drafts...')
       await new Promise((resolve) => setTimeout(resolve, 450))
-      router.push(`/approvals?approvalId=${encodeURIComponent(approval.id)}`)
+      router.push(`/drafts?approvalId=${encodeURIComponent(approval.id)}`)
     } catch (e) {
       if (e instanceof ApiError && e.status === 404) {
         setDraftError(
@@ -341,7 +341,7 @@ export default function PipelinePage() {
                         type="button"
                         onClick={() => generateDraft(app)}
                         disabled={draftingId === app.id}
-                        title="Generate outreach draft (opens in Approvals)"
+                        title="Generate outreach draft (opens in Drafts)"
                         className="inline-flex items-center gap-1 rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-teal-300 hover:bg-teal-50 hover:text-teal-900 disabled:opacity-50"
                         style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
                       >

@@ -362,7 +362,7 @@ export default function DashboardOverviewPage() {
             [
               { href: '/discover' as const, label: 'Discover', Icon: Compass },
               { href: '/pipeline' as const, label: 'Pipeline', Icon: Briefcase },
-              { href: '/approvals' as const, label: 'Approvals', Icon: ClipboardList },
+              { href: '/drafts' as const, label: 'Drafts', Icon: ClipboardList },
               { href: '/prep' as const, label: 'Prep', Icon: BookOpen },
               { href: '/resume' as const, label: 'Resume', Icon: FileText },
               { href: '/messages' as const, label: 'Assistant', Icon: Sparkles },
@@ -594,7 +594,7 @@ export default function DashboardOverviewPage() {
                     send.
                   </p>
                   <Link
-                    href="/approvals"
+                    href="/drafts"
                     className="mt-3 inline-block text-[12px] font-semibold hover:underline"
                     style={{ color: tk.primary }}
                   >
@@ -618,7 +618,7 @@ export default function DashboardOverviewPage() {
                     Drafts and outreach approvals will surface here when they need your attention.
                   </p>
                   <Link
-                    href="/approvals"
+                    href="/drafts"
                     className="mt-3 inline-block text-[12px] font-semibold hover:underline"
                     style={{ color: tk.primary }}
                   >

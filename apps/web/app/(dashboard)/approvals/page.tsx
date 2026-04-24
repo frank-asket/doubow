@@ -1,10 +1,5 @@
-import { Suspense } from 'react'
-import ApprovalsPage from '@/src/approvals/page'
+import { redirect } from 'next/navigation'
 
 export default function ApprovalsRoutePage() {
-  return (
-    <Suspense fallback={null}>
-      <ApprovalsPage />
-    </Suspense>
-  )
+  redirect('/drafts')
 }
