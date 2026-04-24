@@ -80,6 +80,13 @@ export default function ApprovalsPage() {
   const showCalculatorInputs = variant === 'whatif-2' || variant === 'whatif-3' || variant === 'whatif-4'
   const showSaveScenarioAction = variant === 'whatif-3' || variant === 'whatif-4'
   const showSavedToast = variant === 'whatif-4' || saveToastOpen
+  const approvalIdFromUrl = searchParams.get('approvalId')
+
+  useEffect(() => {
+    if (!approvalIdFromUrl) return
+    if (!pending.some((item) => item.id === approvalIdFromUrl)) return
+    setSelectedApprovalId(approvalIdFromUrl)
+  }, [approvalIdFromUrl, pending])
 
   useEffect(() => {
     if (pending.length === 0) {
@@ -88,6 +95,52 @@ export default function ApprovalsPage() {
     }
     if (selectedApprovalId && pending.some((item) => item.id === selectedApprovalId)) return
     setSelectedApprovalId(pending[0].id)
+  }, [pending, selectedApprovalId])
+
+  useEffect(() => {
+    if (!selectedApprovalId) return
+    if (typeof document === 'undefined') return
+    const row = document.querySelector<HTMLElement>(`[data-approval-id="${selectedApprovalId}"]`)
+    if (!row) return
+    row.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [selectedApprovalId, pending.length])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (pending.length === 0) return
+
+    const handler = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return
+      const target = event.target as HTMLElement | null
+      if (target) {
+        const tag = target.tagName
+        if (
+          target.isContentEditable
+          || tag === 'INPUT'
+          || tag === 'TEXTAREA'
+          || tag === 'SELECT'
+        ) {
+          return
+        }
+      }
+
+      const key = event.key
+      const isNext = key === 'j' || key === 'ArrowDown'
+      const isPrev = key === 'k' || key === 'ArrowUp'
+      if (!isNext && !isPrev) return
+      event.preventDefault()
+      const currentIndex = pending.findIndex((item) => item.id === selectedApprovalId)
+      if (isNext) {
+        const nextIndex = currentIndex < 0 ? 0 : Math.min(pending.length - 1, currentIndex + 1)
+        setSelectedApprovalId(pending[nextIndex]?.id ?? null)
+      } else if (isPrev) {
+        const prevIndex = currentIndex <= 0 ? 0 : currentIndex - 1
+        setSelectedApprovalId(pending[prevIndex]?.id ?? null)
+      }
+    }
+
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
   }, [pending, selectedApprovalId])
 
   useEffect(() => {
@@ -258,15 +311,21 @@ export default function ApprovalsPage() {
             </div>
           </section>
         ) : (
-          <section className="grid flex-1 grid-cols-1 gap-4 bg-[#f0f5f2] p-4 dark:bg-slate-950 lg:grid-cols-12 lg:gap-4">
-            <aside className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700 lg:col-span-3`}>
-              <h2 className="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Queue</h2>
+          <section className="mx-auto grid w-full max-w-[1700px] flex-1 grid-cols-1 gap-4 bg-[#f0f5f2] p-4 dark:bg-slate-950 lg:grid-cols-12 lg:gap-4">
+            <aside className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700 lg:col-span-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto`}>
+              <div className="flex items-center justify-between px-2 pb-2">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Queue</h2>
+                <span className="rounded-full border border-[#d6e5df] bg-white px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+                  J/K or ↑/↓
+                </span>
+              </div>
               <div className="space-y-2">
                 {pending.map((item) => {
                   const selected = current?.id === item.id
                   return (
                     <button
                       key={item.id}
+                      data-approval-id={item.id}
                       type="button"
                       onClick={() => setSelectedApprovalId(item.id)}
                       className={`w-full rounded-xl border px-3 py-3 text-left transition-all ${
@@ -406,7 +465,7 @@ export default function ApprovalsPage() {
               </div>
             </div>
 
-            <div className="space-y-4 lg:col-span-3">
+            <div className="space-y-4 lg:col-span-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
               <div className={`${dashboardUi.utilityCard} border-[#d6e5df] dark:border-slate-700`}>
                 <h3 className="mb-3 text-[12px] font-medium uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Offer Snapshot</h3>
                 <div className="space-y-2 text-[13px]">
