@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DataError, IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
@@ -11,6 +11,8 @@ def normalize_clerk_subject(sub: str) -> str:
     normalized = sub.strip()
     if not normalized:
         raise ValueError("empty Clerk subject")
+    if len(normalized) > 128:
+        raise ValueError("Clerk subject too long")
     return normalized
 
 
@@ -25,18 +27,27 @@ async def ensure_user(session: AsyncSession, user_id: str, claims: dict) -> User
         user = User(id=user_id, email=email, name=name, plan=plan)
         session.add(user)
     else:
-        user.email = email
-        user.name = name
-        user.plan = plan
+        changed = False
+        if user.email != email:
+            user.email = email
+            changed = True
+        if user.name != name:
+            user.name = name
+            changed = True
+        if user.plan != plan:
+            user.plan = plan
+            changed = True
+        if not changed:
+            return user
 
     try:
         await session.commit()
-    except IntegrityError:
+    except (IntegrityError, DataError):
         # Most common in production: unique(email) collision across Clerk subjects.
         # Keep auth path resilient by falling back to a deterministic local email.
         await session.rollback()
         user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
-        fallback_email = f"{user_id}@clerk.local"
+        fallback_email = _fallback_email_for_user(user_id)
         if user is None:
             user = User(id=user_id, email=fallback_email, name=name, plan=plan)
             session.add(user)
@@ -45,6 +56,13 @@ async def ensure_user(session: AsyncSession, user_id: str, claims: dict) -> User
             user.name = name
             user.plan = plan
         await session.commit()
+    except SQLAlchemyError:
+        await session.rollback()
+        # For auth path stability, return existing row when available rather than hard-failing all routes.
+        existing = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+        if existing is not None:
+            return existing
+        raise
     await session.refresh(user)
     return user
 
@@ -61,15 +79,27 @@ def user_to_me_response(user: User) -> MeResponse:
 def _extract_email(claims: dict, user_id: str) -> str:
     email = claims.get("email")
     if isinstance(email, str) and email:
-        return email
+        return _normalize_email(email, user_id)
     email_addresses = claims.get("email_addresses")
     if isinstance(email_addresses, list) and email_addresses:
         first = email_addresses[0]
         if isinstance(first, dict):
             nested = first.get("email_address")
             if isinstance(nested, str) and nested:
-                return nested
-    return f"{user_id}@clerk.local"
+                return _normalize_email(nested, user_id)
+    return _fallback_email_for_user(user_id)
+
+
+def _fallback_email_for_user(user_id: str) -> str:
+    token = "".join(ch for ch in user_id.lower() if ch.isalnum())[:40] or "user"
+    return f"{token}@clerk.local"
+
+
+def _normalize_email(email: str, user_id: str) -> str:
+    normalized = email.strip().lower()
+    if normalized and len(normalized) <= 255:
+        return normalized
+    return _fallback_email_for_user(user_id)
 
 
 def _extract_name(claims: dict) -> str | None:
