@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
@@ -28,7 +29,22 @@ async def ensure_user(session: AsyncSession, user_id: str, claims: dict) -> User
         user.name = name
         user.plan = plan
 
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError:
+        # Most common in production: unique(email) collision across Clerk subjects.
+        # Keep auth path resilient by falling back to a deterministic local email.
+        await session.rollback()
+        user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+        fallback_email = f"{user_id}@clerk.local"
+        if user is None:
+            user = User(id=user_id, email=fallback_email, name=name, plan=plan)
+            session.add(user)
+        else:
+            user.email = fallback_email
+            user.name = name
+            user.plan = plan
+        await session.commit()
     await session.refresh(user)
     return user
 
