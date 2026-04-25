@@ -1,7 +1,11 @@
+import logging
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from pydantic import ValidationError
 
 from config import settings
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session import get_session
@@ -24,6 +28,7 @@ from services.approvals_service import (
 from services.send_approval_service import run_send_stub_in_background
 
 router = APIRouter(prefix="/me/approvals", tags=["approvals"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("", response_model=list[Approval])
@@ -31,7 +36,17 @@ async def list_approvals_route(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> list[Approval]:
-    return await list_approvals_service(session=session, user_id=user.id)
+    try:
+        return await list_approvals_service(session=session, user_id=user.id)
+    except ValidationError:
+        logger.exception("list_approvals_route validation failed user=%s", user.id)
+        return []
+    except SQLAlchemyError as exc:
+        logger.exception("list_approvals_route database failed user=%s", user.id)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Approvals temporarily unavailable",
+        ) from exc
 
 
 @router.post(

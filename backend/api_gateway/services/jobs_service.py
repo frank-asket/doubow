@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from uuid import uuid4
+import logging
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +21,7 @@ from services.job_score_mapping import job_score_to_api
 from services.semantic_match_service import SemanticMatcherUnavailableError, semantic_fit_score
 
 _ALLOWED_JOB_SOURCES = {"ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog"}
+logger = logging.getLogger(__name__)
 
 
 def _safe_job_source(raw: object) -> str:
@@ -29,7 +31,8 @@ def _safe_job_source(raw: object) -> str:
 
 def _row_to_schema(job: Job, score_row: JobScore) -> JobWithScore:
     score = job_score_to_api(job.id, score_row)
-    assert score is not None
+    if score is None:
+        raise ValueError("invalid_job_score_payload")
     return JobWithScore(
         id=job.id,
         source=_safe_job_source(job.source),  # type: ignore[arg-type]
@@ -177,7 +180,13 @@ async def list_jobs(
         .limit(per_page)
     )
     rows = (await session.execute(list_stmt)).all()
-    items = [_row_to_schema(job, score_row) for job, score_row in rows]
+    items: list[JobWithScore] = []
+    for job, score_row in rows:
+        try:
+            items.append(_row_to_schema(job, score_row))
+        except Exception:
+            # Keep /v1/jobs available even when one persisted row is malformed.
+            logger.exception("Skipping malformed job payload user=%s job=%s", user_id, job.id)
 
     response = JobsListResponse(items=items, total=int(total), page=page, per_page=per_page)
     await set_cached_jobs_list(cache_key, response)
