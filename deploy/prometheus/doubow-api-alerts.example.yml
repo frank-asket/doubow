@@ -16,15 +16,29 @@ groups:
 
       - alert: DoubowHigh5xxRate
         expr: |
-          sum(rate(http_requests_total{job="doubow-api",status=~"5.."}[5m]))
+          sum(rate(doubow_api_requests_total{job="doubow-api",status_code=~"5.."}[5m]))
             /
-          sum(rate(http_requests_total{job="doubow-api"}[5m])) > 0.01
+          sum(rate(doubow_api_requests_total{job="doubow-api"}[5m])) > 0.01
         for: 10m
         labels:
           severity: critical
         annotations:
           summary: "Elevated 5xx rate on Doubow API"
-          description: "More than 1% of HTTP responses are 5xx over 10m. Replace metric names with your ingress/app labels."
+          description: "More than 1% of API responses are 5xx over 10m based on `doubow_api_requests_total`."
+
+      - alert: DoubowLaunchCoreRoutes5xx
+        expr: |
+          (
+            sum(rate(doubow_api_requests_total{job="doubow-api",path=~"/v1/jobs|/v1/me/applications|/v1/me/approvals|/v1/agents/chat",status_code=~"5.."}[10m]))
+            /
+            sum(rate(doubow_api_requests_total{job="doubow-api",path=~"/v1/jobs|/v1/me/applications|/v1/me/approvals|/v1/agents/chat"}[10m]))
+          ) > 0.0025
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Launch-critical route 5xx budget exceeded"
+          description: "Combined 5xx rate >0.25% for launch-critical routes over 10m."
 
       - alert: DoubowLLMErrorBurst
         expr: |
