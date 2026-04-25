@@ -22,6 +22,19 @@ def _clamp_fit(value: object) -> float:
     return max(1.0, min(5.0, x))
 
 
+def _coerce_str_list(raw: object) -> list[str]:
+    """JSONB columns may contain mixed types; API schema requires list[str]."""
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        return [raw] if raw.strip() else []
+    if isinstance(raw, list):
+        return [str(x) for x in raw]
+    if isinstance(raw, tuple):
+        return [str(x) for x in raw]
+    return [str(raw)]
+
+
 def _dimension_scores(raw: dict) -> DimensionScores:
     return DimensionScores(
         tech=_clamp_dim(raw.get("tech", 3.0)),
@@ -46,8 +59,8 @@ def job_score_to_api(job_id: str, row: JobScoreRow | None) -> JobScoreSchema | N
     return JobScoreSchema(
         job_id=job_id,
         fit_score=_clamp_fit(row.fit_score),
-        fit_reasons=list(row.fit_reasons or []),
-        risk_flags=list(row.risk_flags or []),
+        fit_reasons=_coerce_str_list(row.fit_reasons),
+        risk_flags=_coerce_str_list(row.risk_flags),
         dimension_scores=_dimension_scores(dims_raw),
         channel_recommendation=_channel(dims_raw),
         scored_at=row.scored_at,

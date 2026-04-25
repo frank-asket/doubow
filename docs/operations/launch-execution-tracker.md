@@ -78,6 +78,13 @@ Execution:
    - `GET /v1/me/approvals`
    - `POST /v1/agents/chat`
 
+Probe command:
+
+```bash
+export DOUBOW_LAUNCH_PROBE_TOKEN="<clerk_jwt>"
+make -C backend auth-probe
+```
+
 Status: **RED**  
 Evidence: _(add)_
 

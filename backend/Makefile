@@ -4,7 +4,7 @@ PYTHON ?= python3
 ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
 
-.PHONY: db-migrate db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe
+.PHONY: db-migrate db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe
 
 # libpq/psql does not accept SQLAlchemy async URLs (postgresql+asyncpg://). Strip the driver for psql targets.
 define PSQL_CMD
@@ -67,4 +67,13 @@ launch-probe:
 			--base-url "$${LAUNCH_PROBE_BASE_URL:-https://doubow-production.up.railway.app}" \
 			--iterations "$${LAUNCH_PROBE_ITERATIONS:-20}" \
 			--sleep-seconds "$${LAUNCH_PROBE_SLEEP_SECONDS:-2.0}" \
+			--token-env "$${LAUNCH_PROBE_TOKEN_ENV:-DOUBOW_LAUNCH_PROBE_TOKEN}"
+
+# Auth/session gate probe (P0-2) for production launch readiness.
+auth-probe:
+	@cd .. && \
+		python3 scripts/auth_gate_probe.py \
+			--base-url "$${LAUNCH_PROBE_BASE_URL:-https://doubow-production.up.railway.app}" \
+			--iterations "$${AUTH_PROBE_ITERATIONS:-10}" \
+			--sleep-seconds "$${AUTH_PROBE_SLEEP_SECONDS:-1.0}" \
 			--token-env "$${LAUNCH_PROBE_TOKEN_ENV:-DOUBOW_LAUNCH_PROBE_TOKEN}"

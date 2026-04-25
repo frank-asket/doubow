@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
 from db.session import get_session
-from dependencies import get_authenticated_user, get_current_user_id
+from dependencies import get_authenticated_user
 from models.user import User
 from schemas.dashboard import DashboardSummaryResponse
 from schemas.resume import UserPreferencesModel, UserPreferencesPatch
@@ -41,8 +41,9 @@ async def get_dashboard(
 
 
 @router.get("/debug", response_model=MeDebugResponse)
-async def get_me_debug(user_id: str = Depends(get_current_user_id)) -> MeDebugResponse:
-    return MeDebugResponse(user_id=user_id, auth_source="clerk_jwt")
+async def get_me_debug(user: User = Depends(get_authenticated_user)) -> MeDebugResponse:
+    """Same auth + user-store path as other /v1/me/* routes (not JWT-only)."""
+    return MeDebugResponse(user_id=user.id, auth_source="clerk_jwt")
 
 
 @router.get("/debug/email-identities", response_model=MeEmailIdentityDebugResponse)
