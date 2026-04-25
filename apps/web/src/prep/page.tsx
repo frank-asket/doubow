@@ -17,14 +17,9 @@ function Mi({
   return <span className={cn('material-symbols-outlined leading-none', className)}>{name}</span>
 }
 
-function deriveReadiness(session: PrepSession | null): { overall: number; technical: number; cultural: number } {
-  if (!session) {
-    return {
-      overall: 84,
-      technical: 88,
-      cultural: 72,
-    }
-  }
+/** Heuristic readiness from generated prep content only (no placeholder scores when session missing). */
+function deriveReadiness(session: PrepSession | null): { overall: number; technical: number; cultural: number } | null {
+  if (!session) return null
   const storyCount = session.star_stories.length
   const questionCount = session.questions.length
   const technical = Math.max(45, Math.min(95, 62 + questionCount * 6))
@@ -42,11 +37,17 @@ export default function PrepPage() {
   const { selectedSession } = usePrepSessions()
 
   const readiness = useMemo(() => deriveReadiness(selectedSession), [selectedSession])
-  const company = selectedSession?.application.job.company ?? 'Google'
-  const role = selectedSession?.application.job.title ?? 'L6'
+  const company = selectedSession?.application.job.company ?? ''
+  const role = selectedSession?.application.job.title ?? ''
   const focusQuestion =
     selectedSession?.questions[0]?.replace(/^["']|["']$/g, '') ??
     'What exact steps did you take? Focus on "I" not "We".'
+  const competencyTags = selectedSession?.application.score?.fit_reasons?.slice(0, 8) ?? []
+  const riskFlags = selectedSession?.application.score?.risk_flags ?? []
+  const starStories = selectedSession?.star_stories ?? []
+  const briefExcerpt =
+    selectedSession?.company_brief?.trim().slice(0, 220) ??
+    (selectedSession?.questions[0]?.trim().slice(0, 220) ?? '')
 
   return (
     <div className="mx-auto max-w-[1140px] space-y-3 px-3 py-3 sm:px-4">
@@ -73,8 +74,14 @@ export default function PrepPage() {
         <section className="space-y-4 lg:col-span-8">
           <article className="border border-[0.5px] bg-white dark:bg-slate-900" style={{ borderColor: SURFACE_BORDER }}>
             <header className="flex items-center justify-between border-b border-[0.5px] bg-[#eaefed] px-3 py-1.5" style={{ borderColor: SURFACE_BORDER }}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3d4947]">ACTIVE DRAFT: PROJECT FALCON SYSTEM MIGRATION</p>
-              <span className="bg-teal-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-teal-800">SAVED TO CLOUD</span>
+              <p className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3d4947]">
+                {selectedSession
+                  ? `STAR draft · ${selectedSession.application.job.title}`
+                  : 'STAR builder — generate prep for an application to start'}
+              </p>
+              <span className="shrink-0 bg-teal-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-teal-800">
+                {selectedSession ? 'FROM YOUR DATA' : 'EMPTY'}
+              </span>
             </header>
             <div className="space-y-3 p-3">
               {[
@@ -114,11 +121,19 @@ export default function PrepPage() {
             <article className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">KEY COMPETENCIES</p>
               <div className="mt-2 flex flex-wrap gap-1">
-                {['LEADERSHIP', 'TECHNICAL DEPTH', 'CONFLICT RES'].map((t) => (
-                  <span key={t} className="border border-[0.5px] bg-[#f0f5f2] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]" style={{ borderColor: SURFACE_BORDER }}>
-                    {t}
-                  </span>
-                ))}
+                {competencyTags.length ? (
+                  competencyTags.map((t) => (
+                    <span
+                      key={t}
+                      className="border border-[0.5px] bg-[#f0f5f2] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]"
+                      style={{ borderColor: SURFACE_BORDER }}
+                    >
+                      {t}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-[11px] text-[#6d7a77]">Fit reasons appear here when the job has a score from Discover.</p>
+                )}
               </div>
             </article>
             <article className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
@@ -126,17 +141,32 @@ export default function PrepPage() {
               <div className="mt-2 inline-flex items-center gap-2 text-sm text-[#171d1c]">
                 <Mi name="business_center" className="text-[13px] text-[#3d4947]" />
                 <div>
-                  <p className="font-semibold">{company} {role}</p>
-                  <p className="text-xs text-[#3d4947]">System Design</p>
+                  <p className="font-semibold">
+                    {company && role ? `${company} · ${role}` : 'No prep session selected'}
+                  </p>
+                  <p className="text-xs text-[#3d4947]">
+                    {selectedSession?.application.job.location?.trim() || 'Location from job record'}
+                  </p>
                 </div>
               </div>
             </article>
             <article className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">PREPARATION SCORE</p>
-              <p className="mt-2 text-[30px] font-semibold leading-none text-[#00685f]">{readiness.overall}% <span className="text-[11px] uppercase tracking-[0.08em] text-[#3d4947]">READY</span></p>
+              <p className="mt-2 text-[30px] font-semibold leading-none text-[#00685f]">
+                {readiness != null ? (
+                  <>
+                    {readiness.overall}% <span className="text-[11px] uppercase tracking-[0.08em] text-[#3d4947]">HEURISTIC</span>
+                  </>
+                ) : (
+                  <span className="text-[22px] text-[#6d7a77]">—</span>
+                )}
+              </p>
               <div className="mt-2 h-1 bg-[#eaefed]">
-                <div className="h-full bg-[#00685f]" style={{ width: `${readiness.overall}%` }} />
+                <div className="h-full bg-[#00685f]" style={{ width: `${readiness?.overall ?? 0}%` }} />
               </div>
+              {readiness == null ? (
+                <p className="mt-1 text-[10px] text-[#6d7a77]">Scores from prep content length, not employer data.</p>
+              ) : null}
             </article>
           </div>
 
@@ -148,12 +178,20 @@ export default function PrepPage() {
               </header>
               <div className="divide-y divide-[0.5px] px-3" style={{ borderColor: SURFACE_BORDER }}>
                 <div className="py-3">
-                  <p className="text-xs font-semibold text-[#171d1c]">Candidate (title from résumé)</p>
-                  <p className="mt-1 text-xs italic text-[#3d4947]">"The SITUATION is strong, but the ACTION needs more emphasis on how you personally navigated stakeholder resistance."</p>
+                  <p className="text-xs font-semibold text-[#171d1c]">Prep notes</p>
+                  <p className="mt-1 text-xs italic text-[#3d4947]">
+                    {selectedSession?.questions[1]?.trim()
+                      ? `"${selectedSession.questions[1].trim().slice(0, 280)}${selectedSession.questions[1].length > 280 ? '…' : ''}"`
+                      : 'Interview questions from your generated prep pack will show here.'}
+                  </p>
                 </div>
                 <div className="py-3">
-                  <p className="text-xs font-semibold text-[#171d1c]">Sarah Miller (Tech Recruiter)</p>
-                  <p className="mt-1 text-xs italic text-[#3d4947]">"Excellent quantification in RESULT. This story maps perfectly to leadership principles."</p>
+                  <p className="text-xs font-semibold text-[#171d1c]">Company brief</p>
+                  <p className="mt-1 text-xs italic text-[#3d4947]">
+                    {selectedSession?.company_brief?.trim()
+                      ? `${selectedSession.company_brief.trim().slice(0, 280)}${selectedSession.company_brief.length > 280 ? '…' : ''}`
+                      : 'Run prep generation for this application to pull a brief from your backend.'}
+                  </p>
                 </div>
               </div>
             </article>
@@ -162,8 +200,12 @@ export default function PrepPage() {
                 <Mi name="description" className="text-[12px]" />
                 LINKED TECH BRIEF
               </div>
-              <h3 className="mt-2 text-[30px] font-semibold leading-[1.02]">Distributed Systems Resilience</h3>
-              <p className="mt-2 text-[13px] leading-[1.35] text-blue-100">Brief covers circuit breakers, exponential backoff, and sharding strategies related to this story.</p>
+              <h3 className="mt-2 text-[22px] font-semibold leading-[1.1] sm:text-[26px]">
+                {selectedSession?.application.job.title ?? 'Role briefing'}
+              </h3>
+              <p className="mt-2 text-[13px] leading-[1.35] text-blue-100">
+                {briefExcerpt || 'Company and role context from prep will display here when available.'}
+              </p>
               <button className="mt-4 inline-flex h-8 w-full items-center justify-center border border-white/40 bg-white dark:bg-slate-900 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1550cc]">
                 OPEN BRIEF WORKSPACE
               </button>
@@ -174,19 +216,20 @@ export default function PrepPage() {
         <aside className="space-y-3 lg:col-span-4">
           <article className="border border-[0.5px] border-l-2 border-l-amber-600 bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">NEEDS REVIEW</p>
-              <p className="text-[10px] uppercase tracking-[0.08em] text-[#3d4947]">2 ITEMS</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">Match risks</p>
+              <p className="text-[10px] uppercase tracking-[0.08em] text-[#3d4947]">{riskFlags.length} ITEMS</p>
             </div>
             <div className="space-y-2">
-              <div className="border border-[0.5px] bg-[#f8fafc] p-2" style={{ borderColor: SURFACE_BORDER }}>
-                <p className="text-xs font-semibold text-[#171d1c]">Vague Action Verbs</p>
-                <p className="mt-1 text-xs text-[#3d4947]">You used "helped with" three times. AI suggests "orchestrated" or "architected".</p>
-                <button className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">FIX ALL</button>
-              </div>
-              <div className="border border-[0.5px] bg-[#f8fafc] p-2" style={{ borderColor: SURFACE_BORDER }}>
-                <p className="text-xs font-semibold text-[#171d1c]">Missing Metrics</p>
-                <p className="mt-1 text-xs text-[#3d4947]">Result section lacks quantifiable data. Did efficiency increase? By how much?</p>
-              </div>
+              {riskFlags.length ? (
+                riskFlags.map((flag) => (
+                  <div key={flag} className="border border-[0.5px] bg-[#f8fafc] p-2" style={{ borderColor: SURFACE_BORDER }}>
+                    <p className="text-xs font-semibold text-[#171d1c]">Scorer flag</p>
+                    <p className="mt-1 text-xs text-[#3d4947]">{flag}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-[#3d4947]">No risk flags on this application&apos;s latest score.</p>
+              )}
             </div>
           </article>
 
@@ -195,28 +238,35 @@ export default function PrepPage() {
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">STORY LIBRARY</h3>
             </header>
             <div className="divide-y divide-[0.5px]" style={{ borderColor: SURFACE_BORDER }}>
-              {[
-                ['Falcon Migration', 'Technical leadership during high-traffic outage.', 'ACTIVE'],
-                ['Conflict with PM', 'Navigating scope creep during Q3 roadmap.', 'COMPLETE'],
-                ['Mentoring Junior Eng', 'Onboarding and growth framework implementation.', 'DRAFT'],
-              ].map(([title, desc, status]) => (
-                <div key={title} className="px-3 py-2">
-                  <div className="mb-1 flex items-center justify-between">
-                    <p className="text-sm font-medium text-[#171d1c]">{title}</p>
-                    <p className="text-[10px] uppercase tracking-[0.08em] text-[#3d4947]">{status}</p>
-                  </div>
-                  <p className="text-xs text-[#3d4947]">{desc}</p>
-                </div>
-              ))}
+              {starStories.length ? (
+                starStories.map((story, idx) => {
+                  const preview = [story.situation, story.task].join(' ').trim().slice(0, 120)
+                  return (
+                    <div key={`${idx}-${preview.slice(0, 20)}`} className="px-3 py-2">
+                      <div className="mb-1 flex items-center justify-between">
+                        <p className="text-sm font-medium text-[#171d1c]">STAR story {idx + 1}</p>
+                        <p className="text-[10px] uppercase tracking-[0.08em] text-[#3d4947]">SAVED</p>
+                      </div>
+                      <p className="text-xs text-[#3d4947]">{preview || '…'}</p>
+                    </div>
+                  )
+                })
+              ) : (
+                <p className="px-3 py-4 text-xs text-[#3d4947]">No STAR stories in this prep session yet.</p>
+              )}
             </div>
-            <button className="inline-flex h-9 w-full items-center justify-center border-t border-[0.5px] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#00685f]" style={{ borderColor: SURFACE_BORDER }}>
-              VIEW ALL STORIES (12)
+            <button
+              type="button"
+              className="inline-flex h-9 w-full items-center justify-center border-t border-[0.5px] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#00685f]"
+              style={{ borderColor: SURFACE_BORDER }}
+            >
+              STORIES ({starStories.length})
             </button>
           </article>
 
           <article className="border border-[0.5px] bg-[#eaefed] p-3" style={{ borderColor: SURFACE_BORDER }}>
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">MOCK SIMULATOR</h3>
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">Voice practice</h3>
               <Mi name="mic" className="text-[15px] text-[#00685f]" />
             </div>
             <p className="text-xs text-[#3d4947]">Practice this story with AI Voice Coach.</p>

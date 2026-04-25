@@ -1,24 +1,28 @@
 'use client'
 
 import { Bot, Briefcase, ChevronRight, CheckCircle2, Lightbulb, ListChecks, Loader2, Mic, Plus, SearchCheck, SendHorizonal, Settings, Sparkles, StopCircle, User } from 'lucide-react'
+import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { candidatePageShell, candidateTokens as tk } from '@/lib/candidateUi'
 import useSWR from 'swr'
-import { agentChatApi, authApi, type ChatThreadSummary, streamOrchestratorChat } from '@/lib/api'
+import { useDashboard } from '@/hooks/useDashboard'
+import {
+  agentChatApi,
+  agentsApi,
+  approvalsApi,
+  applicationsApi,
+  authApi,
+  type ChatThreadSummary,
+  streamOrchestratorChat,
+} from '@/lib/api'
+import type { AgentState } from '@doubow/shared'
 
-type RoleCard = {
-  title: string
-  meta: string
+type ChatMessage = {
+  id: string
+  role: 'assistant' | 'user'
+  text: string
+  timeLabel?: string
 }
-
-type ChatMessage =
-  | {
-      id: string
-      role: 'assistant' | 'user'
-      text: string
-      timeLabel?: string
-      roleCards?: RoleCard[]
-    }
 
 type AgentTask = {
   id: string
@@ -34,35 +38,22 @@ const SUGGESTIONS = [
   'Update my resume',
 ] as const
 
-const ROLE_CARDS: RoleCard[] = [
-  { title: 'Senior Product Manager', meta: 'Stripe • Remote • $180k - $220k' },
-  { title: 'Lead Strategy Lead', meta: 'Plaid • Hybrid (NY) • $165k - $200k' },
-]
-
-const AGENT_TASKS: AgentTask[] = [
-  {
-    id: 'search-roles',
-    title: 'Searching for New Roles',
-    detail: 'Scanning LinkedIn & Indeed',
-    tone: 'amber',
-    progress: 68,
-  },
-  {
-    id: 'draft-writing',
-    title: 'Writing Your Drafts',
-    detail: 'Tailoring cover letter for Stripe',
-    tone: 'teal',
-  },
-  {
-    id: 'prep-pending',
-    title: 'Interview Prep',
-    detail: 'Pending user request',
-    tone: 'muted',
-  },
-]
-
-const ATTENTION_ITEMS = ['Review Stripe Draft', 'Schedule 1:1 Coaching'] as const
 const LOCAL_STORAGE_NS = 'doubow.messages.history.v1'
+
+function mapAgentState(state: AgentState): AgentTask {
+  let tone: AgentTask['tone'] = 'muted'
+  if (state.status === 'error') tone = 'amber'
+  else if (state.status === 'running' || state.status === 'active') tone = 'teal'
+  const p = state.progress
+  return {
+    id: state.name,
+    title: state.label,
+    detail: state.message ?? state.description,
+    tone,
+    progress:
+      typeof p === 'number' && Number.isFinite(p) ? Math.round(Math.min(1, Math.max(0, p)) * 100) : undefined,
+  }
+}
 
 function sectionIconForLine(line: string) {
   const lower = line.toLowerCase()
@@ -164,29 +155,9 @@ export default function MessagesPage() {
   const [hasMoreChat, setHasMoreChat] = useState(false)
   const [loadingOlder, setLoadingOlder] = useState(false)
 
-  const marketMessage = useMemo(
-    () =>
-      'While you were away, new roles matched your saved criteria. I can list them by fit, channel, or location—or help draft a follow-up for an application you already sent.',
-    [],
-  )
+  const [messages, setMessages] = useState<ChatMessage[]>([])
 
-  const initialMessages = useMemo<ChatMessage[]>(() => [
-    { id: 'm1', role: 'assistant', text: marketMessage, timeLabel: 'Today, 10:24 AM' },
-    {
-      id: 'm2',
-      role: 'user',
-      text: "Let's look at those remote roles first. Can you highlight the ones with a focus on FinTech?",
-      timeLabel: '10:25 AM',
-    },
-    {
-      id: 'm3',
-      role: 'assistant',
-      text: 'Searching through the latest listings... I found two that specifically mention FinTech backgrounds as a preference.',
-      roleCards: ROLE_CARDS,
-    },
-  ], [marketMessage])
-
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
+  const { summary } = useDashboard()
 
   const { data: meDebug } = useSWR('messages-me-debug', authApi.meDebug, {
     shouldRetryOnError: false,
@@ -198,6 +169,34 @@ export default function MessagesPage() {
     meDebug?.user_id ? ['messages-backend-threads', threadListOffset] : null,
     () => agentChatApi.listThreads(20, threadListOffset),
     { shouldRetryOnError: false, revalidateOnFocus: false },
+  )
+
+  const { data: agentStates } = useSWR(meDebug?.user_id ? 'messages-agents-status' : null, () => agentsApi.status(), {
+    shouldRetryOnError: false,
+    revalidateOnFocus: false,
+  })
+
+  const { data: approvals } = useSWR(meDebug?.user_id ? 'messages-approvals' : null, () => approvalsApi.list(), {
+    shouldRetryOnError: false,
+    revalidateOnFocus: false,
+  })
+
+  const { data: applicationItems } = useSWR(
+    meDebug?.user_id ? 'messages-applications' : null,
+    async () => (await applicationsApi.list()).items,
+    { shouldRetryOnError: false, revalidateOnFocus: false },
+  )
+
+  const agentTasks = useMemo(() => (agentStates ?? []).map(mapAgentState), [agentStates])
+
+  const pendingApprovalItems = useMemo(
+    () => (approvals ?? []).filter((a) => a.status === 'pending'),
+    [approvals],
+  )
+
+  const interviewCount = useMemo(
+    () => (applicationItems ?? []).filter((a) => a.status === 'interview').length,
+    [applicationItems],
   )
 
   useEffect(() => {
@@ -420,6 +419,15 @@ export default function MessagesPage() {
                   </button>
                 </div>
               ) : null}
+              {messages.length === 0 && !streaming ? (
+                <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-6 text-center dark:border-slate-600 dark:bg-slate-800/40">
+                  <p className="text-[14px] font-medium text-zinc-800 dark:text-slate-100">No messages in this thread yet.</p>
+                  <p className="mt-1 text-[13px] text-zinc-600 dark:text-slate-400">
+                    Replies stream from your Doubow backend. Pick a prompt below or type your own.
+                  </p>
+                </div>
+              ) : null}
+
               <div className="ml-11 flex flex-wrap gap-2">
                 {SUGGESTIONS.map((item) => (
                   <button
@@ -466,24 +474,7 @@ export default function MessagesPage() {
                           )
                         )}
                       </div>
-                      {message.roleCards?.length ? (
-                        <div className="mt-4 space-y-2">
-                          {message.roleCards.map((role) => (
-                            <button
-                              key={role.title}
-                              type="button"
-                              className="group flex w-full items-center justify-between rounded border border-zinc-200 bg-white px-3 py-2 text-left transition-colors hover:border-teal-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-teal-500/50"
-                            >
-                              <div>
-                                <p className="text-[14px] font-bold text-zinc-900 dark:text-white">{role.title}</p>
-                                <p className="text-[12px] font-medium text-zinc-500 dark:text-slate-300">{role.meta}</p>
-                              </div>
-                              <ChevronRight size={14} className="text-teal-700 opacity-0 transition-opacity group-hover:opacity-100" />
-                            </button>
-                          ))}
-                        </div>
-                      ) : null}
-                      {message.timeLabel ? (
+                        {message.timeLabel ? (
                         <p className={`text-[11px] uppercase tracking-wide text-zinc-400 ${isUser ? 'pr-1' : 'pl-1'}`}>{message.timeLabel}</p>
                       ) : null}
                     </div>
@@ -581,61 +572,95 @@ export default function MessagesPage() {
           <section className="rounded-sm border border-zinc-200 bg-zinc-50 p-3 dark:border-slate-700 dark:bg-slate-900">
             <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500 dark:text-white">What I&apos;m Doing Now</h2>
             <div className="space-y-2.5">
-              {AGENT_TASKS.map((task) => {
-                const tone = taskToneClasses(task.tone)
-                return (
-                  <article key={task.id} className={`relative overflow-hidden rounded-sm border p-3 ${tone.panel}`}>
-                    <div className={`absolute left-0 top-0 h-full w-[2px] ${tone.rail}`} />
-                    <div className="flex items-start gap-2.5">
-                      <SearchCheck size={16} className={tone.icon} />
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-bold text-zinc-900 dark:text-white">{task.title}</p>
-                        <p className="text-[12px] font-semibold text-zinc-500 dark:text-slate-200">{task.detail}</p>
-                        {typeof task.progress === 'number' ? (
-                          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-slate-700">
-                            <div className="h-full bg-amber-600" style={{ width: `${task.progress}%` }} />
-                          </div>
-                        ) : null}
+              {agentTasks.length ? (
+                agentTasks.map((task) => {
+                  const tone = taskToneClasses(task.tone)
+                  return (
+                    <article key={task.id} className={`relative overflow-hidden rounded-sm border p-3 ${tone.panel}`}>
+                      <div className={`absolute left-0 top-0 h-full w-[2px] ${tone.rail}`} />
+                      <div className="flex items-start gap-2.5">
+                        <SearchCheck size={16} className={tone.icon} />
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-bold text-zinc-900 dark:text-white">{task.title}</p>
+                          <p className="text-[12px] font-semibold text-zinc-500 dark:text-slate-200">{task.detail}</p>
+                          {typeof task.progress === 'number' ? (
+                            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-slate-700">
+                              <div className="h-full bg-amber-600" style={{ width: `${task.progress}%` }} />
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                )
-              })}
+                    </article>
+                  )
+                })
+              ) : (
+                <p className="text-[12px] font-semibold text-zinc-500 dark:text-slate-300">
+                  Agent status appears here when your API returns <code className="rounded bg-zinc-100 px-1 font-mono text-[11px] dark:bg-slate-800">/v1/agents/status</code>.
+                </p>
+              )}
             </div>
           </section>
 
           <section className="rounded-sm border border-zinc-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500 dark:text-white">Market Vitality</h2>
-            <div className="mt-2 flex items-end gap-1">
-              <span className="text-5xl font-black leading-none" style={{ color: tk.primary }}>84</span>
-              <span className="pb-1 text-[13px] font-bold text-teal-700 dark:text-teal-300">+5%</span>
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500 dark:text-white">Workspace snapshot</h2>
+            <div className="mt-2 flex flex-wrap items-end gap-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400">High-fit</span>
+                <span className="ml-1 text-3xl font-black leading-none tabular-nums" style={{ color: tk.primary }}>
+                  {summary?.high_fit_count ?? '—'}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400">Pipeline</span>
+                <span className="ml-1 text-3xl font-black leading-none tabular-nums text-zinc-800 dark:text-white">
+                  {summary?.pipeline_count ?? '—'}
+                </span>
+              </div>
             </div>
             <p className="mt-2 text-[13px] font-semibold leading-snug text-zinc-600 dark:text-white">
-              Your profile visibility increased this week. Recruiters are looking at your &quot;FinTech&quot; skills.
+              From your live dashboard totals.{' '}
+              <Link href="/discover" className="font-bold underline-offset-2 hover:underline" style={{ color: tk.primary }}>
+                Discover roles
+              </Link>{' '}
+              to grow your queue.
             </p>
           </section>
 
           <section className="space-y-2">
-            <h2 className="px-1 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500 dark:text-white">Attention Needed</h2>
-            {ATTENTION_ITEMS.map((item) => (
-              <button
-                key={item}
-                className="flex w-full items-center justify-between rounded-sm border border-zinc-200 bg-white px-3 py-3 text-left transition-colors hover:bg-zinc-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
-              >
-                <span className="inline-flex items-center gap-2 text-[13px] font-bold text-zinc-800 dark:text-white">
-                  <span className="h-2 w-2 rounded-full bg-amber-600" />
-                  {item}
-                </span>
-                <ChevronRight size={14} className="text-zinc-400 dark:text-white" />
-              </button>
-            ))}
+            <h2 className="px-1 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500 dark:text-white">Attention needed</h2>
+            {pendingApprovalItems.length ? (
+              pendingApprovalItems.slice(0, 6).map((a) => (
+                <Link
+                  key={a.id}
+                  href="/approvals"
+                  className="flex w-full items-center justify-between rounded-sm border border-zinc-200 bg-white px-3 py-3 text-left transition-colors hover:bg-zinc-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
+                >
+                  <span className="inline-flex min-w-0 items-center gap-2 text-[13px] font-bold text-zinc-800 dark:text-white">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-amber-600" />
+                    <span className="truncate">
+                      Approve {a.type.replace(/_/g, ' ')} · {a.application.job.company}
+                    </span>
+                  </span>
+                  <ChevronRight size={14} className="shrink-0 text-zinc-400 dark:text-white" />
+                </Link>
+              ))
+            ) : (
+              <p className="px-1 text-[12px] font-semibold text-zinc-500 dark:text-slate-300">
+                No pending approvals.{' '}
+                <Link href="/approvals" className="font-bold text-teal-700 underline-offset-2 hover:underline dark:text-teal-300">
+                  Open queue
+                </Link>
+              </p>
+            )}
           </section>
 
           <section className="relative h-28 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-100 dark:border-slate-700 dark:bg-slate-900">
             <div className="absolute inset-0 bg-gradient-to-r from-zinc-200 to-zinc-50 dark:from-slate-800 dark:to-slate-900" />
             <div className="absolute bottom-3 left-3">
-              <p className="text-[13px] font-bold text-zinc-800 dark:text-white">Application Funnel</p>
-              <p className="text-[12px] font-semibold text-zinc-500 dark:text-slate-200">3 interview requests</p>
+              <p className="text-[13px] font-bold text-zinc-800 dark:text-white">Interview stage</p>
+              <p className="text-[12px] font-semibold text-zinc-500 dark:text-slate-200">
+                {interviewCount} application{interviewCount === 1 ? '' : 's'} in interview
+              </p>
             </div>
             <Briefcase className="absolute right-3 top-3 text-zinc-300 dark:text-slate-600" size={42} />
           </section>

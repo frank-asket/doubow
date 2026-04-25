@@ -58,9 +58,12 @@ register_exception_handlers(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    # Keep local multi-port frontend workflows working (3000/3001/3100/etc),
-    # including common container/dev hosts, even if CORS_ORIGINS drifts.
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|host\.docker\.internal)(:\d+)?$",
+    # Local dev (any port) + Vercel preview/production hostnames (*.vercel.app).
+    # Production canonical origin is also in settings.cors_origins; regex covers branch previews.
+    allow_origin_regex=(
+        r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|host\.docker\.internal)(:\d+)?$"
+        r"|^https://[a-z0-9]([a-z0-9-]*[a-z0-9])?\.vercel\.app$"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

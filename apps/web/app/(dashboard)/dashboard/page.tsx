@@ -113,8 +113,8 @@ export default function DashboardOverviewPage() {
   const nextInterview = interviewApps[0]
   const secondInterview = interviewApps[1]
 
+  /** 0–100 from backend fit scores (1–5 scale); shown directly — no synthetic “resume /100” curve. */
   const avgFitPct = avgFit != null ? Math.round((avgFit / 5) * 100) : null
-  const resumeScoreDisplay = avgFitPct != null ? Math.min(99, Math.round(60 + avgFitPct * 0.35)) : null
   const interviewRatePct = pipelineCount > 0 ? Math.round((interviewCount / pipelineCount) * 100) : null
   const highFitRatePct = scoredTotal > 0 ? Math.round((highFit / scoredTotal) * 100) : null
 
@@ -724,17 +724,17 @@ export default function DashboardOverviewPage() {
           <div className="border-[0.5px] bg-white p-5 dark:bg-slate-900" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-[12px] font-medium uppercase tracking-widest" style={{ color: tk.onVariant }}>
-                Resume score
+                Avg. role fit
               </h3>
-              <span className="text-lg font-black" style={{ color: tk.primary }}>
-                {resumeScoreDisplay != null ? `${resumeScoreDisplay}/100` : '—'}
+              <span className="text-lg font-black tabular-nums" style={{ color: tk.primary }}>
+                {avgFit != null ? `${avgFit.toFixed(1)} / 5` : '—'}
               </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: tk.surfaceHigh }}>
               <div
                 className="h-full rounded-full transition-all"
                 style={{
-                  width: resumeScoreDisplay != null ? `${resumeScoreDisplay}%` : '0%',
+                  width: avgFitPct != null ? `${avgFitPct}%` : '0%',
                   backgroundColor: tk.primary,
                 }}
               />
@@ -743,8 +743,8 @@ export default function DashboardOverviewPage() {
               {avgFit != null && avgFit >= 4
                 ? 'Strong average fit across scored roles — keep iterating on stories and metrics.'
                 : avgFit != null
-                  ? 'Improve your score by sharpening skills on your résumé and preferences to match target roles.'
-                  : 'Derived from average role fit when scores exist. Upload your résumé to unlock scoring.'}
+                  ? 'Sharpen résumé and preferences to lift average fit on new scores.'
+                  : 'Appears when Discover has scored roles for you. Upload your résumé to improve matching.'}
             </p>
             <Link href="/resume" className="mt-2 inline-block text-[12px] font-medium hover:underline" style={{ color: tk.primary }}>
               My resume

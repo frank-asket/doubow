@@ -39,7 +39,7 @@ function MockSignup() {
 function MockFund() {
   return (
     <div className="mt-6 space-y-2 rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-      <p className="text-[10px] text-zinc-400">Output for Metro Health · ICU Nurse</p>
+      <p className="text-[10px] text-zinc-400">Example: tailored output for one saved role</p>
       <div className="flex h-9 items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 px-2">
         <span className="truncate text-xs text-zinc-100">resume.pdf</span>
         <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-300">

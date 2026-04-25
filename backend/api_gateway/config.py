@@ -40,6 +40,8 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
+        # Production web (override / extend via CORS_ORIGINS on Railway).
+        "https://doubow.vercel.app",
     ]
     clerk_issuer: str | None = None
     clerk_audience: str | None = None
