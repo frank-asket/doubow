@@ -73,7 +73,7 @@ test.describe('smoke flows', () => {
     })
 
     await page.goto('/resume')
-    await expect(page.getByRole('heading', { name: 'My resume' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Resume Lab' })).toBeVisible()
 
     const saveButton = page.getByRole('button', { name: 'Save preferences' })
     await expect(saveButton).toBeDisabled()
@@ -85,13 +85,13 @@ test.describe('smoke flows', () => {
       buffer: Buffer.from('%PDF-1.4 smoke'),
     })
 
-    await expect(page.getByText('Uploaded successfully')).toBeVisible()
+    await expect(page.getByText(/Resume uploaded\. Search preferences were updated/i)).toBeVisible()
     await expect(saveButton).toBeEnabled()
 
     await saveButton.click()
     await expect(page.getByText('Preferences saved.')).toBeVisible()
 
-    await page.getByRole('button', { name: 'Analyze with AI' }).click()
+    await page.getByRole('button', { name: 'Analyze Core' }).click()
     await expect(page.getByText('Profile analysis generated for smoke test.')).toBeVisible()
   })
 

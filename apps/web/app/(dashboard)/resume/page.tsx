@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { Upload, CheckCircle, Loader2, Sparkles, X, AlertCircle, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -8,7 +8,15 @@ import { useResumeUpload } from '@/hooks/useResumeUpload'
 import { isE2EAuthBypass } from '@/lib/e2e'
 import { ApiError, resumeApi } from '@/lib/api'
 import { isMockApiEnabled } from '@/lib/mock-api'
-import type { UserPreferences } from '@doubow/shared'
+import type { ResumeProfile, UserPreferences } from '@doubow/shared'
+
+function formatResumeTimestamp(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+  } catch {
+    return iso
+  }
+}
 
 const SENIORITY_OPTIONS = ['Junior', 'Mid', 'Senior', 'Lead', 'Staff', 'Principal']
 const DEFAULT_PREFS: UserPreferences = {
@@ -28,6 +36,8 @@ export default function ResumePage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [resumeExists, setResumeExists] = useState(false)
+  /** Latest row from GET /v1/me/resume — drives all non-preference summary UI (no hardcoded demo metrics). */
+  const [resumeProfile, setResumeProfile] = useState<ResumeProfile | null>(null)
 
   const [role, setRole] = useState(DEFAULT_PREFS.target_role)
   const [location, setLocation] = useState(DEFAULT_PREFS.location)
@@ -52,6 +62,7 @@ export default function ResumePage() {
       const onboarding = await resumeApi.onboardingStatus()
       if (onboarding.state === 'no_resume') {
         setResumeExists(false)
+        setResumeProfile(null)
         setUploaded(false)
         setFileName('')
         setPrefsStatus(null)
@@ -60,6 +71,7 @@ export default function ResumePage() {
       const profile = await resumeApi.get()
       setResumeExists(true)
       setUploaded(true)
+      setResumeProfile(profile)
       setFileName(profile.file_name)
       setSavedPrefs(profile.preferences)
       hydrateFromPrefs(profile.preferences)
@@ -104,6 +116,7 @@ export default function ResumePage() {
       const updated = await resumeApi.updatePreferences(payload)
       setSavedPrefs(updated)
       hydrateFromPrefs(updated)
+      setResumeProfile((prev) => (prev ? { ...prev, preferences: updated } : prev))
       setPrefsStatus({ type: 'success', text: 'Preferences saved.' })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save preferences'
@@ -135,11 +148,28 @@ export default function ResumePage() {
     if (file) handleFile(file)
   }, [handleFile])
 
-  const extractedSkills = skills
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 8)
+  const preferenceSkillTags = useMemo(
+    () =>
+      skills
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 12),
+    [skills],
+  )
+
+  const keywordTags = useMemo(() => {
+    const p = resumeProfile?.parsed_profile
+    if (p) {
+      const fromParsed = (p.top_skills?.length ? p.top_skills : p.skills) ?? []
+      if (fromParsed.length) return fromParsed.slice(0, 12)
+    }
+    return preferenceSkillTags
+  }, [resumeProfile, preferenceSkillTags])
+
+  const parsedArchetypes = resumeProfile?.parsed_profile?.archetypes ?? []
+  const parsedGaps = resumeProfile?.parsed_profile?.gaps ?? []
+  const parsedSkillCount = resumeProfile?.parsed_profile?.skills?.length ?? 0
 
   return (
     <div className="resume-lab mx-auto max-w-7xl space-y-3 bg-[#f5faf8] dark:bg-transparent px-4 pb-4 pt-2 sm:px-6 sm:pt-3 md:space-y-4">
@@ -232,7 +262,11 @@ export default function ResumePage() {
                 <div className="min-w-0">
                   <h3 className="truncate text-[16px] font-medium uppercase leading-[1.08] text-[#171d1c] dark:text-slate-100">{fileName || 'Resume_Not_Uploaded.pdf'}</h3>
                   <p className="mt-0.5 text-[11px] uppercase leading-[1.08] tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">
-                    {uploaded ? 'UPLOADED: JUST NOW' : 'UPLOAD A RESUME TO START EXTRACTION'}
+                    {uploaded && resumeProfile?.created_at
+                      ? `Saved · ${formatResumeTimestamp(resumeProfile.created_at)}`
+                      : uploaded
+                        ? 'On file — refresh if metadata looks stale'
+                        : 'UPLOAD A RESUME TO START EXTRACTION'}
                   </p>
                   {uploading ? (
                     <p className="mt-2 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] text-[#00685f]">
@@ -250,23 +284,27 @@ export default function ResumePage() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-[52px] leading-[0.92] font-black tracking-[-0.03em] text-[#00685f]">{uploaded ? '94.2%' : '--'}</p>
-                <p className="text-[11px] uppercase tracking-[0.08em] leading-none text-[#6d7a77] dark:text-slate-400">Match Score</p>
+                <p className="text-[52px] leading-[0.92] font-black tracking-[-0.03em] text-[#00685f]">
+                  {uploaded && resumeProfile != null ? `v${resumeProfile.version}` : '—'}
+                </p>
+                <p className="text-[11px] uppercase tracking-[0.08em] leading-none text-[#6d7a77] dark:text-slate-400">Resume revision</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 border-t border-[0.5px] border-[rgba(188,201,198,0.88)] sm:grid-cols-3">
-              {[
-                ['Tokens Identified', uploaded ? '1,402' : '0', uploaded ? 85 : 0],
-                ['Confidence Level', uploaded ? 'High (0.98)' : '--', uploaded ? 98 : 0],
-                ['Processing Time', uploaded ? '1.4s' : '--', uploaded ? 40 : 0],
-              ].map(([label, value, pct], idx) => (
-                <div key={label} className={cn('px-3.5 py-[11px]', idx < 2 && 'sm:border-r sm:border-[0.5px] sm:border-[rgba(188,201,198,0.88)]')}>
+              {(
+                [
+                  ['Skills (parsed)', uploaded ? String(parsedSkillCount) : '—'],
+                  ['Gaps flagged', uploaded ? String(parsedGaps.length) : '—'],
+                  ['Record ID', uploaded && resumeProfile ? resumeProfile.id.slice(0, 8) : '—'],
+                ] as const
+              ).map(([label, value], idx) => (
+                <div
+                  key={label}
+                  className={cn('px-3.5 py-[11px]', idx < 2 && 'sm:border-r sm:border-[0.5px] sm:border-[rgba(188,201,198,0.88)]')}
+                >
                   <p className="text-[11px] uppercase leading-none tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">{label}</p>
-                  <p className="mt-0.5 text-[16px] font-medium leading-[1.08] text-[#171d1c] dark:text-slate-100">{value}</p>
-                  <div className="mt-2 h-1 bg-[#eaefed]">
-                    <div className="h-full bg-[#00685f]" style={{ width: `${pct}%` }} />
-                  </div>
+                  <p className="mt-0.5 break-all text-[16px] font-medium leading-[1.08] text-[#171d1c] dark:text-slate-100">{value}</p>
                 </div>
               ))}
             </div>
@@ -292,11 +330,20 @@ export default function ResumePage() {
                 <span className="material-symbols-outlined text-[#00685f]">data_object</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {(extractedSkills.length ? extractedSkills : ['React', 'Node', 'Kubernetes', 'AWS']).map((skill) => (
-                  <span key={skill} className="border border-[0.5px] border-[rgba(188,201,198,0.88)] bg-[#eaefed] px-2 py-px text-[10px] uppercase leading-none tracking-[0.08em] text-[#3d4947] dark:text-slate-400">
-                    {skill}
-                  </span>
-                ))}
+                {keywordTags.length ? (
+                  keywordTags.map((skill) => (
+                    <span
+                      key={skill}
+                      className="border border-[0.5px] border-[rgba(188,201,198,0.88)] bg-[#eaefed] px-2 py-px text-[10px] uppercase leading-none tracking-[0.08em] text-[#3d4947] dark:text-slate-400"
+                    >
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-[11px] leading-snug text-[#6d7a77] dark:text-slate-400">
+                    None yet — they appear after parsing completes, or add skills under Search Preferences.
+                  </p>
+                )}
               </div>
             </article>
 
@@ -305,21 +352,18 @@ export default function ResumePage() {
                 <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Market Alignment</h4>
                 <span className="material-symbols-outlined text-[#00685f]">trending_up</span>
               </div>
-              <div className="space-y-3">
-                {[
-                  ['FinTech', 98],
-                  ['SaaS/Enterprise', 82],
-                ].map(([label, pct]) => (
-                  <div key={label}>
-                    <div className="mb-1 flex items-center justify-between text-[11px] uppercase tracking-[0.08em] text-[#3d4947] dark:text-slate-400">
-                      <span>{label}</span>
-                      <span className="font-semibold text-[#00685f]">{pct}%</span>
-                    </div>
-                    <div className="h-1 bg-[#eaefed]">
-                      <div className="h-full bg-[#00685f]" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-2">
+                {parsedArchetypes.length ? (
+                  parsedArchetypes.map((label) => (
+                    <p key={label} className="text-[12px] font-medium text-[#171d1c] dark:text-slate-100">
+                      {label}
+                    </p>
+                  ))
+                ) : (
+                  <p className="text-[11px] leading-snug text-[#6d7a77] dark:text-slate-400">
+                    No archetypes in the latest parse yet.
+                  </p>
+                )}
               </div>
             </article>
           </div>
@@ -331,52 +375,40 @@ export default function ResumePage() {
                   <span className="material-symbols-outlined text-[16px] text-[#00685f]">history</span>
                   Version_Manifest
                 </span>
-                <span className="text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">8 Active Instances</span>
+                <span className="text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Latest upload</span>
               </div>
             </header>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-slate-50/40 text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">
-                    <th className="px-3 py-2">Tag</th>
-                    <th className="px-3 py-2">Created_At</th>
-                    <th className="px-3 py-2">Alignment</th>
+                    <th className="px-3 py-2">Revision</th>
+                    <th className="px-3 py-2">Uploaded</th>
+                    <th className="px-3 py-2">Parsed skills</th>
                     <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2 text-right">Action</th>
+                    <th className="px-3 py-2 text-right"> </th>
                   </tr>
                 </thead>
                 <tbody className="text-[13px]">
-                  <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700">
-                    <td className="px-3 py-1.5 font-mono text-[#316bf3]">v4.2.1-SWE-L6</td>
-                    <td className="px-3 py-1.5 text-[#6d7a77] dark:text-slate-400">2023-11-24 14:22</td>
-                    <td className="px-3 py-1.5">
-                      <div className="inline-flex items-center gap-2">
-                        <div className="h-1 w-20 bg-[#eaefed]"><div className="h-full w-[94%] bg-[#06b6a7]" /></div>
-                        <span className="text-[12px] font-medium text-[#171d1c] dark:text-slate-100">94%</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-1.5"><span className="border border-[0.5px] border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">Production</span></td>
-                    <td className="px-3 py-1.5 text-right text-[#00685f]">View</td>
-                  </tr>
-                  <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700">
-                    <td className="px-3 py-1.5 font-mono text-[#316bf3]">v4.1.0-ML-ENG</td>
-                    <td className="px-3 py-1.5 text-[#6d7a77] dark:text-slate-400">2023-11-22 09:10</td>
-                    <td className="px-3 py-1.5">
-                      <div className="inline-flex items-center gap-2">
-                        <div className="h-1 w-20 bg-[#eaefed]"><div className="h-full w-[78%] bg-amber-500" /></div>
-                        <span className="text-[12px] font-medium text-[#171d1c] dark:text-slate-100">78%</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-1.5"><span className="border border-[0.5px] border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Archived</span></td>
-                    <td className="px-3 py-1.5 text-right text-[#00685f]">View</td>
-                  </tr>
-                  <tr className="bg-amber-50/40">
-                    <td className="px-3 py-1.5 font-mono text-[#316bf3]">v4.3.0-DRAFT</td>
-                    <td className="px-3 py-1.5 text-[#6d7a77] dark:text-slate-400">JUST NOW</td>
-                    <td className="px-3 py-1.5 text-[12px] font-medium italic text-amber-700">CALCULATING...</td>
-                    <td className="px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-amber-700">HITL REQUIRED</td>
-                    <td className="px-3 py-1.5 text-right"><button className="h-7 bg-amber-600 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white">Reconcile</button></td>
-                  </tr>
+                  {resumeProfile ? (
+                    <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700">
+                      <td className="px-3 py-1.5 font-mono text-[#316bf3]">v{resumeProfile.version}</td>
+                      <td className="px-3 py-1.5 text-[#6d7a77] dark:text-slate-400">{formatResumeTimestamp(resumeProfile.created_at)}</td>
+                      <td className="px-3 py-1.5 text-[#171d1c] dark:text-slate-100">{parsedSkillCount} skills</td>
+                      <td className="px-3 py-1.5">
+                        <span className="border border-[0.5px] border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">
+                          Current
+                        </span>
+                      </td>
+                      <td className="px-3 py-1.5 text-right text-[#6d7a77] dark:text-slate-400">—</td>
+                    </tr>
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-3 py-4 text-[12px] text-[#6d7a77] dark:text-slate-400">
+                        Upload a résumé to see revision metadata from your account.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -389,71 +421,55 @@ export default function ResumePage() {
               <h4 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#171d1c] dark:text-slate-100">History Logs</h4>
             </header>
             <div>
-              {[
-                ['Resume_Standard_v3', '2023-09-12 • MATCH: 88%'],
-                ['Creative_Portfolio_v2', '2023-08-05 • MATCH: 72%'],
-                ['Resume_Legacy_Base', '2023-01-20 • MATCH: 61%'],
-              ].map(([title, meta]) => (
-                <div key={title} className="flex items-center justify-between border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-3 py-3 last:border-b-0">
-                  <div>
-                    <p className="text-[13px] font-medium text-[#171d1c] dark:text-slate-100">{title}</p>
-                    <p className="text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">{meta}</p>
+              {resumeProfile ? (
+                <div className="flex items-center justify-between border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-3 py-3 last:border-b-0">
+                  <div className="min-w-0 pr-2">
+                    <p className="truncate text-[13px] font-medium text-[#171d1c] dark:text-slate-100">{resumeProfile.file_name}</p>
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">
+                      v{resumeProfile.version} · {formatResumeTimestamp(resumeProfile.created_at)}
+                    </p>
                   </div>
-                  <button className="material-symbols-outlined text-[#6d7a77] dark:text-slate-400">download</button>
+                  <span className="material-symbols-outlined shrink-0 text-[#6d7a77] dark:text-slate-400" aria-hidden>
+                    description
+                  </span>
                 </div>
-              ))}
+              ) : (
+                <p className="px-3 py-4 text-[12px] text-[#6d7a77] dark:text-slate-400">No résumé on file yet.</p>
+              )}
             </div>
           </article>
 
-          <article className="relative overflow-hidden border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-amber-50 p-3">
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#D97706]" />
-            <h5 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#92400e]">Human Intervention Required</h5>
-            <p className="mt-1 text-[12px] text-[#3d4947] dark:text-slate-400">
-              Three experience gaps detected in period 2021-2022. Manual verification recommended before export.
-            </p>
-            <button className="mt-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#92400e] underline">Fix discrepancy</button>
-          </article>
+          {parsedGaps.length > 0 ? (
+            <article className="relative overflow-hidden border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-amber-50 p-3">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#D97706]" />
+              <h5 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#92400e]">Gaps from your latest parse</h5>
+              <ul className="mt-2 list-inside list-disc text-[12px] text-[#3d4947] dark:text-slate-400">
+                {parsedGaps.map((g) => (
+                  <li key={g}>{g}</li>
+                ))}
+              </ul>
+            </article>
+          ) : null}
 
           <article className="border border-[0.5px] border-[#008378] bg-[#00685f] p-3 text-white">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.08em]">Verified Status</p>
-            <p className="mt-1 text-[12px] text-teal-100">This resume has been cryptographically signed.</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em]">Account storage</p>
+            <p className="mt-1 text-[12px] text-teal-100">Your file and parsed profile are stored for your account and used for matching and drafts.</p>
           </article>
         </aside>
       </div>
 
       <section className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900">
         <header className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-[#e4e9e7] px-3 py-2">
-          <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Operation Log</h4>
+          <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Parse summary</h4>
         </header>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-[12px]">
-            <thead>
-              <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">
-                <th className="px-3 py-2">Operation ID</th>
-                <th className="px-3 py-2">Engine Module</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Timestamp</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700">
-                <td className="px-3 py-2 font-mono text-[11px]">#RN-9821-X</td>
-                <td className="px-3 py-2 font-mono text-[11px]">NER_ENTITY_EXTRACTOR</td>
-                <td className="px-3 py-2">
-                  <span className="border border-[0.5px] border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">Complete</span>
-                </td>
-                <td className="px-3 py-2 font-mono text-[11px]">14:30:12</td>
-              </tr>
-              <tr>
-                <td className="px-3 py-2 font-mono text-[11px]">#RN-9820-A</td>
-                <td className="px-3 py-2 font-mono text-[11px]">SEMANTIC_SIMILARITY_V2</td>
-                <td className="px-3 py-2">
-                  <span className="border border-[0.5px] border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">Complete</span>
-                </td>
-                <td className="px-3 py-2 font-mono text-[11px]">14:29:58</td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="px-3 py-3 text-[12px] leading-relaxed text-[#3d4947] dark:text-slate-300">
+          {resumeProfile?.parsed_profile?.summary ? (
+            <p className="whitespace-pre-wrap">{resumeProfile.parsed_profile.summary}</p>
+          ) : (
+            <p className="text-[#6d7a77] dark:text-slate-400">
+              No summary text from the parser yet. After upload, parsed headline and summary will appear here when the backend provides them.
+            </p>
+          )}
         </div>
       </section>
 
