@@ -34,3 +34,24 @@ async def test_ensure_user_returns_existing_when_fallback_commit_fails(
 
     assert recovered.id == user.id
     assert commit_calls == 2
+
+
+@pytest.mark.asyncio
+async def test_ensure_user_returns_existing_when_primary_commit_raises_sqlalchemy_error(
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Regression: top-level SQLAlchemyError during first commit should recover existing user."""
+    user = User(id="user_primary_commit", email="current@example.com", name="Current", plan="free")
+    db_session.add(user)
+    await db_session.commit()
+
+    async def commit_always_fails() -> None:
+        raise SQLAlchemyError("forced primary commit failure")
+
+    monkeypatch.setattr(db_session, "commit", commit_always_fails)
+
+    claims = {"email": "new@example.com", "name": "Updated Name", "public_metadata": {"plan": "pro"}}
+    recovered = await ensure_user(db_session, user.id, claims)
+
+    assert recovered.id == user.id
