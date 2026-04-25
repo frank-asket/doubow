@@ -17,7 +17,7 @@ Status legend: `[x] implemented`, `[~] partial`, `[ ] missing`
 
 ## Phase 1 - Discovery & Scoring
 
-- [~] TASK-011 `DiscoveryAgent` scraper connectors (agent exists; connector depth is limited)
+- [~] TASK-011 `DiscoveryAgent` scraper connectors (agent returns `connector_plan` + catalog hint; live scraper depth still incremental)
 - [x] TASK-012 Job catalog + dedup on `(source, external_id)`
 - [x] TASK-013 `ScorerAgent` scoring flow
 - [x] TASK-014 `GET /v1/jobs` (`min_fit`, `location`, `page`)
@@ -26,15 +26,15 @@ Status legend: `[x] implemented`, `[~] partial`, `[ ] missing`
 - [x] TASK-017 Zustand `jobStore` + SWR jobs hook
 - [x] TASK-018 SSE score/agent streaming hooks
 - [x] TASK-019 Redis score caching (TTL 6h)
-- [~] TASK-020 Unit tests focused on scorer output schema guarantees
+- [x] TASK-020 Unit tests focused on scorer output schema guarantees (`job_score_mapping` clamps + `tests/test_job_score_schema.py`)
 
 ## Phase 2 - Pipeline & Integrity
 
 - [x] TASK-021 Applications CRUD routes
-- [~] TASK-022 `MonitorAgent` (present, but still light on normalization/rules depth)
+- [~] TASK-022 `MonitorAgent` (summarizes stale + dedup rows when `applications` context is passed; deeper normalization TBD)
 - [x] TASK-023 Integrity-check endpoint (dry-run + apply)
 - [x] TASK-024 Pipeline panel UI
-- [~] TASK-025 Integrity banner with richer row-jump UX
+- [x] TASK-025 Integrity banner with richer row-jump UX (Jump to row → scroll + highlight `data-application-id`)
 - [x] TASK-026 Supabase Realtime subscription for application status
 - [x] TASK-027 Integration test for dry-run vs apply parity
 
@@ -57,11 +57,11 @@ Status legend: `[x] implemented`, `[~] partial`, `[ ] missing`
 - [x] TASK-039 `GET /v1/me/approvals`
 - [x] TASK-040 `POST /v1/me/approvals/:id/approve`
 - [x] TASK-041 `POST /v1/me/approvals/:id/reject`
-- [~] TASK-042 Apply email handoff after approval (Gmail + fallback present; polish remains)
-- [~] TASK-043 LinkedIn dispatch after approval (channel support exists; dispatch path is not fully integrated)
+- [x] TASK-042 Apply email handoff after approval (Gmail draft/send + SMTP fallback; Gmail draft marks applied; confirmations)
+- [x] TASK-043 LinkedIn dispatch after approval (email handoff pack to candidate + `linkedin_email_handoff` provider metadata)
 - [x] TASK-044 Gmail OAuth connect + refresh
 - [x] TASK-045 LinkedIn OAuth connect flow
-- [~] TASK-046 Gmail status/disconnect error UX hardening
+- [x] TASK-046 Gmail status/disconnect error UX hardening (Approvals banners, retry, Settings link; LinkedIn status hints)
 - [x] TASK-047 Approvals panel with draft preview and channel badges
 - [x] TASK-048 Channel-aware apply handoff UX completeness
 - [x] TASK-049 Gmail status refresh control in handoff flow
@@ -92,7 +92,7 @@ Status legend: `[x] implemented`, `[~] partial`, `[ ] missing`
 - [x] TASK-065 Prometheus metrics + Grafana dashboard
 - [~] TASK-066 Dev auth verification/unblock local QA
 - [x] TASK-067 Python version pinning in `pyproject.toml`
-- [~] TASK-068 End-to-end Playwright apply flow coverage
+- [~] TASK-068 End-to-end Playwright apply flow coverage (`pipeline_integrity.spec.ts` added; full resume→apply path still expandable)
 - [x] TASK-069 OpenAPI/ReDoc docs
 - [x] TASK-070 Security audit (OAuth storage + SSRF guardrails)
 - [x] TASK-071 CI pipeline (lint/test/build/migrations)

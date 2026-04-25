@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { AlertTriangle, RefreshCw, Loader2, FileEdit } from 'lucide-react'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
 import { cn, statusBadgeClass, channelBadgeClass, channelLabel, shortDate, fitClass } from '../../lib/utils'
@@ -14,8 +14,16 @@ import { INTEGRITY_CHANGE_LABELS, PIPELINE_STATUS_TABS, PIPELINE_TABLE_HEADERS }
 import { hasPipelineIntegrityIssues } from './helpers'
 import { candidatePageShell, candidateTokens } from '../../lib/candidateUi'
 
-function ChangeRow({ change }: { change: IntegrityChange }) {
+function ChangeRow({
+  change,
+  onJumpToApplication,
+}: {
+  change: IntegrityChange
+  onJumpToApplication: (applicationId: string) => void
+}) {
   const label = INTEGRITY_CHANGE_LABELS[change.type]
+  const targetId = change.application_ids[0]
+  const canJump = Boolean(targetId)
 
   return (
     <div className="flex items-start gap-3 border-b border-zinc-100 py-2.5 last:border-0">
@@ -27,7 +35,14 @@ function ChangeRow({ change }: { change: IntegrityChange }) {
         {label}
       </span>
       <p className="flex-1 text-xs text-zinc-600">{change.reason}</p>
-      <button type="button" className="text-2xs whitespace-nowrap text-teal-700 hover:underline">
+      <button
+        type="button"
+        disabled={!canJump}
+        onClick={() => {
+          if (targetId) onJumpToApplication(targetId)
+        }}
+        className="text-2xs whitespace-nowrap text-teal-700 hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+      >
         Jump to row
       </button>
     </div>
@@ -93,6 +108,18 @@ export default function PipelinePage() {
   }
 
   const hasIntegrityIssues = hasPipelineIntegrityIssues(applications)
+
+  const jumpToApplicationRow = useCallback((applicationId: string) => {
+    setActiveTab('all')
+    window.requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-application-id="${applicationId}"]`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el?.classList.add('ring-2', 'ring-teal-500/60', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-slate-950')
+      window.setTimeout(() => {
+        el?.classList.remove('ring-2', 'ring-teal-500/60', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-slate-950')
+      }, 1800)
+    })
+  }, [])
 
   return (
     <div className={candidatePageShell}>
@@ -189,7 +216,9 @@ export default function PipelinePage() {
             </div>
           </div>
           <div className="divide-y divide-zinc-100">
-            {integrityResult.changes.map((c, i) => <ChangeRow key={i} change={c} />)}
+            {integrityResult.changes.map((c, i) => (
+              <ChangeRow key={i} change={c} onJumpToApplication={jumpToApplicationRow} />
+            ))}
           </div>
           {integrityResult.mode === 'dry_run' && (
             <div className="mt-3 flex gap-2 border-t border-zinc-100 pt-3">
@@ -298,7 +327,8 @@ export default function PipelinePage() {
               filtered.map((app) => (
                 <tr
                   key={app.id}
-                  className="group border-b border-[0.5px] transition-colors hover:bg-[#f5faf8]"
+                  data-application-id={app.id}
+                  className="group scroll-mt-24 border-b border-[0.5px] transition-colors hover:bg-[#f5faf8]"
                   style={{ borderColor: candidateTokens.outline }}
                 >
                   <td className="py-3 px-4">
