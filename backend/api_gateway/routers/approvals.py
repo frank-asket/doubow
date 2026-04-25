@@ -3,7 +3,6 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from config import settings
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-import logging
 
 from db.session import get_session
 from dependencies import get_authenticated_user
@@ -25,7 +24,6 @@ from services.approvals_service import (
 from services.send_approval_service import run_send_stub_in_background
 
 router = APIRouter(prefix="/me/approvals", tags=["approvals"])
-logger = logging.getLogger(__name__)
 
 
 @router.get("", response_model=list[Approval])
@@ -33,12 +31,7 @@ async def list_approvals_route(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> list[Approval]:
-    try:
-        return await list_approvals_service(session=session, user_id=user.id)
-    except Exception:
-        logger.exception("list_approvals_route failed user=%s", user.id)
-        # Launch safety fallback: keep route available with empty state.
-        return []
+    return await list_approvals_service(session=session, user_id=user.id)
 
 
 @router.post(
