@@ -22,9 +22,6 @@ const fraunces = Fraunces({
   display: 'swap',
 })
 
-/** Read `NEXT_PUBLIC_USE_MOCK_API` on each request for `StubApiRuntimeFlag` (client bundles cache the old value at build). */
-export const dynamic = 'force-dynamic'
-
 export const metadata: Metadata = {
   title: 'Doubow — The platform for your next job or venture',
   description:

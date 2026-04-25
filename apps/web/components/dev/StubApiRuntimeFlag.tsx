@@ -1,10 +1,11 @@
 /**
- * Sets `window.__DOUBOW_USE_MOCK_API__` from the server on every HTML response.
- * `NEXT_PUBLIC_*` in client bundles is inlined at build time; this keeps stub mode
- * aligned with current Vercel env after you toggle the variable (still redeploy once
- * so this component exists in the bundle).
+ * Sets `window.__DOUBOW_USE_MOCK_API__` from the server on every HTML response (dev only).
+ * In production, `isMockApiEnabled()` ignores mock regardless of build-inlined env.
  */
 export default function StubApiRuntimeFlag() {
+  if (process.env.NODE_ENV === 'production') {
+    return null
+  }
   const raw = process.env.NEXT_PUBLIC_USE_MOCK_API
   const enabled = raw === 'true' || raw === '1'
   return (

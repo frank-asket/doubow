@@ -1,6 +1,6 @@
 /**
- * In-memory API stub for local / offline development when no backend is available.
- * Enable with NEXT_PUBLIC_USE_MOCK_API=true (see .env.example).
+ * In-memory API stub for local `next dev` when no backend is available.
+ * Enable with NEXT_PUBLIC_USE_MOCK_API=true (see .env.example). Disabled in production builds.
  */
 import type {
   ActivationKPI,
@@ -64,6 +64,11 @@ export class MockHttpError extends Error {
 }
 
 export function isMockApiEnabled(): boolean {
+  // `NEXT_PUBLIC_*` is inlined at build time; a prior deploy can keep mock=true in the
+  // bundle after Vercel env is cleared. Production must never use in-memory fixtures.
+  if (process.env.NODE_ENV === 'production') {
+    return false
+  }
   if (typeof window !== 'undefined') {
     const w = window as unknown as { __DOUBOW_USE_MOCK_API__?: boolean }
     if (typeof w.__DOUBOW_USE_MOCK_API__ === 'boolean') {
