@@ -441,6 +441,40 @@ function DashboardLayoutInner({
               </span>
             </Link>
           </div>
+          <div className="space-y-1 border-t border-zinc-200 px-4 pb-4 pt-3 dark:border-slate-800">
+            <Link
+              href="/settings"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-bold text-zinc-700 transition-colors hover:bg-zinc-100 dark:font-bold dark:text-white dark:hover:bg-slate-800"
+            >
+              <Settings size={18} />
+              <span>Profile settings</span>
+            </Link>
+            <Link
+              href="/search"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-bold text-zinc-700 transition-colors hover:bg-zinc-100 dark:font-bold dark:text-white dark:hover:bg-slate-800"
+            >
+              <HelpCircle size={18} />
+              <span>Help</span>
+            </Link>
+            <div className="flex items-center gap-2 border-t border-zinc-200 pt-3 dark:border-slate-800">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-xs font-bold text-zinc-700 dark:border-slate-700 dark:bg-slate-800 dark:font-bold dark:text-white">
+                {userLoaded ? initials.slice(0, 2) : '…'}
+              </div>
+              <Link href="/profile" className="min-w-0 flex-1 py-0.5">
+                <p className="truncate text-sm font-bold text-zinc-700 dark:text-white">{userLoaded ? displayName : '…'}</p>
+                <p className="truncate text-2xs font-bold text-zinc-600 dark:font-bold dark:text-slate-300">{planLabel}</p>
+              </Link>
+              <button
+                type="button"
+                title="Sign out"
+                aria-label="Sign out"
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-zinc-200 font-bold text-zinc-700 hover:bg-zinc-100 dark:border-slate-700 dark:font-bold dark:text-white dark:hover:bg-slate-800 dark:hover:text-white"
+                onClick={onSignOut}
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          </div>
             </>
           ) : null}
         </div>
