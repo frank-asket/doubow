@@ -1,7 +1,7 @@
 """Add chat threads and messages tables.
 
 Revision ID: 20260427_00
-Revises: 20260426_00
+Revises: 20260426_01
 Create Date: 2026-04-22
 """
 
@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "20260427_00"
-down_revision = "20260426_00"
+down_revision = "20260426_01"
 branch_labels = None
 depends_on = None
 

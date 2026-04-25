@@ -1,7 +1,7 @@
 """add canonical url/logo/raw-clean job description fields
 
-Revision ID: 20260426_00
-Revises: 20260425_00
+Revision ID: 20260426_01
+Revises: 20260426_00
 Create Date: 2026-04-26 00:00:00.000000
 """
 
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "20260426_00"
-down_revision = "20260425_00"
+revision = "20260426_01"
+down_revision = "20260426_00"
 branch_labels = None
 depends_on = None
 
