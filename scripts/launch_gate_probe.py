@@ -33,11 +33,19 @@ class RouteResult:
     path: str
     statuses: list[int] = field(default_factory=list)
     latencies_ms: list[float] = field(default_factory=list)
+    sse_first_payload_ms: list[float] = field(default_factory=list)
+    sse_full_completion_ms: list[float] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
     def record(self, status: int, latency_ms: float) -> None:
         self.statuses.append(status)
         self.latencies_ms.append(latency_ms)
+
+    def record_sse(self, status: int, first_payload_ms: float, full_completion_ms: float) -> None:
+        self.statuses.append(status)
+        self.latencies_ms.append(first_payload_ms)
+        self.sse_first_payload_ms.append(first_payload_ms)
+        self.sse_full_completion_ms.append(full_completion_ms)
 
     @property
     def count(self) -> int:
@@ -56,6 +64,22 @@ class RouteResult:
         if not self.latencies_ms:
             return None
         return statistics.mean(self.latencies_ms)
+
+    @property
+    def sse_first_p95_ms(self) -> float | None:
+        if not self.sse_first_payload_ms:
+            return None
+        vals = sorted(self.sse_first_payload_ms)
+        idx = max(0, min(len(vals) - 1, int(round(0.95 * (len(vals) - 1)))))
+        return vals[idx]
+
+    @property
+    def sse_full_p95_ms(self) -> float | None:
+        if not self.sse_full_completion_ms:
+            return None
+        vals = sorted(self.sse_full_completion_ms)
+        idx = max(0, min(len(vals) - 1, int(round(0.95 * (len(vals) - 1)))))
+        return vals[idx]
 
     @property
     def five_xx_rate(self) -> float:
@@ -95,10 +119,64 @@ def _request_once(
         return int(exc.code), elapsed_ms
 
 
+def _request_sse_once(
+    *,
+    base_url: str,
+    token: str,
+    path: str,
+    body: dict[str, Any],
+    timeout_s: float = 20.0,
+) -> tuple[int, float, float]:
+    url = f"{base_url.rstrip('/')}{path}"
+    req = urllib.request.Request(
+        url=url,
+        data=json.dumps(body).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "text/event-stream",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    start = time.perf_counter()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+            first_payload_ms: float | None = None
+            while True:
+                line = resp.readline()
+                if not line:
+                    break
+                if line.startswith(b"data: "):
+                    first_payload_ms = (time.perf_counter() - start) * 1000.0
+                    break
+            # Drain remaining stream to measure full completion.
+            while resp.readline():
+                pass
+            full_completion_ms = (time.perf_counter() - start) * 1000.0
+            if first_payload_ms is None:
+                first_payload_ms = full_completion_ms
+            return int(resp.status), first_payload_ms, full_completion_ms
+    except urllib.error.HTTPError as exc:
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return int(exc.code), elapsed_ms, elapsed_ms
+
+
 def evaluate_gate_thresholds(route: RouteResult) -> list[str]:
     notes: list[str] = []
     if route.five_xx_rate > 0.005:
         notes.append(f"5xx rate {route.five_xx_rate * 100:.2f}% exceeds 0.5%")
+
+    if route.name == "agents_chat":
+        first_p95 = route.sse_first_p95_ms
+        full_p95 = route.sse_full_p95_ms
+        if first_p95 is None or full_p95 is None:
+            notes.append("no SSE latency samples")
+            return notes
+        if first_p95 > 3000.0:
+            notes.append(f"SSE first-payload P95 {first_p95:.1f}ms exceeds 3000ms")
+        if full_p95 > 15000.0:
+            notes.append(f"SSE full-completion P95 {full_p95:.1f}ms exceeds 15000ms")
+        return notes
 
     p95 = route.p95_ms
     if p95 is None:
@@ -109,7 +187,6 @@ def evaluate_gate_thresholds(route: RouteResult) -> list[str]:
         "jobs": 1500.0,
         "applications": 1000.0,
         "approvals": 1000.0,
-        "agents_chat": 15000.0,
     }
     th = p95_thresholds.get(route.name)
     if th is not None and p95 > th:
@@ -137,7 +214,7 @@ def main() -> int:
         return 2
 
     routes: list[tuple[RouteResult, dict[str, Any] | None]] = [
-        (RouteResult(name="jobs", method="GET", path="/v1/jobs?"), None),
+        (RouteResult(name="jobs", method="GET", path="/v1/jobs"), None),
         (RouteResult(name="applications", method="GET", path="/v1/me/applications"), None),
         (RouteResult(name="approvals", method="GET", path="/v1/me/approvals"), None),
         (
@@ -151,15 +228,28 @@ def main() -> int:
         print(f"[sample {i + 1}/{args.iterations}]")
         for route, body in routes:
             try:
-                status, latency = _request_once(
-                    base_url=args.base_url,
-                    token=token,
-                    method=route.method,
-                    path=route.path,
-                    body=body,
-                )
-                route.record(status, latency)
-                print(f"  {route.name:<13} status={status:<3} latency_ms={latency:.1f}")
+                if route.name == "agents_chat" and body is not None:
+                    status, first_ms, full_ms = _request_sse_once(
+                        base_url=args.base_url,
+                        token=token,
+                        path=route.path,
+                        body=body,
+                    )
+                    route.record_sse(status, first_ms, full_ms)
+                    print(
+                        f"  {route.name:<13} status={status:<3} "
+                        f"first_ms={first_ms:.1f} full_ms={full_ms:.1f}"
+                    )
+                else:
+                    status, latency = _request_once(
+                        base_url=args.base_url,
+                        token=token,
+                        method=route.method,
+                        path=route.path,
+                        body=body,
+                    )
+                    route.record(status, latency)
+                    print(f"  {route.name:<13} status={status:<3} latency_ms={latency:.1f}")
             except Exception as exc:  # noqa: BLE001
                 route.errors.append(str(exc))
                 print(f"  {route.name:<13} ERROR {exc}")
@@ -179,6 +269,11 @@ def main() -> int:
             f"mean_ms={(route.mean_ms or 0):>8.1f}"
         )
         print(status_line)
+        if route.name == "agents_chat":
+            print(
+                f"  sse_first_p95_ms={(route.sse_first_p95_ms or 0):.1f} "
+                f"sse_full_p95_ms={(route.sse_full_p95_ms or 0):.1f}"
+            )
         if notes:
             go = False
             for n in notes:
