@@ -21,6 +21,12 @@ def main_app(monkeypatch):
 
     from main import app
 
+    # Lifespan calls init_models(), which needs Postgres; these tests only exercise HTTP routes.
+    async def _skip_db_init() -> None:
+        return None
+
+    monkeypatch.setattr("main.init_models", _skip_db_init)
+
     return app
 
 

@@ -57,7 +57,13 @@ async def append_chat_message(
     body = content.strip()
     if not body:
         return
-    msg = ChatMessage(thread_id=thread.id, role=role, content=body)
+    # Set created_at in the app so ordering is stable (server_default can tie on SQLite/CI).
+    msg = ChatMessage(
+        thread_id=thread.id,
+        role=role,
+        content=body,
+        created_at=datetime.now(timezone.utc),
+    )
     session.add(msg)
     # Touch updated_at even on DBs without ON UPDATE trigger semantics.
     thread.updated_at = datetime.now(timezone.utc)
