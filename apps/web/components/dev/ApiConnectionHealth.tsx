@@ -108,7 +108,7 @@ function ApiConnectionHealthInner({ showAuthLine }: { showAuthLine: boolean }) {
             ? '…'
             : status === 'ok'
               ? isMockApiEnabled()
-                ? 'mock data'
+                ? 'stub mode'
                 : 'reachable'
               : status === 'error'
                 ? 'unreachable'

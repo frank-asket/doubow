@@ -17,6 +17,6 @@ export const candidateTokens = {
   amber: 'var(--cand-amber)',
 } as const
 
-/** Standard content width for mock-aligned dashboard routes */
+/** Standard content width for candidate-hub dashboard routes */
 export const candidatePageShell =
   'mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6'
