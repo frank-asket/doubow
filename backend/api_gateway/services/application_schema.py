@@ -9,6 +9,25 @@ from schemas.jobs import Job as JobSchema
 from services.job_score_mapping import job_score_to_api
 from workflow.pipeline import derive_application_pipeline_stage
 
+_ALLOWED_APP_STATUSES = {"saved", "pending", "applied", "interview", "offer", "rejected"}
+_ALLOWED_CHANNELS = {"email", "linkedin", "company_site"}
+_ALLOWED_JOB_SOURCES = {"ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog"}
+
+
+def _safe_status(raw: object) -> str:
+    s = str(raw or "").strip().lower()
+    return s if s in _ALLOWED_APP_STATUSES else "pending"
+
+
+def _safe_channel(raw: object) -> str:
+    s = str(raw or "").strip().lower()
+    return s if s in _ALLOWED_CHANNELS else "email"
+
+
+def _safe_job_source(raw: object) -> str:
+    s = str(raw or "").strip().lower()
+    return s if s in _ALLOWED_JOB_SOURCES else "manual"
+
 
 def application_to_schema(
     app: Application,
@@ -27,7 +46,7 @@ def application_to_schema(
         user_id=app.user_id,
         job=JobSchema(
             id=job.id,
-            source=job.source,
+            source=_safe_job_source(job.source),  # type: ignore[arg-type]
             external_id=job.external_id,
             title=job.title,
             company=job.company,
@@ -39,8 +58,8 @@ def application_to_schema(
             discovered_at=job.discovered_at,
         ),
         score=job_score_to_api(job.id, score_row),
-        status=app.status,
-        channel=app.channel,
+        status=_safe_status(app.status),  # type: ignore[arg-type]
+        channel=_safe_channel(app.channel),  # type: ignore[arg-type]
         applied_at=app.applied_at,
         last_updated=app.last_updated,
         idempotency_key=app.idempotency_key,

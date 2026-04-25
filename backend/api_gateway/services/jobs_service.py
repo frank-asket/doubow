@@ -19,13 +19,20 @@ from services.jobs_cache import (
 from services.job_score_mapping import job_score_to_api
 from services.semantic_match_service import SemanticMatcherUnavailableError, semantic_fit_score
 
+_ALLOWED_JOB_SOURCES = {"ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog"}
+
+
+def _safe_job_source(raw: object) -> str:
+    s = str(raw or "").strip().lower()
+    return s if s in _ALLOWED_JOB_SOURCES else "manual"
+
 
 def _row_to_schema(job: Job, score_row: JobScore) -> JobWithScore:
     score = job_score_to_api(job.id, score_row)
     assert score is not None
     return JobWithScore(
         id=job.id,
-        source=job.source,  # type: ignore[arg-type]
+        source=_safe_job_source(job.source),  # type: ignore[arg-type]
         external_id=job.external_id,
         title=job.title,
         company=job.company,
@@ -92,12 +99,20 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
         spec = _score_spec_from_template(job.score_template if isinstance(job.score_template, dict) else None)
         if spec is None:
             continue
-        fit_score = float(spec["fit_score"])
-        fit_reasons = list(spec["fit_reasons"])
+        try:
+            fit_score = float(spec["fit_score"])
+        except (TypeError, ValueError):
+            # Corrupt template data should not break listing for all users.
+            continue
+        fit_reasons_raw = spec.get("fit_reasons")
+        fit_reasons = [str(x) for x in fit_reasons_raw] if isinstance(fit_reasons_raw, list) else []
+        risk_flags_raw = spec.get("risk_flags")
+        risk_flags = [str(x) for x in risk_flags_raw] if isinstance(risk_flags_raw, list) else []
+        dims_raw = spec.get("dimension_scores") if isinstance(spec.get("dimension_scores"), dict) else {}
         if semantic_enabled:
             try:
                 semantic_score = semantic_fit_score(parsed_profile, job)
-            except SemanticMatcherUnavailableError:
+            except (SemanticMatcherUnavailableError, Exception):
                 semantic_score = None
             if semantic_score is not None:
                 fit_score = round(((1.0 - semantic_weight) * fit_score) + (semantic_weight * semantic_score), 1)
@@ -109,8 +124,8 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
                 job_id=job.id,
                 fit_score=fit_score,
                 fit_reasons=fit_reasons,
-                risk_flags=spec["risk_flags"],
-                dimension_scores=spec["dimension_scores"],
+                risk_flags=risk_flags,
+                dimension_scores=dims_raw,
                 scored_at=now,
             )
         )
