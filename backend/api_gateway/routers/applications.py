@@ -1,5 +1,9 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import ValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session import get_session
@@ -25,6 +29,7 @@ from services.applications_service import (
 from services.draft_service import ApplicationNotFoundError, create_draft_approval_for_application
 
 router = APIRouter(prefix="/me/applications", tags=["applications"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("", response_model=ApplicationsListResponse)
@@ -33,7 +38,23 @@ async def list_applications_route(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> ApplicationsListResponse:
-    return await list_applications(session=session, user_id=user.id, status=status)
+    try:
+        return await list_applications(session=session, user_id=user.id, status=status)
+    except ValidationError:
+        logger.exception("list_applications_route validation failed user=%s", user.id)
+        return ApplicationsListResponse(items=[], total=0, page=1, per_page=20)
+    except SQLAlchemyError as exc:
+        logger.exception("list_applications_route database failed user=%s", user.id)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Applications temporarily unavailable",
+        ) from exc
+    except Exception as exc:
+        logger.exception("list_applications_route unexpected failure user=%s", user.id)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Applications temporarily unavailable",
+        ) from exc
 
 
 @router.post(

@@ -47,6 +47,12 @@ async def list_approvals_route(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Approvals temporarily unavailable",
         ) from exc
+    except Exception as exc:
+        logger.exception("list_approvals_route unexpected failure user=%s", user.id)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Approvals temporarily unavailable",
+        ) from exc
 
 
 @router.post(
