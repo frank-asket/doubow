@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { Inter } from "next/font/google";
 import {
   Bell,
@@ -69,9 +70,11 @@ export default function OnboardingPage() {
         <div className="flex items-center gap-2.5 text-teal-600">
           <Bell size={16} />
           <CircleHelp size={16} />
-          <img
+          <Image
             alt="Candidate profile avatar"
-            className="h-7 w-7 rounded-full border border-[0.5px] border-[#bcc9c6] object-cover"
+            className="rounded-full border border-[0.5px] border-[#bcc9c6] object-cover"
+            height={28}
+            width={28}
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq6GTX_2lA_N76JsyV96gkpK2SuUT-gLOhzFNUqEOR2fsX3z_ppXSm9btFgPyPuX3b9jN7cEMLWHQzSqhRbihOYL65qNsEb2XN2ot79i_RurDMKeJTwWim4GOOkBM9KsUbA7ba_Bkjgez6OIRi47piWsO51Tqc0hlftLW0HeTcwLwZXBzBT4soWZ2xZAktG5CDJsL9vAQrFy-Rq8F4bIfDMRMb87Jk7I_InjUeaoGSrRYBwOxKX_FI1k2I6Yf9SxRHHDhP2m3U45WB"
           />
         </div>
@@ -81,9 +84,11 @@ export default function OnboardingPage() {
         <aside className="hidden h-[calc(100vh-48px)] w-64 flex-col border-r border-[0.5px] border-slate-300 bg-slate-50 p-3 md:flex">
           <div className="mb-4 border-b border-[0.5px] border-slate-200 pb-3">
             <div className="mb-2 flex items-center gap-2">
-              <img
+              <Image
                 alt="Candidate profile"
-                className="h-8 w-8 rounded border border-[0.5px] border-[#bcc9c6] object-cover"
+                className="rounded border border-[0.5px] border-[#bcc9c6] object-cover"
+                height={32}
+                width={32}
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-wZB5URqQVLHL-ov4QKGuBmMRmJmBnO2JIyA0wcw1OHQss1eBJWWrjt9YTpvG4keEOQcx-BIBDMiJFaLcYBNf-0yvxCk0rziHRKyjpV2MxAT6eOs2FToC9wKNLjTmelontOv5A2f_TcpBiTyrBFuv-_TsvAsJfHcIBjFA90W83kqlqeWnSdXZlO_Yd73t5jcKKhUTIcUxCf-rHTqqGGDrw3O0eDVBZ04027zVP5JxehtlBbIHlsPCig0PQbDqbTUxQAgio87OrY5z"
               />
               <div>
@@ -245,9 +250,11 @@ export default function OnboardingPage() {
 
           <section className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
             <div className="relative h-24 overflow-hidden rounded-lg border border-[0.5px] border-[#bcc9c6]">
-              <img
+              <Image
                 alt="Modern office space"
-                className="absolute inset-0 h-full w-full object-cover"
+                className="object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIV4VOQPqkBCbG3yl7vnEEA843LFRXHt4N2tN-hfAKtUaKKt68n8s4Wv6k9Jz1sOLEkEielfeEV_6iYhWS_zriEDvqZKF8GKtyYV-uepcmEOe35IPJmqkLsxmSqo7rd0u_ffsVms9Y_DffpE-a4I1ki-J2Bi2gWyjWtVZgnMwvIgD53BhZjdd3C5-9sxwzye7BGC16kkR6ESfCPH1rk0xHZHRSSC_A2uYs1lmcc17Z3qD49PUg1X95FSOkKRAxjG6QZkxSL6gdmnGU"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-[#00685f33]">
@@ -255,9 +262,11 @@ export default function OnboardingPage() {
               </div>
             </div>
             <div className="relative h-24 overflow-hidden rounded-lg border border-[0.5px] border-[#bcc9c6]">
-              <img
+              <Image
                 alt="Team collaborating"
-                className="absolute inset-0 h-full w-full object-cover"
+                className="object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1EWdg5xhqSkZs1kOZynhdHcvRT2UeAK1_-6OZZbF55Cc5Ty6pq3SxIgcEZOHksuAefrIAs9ZYS31rxgZmdnHLW71_OBedLWtCTf5Q5vjvnTEooWxnSSH0rBdyVXoA5vkMetHkmA32wrsKdB_hqK3ZN4Z8EM9xKtzE1rw2ww9bD6NyXS64bBqWvEOwZ4U1qMAwcY0DlFcJ37leq6vZ5xrbTKbNzqINDTzN-MyKeWqdZQQGJZ8M5Uah-sPvXVIZOP8UrCzWMZfZxLtA"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-[#0051d533]">
@@ -265,9 +274,11 @@ export default function OnboardingPage() {
               </div>
             </div>
             <div className="relative h-24 overflow-hidden rounded-lg border border-[0.5px] border-[#bcc9c6]">
-              <img
+              <Image
                 alt="Writing resume"
-                className="absolute inset-0 h-full w-full object-cover"
+                className="object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaXdxJisinS-4Hgtad22I1rVo2z-Xq4UTeyY_4W-TV9gRSPwveyVUFbxq1dPWf5xaD-yuTJl90dnKjqO1BUxuBPsq9FMK44XZR5sxGSob0qfOo4YHrD7lHyttlJotic0DI-v8UE5iekAS2-C5cWX47lLxk89-bf2CZyuv_2dITwvyYTw1XKVsgjCYDQF5wyWLZ8X8w9CdwdCxQfyU9sl-nU1vVrpOrPFdyBO9UYauRsf6YrW0QSpEKIEXZLDtjnI9DCcle_WO_Ml-Q"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-[#9e41f533]">

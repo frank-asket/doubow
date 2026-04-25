@@ -65,7 +65,7 @@ export default function JobDetailPage() {
     setActionState('idle')
     setApproval(null)
     setDraftBody(fallbackDraft)
-  }, [job?.id, fallbackDraft])
+  }, [job, fallbackDraft])
 
   async function ensureDraftApproval(): Promise<Approval | null> {
     if (!job) return null

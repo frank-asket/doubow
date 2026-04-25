@@ -40,7 +40,7 @@ export default function DraftsPage() {
     const key = draftsStorageKey(current.id)
     const fromStorage = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null
     setDraftBody(fromStorage ?? current.draft_body)
-  }, [current?.id])
+  }, [current])
 
   useEffect(() => {
     if (!toast) return

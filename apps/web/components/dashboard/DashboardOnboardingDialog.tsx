@@ -1,7 +1,7 @@
 'use client'
 
 import * as Dialog from '@radix-ui/react-dialog'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { Route } from 'next'
@@ -144,14 +144,14 @@ export default function DashboardOnboardingDialog({
   /** Browser timer handle (`number`); avoid `NodeJS.Timeout` from global `setTimeout` typing. */
   const initialDelayTimerRef = useRef<number | null>(null)
 
-  function clearResumeMarker() {
+  const clearResumeMarker = useCallback(() => {
     if (!onboardingUserId || typeof window === 'undefined') return
     try {
       window.sessionStorage.removeItem(dashboardOnboardingResumeKey(onboardingUserId))
     } catch {
       /* ignore */
     }
-  }
+  }, [onboardingUserId])
 
   function persistDismissed() {
     if (!onboardingUserId || typeof window === 'undefined') return
@@ -219,7 +219,7 @@ export default function DashboardOnboardingDialog({
     setStep(clamped)
     const id = window.requestAnimationFrame(() => setOpen(true))
     return () => window.cancelAnimationFrame(id)
-  }, [pathname, onboardingUserId])
+  }, [pathname, onboardingUserId, clearResumeMarker])
 
   function handleOpenChange(next: boolean) {
     if (!next) {

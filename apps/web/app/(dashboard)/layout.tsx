@@ -23,7 +23,7 @@ const NAV: Array<{ href: Route; label: string; icon: React.ElementType; badge: s
   { href: '/dashboard', label: 'Overview',       icon: LayoutDashboard, badge: null },
   { href: '/discover',  label: 'Job matches',    icon: Compass,         badge: 'jobs' },
   { href: '/pipeline',  label: 'Pipeline',       icon: ListFilter,      badge: 'pipeline' },
-  { href: '/drafts',    label: 'Drafts',         icon: FileEdit,        badge: null },
+  { href: '/drafts' as Route, label: 'Drafts', icon: FileEdit, badge: null },
   { href: '/approvals', label: 'Approvals',      icon: CheckSquare,     badge: 'approvals', urgent: true },
   { href: '/messages' as Route, label: 'Assistant', icon: Sparkles, badge: null },
   { href: '/prep',      label: 'Interviews',     icon: BookOpen,        badge: null },

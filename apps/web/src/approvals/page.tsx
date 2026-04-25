@@ -1,6 +1,6 @@
 'use client'
 
-import { Component, type ReactNode, useEffect, useMemo, useState } from 'react'
+import { Component, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { Bookmark, CheckCircle2, CircleHelp, Link2, List, Loader2, Shield, TrendingUp, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { approvalsApi } from '../../lib/api'
@@ -224,7 +224,7 @@ export default function ApprovalsPage() {
     )
   }, [current, draftBody, baseSalary, equityUnits, signOnBonus, variant])
 
-  function persistDraftState() {
+  const persistDraftState = useCallback(() => {
     if (!current || typeof window === 'undefined') return
     const key = storageKeyForApproval(current.id)
     const payload: PersistedDraftState = {
@@ -235,7 +235,7 @@ export default function ApprovalsPage() {
       variant,
     }
     window.localStorage.setItem(key, JSON.stringify(payload))
-  }
+  }, [current, draftBody, baseSalary, equityUnits, signOnBonus, variant])
 
   useEffect(() => {
     setMounted(true)
@@ -330,7 +330,7 @@ export default function ApprovalsPage() {
     setEquityUnits(600)
     setSignOnBonus(25000)
     setFlowVariant('base-1')
-  }, [current?.id])
+  }, [current])
 
   useEffect(() => {
     if (!saveToastOpen) return
@@ -356,7 +356,7 @@ export default function ApprovalsPage() {
       setLastSavedAt(Date.now())
     }, 500)
     return () => window.clearTimeout(timer)
-  }, [current?.id, draftBody, baseSalary, equityUnits, signOnBonus, variant, hasDraftChanges])
+  }, [current, hasDraftChanges, persistDraftState])
 
   useEffect(() => {
     if (autosaveState !== 'saved') return
