@@ -1,5 +1,5 @@
 /**
- * In-memory API stub for demo / frontend-only deploys.
+ * In-memory API stub for local / offline development when no backend is available.
  * Enable with NEXT_PUBLIC_USE_MOCK_API=true (see .env.example).
  */
 import type {
@@ -75,32 +75,32 @@ function randomIdSegment(): string {
   return Math.random().toString(36).slice(2, 10)
 }
 
-const MOCK_USER_ID = 'user_mock_demo'
+const MOCK_USER_ID = 'user_local_stub'
 
 const COMPANIES = [
-  'Meridian Analytics',
-  'Harbor Cloud',
-  'Cobalt Systems',
-  'Northwind Labs',
-  'Contoso AI',
-  'Fabrikam Health',
-  'Litware Robotics',
-  'Adventure Works',
-  'Wide World Traders',
-  'Tailspin Aerospace',
+  'Riverstone Labs',
+  'Blue Harbor Tech',
+  'Summit Engineering',
+  'Atlas Data Co.',
+  'North Peak Systems',
+  'Silverline Product',
+  'Vertex Applications',
+  'Horizon Cloud',
+  'Keystone Robotics',
+  'Pacific Analytics',
 ] as const
 
 const COMPANY_DOMAINS = [
-  'meridiananalytics.com',
-  'harborcloud.com',
-  'cobaltsystems.com',
-  'northwindlabs.com',
-  'contoso.ai',
-  'fabrikamhealth.com',
-  'litwarerobotics.com',
-  'adventure-works.com',
-  'wideworldtraders.com',
-  'tailspinaerospace.com',
+  'riverstone.example',
+  'blueharbor.example',
+  'summit.example',
+  'atlasdata.example',
+  'northpeak.example',
+  'silverline.example',
+  'vertex.example',
+  'horizon.example',
+  'keystone.example',
+  'pacific.example',
 ] as const
 
 const TITLES = [
@@ -175,36 +175,36 @@ function makeJob(i: number): JobWithScore {
     company: COMPANIES[i % COMPANIES.length],
     location: LOCATIONS[i % LOCATIONS.length],
     salary_range: i % 3 === 0 ? '€90k – €120k' : '€110k – €145k',
-    description: `Excerpt from ${sourceSiteLabel(source)} posting on ${domain}: Demo posting #${i + 1}. We are building reliable systems for customers who care about quality. You will partner with product and design, ship iteratively, and help raise the bar for engineering craft.`,
+    description: `Excerpt from ${sourceSiteLabel(source)} posting (${domain}): sample listing #${i + 1}. We are building reliable systems for customers who care about quality. You will partner with product and design, ship iteratively, and help raise the bar for engineering craft.`,
     url: buildSourceUrl(source, domain, i),
     posted_at: isoMinutesAgo(60 * 24 + i * 17),
     discovered_at: isoMinutesAgo(200 + i),
-    logo_url: `https://logo.clearbit.com/${domain}`,
+    logo_url: undefined,
   }
   return { ...job, score: makeScore(id, fit) }
 }
 
 function defaultParsedProfile(): ParsedProfile {
   return {
-    name: 'Alex Demo',
-    headline: 'Product-minded engineer · TypeScript · distributed systems',
-    experience_years: 8,
-    skills: ['TypeScript', 'React', 'PostgreSQL', 'Kubernetes', 'Python'],
-    top_skills: ['TypeScript', 'System design', 'APIs'],
-    archetypes: ['Full-stack', 'Platform'],
-    gaps: ['Formal ML depth'],
+    name: 'Résumé on file',
+    headline: 'Profile fields populated from your uploaded document',
+    experience_years: 0,
+    skills: [],
+    top_skills: [],
+    archetypes: [],
+    gaps: [],
     summary:
-      'Demo profile generated for the Doubow UI. Uploads and AI analysis are stubbed while mock API mode is on.',
+      'Stub API mode: parsed fields are placeholders until you connect a real backend and upload a résumé.',
   }
 }
 
 function defaultPreferences(): UserPreferences {
   return {
-    target_role: 'Senior Full-Stack Engineer',
-    location: 'Remote · EU',
-    min_salary: 110_000,
-    seniority: 'Senior',
-    skills: ['TypeScript', 'React', 'Node'],
+    target_role: '',
+    location: '',
+    min_salary: undefined,
+    seniority: 'Mid',
+    skills: [],
     excluded_companies: [],
   }
 }
@@ -213,8 +213,8 @@ function makeResume(): ResumeProfile {
   const prefs = defaultPreferences()
   return {
     id: 'resume-mock-1',
-    storage_path: '/mock/resume.pdf',
-    file_name: 'Alex_Demo_CV.pdf',
+    storage_path: '/stub/resume.pdf',
+    file_name: 'resume.pdf',
     parsed_profile: defaultParsedProfile(),
     preferences: prefs,
     version: 1,
@@ -257,7 +257,7 @@ function seedApprovals(apps: Application[]): Approval[] {
       type: 'cover_letter',
       channel: 'email',
       subject: `Application — ${pending.job.title} at ${pending.job.company}`,
-      draft_body: `Hi ${pending.job.company} team,\n\nI'm excited about the ${pending.job.title} role…\n\nBest,\nAlex`,
+      draft_body: `Hi ${pending.job.company} team,\n\nI'm excited about the ${pending.job.title} role.\n\nBest regards`,
       status: 'pending',
       idempotency_key: 'idem-mock-1',
       created_at: isoMinutesAgo(12),
@@ -288,7 +288,7 @@ function buildAgentStates(): AgentState[] {
   }))
 }
 
-// ——— mutable demo store ———
+// ——— mutable in-memory store (stub API only) ———
 
 let mockJobs: JobWithScore[] = Array.from({ length: 36 }, (_, i) => makeJob(i))
 let mockResume = makeResume()
@@ -324,13 +324,13 @@ const mockChatThreads: ChatThreadListResult = {
   threads: [
     {
       id: 'thread-mock-1',
-      title: 'Market scan & FinTech roles',
+      title: 'Market scan — saved preferences',
       created_at: isoMinutesAgo(400),
       updated_at: threadNow,
     },
     {
       id: 'thread-mock-2',
-      title: 'Interview prep — Cobalt',
+      title: 'Interview prep — selected role',
       created_at: isoMinutesAgo(900),
       updated_at: isoMinutesAgo(800),
     },
@@ -346,19 +346,19 @@ const mockThreadDetails: Record<string, ChatThreadDetail> = {
         id: 'msg-1',
         role: 'assistant',
         content:
-          "Hi Alex! I've been monitoring the market. Here are a few demo roles that match your saved preferences.",
+          'Here are roles that match the preferences on file. Say which ones you want to dig into first.',
         created_at: isoMinutesAgo(60),
       },
       {
         id: 'msg-2',
         role: 'user',
-        content: 'Show me the ones with a FinTech angle.',
+        content: 'Filter to roles that emphasize payments or regulated industries.',
         created_at: isoMinutesAgo(59),
       },
       {
         id: 'msg-3',
         role: 'assistant',
-        content: 'Here are two generated picks (mock data): Stripe-adjacent PM and a payments infra role.',
+        content: 'Here are two listings that match that filter in the stub catalog—open each to verify details.',
         created_at: isoMinutesAgo(58),
       },
     ],
@@ -370,7 +370,7 @@ const mockThreadDetails: Record<string, ChatThreadDetail> = {
       {
         id: 'msg-a',
         role: 'assistant',
-        content: 'Demo thread: prep questions for your Cobalt Systems round.',
+        content: 'Prep thread: review behavioral questions and company context for your upcoming round.',
         created_at: isoMinutesAgo(120),
       },
     ],
@@ -529,7 +529,7 @@ export async function handleMockRequest<T>(
       type: 'cover_letter',
       channel: app.channel,
       subject: `Application — ${app.job.title}`,
-      draft_body: `Hello ${app.job.company} team,\n\nI am excited about the ${app.job.title} role (demo draft).\n\nBest,\nAlex`,
+      draft_body: `Hello ${app.job.company} team,\n\nI am excited about the ${app.job.title} role.\n\nBest regards`,
       status: 'pending',
       idempotency_key: `draft-${applicationId}`,
       created_at: new Date().toISOString(),
@@ -627,7 +627,7 @@ export async function handleMockRequest<T>(
         'How do you approach trade-offs between speed and quality?',
       ],
       star_stories: [makeStarStory()],
-      company_brief: `${app.job.company} builds customer-facing products with a strong engineering culture (demo brief).`,
+      company_brief: `${app.job.company} builds customer-facing products; confirm details from the live posting before interviews.`,
       created_at: isoMinutesAgo(20),
     }
     prepByAppId.set(applicationId, prep)
@@ -656,8 +656,8 @@ export async function handleMockRequest<T>(
     return {
       text:
         kind === 'star_story'
-          ? 'Mock STAR story suggestion: emphasize measurable latency improvement and cross-team alignment.'
-          : 'Mock company brief: focus on their platform narrative and recent product launches.',
+          ? 'Practice angle: emphasize measurable outcomes and how you aligned teams under constraints.'
+          : 'Research angle: verify the company’s current product focus from primary sources before the interview.',
     } as T
   }
 
@@ -683,7 +683,7 @@ export async function handleMockRequest<T>(
 
   if (pathname === '/v1/me/resume' && method === 'POST') {
     const body = init.body
-    let fileName = 'uploaded-demo.pdf'
+    let fileName = 'upload.pdf'
     if (body instanceof FormData) {
       const f = body.get('file')
       if (f instanceof File) fileName = f.name || fileName
@@ -709,7 +709,7 @@ export async function handleMockRequest<T>(
   if (pathname === '/v1/me/resume/analyze' && method === 'POST') {
     return {
       analysis:
-        'Mock analysis: your profile reads senior full-stack with platform strengths. Consider emphasizing ownership of reliability initiatives.',
+        'Stub analysis: connect a live LLM backend to generate tailored feedback from your résumé text.',
     } as T
   }
 
@@ -782,7 +782,7 @@ export async function handleMockRequest<T>(
     return detail as T
   }
 
-  throw new MockHttpError(404, `Mock API: no handler for ${method} ${pathname}`)
+  throw new MockHttpError(404, `Stub API: no handler for ${method} ${pathname}`)
 }
 
 export function mockAgentStatusSnapshot(): AgentState[] {

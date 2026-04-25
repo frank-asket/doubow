@@ -2,16 +2,16 @@ import { expect, test } from '@playwright/test'
 
 const mockResumeProfile = {
   parsed_profile: {
-    summary: 'Backend-focused engineer with applied AI experience.',
-    skills: ['Python', 'FastAPI', 'LLMs'],
-    gaps: ['System design'],
+    summary: 'Summary from uploaded résumé (fixture).',
+    skills: ['Python'],
+    gaps: [],
   },
   preferences: {
-    target_role: 'AI/ML Engineer',
-    location: 'Remote / Europe',
-    min_salary: 140000,
-    seniority: 'Senior',
-    skills: ['RAG', 'LLMs', 'Python', 'FastAPI', 'MLOps'],
+    target_role: '',
+    location: '',
+    min_salary: undefined,
+    seniority: 'Mid' as const,
+    skills: [] as string[],
   },
   file_name: 'resume.pdf',
 }

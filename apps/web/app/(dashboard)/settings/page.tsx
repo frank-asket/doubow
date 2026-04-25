@@ -44,16 +44,28 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Full Name</label>
-                <input className="h-9 w-full border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-sm leading-none outline-none focus:border-[#00685f] dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" defaultValue="Alexander Vance" />
+                <input
+                  className="h-9 w-full border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-sm leading-none outline-none focus:border-[#00685f] dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                  placeholder="Your name"
+                  defaultValue=""
+                />
               </div>
               <div>
                 <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Preferred Title</label>
-                <input className="h-9 w-full border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-sm leading-none outline-none focus:border-[#00685f] dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" defaultValue="Senior Systems Architect" />
+                <input
+                  className="h-9 w-full border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-sm leading-none outline-none focus:border-[#00685f] dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                  placeholder="Target title"
+                  defaultValue=""
+                />
               </div>
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Primary Email Address</label>
                 <div className="flex gap-2">
-                  <input className="h-9 flex-1 border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-sm leading-none outline-none focus:border-[#00685f] dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" defaultValue="alexander.vance@candidate.io" />
+                  <input
+                    className="h-9 flex-1 border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-sm leading-none outline-none focus:border-[#00685f] dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                    placeholder="you@example.com"
+                    defaultValue=""
+                  />
                   <span className="inline-flex items-center border border-[0.5px] border-teal-200 bg-teal-50 px-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[#00685f] dark:border-teal-500/40 dark:bg-teal-950/50 dark:text-teal-300">
                     Verified
                   </span>

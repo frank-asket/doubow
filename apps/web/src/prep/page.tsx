@@ -148,7 +148,7 @@ export default function PrepPage() {
               </header>
               <div className="divide-y divide-[0.5px] px-3" style={{ borderColor: SURFACE_BORDER }}>
                 <div className="py-3">
-                  <p className="text-xs font-semibold text-[#171d1c]">Alex Chen (Senior Staff Eng)</p>
+                  <p className="text-xs font-semibold text-[#171d1c]">Candidate (title from résumé)</p>
                   <p className="mt-1 text-xs italic text-[#3d4947]">"The SITUATION is strong, but the ACTION needs more emphasis on how you personally navigated stakeholder resistance."</p>
                 </div>
                 <div className="py-3">

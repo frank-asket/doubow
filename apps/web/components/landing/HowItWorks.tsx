@@ -41,7 +41,7 @@ function MockFund() {
     <div className="mt-6 space-y-2 rounded-xl border border-zinc-800 bg-zinc-950 p-3">
       <p className="text-[10px] text-zinc-400">Output for Metro Health · ICU Nurse</p>
       <div className="flex h-9 items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 px-2">
-        <span className="truncate text-xs text-zinc-100">Resume_Alex_MetroHealth_ICUNurse.pdf</span>
+        <span className="truncate text-xs text-zinc-100">resume.pdf</span>
         <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-300">
           Tailored
           <ChevronDown className="h-3 w-3 opacity-60" />

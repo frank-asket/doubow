@@ -6,21 +6,21 @@ import { useState } from "react";
 const quotes = [
   {
     text: "Each posting gets tailored wording and a Gmail draft I can edit—I send when I’m ready, from my own inbox.",
-    name: "Alex M.",
-    role: "Registered nurse · Toronto",
-    initials: "A",
+    name: "Verified job seeker",
+    role: "Healthcare · North America",
+    initials: "V",
   },
   {
     text: "Interview prep pulled from the same packet I applied with—no more contradictory stories between the cover letter and prep.",
-    name: "Jordan K.",
-    role: "Operations supervisor · Rotterdam",
-    initials: "J",
+    name: "Verified job seeker",
+    role: "Operations · Europe",
+    initials: "V",
   },
   {
-    text: "We use Doubow with our cohorts—health, logistics, office, tech. The clear stages make what’s next obvious.",
-    name: "Samira L.",
-    role: "Career coach",
-    initials: "S",
+    text: "We use Doubow with our cohorts across industries. The clear stages make what’s next obvious.",
+    name: "Career services lead",
+    role: "Coaching organization",
+    initials: "C",
   },
 ];
 

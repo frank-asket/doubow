@@ -50,7 +50,7 @@ const capabilityCards = [
   [BarChart3, 'Fit scoring', 'Scores roles based on experience, culture fit, and salary expectations before you spend time.', 'ATS Compatibility Scoring', 'Salary Range Estimation'],
   [FileText, 'Tailored materials', 'Generates role-specific resumes and cover letters in your voice with keyword precision.', 'Dynamic Bullet Pointing', 'Tone Consistency AI'],
   [Send, 'Pipeline & follow-ups', 'Tracks deadlines, prepares follow-ups, and keeps your pipeline moving forward.', 'Follow-up Sequences', 'Email Sync Integration'],
-  [Brain, 'Interview prep', 'Creates mock prompts and briefing notes tailored to each company and role.', 'Mock Q&A Generation', 'Research Briefs'],
+  [Brain, 'Interview prep', 'Generates practice prompts and briefing notes tailored to each company and role.', 'Practice Q&A', 'Research briefs'],
   [Handshake, 'Offer strategy', 'Benchmarks offers and provides scripts to support strong compensation conversations.', 'Market Benchmarking', 'Strategy Scripting'],
 ] as const
 
@@ -410,7 +410,7 @@ export default function RootPage() {
               <p className="relative z-10 mx-auto mt-5 max-w-2xl text-[18px] leading-[1.6] text-[#7c839b]">Create your profile, get your first high-fit matches, and review AI-tailored drafts in minutes.</p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link href={"/auth/sign-up" as Route} className="relative z-10 inline-flex h-14 items-center justify-center rounded-[8px] bg-[#006a61] px-10 text-[15px] font-semibold text-white transition-colors hover:bg-[#005049]">Get Started for Free</Link>
-                <button className="relative z-10 inline-flex h-14 items-center justify-center rounded-[8px] border border-white/20 px-10 text-[15px] font-semibold text-white transition-colors hover:bg-white/10">Schedule a Demo</button>
+                <button className="relative z-10 inline-flex h-14 items-center justify-center rounded-[8px] border border-white/20 px-10 text-[15px] font-semibold text-white transition-colors hover:bg-white/10">Contact sales</button>
               </div>
             </div>
           </div>

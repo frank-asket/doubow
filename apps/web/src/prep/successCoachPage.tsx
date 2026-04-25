@@ -105,10 +105,10 @@ export default function SuccessCoachPage() {
               <div className="h-32 border border-[0.5px] bg-[#dee4e1]" style={{ borderColor: SURFACE_BORDER }} />
               <div className="space-y-2 text-xs text-[#3d4947]">
                 <p>
-                  <span className="font-semibold text-[#171d1c]">Mission:</span> "To democratize access to clean energy through intuitive software."
+                  <span className="font-semibold text-[#171d1c]">Mission:</span> Add the employer’s stated mission from their site or annual report.
                 </p>
                 <p>
-                  <span className="font-semibold text-[#171d1c]">Culture:</span> Engineering-led, flat hierarchy, heavy focus on user testing.
+                  <span className="font-semibold text-[#171d1c]">Culture:</span> Summarize culture signals from primary sources (careers page, filings, reputable interviews).
                 </p>
               </div>
               <p className="text-xs font-semibold text-[#00685f]">
@@ -199,7 +199,7 @@ export default function SuccessCoachPage() {
               </div>
             </div>
             <button className="mt-4 inline-flex h-9 w-full items-center justify-center border border-[0.5px] border-[#00685f] bg-[#00685f] text-[11px] font-semibold uppercase tracking-[0.12em] text-white">
-              Start Mock Interview
+              Start practice interview
             </button>
             {selectedSession ? (
               <p className="mt-2 text-[10px] uppercase tracking-[0.12em] text-[#3d4947]">

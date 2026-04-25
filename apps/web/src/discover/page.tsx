@@ -122,7 +122,7 @@ function JobCard({ job }: { job: JobWithScore }) {
       })
       setQueued(true)
     } catch {
-      // optimistic anyway in demo
+      // optimistic UI update before server confirmation
       setQueued(true)
     } finally {
       setQueuing(false)

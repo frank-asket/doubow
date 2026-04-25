@@ -427,7 +427,7 @@ export function streamOrchestratorChat(
       return () => {}
     }
     let aborted = false
-    const reply = `Demo assistant (mock API): you said “${message.slice(0, 120)}${message.length > 120 ? '…' : ''}”. There is no live model in this mode—text is generated locally.`
+    const reply = `Assistant (stub API): you said “${message.slice(0, 120)}${message.length > 120 ? '…' : ''}”. Connect a live chat backend for model replies; this response is generated locally.`
     const parts = reply.split(/(\s+)/)
     let idx = 0
     queueMicrotask(() => {

@@ -7,7 +7,7 @@ test.describe('pipeline integrity', () => {
       source: 'manual' as const,
       external_id: 'ext-1',
       title: 'Platform Engineer',
-      company: 'Northwind',
+      company: 'Riverstone Labs',
       location: 'Remote',
       description: 'Build reliable systems.',
       url: 'https://example.com/job/1',

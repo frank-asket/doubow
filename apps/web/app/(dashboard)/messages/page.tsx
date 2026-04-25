@@ -166,7 +166,7 @@ export default function MessagesPage() {
 
   const marketMessage = useMemo(
     () =>
-      "Hi Alex! I've been monitoring the market while you were away. I've found 3 new senior product roles that match your criteria for remote work and salary expectations. Would you like me to show them to you or help you draft a follow-up for yesterday's interview?",
+      'While you were away, new roles matched your saved criteria. I can list them by fit, channel, or location—or help draft a follow-up for an application you already sent.',
     [],
   )
 

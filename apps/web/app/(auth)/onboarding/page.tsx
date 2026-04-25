@@ -61,7 +61,7 @@ export default function OnboardingPage() {
   return (
     <div className={`${inter.className} min-h-screen bg-[#f5faf8] text-[#171d1c]`}>
       <header className="fixed top-0 z-50 flex h-12 w-full items-center justify-between border-b border-[0.5px] border-slate-300 bg-slate-50 px-4">
-        <div className="text-[31px] leading-none font-bold text-teal-600 scale-[0.42] origin-left">CareerPath</div>
+        <div className="text-[31px] leading-none font-bold text-teal-600 scale-[0.42] origin-left">Doubow</div>
         <div className="hidden h-12 items-center gap-4 md:flex">
           <a className="flex h-12 items-center border-b border-[0.5px] border-teal-600 px-2 text-[14px] text-teal-600" href="#">Guides</a>
           <a className="flex h-12 items-center px-2 text-[14px] text-slate-500" href="#">Progress</a>
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-wZB5URqQVLHL-ov4QKGuBmMRmJmBnO2JIyA0wcw1OHQss1eBJWWrjt9YTpvG4keEOQcx-BIBDMiJFaLcYBNf-0yvxCk0rziHRKyjpV2MxAT6eOs2FToC9wKNLjTmelontOv5A2f_TcpBiTyrBFuv-_TsvAsJfHcIBjFA90W83kqlqeWnSdXZlO_Yd73t5jcKKhUTIcUxCf-rHTqqGGDrw3O0eDVBZ04027zVP5JxehtlBbIHlsPCig0PQbDqbTUxQAgio87OrY5z"
               />
               <div>
-                <p className="text-[14px] font-black text-slate-900">Welcome, Alex</p>
+                <p className="text-[14px] font-black text-slate-900">Welcome</p>
                 <p className="text-[13px] text-slate-600">Next step: Interview Prep</p>
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function OnboardingPage() {
                 <div>
                   <p className="text-[16px] font-medium leading-6 text-[#2c0051]">Did you know?</p>
                   <p className="text-[13px] leading-[1.32] text-[#2c0051]">
-                    Alex, profiles that include specific industry preferences are 2x more likely to land an interview within the
+                    Profiles that include specific industry preferences are more likely to land an interview within the
                     first 30 days.
                   </p>
                 </div>
@@ -232,7 +232,7 @@ export default function OnboardingPage() {
                 <p className="mb-1 text-[11px] uppercase tracking-[0.04em] text-[#6d7a77]">Platform Impact</p>
                 <p className="text-[40px] leading-none font-black text-[#0051d5]">4.8k+</p>
                 <p className="mx-auto mt-1 max-w-[220px] text-[13px] leading-[1.32] text-[#3d4947]">
-                  Professionals placed this month using CareerPath Guides.
+                  Professionals placed this month using guided search workflows.
                 </p>
               </div>
 
