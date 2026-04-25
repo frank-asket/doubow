@@ -71,17 +71,26 @@ async def orchestrator_chat(
         user.id,
         len(payload.message),
     )
-    thread = await ensure_thread_for_user(session=session, user_id=user.id, thread_id=payload.thread_id)
-    transcript = await recent_thread_transcript(
-        session=session,
-        thread_id=thread.id,
-        max_messages=settings.orchestrator_chat_transcript_max_messages,
-        max_chars=settings.orchestrator_chat_transcript_max_chars,
-    )
-    await append_chat_message(session=session, thread=thread, role="user", content=payload.message)
-    await session.commit()
+    try:
+        thread = await ensure_thread_for_user(session=session, user_id=user.id, thread_id=payload.thread_id)
+        transcript = await recent_thread_transcript(
+            session=session,
+            thread_id=thread.id,
+            max_messages=settings.orchestrator_chat_transcript_max_messages,
+            max_chars=settings.orchestrator_chat_transcript_max_chars,
+        )
+        await append_chat_message(session=session, thread=thread, role="user", content=payload.message)
+        await session.commit()
+        user_context = await build_orchestrator_user_context(session=session, user_id=user.id)
+    except Exception:
+        logger.exception("orchestrator_chat setup failed user=%s", user.id)
 
-    user_context = await build_orchestrator_user_context(session=session, user_id=user.id)
+        async def setup_error_stream():
+            err = json.dumps({"delta": {"text": "(Error) Assistant is temporarily unavailable."}})
+            yield f"data: {err}\n\n"
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(setup_error_stream(), media_type="text/event-stream")
     system_prompt = (
         f"{ORCHESTRATOR_SYSTEM}\n\n"
         "You are given live pipeline context from the user's account. Use it directly; do not claim you lack access.\n"

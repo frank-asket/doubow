@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from uuid import uuid4
+import logging
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +24,7 @@ _ALLOWED_DELIVERY_STATUSES = {
     "failed",
 }
 _ALLOWED_CHANNELS = {"email", "linkedin", "company_site"}
+logger = logging.getLogger(__name__)
 
 
 def _safe_approval_type(raw: object) -> str:
@@ -88,7 +90,14 @@ async def list_approvals(session: AsyncSession, user_id: str) -> list[ApprovalSc
         .where(Approval.user_id == user_id)
     )
     rows = (await session.execute(stmt.order_by(Approval.created_at.desc()))).all()
-    return [build_approval_schema(approval, app, job, score_row) for approval, app, job, score_row in rows]
+    items: list[ApprovalSchema] = []
+    for approval, app, job, score_row in rows:
+        try:
+            items.append(build_approval_schema(approval, app, job, score_row))
+        except Exception:
+            # Keep endpoint available even if one historical approval row is malformed.
+            logger.exception("Skipping malformed approval payload user=%s approval=%s", user_id, approval.id)
+    return items
 
 
 async def approve_approval(

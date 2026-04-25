@@ -1,4 +1,5 @@
 from uuid import uuid4
+import logging
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +17,8 @@ from schemas.applications import (
     IntegritySummary,
 )
 from services.application_schema import application_to_schema
+
+logger = logging.getLogger(__name__)
 
 
 class ApplicationIdempotencyConflictError(Exception):
@@ -68,10 +71,13 @@ async def list_applications(session: AsyncSession, user_id: str, status: str | N
     rows = (await session.execute(stmt)).all()
     app_ids = [app.id for app, _, _ in rows]
     approvals = await _latest_approval_by_application_ids(session, user_id, app_ids)
-    items = [
-        application_to_schema(app, job, score_row, approval=approvals.get(app.id))
-        for app, job, score_row in rows
-    ]
+    items: list[ApplicationSchema] = []
+    for app, job, score_row in rows:
+        try:
+            items.append(application_to_schema(app, job, score_row, approval=approvals.get(app.id)))
+        except Exception:
+            # Degrade gracefully on malformed historical rows instead of 500ing the whole endpoint.
+            logger.exception("Skipping malformed application payload user=%s app=%s", user_id, app.id)
     return ApplicationsListResponse(items=items, total=total, page=1, per_page=per_page)
 
 
