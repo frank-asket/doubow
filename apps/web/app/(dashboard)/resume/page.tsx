@@ -148,12 +148,11 @@ export default function ResumePage() {
           role="status"
           className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-50"
         >
-          Stub API mode is on: responses come from an in-memory fixture, not your deployed backend. For production,
-          unset{' '}
+          Stub API mode is on: responses come from an in-memory fixture, not your deployed backend. Unset{' '}
           <code className="rounded bg-amber-100/90 px-1 font-mono text-[11px] dark:bg-amber-900/60">NEXT_PUBLIC_USE_MOCK_API</code>{' '}
-          and set{' '}
+          in Vercel, set{' '}
           <code className="rounded bg-amber-100/90 px-1 font-mono text-[11px] dark:bg-amber-900/60">NEXT_PUBLIC_API_URL</code>{' '}
-          to your API.
+          to your API, then redeploy. If it is already unset, redeploy once (old client bundles baked in the flag) and hard-refresh.
         </div>
       ) : null}
 

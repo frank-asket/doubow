@@ -5,6 +5,7 @@ import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google'
 import ClerkApiAuthBridge from '@/components/auth/ClerkApiAuthBridge'
 import ClerkDevOriginGuard from '@/components/auth/ClerkDevOriginGuard'
 import PostHogProvider from '@/components/analytics/PostHogProvider'
+import StubApiRuntimeFlag from '@/components/dev/StubApiRuntimeFlag'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import './globals.css'
 
@@ -20,6 +21,9 @@ const fraunces = Fraunces({
   variable: '--font-display',
   display: 'swap',
 })
+
+/** Read `NEXT_PUBLIC_USE_MOCK_API` on each request for `StubApiRuntimeFlag` (client bundles cache the old value at build). */
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Doubow — The platform for your next job or venture',
@@ -45,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${plusJakartaSans.variable} ${fraunces.variable} flex min-h-full flex-col font-sans antialiased`}
         suppressHydrationWarning
       >
+        <StubApiRuntimeFlag />
         {clerkPublishableKey ? (
           <ClerkProvider
             publishableKey={clerkPublishableKey}

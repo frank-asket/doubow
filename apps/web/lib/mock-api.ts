@@ -64,6 +64,12 @@ export class MockHttpError extends Error {
 }
 
 export function isMockApiEnabled(): boolean {
+  if (typeof window !== 'undefined') {
+    const w = window as unknown as { __DOUBOW_USE_MOCK_API__?: boolean }
+    if (typeof w.__DOUBOW_USE_MOCK_API__ === 'boolean') {
+      return w.__DOUBOW_USE_MOCK_API__
+    }
+  }
   const v = process.env.NEXT_PUBLIC_USE_MOCK_API
   return v === 'true' || v === '1'
 }
