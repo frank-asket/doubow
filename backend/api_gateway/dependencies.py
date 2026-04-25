@@ -1,17 +1,21 @@
 from collections.abc import AsyncGenerator
 from functools import lru_cache
+import logging
 
 import jwt
 from fastapi import Depends, Header, HTTPException, status
 from starlette.requests import Request
 from jwt import InvalidTokenError, PyJWKClient
 from jwt.exceptions import PyJWKClientConnectionError, PyJWKClientError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
 from db.session import bind_request_user_for_rls, get_session, reset_request_user_rls
 from models.user import User
 from services.users_service import ensure_user, normalize_clerk_subject
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=4)
@@ -90,7 +94,23 @@ async def get_authenticated_user(
 
     token = bind_request_user_for_rls(user_id)
     try:
-        user = await ensure_user(session, user_id, claims)
+        try:
+            user = await ensure_user(session, user_id, claims)
+        except SQLAlchemyError:
+            # Fail-open for authenticated reads when users upsert path is unhealthy in production.
+            # This preserves API availability while DB/user provisioning is repaired.
+            logger.exception("Auth user upsert failed; serving request with synthesized user id=%s", user_id)
+            email = claims.get("email")
+            if not isinstance(email, str) or not email.strip():
+                email = f"{user_id}@clerk.local"
+            plan = "free"
+            public_metadata = claims.get("public_metadata")
+            if isinstance(public_metadata, dict):
+                if public_metadata.get("subscriptionStatus") == "active":
+                    plan = "pro"
+                elif isinstance(public_metadata.get("plan"), str) and public_metadata["plan"].lower() == "pro":
+                    plan = "pro"
+            user = User(id=user_id, email=email.strip().lower(), name=None, plan=plan)
         yield user
     finally:
         reset_request_user_rls(token)
