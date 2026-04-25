@@ -55,11 +55,16 @@ async def ensure_user(session: AsyncSession, user_id: str, claims: dict) -> User
             user.email = fallback_email
             user.name = name
             user.plan = plan
-        await session.commit()
+        try:
+            await session.commit()
+        except SQLAlchemyError:
+            existing = await _rollback_and_get_existing_user(session, user_id)
+            if existing is not None:
+                return existing
+            raise
     except SQLAlchemyError:
-        await session.rollback()
         # For auth path stability, return existing row when available rather than hard-failing all routes.
-        existing = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+        existing = await _rollback_and_get_existing_user(session, user_id)
         if existing is not None:
             return existing
         raise
@@ -88,6 +93,11 @@ def _extract_email(claims: dict, user_id: str) -> str:
             if isinstance(nested, str) and nested:
                 return _normalize_email(nested, user_id)
     return _fallback_email_for_user(user_id)
+
+
+async def _rollback_and_get_existing_user(session: AsyncSession, user_id: str) -> User | None:
+    await session.rollback()
+    return (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
 
 
 def _fallback_email_for_user(user_id: str) -> str:
