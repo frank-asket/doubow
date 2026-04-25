@@ -14,6 +14,7 @@ from models.application import Application
 from models.approval import Approval
 from models.google_oauth_credential import GoogleOAuthCredential
 from models.job import Job
+from models.linkedin_oauth_credential import LinkedInOAuthCredential
 from models.user import User
 from services.gmail_send_service import create_gmail_draft, send_gmail_message
 from services.outbound_email import send_email_outbound
@@ -48,6 +49,60 @@ async def _send_user_confirmation(
         )
         return
     await send_email_outbound(to_addr=user_email, subject=confirm_subject, body=confirm_body)
+
+
+def _job_listing_url(job: Job | None) -> str:
+    if job is None:
+        return ""
+    for candidate in (job.canonical_url, job.url):
+        if isinstance(candidate, str) and candidate.strip():
+            return candidate.strip()
+    return ""
+
+
+async def _send_linkedin_handoff_email(
+    *,
+    to_addr: str,
+    job: Job | None,
+    draft_body: str,
+    linkedin_account_connected: bool,
+) -> None:
+    """Email the candidate a copy-paste pack; LinkedIn has no public API for automated DMs to recruiters."""
+    company = (job.company.strip() if job and job.company else "the employer") or "the employer"
+    title = (job.title.strip() if job and job.title else "the role") or "the role"
+    listing = _job_listing_url(job)
+    subject = f"Doubow: LinkedIn message for {company} — {title}"
+    lines: list[str] = [
+        "You approved this LinkedIn outreach in Doubow.",
+        "",
+        "LinkedIn does not offer a supported API for third-party apps to send connection notes or InMail on your behalf,",
+        "so Doubow emails you the approved text to paste on the posting or in LinkedIn.",
+        "",
+    ]
+    if linkedin_account_connected:
+        lines.extend(
+            [
+                "Your LinkedIn account is linked in Doubow (profile sync and future integrations).",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            f"Role: {title}",
+            f"Company: {company}",
+            f"Posting / apply link: {listing or '(open the job in LinkedIn from Discover and paste there)'}",
+            "",
+            "——— Message to paste ———",
+            draft_body.strip() or "(empty draft)",
+            "———",
+            "",
+            "Tip: open the posting in LinkedIn, use Easy Apply or Message where available, paste the block above, then send.",
+            "",
+            "— Doubow",
+        ]
+    )
+    body = "\n".join(lines)
+    await send_email_outbound(to_addr=to_addr, subject=subject, body=body)
 
 
 async def execute_approval_send_stub(session: AsyncSession, approval_id: str, user_id: str) -> None:
@@ -110,6 +165,8 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                             approval.provider_thread_id = None
                             approval.provider_confirmed_at = None
                             approval.delivery_error = None
+                            app_row.status = "applied"
+                            app_row.applied_at = now
                             await session.commit()
                             return
                         except Exception:
@@ -170,6 +227,38 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                 provider=approval.send_provider or "smtp",
                 provider_message_id=approval.provider_message_id,
             )
+            app_row.status = "applied"
+            app_row.applied_at = now
+        elif approval.channel == "linkedin":
+            li_row = (
+                await session.execute(select(LinkedInOAuthCredential).where(LinkedInOAuthCredential.user_id == user_id))
+            ).scalar_one_or_none()
+            linkedin_connected = li_row is not None
+            handoff_to = settings.outbound_send_recipient_override or user.email
+            try:
+                await _send_linkedin_handoff_email(
+                    to_addr=handoff_to,
+                    job=job,
+                    draft_body=approval.draft_body or "",
+                    linkedin_account_connected=linkedin_connected,
+                )
+            except Exception:
+                logger.exception(
+                    "send_stub: linkedin handoff email failed approval_id=%s user_id=%s",
+                    approval_id,
+                    user_id,
+                )
+                approval.delivery_status = "failed"
+                approval.delivery_error = "linkedin_handoff_email_failed"
+                await session.commit()
+                return
+            approval.send_provider = "linkedin_email_handoff"
+            approval.delivery_status = "provider_accepted"
+            approval.provider_message_id = None
+            approval.provider_thread_id = None
+            approval.provider_confirmed_at = None
+            approval.sent_at = now
+            approval.delivery_error = None
             app_row.status = "applied"
             app_row.applied_at = now
         else:

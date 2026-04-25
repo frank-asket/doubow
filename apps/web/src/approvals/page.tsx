@@ -1,9 +1,11 @@
 'use client'
 
 import { Component, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
-import { Bookmark, CheckCircle2, CircleHelp, Link2, List, Loader2, Shield, TrendingUp, X } from 'lucide-react'
+import Link from 'next/link'
+import { Bookmark, CheckCircle2, CircleHelp, Link2, List, Loader2, Mail, Shield, TrendingUp, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { approvalsApi } from '../../lib/api'
+import type { Approval } from '@doubow/shared'
+import { ApiError, approvalsApi, googleIntegrationsApi, linkedinIntegrationsApi } from '../../lib/api'
 import { dashboardUi } from '../../lib/dashboardUi'
 import { useApprovalStore } from './approvalStore'
 import { useApprovals } from './useApprovals'
@@ -34,6 +36,49 @@ function isDraftVariant(value: string | null): value is DraftVariant {
 
 function storageKeyForApproval(approvalId: string) {
   return `approvals:drafts:${approvalId}`
+}
+
+function handoffSuccessToastMessage(channel: string, row?: Approval | null) {
+  if (!row) {
+    return channel === 'linkedin'
+      ? 'Approved. LinkedIn handoff is processing — check your email shortly.'
+      : 'Approved. Delivery is processing — check Recent delivery below.'
+  }
+  if (row.delivery_status === 'failed') {
+    const hint = row.delivery_error ? ` (${row.delivery_error})` : ''
+    return `Send failed${hint}. Try again or open Settings to reconnect Gmail or LinkedIn.`
+  }
+  if (row.channel === 'linkedin' && row.send_provider === 'linkedin_email_handoff') {
+    return 'LinkedIn pack emailed to you — open the posting and paste the message from your inbox.'
+  }
+  if (row.delivery_status === 'draft_created') {
+    return 'A Gmail draft was created. Open Gmail to review and send.'
+  }
+  if (row.delivery_status === 'provider_confirmed' && row.send_provider === 'gmail') {
+    return 'Message sent via your Gmail account.'
+  }
+  if (row.send_provider === 'smtp') {
+    return 'Message sent via email relay.'
+  }
+  return 'Draft approved.'
+}
+
+function approvalDeliveryBadgeClass(item: Approval) {
+  if (item.send_provider === 'linkedin_email_handoff' || item.delivery_status === 'provider_confirmed') {
+    return 'font-semibold text-emerald-700 dark:text-emerald-300'
+  }
+  if (item.delivery_status === 'failed') return 'font-semibold text-rose-700 dark:text-rose-300'
+  if (item.delivery_status === 'draft_created') return 'font-semibold text-amber-700 dark:text-amber-300'
+  return 'font-semibold text-slate-600 dark:text-slate-300'
+}
+
+function approvalDeliverySummary(item: Approval) {
+  if (item.send_provider === 'linkedin_email_handoff') return 'Handoff emailed (paste on LinkedIn)'
+  if (item.delivery_status === 'provider_confirmed') return 'Sent (provider-confirmed)'
+  if (item.delivery_status === 'provider_accepted') return 'Sent (provider-accepted)'
+  if (item.delivery_status === 'draft_created') return 'Draft created (not sent)'
+  if (item.delivery_status === 'failed') return 'Send failed'
+  return item.delivery_status ?? 'Queued'
 }
 
 function asCurrency(value: number) {
@@ -186,6 +231,17 @@ export default function ApprovalsPage() {
   const [actionToast, setActionToast] = useState<ActionToast | null>(null)
   const [autosaveState, setAutosaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
+  const [gmailForApprovals, setGmailForApprovals] = useState<{
+    loading: boolean
+    connected: boolean
+    google_email: string | null
+    error: string | null
+  } | null>(null)
+  const [linkedinForApprovals, setLinkedinForApprovals] = useState<{
+    loading: boolean
+    connected: boolean
+    error: string | null
+  } | null>(null)
 
   const originalBase = parseBaseSalary(current?.application?.job?.salary_range)
   const targetBonus = 15
@@ -223,6 +279,78 @@ export default function ApprovalsPage() {
       || variant !== 'base-1'
     )
   }, [current, draftBody, baseSalary, equityUnits, signOnBonus, variant])
+
+  const approveButtonLabel = useMemo(() => {
+    if (!current) return 'Approve'
+    if (current.channel === 'linkedin') return 'Approve & email handoff'
+    if (current.channel === 'email') {
+      if (gmailForApprovals?.loading) return 'Approve & send…'
+      if (gmailForApprovals?.connected) return 'Approve & send via Gmail'
+      return 'Approve & send (email relay)'
+    }
+    return 'Approve'
+  }, [current, gmailForApprovals])
+
+  useEffect(() => {
+    if (!current) {
+      setGmailForApprovals(null)
+      setLinkedinForApprovals(null)
+      return
+    }
+    let cancelled = false
+    const run = async () => {
+      if (current.channel === 'email') {
+        setGmailForApprovals({ loading: true, connected: false, google_email: null, error: null })
+        setLinkedinForApprovals(null)
+        try {
+          const s = await googleIntegrationsApi.status()
+          if (!cancelled) {
+            setGmailForApprovals({
+              loading: false,
+              connected: s.connected,
+              google_email: s.google_email,
+              error: null,
+            })
+          }
+        } catch (e) {
+          if (!cancelled) {
+            setGmailForApprovals({
+              loading: false,
+              connected: false,
+              google_email: null,
+              error: e instanceof ApiError ? e.detail : 'Could not load Gmail status.',
+            })
+          }
+        }
+        return
+      }
+      if (current.channel === 'linkedin') {
+        setLinkedinForApprovals({ loading: true, connected: false, error: null })
+        setGmailForApprovals(null)
+        try {
+          const s = await linkedinIntegrationsApi.status()
+          if (!cancelled) {
+            setLinkedinForApprovals({ loading: false, connected: s.connected, error: null })
+          }
+        } catch (e) {
+          if (!cancelled) {
+            setLinkedinForApprovals({
+              loading: false,
+              connected: false,
+              error: e instanceof ApiError ? e.detail : 'Could not load LinkedIn status.',
+            })
+          }
+        }
+        return
+      }
+      setGmailForApprovals(null)
+      setLinkedinForApprovals(null)
+    }
+    void run()
+    return () => {
+      cancelled = true
+    }
+  }, [current])
 
   const persistDraftState = useCallback(() => {
     if (!current || typeof window === 'undefined') return
@@ -372,14 +500,27 @@ export default function ApprovalsPage() {
 
   async function submitApproval() {
     if (!current) return
+    const approvalId = current.id
+    const channel = current.channel
     setSubmitting('approve')
     try {
-      await approvalsApi.approve(current.id, draftBody)
-      if (typeof window !== 'undefined') window.localStorage.removeItem(storageKeyForApproval(current.id))
+      await approvalsApi.approve(approvalId, draftBody)
+      if (typeof window !== 'undefined') window.localStorage.removeItem(storageKeyForApproval(approvalId))
       await refresh()
-      setActionToast({ kind: 'success', message: 'Draft approved and saved to Gmail.' })
+      await new Promise((r) => setTimeout(r, 150))
+      await refresh()
+      const updated = useApprovalStore.getState().approvals.find((a) => a.id === approvalId)
+      const msg = handoffSuccessToastMessage(channel, updated)
+      if (updated?.delivery_status === 'failed') {
+        setActionToast({ kind: 'error', message: msg })
+      } else {
+        setActionToast({ kind: 'success', message: msg })
+      }
     } catch {
-      setActionToast({ kind: 'error', message: 'Could not send via Gmail. Please try again.' })
+      setActionToast({
+        kind: 'error',
+        message: 'Could not complete approval. Check Gmail or LinkedIn in Settings and try again.',
+      })
     } finally {
       setSubmitting(null)
     }
@@ -473,6 +614,103 @@ export default function ApprovalsPage() {
           </p>
         </section>
 
+        {current && current.channel === 'email' && gmailForApprovals?.error ? (
+          <section className="border-b border-amber-200 bg-amber-50 px-6 py-3 dark:border-amber-900/50 dark:bg-amber-950/40">
+            <div className="mx-auto flex max-w-[1700px] flex-wrap items-center justify-between gap-2 text-xs text-amber-950 dark:text-amber-100">
+              <span className="flex items-center gap-2 font-medium">
+                <Mail size={14} aria-hidden />
+                {gmailForApprovals.error}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setGmailForApprovals((s) => (s ? { ...s, loading: true, error: null } : s))
+                  void googleIntegrationsApi
+                    .status()
+                    .then((s) => {
+                      setGmailForApprovals({
+                        loading: false,
+                        connected: s.connected,
+                        google_email: s.google_email,
+                        error: null,
+                      })
+                    })
+                    .catch((e) => {
+                      setGmailForApprovals({
+                        loading: false,
+                        connected: false,
+                        google_email: null,
+                        error: e instanceof ApiError ? e.detail : 'Could not load Gmail status.',
+                      })
+                    })
+                }}
+                className="rounded-[2px] border border-amber-300 bg-white px-2 py-1 text-[11px] font-semibold text-amber-900 hover:bg-amber-100 dark:border-amber-800 dark:bg-slate-900 dark:text-amber-100 dark:hover:bg-slate-800"
+              >
+                Retry
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        {current && current.channel === 'email' && gmailForApprovals && !gmailForApprovals.loading && !gmailForApprovals.connected && !gmailForApprovals.error ? (
+          <section className="border-b border-[#d6e5df] bg-[#ecfdfb] px-6 py-3 dark:border-slate-800 dark:bg-teal-950/30">
+            <div className="mx-auto flex max-w-[1700px] flex-wrap items-center justify-between gap-3 text-xs text-slate-800 dark:text-slate-200">
+              <p className="min-w-0 flex-1 leading-relaxed">
+                <span className="font-semibold text-[#00685f] dark:text-teal-300">Gmail is not connected.</span>{' '}
+                Approvals will fall back to the server email relay. Connect Google in Settings to create Gmail drafts or send from your address when the API is configured for it.
+              </p>
+              <Link
+                href="/settings"
+                className="shrink-0 rounded-[2px] border border-[#00685f] bg-[#00685f] px-3 py-1.5 text-[11px] font-semibold text-white hover:opacity-95"
+              >
+                Open Settings
+              </Link>
+            </div>
+          </section>
+        ) : null}
+
+        {current && current.channel === 'linkedin' && linkedinForApprovals?.error ? (
+          <section className="border-b border-amber-200 bg-amber-50 px-6 py-3 dark:border-amber-900/50 dark:bg-amber-950/40">
+            <div className="mx-auto flex max-w-[1700px] flex-wrap items-center justify-between gap-2 text-xs text-amber-950 dark:text-amber-100">
+              <span>{linkedinForApprovals.error}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkedinForApprovals({ loading: true, connected: false, error: null })
+                  void linkedinIntegrationsApi
+                    .status()
+                    .then((s) => {
+                      setLinkedinForApprovals({ loading: false, connected: s.connected, error: null })
+                    })
+                    .catch((e) => {
+                      setLinkedinForApprovals({
+                        loading: false,
+                        connected: false,
+                        error: e instanceof ApiError ? e.detail : 'Could not load LinkedIn status.',
+                      })
+                    })
+                }}
+                className="rounded-[2px] border border-amber-300 bg-white px-2 py-1 text-[11px] font-semibold text-amber-900 dark:border-amber-800 dark:bg-slate-900 dark:text-amber-100"
+              >
+                Retry
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        {current && current.channel === 'linkedin' && linkedinForApprovals && !linkedinForApprovals.loading && !linkedinForApprovals.connected && !linkedinForApprovals.error ? (
+          <section className="border-b border-[#d6e5df] bg-slate-50 px-6 py-3 dark:border-slate-800 dark:bg-slate-900/50">
+            <p className="mx-auto max-w-[1700px] text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+              <span className="font-semibold text-slate-900 dark:text-white">LinkedIn is not connected.</span>{' '}
+              You can still approve — Doubow emails you the note to paste on the posting. Link LinkedIn in Settings for profile sync.
+              {' '}
+              <Link href="/settings" className="font-semibold text-[#00685f] underline-offset-2 hover:underline dark:text-teal-300">
+                Settings
+              </Link>
+            </p>
+          </section>
+        ) : null}
+
         {!current ? (
           <section className="grid flex-1 place-items-center p-8">
             <div className="w-full max-w-2xl rounded-2xl border border-[#d6e5df] bg-white px-8 py-10 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -491,21 +729,8 @@ export default function ApprovalsPage() {
                       <span className="font-medium text-slate-700 dark:text-slate-200">
                         {item.application.job.company}
                       </span>
-                      <span className={item.delivery_status === 'provider_confirmed'
-                        ? 'font-semibold text-emerald-700 dark:text-emerald-300'
-                        : item.delivery_status === 'failed'
-                          ? 'font-semibold text-rose-700 dark:text-rose-300'
-                          : 'font-semibold text-slate-600 dark:text-slate-300'}
-                      >
-                        {item.delivery_status === 'provider_confirmed'
-                          ? 'Sent (provider-confirmed)'
-                          : item.delivery_status === 'provider_accepted'
-                            ? 'Sent (provider-accepted)'
-                            : item.delivery_status === 'draft_created'
-                              ? 'Draft created (not sent)'
-                              : item.delivery_status === 'failed'
-                                ? 'Send failed'
-                                : item.delivery_status ?? 'Queued'}
+                      <span className={approvalDeliveryBadgeClass(item)}>
+                        {approvalDeliverySummary(item)}
                       </span>
                     </div>
                   ))}
@@ -575,23 +800,8 @@ export default function ApprovalsPage() {
                           <span className="rounded-full border border-slate-200 px-2 py-0.5 uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-300">
                             {item.send_provider ?? item.channel}
                           </span>
-                          <span className={item.delivery_status === 'provider_confirmed'
-                            ? 'font-medium text-emerald-700 dark:text-emerald-300'
-                            : item.delivery_status === 'failed'
-                              ? 'font-medium text-rose-700 dark:text-rose-300'
-                              : item.delivery_status === 'draft_created'
-                                ? 'font-medium text-amber-700 dark:text-amber-300'
-                                : 'font-medium text-slate-600 dark:text-slate-300'}
-                          >
-                            {item.delivery_status === 'provider_confirmed'
-                              ? 'Sent (provider-confirmed)'
-                              : item.delivery_status === 'provider_accepted'
-                                ? 'Sent (provider-accepted)'
-                                : item.delivery_status === 'draft_created'
-                                  ? 'Draft created (not sent)'
-                                  : item.delivery_status === 'failed'
-                                    ? 'Send failed'
-                                    : item.delivery_status ?? 'Queued'}
+                          <span className={approvalDeliveryBadgeClass(item)}>
+                            {approvalDeliverySummary(item)}
                           </span>
                         </div>
                       </div>
@@ -667,7 +877,7 @@ export default function ApprovalsPage() {
                     </button>
                     <button type="button" onClick={() => void submitApproval()} disabled={!current || submitting !== null} className="inline-flex h-7 items-center gap-2 rounded-[2px] bg-[#00685f] px-6 text-[11px] font-semibold text-white disabled:opacity-60">
                       {submitting === 'approve' ? <Loader2 size={12} className="animate-spin" /> : null}
-                      Send via Gmail
+                      {approveButtonLabel}
                     </button>
                     <button type="button" onClick={() => void rejectApproval()} disabled={!current || submitting !== null} className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-[#d9e1dd] bg-white px-2.5 text-[11px] font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 disabled:opacity-60">
                       {submitting === 'reject' ? <Loader2 size={12} className="animate-spin" /> : <X size={12} />}

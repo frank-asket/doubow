@@ -590,6 +590,15 @@ export async function handleMockRequest<T>(
     if (a) {
       a.status = 'approved'
       a.approved_at = new Date().toISOString()
+      const now = new Date().toISOString()
+      a.sent_at = now
+      if (a.channel === 'linkedin') {
+        a.send_provider = 'linkedin_email_handoff'
+        a.delivery_status = 'provider_accepted'
+      } else {
+        a.send_provider = 'gmail'
+        a.delivery_status = 'provider_confirmed'
+      }
     }
     return { approval_id: id, queued_send: false, send_task_id: null } as T
   }

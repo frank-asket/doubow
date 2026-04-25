@@ -115,3 +115,51 @@ async def test_approve_with_edit_preserves_edited_status(db_session):
         idempotency_key="approve_edit_87654321",
     )
     assert resp.status == "edited"
+
+
+@pytest.mark.asyncio
+async def test_linkedin_approve_then_send_emails_handoff_pack(db_session):
+    uid = "user_li_handoff_1"
+    db_session.add(User(id=uid, email="candidate@example.com"))
+    jid = "job_li_handoff_1"
+    db_session.add(
+        Job(
+            id=jid,
+            source="manual",
+            external_id="ext-li",
+            title="Staff Engineer",
+            company="Contoso",
+            location="Remote",
+            description="Build",
+            url="https://www.linkedin.com/jobs/view/123",
+            canonical_url="https://contoso.com/careers/123",
+        )
+    )
+    await db_session.commit()
+
+    aid = "app_li_handoff_1"
+    db_session.add(Application(id=aid, user_id=uid, job_id=jid, status="pending", channel="linkedin"))
+    await db_session.commit()
+
+    approval_schema = await create_draft_approval_for_application(db_session, uid, aid)
+    assert approval_schema.channel == "linkedin"
+
+    resp = await approve_approval(
+        db_session, uid, approval_schema.id, edited_body=None, idempotency_key="approve_li_key_12345678"
+    )
+    assert resp.queued_send is True
+
+    await execute_approval_send_stub(db_session, approval_schema.id, uid)
+
+    from sqlalchemy import select
+    from models.approval import Approval as ApprovalRow
+
+    row = (await db_session.execute(select(ApprovalRow).where(ApprovalRow.id == approval_schema.id))).scalar_one()
+    assert row.sent_at is not None
+    assert row.delivery_status == "provider_accepted"
+    assert row.send_provider == "linkedin_email_handoff"
+
+    app_row = await db_session.get(Application, aid)
+    assert app_row is not None
+    assert app_row.status == "applied"
+    assert app_row.applied_at is not None
