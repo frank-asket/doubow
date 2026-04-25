@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import os
 import json
+import socket
 import statistics
 import time
 import urllib.error
@@ -117,6 +118,15 @@ def _request_once(
     except urllib.error.HTTPError as exc:
         elapsed_ms = (time.perf_counter() - start) * 1000.0
         return int(exc.code), elapsed_ms
+    except urllib.error.URLError:
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return 599, elapsed_ms
+    except (socket.timeout, TimeoutError):
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return 599, elapsed_ms
+    except Exception:
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return 599, elapsed_ms
 
 
 def _request_sse_once(
@@ -159,6 +169,15 @@ def _request_sse_once(
     except urllib.error.HTTPError as exc:
         elapsed_ms = (time.perf_counter() - start) * 1000.0
         return int(exc.code), elapsed_ms, elapsed_ms
+    except urllib.error.URLError:
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return 599, elapsed_ms, elapsed_ms
+    except (socket.timeout, TimeoutError):
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return 599, elapsed_ms, elapsed_ms
+    except Exception:
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return 599, elapsed_ms, elapsed_ms
 
 
 def evaluate_gate_thresholds(route: RouteResult) -> list[str]:

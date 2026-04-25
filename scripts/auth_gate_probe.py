@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -62,6 +63,13 @@ def _req(
     except urllib.error.HTTPError as exc:
         raw = exc.read().decode("utf-8", errors="replace")
         return int(exc.code), raw
+    except urllib.error.URLError as exc:
+        reason = getattr(exc, "reason", exc)
+        return 599, f"network_error: {reason}"
+    except (socket.timeout, TimeoutError) as exc:
+        return 599, f"network_timeout: {exc}"
+    except Exception as exc:
+        return 599, f"probe_exception: {type(exc).__name__}: {exc}"
 
 
 def _extract_detail(raw: str) -> str | None:

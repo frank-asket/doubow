@@ -53,7 +53,8 @@ make -C backend launch-probe
 Status: **RED**  
 Evidence:
 
-- _(add probe output snippet / link)_
+- 2026-04-25 point-in-time probe with valid auth (short-lived Clerk token): `/v1/me/applications`, `/v1/me/approvals`, `POST /v1/agents/chat` returned `500`; `/v1/me/debug` returned `200`.
+- 2026-04-25 probe resilience hardening shipped in scripts: network failures now record `599` in both `scripts/auth_gate_probe.py` and `scripts/launch_gate_probe.py` instead of crashing.
 - _(add dashboard link)_
 
 Owner: _(fill)_
@@ -86,7 +87,12 @@ make -C backend auth-probe
 ```
 
 Status: **RED**  
-Evidence: _(add)_
+Evidence:
+
+- 2026-04-25: multiple probe runs with expired Clerk session JWTs returned `401 Invalid auth token` consistently (expected for expired tokens; not sufficient to clear gate).
+- 2026-04-25: run with token still valid at probe start (`exp_in_s > 0`) showed `/v1/me/debug=200` while `/v1/me/applications`, `/v1/me/approvals`, `POST /v1/agents/chat` returned `500`, confirming backend failures on authenticated path.
+- Pending deploy fix: `/v1/me/debug` now uses `get_authenticated_user` (same dependency path as other `/v1/me/*` routes) to avoid false-green auth checks.
+- Pending deploy fix: `services/job_score_mapping.py` now coerces `fit_reasons` / `risk_flags` to `list[str]` to prevent response-model validation 500s on malformed score payloads.
 
 Owner: _(fill)_
 
@@ -106,7 +112,13 @@ Execution:
 3. Attach video/GIF for at least one successful full run.
 
 Status: **RED**  
-Evidence: _(add)_
+Evidence:
+
+- Blocked by unresolved authenticated-route 500s in Step 1/2.
+- Next execution immediately after backend deploy:
+  - run 10 manual journeys end-to-end (fresh session each run),
+  - record per-step pass/fail,
+  - attach one full successful run capture.
 
 Owner: _(fill)_
 
@@ -128,7 +140,10 @@ Execution:
    - `/v1/agents/chat` first payload <= 3000ms, full typical <= 15000ms
 
 Status: **RED**  
-Evidence: _(add)_
+Evidence:
+
+- Current latency numbers were measured mostly under `401` or failing `500` responses; not valid for launch signoff.
+- Re-run latency gate only after Step 1/2 produce stable authenticated `2xx` responses.
 
 Owner: _(fill)_
 
@@ -176,10 +191,10 @@ Owner: _(fill)_
 
 | Gate | Status | Evidence | Owner |
 |---|---|---|---|
-| P0-1 Core API reliability | RED | Pending probe + dashboard | |
-| P0-2 Auth/session health | RED | Recurring production 500s | |
-| P0-3 Critical journey success | RED | Blocked by API 500s | |
-| P1-4 Latency thresholds | RED | Blocked by API 500s | |
+| P0-1 Core API reliability | RED | 2026-04-25 valid-token probe: 500 on applications/approvals/agents_chat | |
+| P0-2 Auth/session health | RED | Auth verifies, but authenticated route path still emits 500s | |
+| P0-3 Critical journey success | RED | Blocked by unresolved authenticated-route failures | |
+| P1-4 Latency thresholds | RED | Must rerun on stable authenticated 2xx traffic | |
 | P1-5 Data safety/tenancy | YELLOW | Needs prod-role validation | |
 | P1-6 Monitoring readiness | YELLOW | Needs alert drill proof | |
 
