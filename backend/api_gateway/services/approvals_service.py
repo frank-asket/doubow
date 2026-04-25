@@ -12,6 +12,38 @@ from schemas.approvals import Approval as ApprovalSchema
 from schemas.approvals import ApproveApprovalResponse
 from services.application_schema import application_to_schema
 
+_ALLOWED_APPROVAL_TYPES = {"cover_letter", "linkedin_note", "follow_up"}
+_ALLOWED_APPROVAL_STATUSES = {"pending", "approved", "rejected", "edited"}
+_ALLOWED_DELIVERY_STATUSES = {
+    "not_sent",
+    "queued",
+    "draft_created",
+    "provider_accepted",
+    "provider_confirmed",
+    "failed",
+}
+_ALLOWED_CHANNELS = {"email", "linkedin", "company_site"}
+
+
+def _safe_approval_type(raw: object) -> str:
+    s = str(raw or "").strip().lower()
+    return s if s in _ALLOWED_APPROVAL_TYPES else "cover_letter"
+
+
+def _safe_approval_status(raw: object) -> str:
+    s = str(raw or "").strip().lower()
+    return s if s in _ALLOWED_APPROVAL_STATUSES else "pending"
+
+
+def _safe_delivery_status(raw: object) -> str:
+    s = str(raw or "").strip().lower()
+    return s if s in _ALLOWED_DELIVERY_STATUSES else "not_sent"
+
+
+def _safe_channel(raw: object) -> str:
+    s = str(raw or "").strip().lower()
+    return s if s in _ALLOWED_CHANNELS else "email"
+
 
 class ApprovalIdempotencyConflictError(Exception):
     def __init__(self, prior_approval_id: str):
@@ -26,15 +58,15 @@ def build_approval_schema(
     return ApprovalSchema(
         id=approval.id,
         application=app_schema,
-        type=approval.type,
-        channel=approval.channel,
+        type=_safe_approval_type(approval.type),  # type: ignore[arg-type]
+        channel=_safe_channel(approval.channel),  # type: ignore[arg-type]
         subject=approval.subject,
         draft_body=approval.draft_body,
-        status=approval.status,
+        status=_safe_approval_status(approval.status),  # type: ignore[arg-type]
         approved_at=approval.approved_at,
         sent_at=approval.sent_at,
         send_provider=approval.send_provider,
-        delivery_status=approval.delivery_status,
+        delivery_status=_safe_delivery_status(approval.delivery_status),  # type: ignore[arg-type]
         delivery_error=approval.delivery_error,
         provider_message_id=approval.provider_message_id,
         provider_thread_id=approval.provider_thread_id,

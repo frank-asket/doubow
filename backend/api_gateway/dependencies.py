@@ -81,6 +81,7 @@ def get_current_user_claims(authorization: str | None = Header(default=None, ali
 
 
 async def get_authenticated_user(
+    request: Request,
     claims: dict = Depends(get_current_user_claims),
     session: AsyncSession = Depends(get_session),
 ) -> AsyncGenerator[User, None]:
@@ -98,8 +99,14 @@ async def get_authenticated_user(
             user = await ensure_user(session, user_id, claims)
         except SQLAlchemyError:
             # Fail-open for authenticated reads when users upsert path is unhealthy in production.
-            # This preserves API availability while DB/user provisioning is repaired.
-            logger.exception("Auth user upsert failed; serving request with synthesized user id=%s", user_id)
+            # For mutating requests, require the backing users row to avoid downstream FK/write failures.
+            if request.method.upper() != "GET":
+                logger.exception("Auth user upsert failed for write request user=%s method=%s", user_id, request.method)
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="User profile store temporarily unavailable",
+                ) from None
+            logger.exception("Auth user upsert failed; serving GET with synthesized user id=%s", user_id)
             email = claims.get("email")
             if not isinstance(email, str) or not email.strip():
                 email = f"{user_id}@clerk.local"
