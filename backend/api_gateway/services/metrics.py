@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+import logging
+import re
 from time import perf_counter
 
 from fastapi import Request, Response
+from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+
+from config import settings
+
+logger = logging.getLogger(__name__)
 
 REQUEST_COUNT = Counter(
     "doubow_api_requests_total",
@@ -26,14 +33,52 @@ LLM_CALL_LATENCY = Histogram(
     ["use_case", "model", "mode"],
 )
 
+_LOCAL_ORIGIN_RE = re.compile(r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|host\.docker\.internal)(:\d+)?$")
+_VERCEL_ORIGIN_RE = re.compile(r"^https://[a-z0-9]([a-z0-9-]*[a-z0-9])?\.vercel\.app$")
+
+
+def _is_allowed_origin(origin: str) -> bool:
+    if origin in settings.cors_origins:
+        return True
+    return bool(_LOCAL_ORIGIN_RE.match(origin) or _VERCEL_ORIGIN_RE.match(origin))
+
+
+def _ensure_cors_headers(request: Request, response: Response) -> None:
+    origin = request.headers.get("origin")
+    if not origin or not _is_allowed_origin(origin):
+        return
+    # Preserve browser visibility of backend failures for allowed frontend origins.
+    response.headers.setdefault("Access-Control-Allow-Origin", origin)
+    response.headers.setdefault("Access-Control-Allow-Credentials", "true")
+    vary = response.headers.get("Vary")
+    if not vary:
+        response.headers["Vary"] = "Origin"
+    elif "origin" not in vary.lower():
+        response.headers["Vary"] = f"{vary}, Origin"
+
 
 async def metrics_middleware(request: Request, call_next):
     start = perf_counter()
-    response = await call_next(request)
-    elapsed = perf_counter() - start
     path = request.url.path
+    try:
+        response = await call_next(request)
+    except Exception:
+        logger.exception("Unhandled API error method=%s path=%s", request.method, path)
+        response = JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "internal_error",
+                    "message": "Internal server error",
+                    "details": None,
+                }
+            },
+        )
+        _ensure_cors_headers(request, response)
+    finally:
+        elapsed = perf_counter() - start
+        REQUEST_LATENCY.labels(request.method, path).observe(elapsed)
     REQUEST_COUNT.labels(request.method, path, str(response.status_code)).inc()
-    REQUEST_LATENCY.labels(request.method, path).observe(elapsed)
     return response
 
 
