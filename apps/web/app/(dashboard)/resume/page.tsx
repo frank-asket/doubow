@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useResumeUpload } from '@/hooks/useResumeUpload'
 import { isE2EAuthBypass } from '@/lib/e2e'
 import { ApiError, resumeApi } from '@/lib/api'
+import { isMockApiEnabled } from '@/lib/mock-api'
 import type { UserPreferences } from '@doubow/shared'
 
 const SENIORITY_OPTIONS = ['Junior', 'Mid', 'Senior', 'Lead', 'Staff', 'Principal']
@@ -142,6 +143,19 @@ export default function ResumePage() {
 
   return (
     <div className="resume-lab mx-auto max-w-7xl space-y-3 bg-[#f5faf8] dark:bg-transparent px-4 pb-4 pt-2 sm:px-6 sm:pt-3 md:space-y-4">
+      {isMockApiEnabled() ? (
+        <div
+          role="status"
+          className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-50"
+        >
+          Demo API mode is on: this page loads in-memory fixtures (e.g. sample name and CV filename), not data from
+          your real backend. For production, unset{' '}
+          <code className="rounded bg-amber-100/90 px-1 font-mono text-[11px] dark:bg-amber-900/60">NEXT_PUBLIC_USE_MOCK_API</code>{' '}
+          in Vercel and set{' '}
+          <code className="rounded bg-amber-100/90 px-1 font-mono text-[11px] dark:bg-amber-900/60">NEXT_PUBLIC_API_URL</code>{' '}
+          to your API.
+        </div>
+      ) : null}
 
       <section className="flex flex-wrap items-end justify-between gap-3 border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 pb-[11px]">
         <div>
