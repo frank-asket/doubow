@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status as http_status
 from pydantic import ValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -34,25 +34,25 @@ logger = logging.getLogger(__name__)
 
 @router.get("", response_model=ApplicationsListResponse)
 async def list_applications_route(
-    status: str | None = Query(default=None),
+    status_filter: str | None = Query(default=None, alias="status"),
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> ApplicationsListResponse:
     try:
-        return await list_applications(session=session, user_id=user.id, status=status)
+        return await list_applications(session=session, user_id=user.id, status=status_filter)
     except ValidationError:
         logger.exception("list_applications_route validation failed user=%s", user.id)
         return ApplicationsListResponse(items=[], total=0, page=1, per_page=20)
     except SQLAlchemyError as exc:
         logger.exception("list_applications_route database failed user=%s", user.id)
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            status_code=http_status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Applications temporarily unavailable",
         ) from exc
     except Exception as exc:
         logger.exception("list_applications_route unexpected failure user=%s", user.id)
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            status_code=http_status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Applications temporarily unavailable",
         ) from exc
 
@@ -80,9 +80,9 @@ async def create_application_route(
             detail="Key already used for a different application payload",
             prior_application_id=exc.prior_application_id,
         )
-        return JSONResponse(status_code=status.HTTP_409_CONFLICT, content=body.model_dump())
+        return JSONResponse(status_code=http_status.HTTP_409_CONFLICT, content=body.model_dump())
     except ApplicationJobNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.post(
@@ -98,7 +98,7 @@ async def create_application_draft_route(
     try:
         return await create_draft_approval_for_application(session, user.id, application_id)
     except ApplicationNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.post("/integrity-check", response_model=IntegrityCheckResponse)

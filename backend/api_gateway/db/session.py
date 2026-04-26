@@ -115,6 +115,63 @@ async def init_models() -> None:
                     logger.info(
                         "DB self-heal applied: added missing users.profile_views column."
                     )
+
+                # Production safety net for skipped migrations on core runtime paths.
+                schema_repairs: list[tuple[str, str, str]] = [
+                    ("jobs", "logo_url", "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS logo_url VARCHAR(1000)"),
+                    (
+                        "approvals",
+                        "send_provider",
+                        "ALTER TABLE approvals ADD COLUMN IF NOT EXISTS send_provider VARCHAR(32)",
+                    ),
+                    (
+                        "approvals",
+                        "delivery_status",
+                        "ALTER TABLE approvals ADD COLUMN IF NOT EXISTS delivery_status VARCHAR(32) DEFAULT 'not_sent' NOT NULL",
+                    ),
+                    (
+                        "approvals",
+                        "delivery_error",
+                        "ALTER TABLE approvals ADD COLUMN IF NOT EXISTS delivery_error TEXT",
+                    ),
+                    (
+                        "approvals",
+                        "provider_message_id",
+                        "ALTER TABLE approvals ADD COLUMN IF NOT EXISTS provider_message_id VARCHAR(255)",
+                    ),
+                    (
+                        "approvals",
+                        "provider_thread_id",
+                        "ALTER TABLE approvals ADD COLUMN IF NOT EXISTS provider_thread_id VARCHAR(255)",
+                    ),
+                    (
+                        "approvals",
+                        "provider_confirmed_at",
+                        "ALTER TABLE approvals ADD COLUMN IF NOT EXISTS provider_confirmed_at TIMESTAMPTZ",
+                    ),
+                ]
+                for table_name, column_name, alter_sql in schema_repairs:
+                    has_col = await conn.scalar(
+                        text(
+                            """
+                            SELECT EXISTS (
+                              SELECT 1
+                              FROM information_schema.columns
+                              WHERE table_schema = current_schema()
+                                AND table_name = :table_name
+                                AND column_name = :column_name
+                            )
+                            """
+                        ),
+                        {"table_name": table_name, "column_name": column_name},
+                    )
+                    if not has_col:
+                        await conn.execute(text(alter_sql))
+                        logger.info(
+                            "DB self-heal applied: added missing %s.%s column.",
+                            table_name,
+                            column_name,
+                        )
     except Exception as exc:
         hint = _connection_refused_message(exc)
         if hint:
