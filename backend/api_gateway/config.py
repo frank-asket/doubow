@@ -52,12 +52,13 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-sonnet-4-20250514"
     openrouter_api_key: str | None = None
-    # OpenRouter requires `provider/model` (see openrouter.ai/models). Default: Claude Sonnet 4.6.
-    openrouter_model: str = "anthropic/claude-sonnet-4.6"
-    # Optional per-surface model overrides. If unset, OPENROUTER_MODEL is used.
-    openrouter_model_chat: str | None = None
-    openrouter_model_drafts: str | None = None
-    openrouter_model_prep: str | None = None
+    # OpenRouter requires `provider/model` (see openrouter.ai/models).
+    # Tiered defaults: dense Qwen3-class baseline + smaller model for high-volume drafts + reasoning model for prep;
+    # assistant chat keeps a premium frontier model. Override any tier with OPENROUTER_MODEL_*.
+    openrouter_model: str = "qwen/qwen3-32b"
+    openrouter_model_chat: str | None = "anthropic/claude-sonnet-4.6"
+    openrouter_model_drafts: str | None = "qwen/qwen3-8b"
+    openrouter_model_prep: str | None = "deepseek/deepseek-r1-0528"
     openrouter_model_resume: str | None = None
     openrouter_api_url: str = "https://openrouter.ai/api/v1"
     # OpenRouter optional attribution header (e.g. your app URL).

@@ -120,7 +120,19 @@ Core variables:
 Resolution order is:
 1) surface-specific variable, 2) `OPENROUTER_MODEL`, 3) `ANTHROPIC_MODEL`.
 
-Suggested baseline profile (quality-first):
+**Default tiering in `config.py`** (no env overrides needed): dense **Qwen3** for global + cheap drafts, **DeepSeek R1 0528** for prep (reasoning-heavy), **Claude Sonnet 4.6** for streaming assistant chat, resume inherits the global model.
+
+Explicit env copy-paste matching those defaults:
+
+```env
+OPENROUTER_MODEL=qwen/qwen3-32b
+OPENROUTER_MODEL_CHAT=anthropic/claude-sonnet-4.6
+OPENROUTER_MODEL_DRAFTS=qwen/qwen3-8b
+OPENROUTER_MODEL_PREP=deepseek/deepseek-r1-0528
+OPENROUTER_MODEL_RESUME=qwen/qwen3-32b
+```
+
+All-Claude profile (maximum consistency, higher cost):
 
 ```env
 OPENROUTER_MODEL=anthropic/claude-sonnet-4.6
@@ -130,7 +142,7 @@ OPENROUTER_MODEL_PREP=anthropic/claude-sonnet-4.6
 OPENROUTER_MODEL_RESUME=anthropic/claude-sonnet-4.6
 ```
 
-Suggested cost-optimized profile (faster/cheaper drafts + prep):
+Legacy cost-optimized profile (mini models for drafts + prep):
 
 ```env
 OPENROUTER_MODEL=anthropic/claude-sonnet-4.6

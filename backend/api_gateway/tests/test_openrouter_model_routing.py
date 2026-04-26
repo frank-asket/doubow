@@ -14,6 +14,20 @@ def _reset_openrouter_circuit_state():
     openrouter_service._reset_openrouter_circuit_state_for_tests()
 
 
+def test_resolve_openrouter_model_tier_defaults(monkeypatch):
+    """Qwen3-class global + drafts, Claude chat, DeepSeek R1 prep; resume inherits global."""
+    monkeypatch.setattr(settings, "openrouter_model", "qwen/qwen3-32b")
+    monkeypatch.setattr(settings, "openrouter_model_chat", "anthropic/claude-sonnet-4.6")
+    monkeypatch.setattr(settings, "openrouter_model_drafts", "qwen/qwen3-8b")
+    monkeypatch.setattr(settings, "openrouter_model_prep", "deepseek/deepseek-r1-0528")
+    monkeypatch.setattr(settings, "openrouter_model_resume", None)
+
+    assert settings.resolve_openrouter_model("chat") == "anthropic/claude-sonnet-4.6"
+    assert settings.resolve_openrouter_model("drafts") == "qwen/qwen3-8b"
+    assert settings.resolve_openrouter_model("prep") == "deepseek/deepseek-r1-0528"
+    assert settings.resolve_openrouter_model("resume") == "qwen/qwen3-32b"
+
+
 def test_resolve_openrouter_model_uses_use_case_override(monkeypatch):
     monkeypatch.setattr(settings, "openrouter_model", "anthropic/claude-sonnet-4.6")
     monkeypatch.setattr(settings, "openrouter_model_prep", "openai/gpt-4.1-mini")

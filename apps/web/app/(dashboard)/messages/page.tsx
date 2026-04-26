@@ -489,7 +489,7 @@ export default function MessagesPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="border-t border-zinc-200 p-4 dark:border-slate-700">
+            <div className="relative z-20 border-t border-zinc-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
               <form className="relative" onSubmit={onComposerSubmit}>
                 <textarea
                   value={composer}
@@ -504,7 +504,7 @@ export default function MessagesPage() {
                   className="field min-h-[58px] w-full resize-none border-zinc-300 bg-white pr-24 text-[14px] font-medium text-zinc-900 placeholder:text-zinc-400 dark:border-slate-600 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                   disabled={streaming}
                 />
-                <div className="absolute bottom-3 right-3 flex items-center gap-1">
+                <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1">
                   <button className="rounded p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-white dark:hover:bg-slate-800" aria-label="Voice input">
                     <Mic size={16} />
                   </button>
@@ -668,7 +668,8 @@ export default function MessagesPage() {
       </div>
 
       <button
-        className="fixed bottom-5 right-5 inline-flex h-12 w-12 items-center justify-center rounded-full border border-teal-700 bg-teal-700 text-white shadow-lg transition-colors hover:bg-teal-800"
+        type="button"
+        className="fixed bottom-28 right-5 z-10 inline-flex h-12 w-12 items-center justify-center rounded-full border border-teal-700 bg-teal-700 text-white shadow-lg transition-colors hover:bg-teal-800 sm:bottom-24"
         aria-label="Create new assistant task"
       >
         <Plus size={18} />
