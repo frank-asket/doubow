@@ -57,6 +57,8 @@ Evidence:
 - 2026-04-25 probe resilience hardening shipped in scripts: network failures now record `599` in both `scripts/auth_gate_probe.py` and `scripts/launch_gate_probe.py` instead of crashing.
 - 2026-04-26 probe (valid token at request time): `/v1/me/debug=200`, `/v1/me/applications=500`, `/v1/me/approvals=503`, `/v1/agents/chat=200` with SSE fallback error payload.
 - 2026-04-26 readiness check: `/ready` returned `postgres=ok`, `redis=degraded` with `localhost:6379 connection refused` (production Redis env not healthy).
+- 2026-04-26 launch-probe (`iterations=20`) summary: `combined_5xx_rate=0.00%`, route 5xx all `0.00%`; P95 latency: jobs `616.1ms`, applications `621.1ms`, approvals `554.4ms`, agents first/full `564.6ms`; probe decision `GO`.
+- Caveat: that 20-iteration run sampled `401` responses (expired/invalid token window), so reliability/latency numerics are useful baseline but do not by themselves prove authenticated-user success behavior.
 - _(add dashboard link)_
 
 Owner: _(fill)_
@@ -96,6 +98,7 @@ Evidence:
 - Pending deploy fix: `/v1/me/debug` now uses `get_authenticated_user` (same dependency path as other `/v1/me/*` routes) to avoid false-green auth checks.
 - Pending deploy fix: `services/job_score_mapping.py` now coerces `fit_reasons` / `risk_flags` to `list[str]` to prevent response-model validation 500s on malformed score payloads.
 - 2026-04-26 runtime behavior indicates partial deploy of guards (approvals/chat degraded gracefully) but not full elimination of applications failures; requires latest full backend deploy + logs verification.
+- 2026-04-26 fresh-token one-shot auth probe after DB schema patch: `/v1/me/debug=200`, `/v1/me/applications=200`, `/v1/me/approvals=200`, `/v1/agents/chat=200` (streaming response) with `0` auth-path 5xx.
 
 Owner: _(fill)_
 
@@ -114,10 +117,30 @@ Execution:
 2. Record each run result (success/failure + failing step).
 3. Attach video/GIF for at least one successful full run.
 
+Manual run matrix (fill all 10):
+
+| Run | Sign in | Resume | Discover | Pipeline | Approvals | Assistant chat | Result | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 |  |  |  |  |  |  |  |  |
+| 2 |  |  |  |  |  |  |  |  |
+| 3 |  |  |  |  |  |  |  |  |
+| 4 |  |  |  |  |  |  |  |  |
+| 5 |  |  |  |  |  |  |  |  |
+| 6 |  |  |  |  |  |  |  |  |
+| 7 |  |  |  |  |  |  |  |  |
+| 8 |  |  |  |  |  |  |  |  |
+| 9 |  |  |  |  |  |  |  |  |
+| 10 |  |  |  |  |  |  |  |  |
+
+Acceptance:
+
+- Pass only if all 10 runs are end-to-end successful without retry hacks.
+- If any run fails, record exact failing step + route + timestamp and keep gate RED.
+
 Status: **RED**  
 Evidence:
 
-- Blocked by unresolved authenticated-route 500s in Step 1/2.
+- Authenticated API blockers have been cleared by fresh-token probe (`/v1/me/*` + `/v1/agents/chat` all `200`).
 - Next execution immediately after backend deploy:
   - run 10 manual journeys end-to-end (fresh session each run),
   - record per-step pass/fail,
@@ -141,6 +164,25 @@ Execution:
    - `/v1/me/applications` <= 1000ms P95
    - `/v1/me/approvals` <= 1000ms P95
    - `/v1/agents/chat` first payload <= 3000ms, full typical <= 15000ms
+
+Authenticated probe recipe (repeat 3 times to reduce token-timing noise):
+
+```bash
+export DOUBOW_LAUNCH_PROBE_TOKEN="<fresh_jwt_without_Bearer>"
+LAUNCH_PROBE_ITERATIONS=10 LAUNCH_PROBE_SLEEP_SECONDS=1.0 make -C backend launch-probe
+```
+
+Evidence table (fill after each authenticated run):
+
+| Run | Token valid at start | jobs p95 | applications p95 | approvals p95 | agents first p95 | agents full p95 | Combined 5xx | Result |
+|---|---|---:|---:|---:|---:|---:|---:|---|
+| A |  |  |  |  |  |  |  |  |
+| B |  |  |  |  |  |  |  |  |
+| C |  |  |  |  |  |  |  |  |
+
+Acceptance:
+
+- Mark GREEN only when all three authenticated runs satisfy thresholds and combined/core 5xx limits.
 
 Status: **RED**  
 Evidence:
@@ -169,6 +211,8 @@ Evidence:
 
 - Service-level data-shape guards implemented for jobs/applications/approvals mapping (malformed rows skipped and logged).
 - Pending production verification of RLS + DB role behavior with non-superuser credentials.
+- 2026-04-26 tenancy regression test: `tests/test_user_data_isolation.py` passed (`2 passed`).
+- 2026-04-26 production DB check (Railway): `current_user=postgres`, `is_superuser=False`; RLS enabled on `users`, `resumes`, `jobs`, `job_scores`, `applications`, `approvals`, `chat_threads`, `chat_messages`; tenant policies present on core per-user tables.
 
 Owner: _(fill)_
 
@@ -190,7 +234,10 @@ Status: **YELLOW**
 Evidence:
 
 - `/metrics` endpoint exists and route-level metrics middleware is active.
-- Pending confirmation that alerts route to on-call and alert drill is completed.
+- 2026-04-26 production checks: `/metrics` returns `200`; after env update and redeploy, `/ready` reports `postgres=ok` and `redis=ok`.
+- 2026-04-26 runtime env check: `SENTRY_DSN` and `SENTRY_TRACES_SAMPLE_RATE` are now set on Railway `doubow`.
+- 2026-04-26 Sentry ingest drill: envelope POST to `https://o4511288403034112.ingest.us.sentry.io/api/4511288475779072/envelope/` returned `200`; test event id `9a7a6491da804b03a693cd1271df446b` with tag `launch-drill-20260426-215121-9a7a6491`.
+- Alert routing and drill evidence are still missing.
 
 Owner: _(fill)_
 
@@ -200,12 +247,12 @@ Owner: _(fill)_
 
 | Gate | Status | Evidence | Owner |
 |---|---|---|---|
-| P0-1 Core API reliability | RED | 2026-04-25 valid-token probe: 500 on applications/approvals/agents_chat | |
-| P0-2 Auth/session health | RED | Auth verifies, but authenticated route path still emits 500s | |
-| P0-3 Critical journey success | RED | Blocked by unresolved authenticated-route failures | |
-| P1-4 Latency thresholds | RED | Must rerun on stable authenticated 2xx traffic | |
-| P1-5 Data safety/tenancy | YELLOW | Needs prod-role validation | |
-| P1-6 Monitoring readiness | YELLOW | Needs alert drill proof | |
+| P0-1 Core API reliability | YELLOW | Latest launch-probe (20 iterations) shows 0.00% 5xx and GO, but sample set was unauthorized (`401`) and not yet validated over a full 48-72h authenticated window | |
+| P0-2 Auth/session health | GREEN | Fresh-token one-shot probe after schema repair: `/v1/me/debug`, `/v1/me/applications`, `/v1/me/approvals`, `/v1/agents/chat` all `200` with 0 auth-path 5xx | |
+| P0-3 Critical journey success | RED | Authenticated API blockers are cleared in one-shot probe; gate remains red until 10/10 end-to-end manual journey runs are executed and recorded | |
+| P1-4 Latency thresholds | YELLOW | P95s from 20-iteration run are within thresholds (jobs 616ms, applications 621ms, approvals 554ms, agents first/full 565ms), but measured on unauthorized (`401`) traffic, so authenticated 2xx latency evidence is still pending | |
+| P1-5 Data safety/tenancy | YELLOW | Isolation tests pass and production RLS/role checks pass; remaining item is explicit support/log review for cross-user anomalies | |
+| P1-6 Monitoring readiness | YELLOW | Metrics/readiness are healthy, Sentry env is configured, and ingest endpoint accepted test event (`9a7a6491da804b03a693cd1271df446b`); still need alert routing + timed drill evidence | |
 
 Decision: **NO-GO** (until all P0 green and P1 green)
 

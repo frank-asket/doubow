@@ -29,10 +29,16 @@ def setup_observability() -> None:
     if settings.sentry_dsn:
         import sentry_sdk
         from sentry_sdk.integrations.fastapi import FastApiIntegration
+        from sentry_sdk.integrations.logging import LoggingIntegration
 
+        sentry_logging = LoggingIntegration(
+            level=logging.INFO,
+            event_level=logging.ERROR,
+        )
         sentry_sdk.init(
             dsn=settings.sentry_dsn,
             traces_sample_rate=settings.sentry_traces_sample_rate,
             environment=settings.environment,
-            integrations=[FastApiIntegration()],
+            enable_logs=True,
+            integrations=[FastApiIntegration(), sentry_logging],
         )
