@@ -13,7 +13,7 @@ Use this file to execute each gate in order and track evidence links + owner sig
 - Date started: 2026-04-25
 - Launch mode: **NO-GO** (active blocking incidents)
 - Incident owner: _(fill)_
-- Next review checkpoint: _(fill)_
+- Next review checkpoint: **Immediately after next Railway backend deploy + fresh-token probe rerun**
 
 ---
 
@@ -55,6 +55,8 @@ Evidence:
 
 - 2026-04-25 point-in-time probe with valid auth (short-lived Clerk token): `/v1/me/applications`, `/v1/me/approvals`, `POST /v1/agents/chat` returned `500`; `/v1/me/debug` returned `200`.
 - 2026-04-25 probe resilience hardening shipped in scripts: network failures now record `599` in both `scripts/auth_gate_probe.py` and `scripts/launch_gate_probe.py` instead of crashing.
+- 2026-04-26 probe (valid token at request time): `/v1/me/debug=200`, `/v1/me/applications=500`, `/v1/me/approvals=503`, `/v1/agents/chat=200` with SSE fallback error payload.
+- 2026-04-26 readiness check: `/ready` returned `postgres=ok`, `redis=degraded` with `localhost:6379 connection refused` (production Redis env not healthy).
 - _(add dashboard link)_
 
 Owner: _(fill)_
@@ -93,6 +95,7 @@ Evidence:
 - 2026-04-25: run with token still valid at probe start (`exp_in_s > 0`) showed `/v1/me/debug=200` while `/v1/me/applications`, `/v1/me/approvals`, `POST /v1/agents/chat` returned `500`, confirming backend failures on authenticated path.
 - Pending deploy fix: `/v1/me/debug` now uses `get_authenticated_user` (same dependency path as other `/v1/me/*` routes) to avoid false-green auth checks.
 - Pending deploy fix: `services/job_score_mapping.py` now coerces `fit_reasons` / `risk_flags` to `list[str]` to prevent response-model validation 500s on malformed score payloads.
+- 2026-04-26 runtime behavior indicates partial deploy of guards (approvals/chat degraded gracefully) but not full elimination of applications failures; requires latest full backend deploy + logs verification.
 
 Owner: _(fill)_
 
@@ -162,7 +165,10 @@ Execution:
 3. Review support/logs for mixed-user data anomalies.
 
 Status: **YELLOW**  
-Evidence: _(add)_
+Evidence:
+
+- Service-level data-shape guards implemented for jobs/applications/approvals mapping (malformed rows skipped and logged).
+- Pending production verification of RLS + DB role behavior with non-superuser credentials.
 
 Owner: _(fill)_
 
@@ -181,7 +187,10 @@ Execution:
 3. Perform one alert drill and capture time-to-detect.
 
 Status: **YELLOW**  
-Evidence: _(add)_
+Evidence:
+
+- `/metrics` endpoint exists and route-level metrics middleware is active.
+- Pending confirmation that alerts route to on-call and alert drill is completed.
 
 Owner: _(fill)_
 
@@ -199,4 +208,30 @@ Owner: _(fill)_
 | P1-6 Monitoring readiness | YELLOW | Needs alert drill proof | |
 
 Decision: **NO-GO** (until all P0 green and P1 green)
+
+---
+
+## Execution Completion Checklist (Operator)
+
+These are the remaining live-environment steps required to complete this tracker.
+
+1. Deploy current backend to Railway (latest `main`).
+2. Confirm Railway env:
+   - `DATABASE_URL` points to production Postgres.
+   - `REDIS_URL` is set to real Redis (not localhost).
+   - Clerk issuer/audience values match production token issuer.
+3. Run probe rerun with a fresh JWT (within token lifetime):
+
+```bash
+export DOUBOW_LAUNCH_PROBE_TOKEN="<fresh_jwt_without_Bearer>"
+AUTH_PROBE_ITERATIONS=1 AUTH_PROBE_SLEEP_SECONDS=0 make -C backend auth-probe
+LAUNCH_PROBE_ITERATIONS=20 LAUNCH_PROBE_SLEEP_SECONDS=2 make -C backend launch-probe
+```
+
+4. Attach evidence to this file:
+   - probe summaries,
+   - `/ready` output,
+   - Railway logs around failing routes (if any),
+   - dashboard screenshots/queries for 5xx + latency.
+5. If any route still fails, patch and redeploy, then repeat steps 3-4 until all P0 gates are green.
 
