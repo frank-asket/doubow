@@ -88,7 +88,12 @@ function CompanyLogo({
   const initials = company.slice(0, 2).toUpperCase()
   const safeLogoUrl = useMemo(() => {
     if (!logoUrl) return logoUrl
-    return logoUrl.replace('job-boards.greenhouse.io', 'boards.greenhouse.io')
+    const normalized = logoUrl.replace('job-boards.greenhouse.io', 'boards.greenhouse.io')
+    // If Greenhouse hosts are failing DNS in the browser, skip external logo fetches.
+    if (normalized.includes('boards.greenhouse.io') || normalized.includes('job-boards.greenhouse.io')) {
+      return null
+    }
+    return normalized
   }, [logoUrl])
 
   useEffect(() => {
