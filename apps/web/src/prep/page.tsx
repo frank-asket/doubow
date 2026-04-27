@@ -7,6 +7,8 @@ import { usePrepSessions } from './usePrepSessions'
 
 const SURFACE_BORDER = 'rgba(109,122,119,0.38)'
 
+type StoryConfidence = 'low' | 'medium' | 'high'
+
 function Mi({
   name,
   className,
@@ -28,6 +30,22 @@ function deriveReadiness(session: PrepSession | null): { overall: number; techni
   return { overall, technical, cultural }
 }
 
+function normalizeStoryConfidence(story: PrepSession['star_stories'][number]): StoryConfidence {
+  const raw = String((story as { confidence?: unknown }).confidence ?? '').toLowerCase()
+  if (raw === 'high' || raw === 'medium' || raw === 'low') return raw
+  return 'medium'
+}
+
+function confidenceBadge(confidence: StoryConfidence): { label: string; className: string } {
+  if (confidence === 'high') {
+    return { label: 'HIGH', className: 'bg-teal-100 text-teal-800' }
+  }
+  if (confidence === 'low') {
+    return { label: 'LOW', className: 'bg-amber-100 text-amber-900' }
+  }
+  return { label: 'MEDIUM', className: 'bg-slate-100 text-slate-700' }
+}
+
 export default function PrepPage() {
   const [situation, setSituation] = useState('')
   const [task, setTask] = useState('')
@@ -45,6 +63,7 @@ export default function PrepPage() {
   const competencyTags = selectedSession?.application.score?.fit_reasons?.slice(0, 8) ?? []
   const riskFlags = selectedSession?.application.score?.risk_flags ?? []
   const starStories = selectedSession?.star_stories ?? []
+  const lowConfidenceStories = starStories.filter((s) => normalizeStoryConfidence(s) === 'low')
   const briefExcerpt =
     selectedSession?.company_brief?.trim().slice(0, 220) ??
     (selectedSession?.questions[0]?.trim().slice(0, 220) ?? '')
@@ -238,14 +257,31 @@ export default function PrepPage() {
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">STORY LIBRARY</h3>
             </header>
             <div className="divide-y divide-[0.5px]" style={{ borderColor: SURFACE_BORDER }}>
+              {lowConfidenceStories.length ? (
+                <div className="border-b border-[0.5px] bg-amber-50 px-3 py-2" style={{ borderColor: SURFACE_BORDER }}>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-800">
+                    Manual Review Recommended
+                  </p>
+                  <p className="mt-1 text-xs text-amber-900">
+                    {lowConfidenceStories.length} STAR {lowConfidenceStories.length > 1 ? 'stories are' : 'story is'} low confidence.
+                    Add specific actions and measurable outcomes before interviews.
+                  </p>
+                </div>
+              ) : null}
               {starStories.length ? (
                 starStories.map((story, idx) => {
                   const preview = [story.situation, story.task].join(' ').trim().slice(0, 120)
+                  const badge = confidenceBadge(normalizeStoryConfidence(story))
                   return (
                     <div key={`${idx}-${preview.slice(0, 20)}`} className="px-3 py-2">
                       <div className="mb-1 flex items-center justify-between">
                         <p className="text-sm font-medium text-[#171d1c]">STAR story {idx + 1}</p>
-                        <p className="text-[10px] uppercase tracking-[0.08em] text-[#3d4947]">SAVED</p>
+                        <div className="inline-flex items-center gap-1.5">
+                          <p className={cn('px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]', badge.className)}>
+                            {badge.label}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-[0.08em] text-[#3d4947]">SAVED</p>
+                        </div>
                       </div>
                       <p className="text-xs text-[#3d4947]">{preview || '…'}</p>
                     </div>

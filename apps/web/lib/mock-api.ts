@@ -241,6 +241,7 @@ function makeStarStory(): StarStory {
     result: 'P99 latency dropped 62%; zero duplicate rows in production.',
     reflection: 'Would add canary deploys earlier next time.',
     tags: ['reliability', 'queues'],
+    confidence: 'medium',
   }
 }
 

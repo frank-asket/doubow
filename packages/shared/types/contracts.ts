@@ -258,6 +258,7 @@ export interface StarStory {
   result: string
   reflection: string
   tags: string[]
+  confidence?: 'low' | 'medium' | 'high'
 }
 
 export interface PrepSession {
