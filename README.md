@@ -228,7 +228,9 @@ Backend env:
 
 Behavior:
 - Frontend captures product events/pageviews.
-- Backend mirrors activation events and serves `activation-kpi` (avg/latest/sample size).
+- Backend mirrors product events and serves:
+  - `GET /v1/me/telemetry/activation-kpi` (avg/latest/sample size for resume -> first matches),
+  - `GET /v1/me/telemetry/outcome-kpi` (approval resolution/acceptance/send conversion rates).
 
 ## 🛣️ Product Surfaces
 

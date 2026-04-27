@@ -28,3 +28,13 @@ class ActivationKPIResponse(BaseModel):
     sample_size: int
     latest_time_to_first_matches_seconds: float | None = None
     avg_time_to_first_matches_seconds: float | None = None
+
+
+class OutcomeKPIResponse(BaseModel):
+    approvals_created: int
+    approvals_resolved: int
+    approvals_approved_or_edited: int
+    approvals_sent: int
+    approval_resolution_rate: float | None = None
+    approval_acceptance_rate: float | None = None
+    approval_send_rate: float | None = None

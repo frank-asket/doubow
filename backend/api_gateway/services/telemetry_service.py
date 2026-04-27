@@ -1,10 +1,11 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from models.approval import Approval
 from models.telemetry_event import TelemetryEvent
-from schemas.telemetry import ActivationKPIResponse, TelemetryEventIn
+from schemas.telemetry import ActivationKPIResponse, OutcomeKPIResponse, TelemetryEventIn
 from services.posthog_service import capture_event, fetch_activation_event_pairs
 
 
@@ -73,4 +74,57 @@ async def get_activation_kpi(session: AsyncSession, user_id: str) -> ActivationK
         sample_size=len(durations_seconds),
         latest_time_to_first_matches_seconds=durations_seconds[-1],
         avg_time_to_first_matches_seconds=avg,
+    )
+
+
+async def get_outcome_kpi(session: AsyncSession, user_id: str) -> OutcomeKPIResponse:
+    approvals_created = int(
+        (await session.execute(select(func.count()).select_from(Approval).where(Approval.user_id == user_id))).scalar_one()
+        or 0
+    )
+
+    approvals_resolved = int(
+        (
+            await session.execute(
+                select(func.count())
+                .select_from(Approval)
+                .where(Approval.user_id == user_id, Approval.status.in_(("approved", "edited", "rejected")))
+            )
+        ).scalar_one()
+        or 0
+    )
+
+    approvals_approved_or_edited = int(
+        (
+            await session.execute(
+                select(func.count())
+                .select_from(Approval)
+                .where(Approval.user_id == user_id, Approval.status.in_(("approved", "edited")))
+            )
+        ).scalar_one()
+        or 0
+    )
+
+    approvals_sent = int(
+        (
+            await session.execute(
+                select(func.count()).select_from(Approval).where(Approval.user_id == user_id, Approval.sent_at.is_not(None))
+            )
+        ).scalar_one()
+        or 0
+    )
+
+    def _rate(num: int, den: int) -> float | None:
+        if den <= 0:
+            return None
+        return float(num) / float(den)
+
+    return OutcomeKPIResponse(
+        approvals_created=approvals_created,
+        approvals_resolved=approvals_resolved,
+        approvals_approved_or_edited=approvals_approved_or_edited,
+        approvals_sent=approvals_sent,
+        approval_resolution_rate=_rate(approvals_resolved, approvals_created),
+        approval_acceptance_rate=_rate(approvals_approved_or_edited, approvals_created),
+        approval_send_rate=_rate(approvals_sent, approvals_created),
     )
