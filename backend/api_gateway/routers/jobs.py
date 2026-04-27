@@ -15,12 +15,17 @@ from schemas.jobs import (
     DiscoverJobsRequest,
     DiscoverJobsResponse,
     JobsListResponse,
+    JobScoresRecomputeResponse,
 )
 from services.adzuna_adapter import AdzunaAdapter, resolve_adzuna_scheduled_ingest_params
 from services.job_discovery_service import discover_upsert_jobs
 from services.job_provider_ingestion_service import ingest_provider_jobs_paginated
 from services.provider_adapter import ProviderFetchParams
-from services.jobs_service import dismiss_job_for_user, list_jobs as list_jobs_service
+from services.jobs_service import (
+    dismiss_job_for_user,
+    list_jobs as list_jobs_service,
+    recompute_job_scores_for_user,
+)
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -120,6 +125,15 @@ async def list_jobs(
     return await list_jobs_service(
         session=session, user_id=user.id, min_fit=min_fit, location=location, page=page
     )
+
+
+@router.post("/recompute-scores", response_model=JobScoresRecomputeResponse)
+async def recompute_my_job_scores(
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> JobScoresRecomputeResponse:
+    refreshed = await recompute_job_scores_for_user(session, user.id)
+    return JobScoresRecomputeResponse(user_id=user.id, refreshed_scores=refreshed)
 
 
 @router.post(

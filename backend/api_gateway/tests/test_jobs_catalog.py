@@ -2,6 +2,8 @@ import pytest
 
 from config import settings
 from models.job import Job
+from models.job_score import JobScore
+from models.resume import Resume
 from models.user import User
 from services.jobs_service import dismiss_job_for_user, list_jobs
 from services.semantic_match_service import SemanticMatcherUnavailableError
@@ -147,3 +149,108 @@ async def test_list_jobs_semantic_unavailable_fallbacks(db_session, monkeypatch)
     item = res.items[0]
     assert item.score.fit_score == 4.0
     assert all("Semantic similarity signal" not in r for r in item.score.fit_reasons)
+
+
+@pytest.mark.asyncio
+async def test_list_jobs_lexical_overlap_blend_when_semantic_disabled(db_session, monkeypatch):
+    monkeypatch.setattr(settings, "use_semantic_matching", False)
+    monkeypatch.setattr(settings, "lexical_matching_weight", 0.5)
+
+    db_session.add(User(id="user_jobs_lex_1", email="jobslex1@example.com"))
+    db_session.add(
+        Job(
+            id="jb_cat_lex_1",
+            source="catalog",
+            external_id="cat-lex-1",
+            title="Senior AI Product Engineer",
+            company="Acme",
+            location="Remote",
+            salary_range=None,
+            description="Build ML platform and LLM features",
+            url="https://example.com/lex-1",
+            score_template=_SCORE_TEMPLATE,
+        )
+    )
+    await db_session.commit()
+
+    db_session.add(
+        Resume(
+            user_id="user_jobs_lex_1",
+            file_name="resume.pdf",
+            storage_path="/tmp/resume.pdf",
+            version=1,
+            parsed_profile={
+                "headline": "School Administrator",
+                "summary": "Led student operations, parent communication, policy compliance.",
+                "skills": ["curriculum", "administration", "operations", "communication"],
+            },
+            preferences={},
+        )
+    )
+    await db_session.commit()
+
+    res = await list_jobs(db_session, "user_jobs_lex_1", min_fit=0.0, location=None, page=1, per_page=20)
+    assert res.total == 1
+    item = res.items[0]
+    assert item.score.fit_score < 4.0
+    assert any("Keyword overlap signal" in r for r in item.score.fit_reasons)
+
+
+@pytest.mark.asyncio
+async def test_recompute_scores_force_refreshes_existing_rows(db_session, monkeypatch):
+    from services.jobs_service import recompute_job_scores_for_user
+
+    monkeypatch.setattr(settings, "use_semantic_matching", False)
+    monkeypatch.setattr(settings, "lexical_matching_weight", 0.5)
+
+    uid = "user_jobs_recompute_1"
+    db_session.add(User(id=uid, email="recompute1@example.com"))
+    db_session.add(
+        Resume(
+            user_id=uid,
+            file_name="resume.pdf",
+            storage_path="/tmp/resume.pdf",
+            version=1,
+            parsed_profile={
+                "headline": "School Administrator",
+                "summary": "student operations curriculum admissions compliance",
+                "skills": ["curriculum", "administration", "operations"],
+            },
+            preferences={},
+        )
+    )
+    db_session.add(
+        Job(
+            id="jb_cat_recompute_1",
+            source="catalog",
+            external_id="cat-recompute-1",
+            title="Senior AI Product Engineer",
+            company="Acme",
+            location="Remote",
+            salary_range=None,
+            description="Build ML platform and LLM features",
+            url="https://example.com/recompute-1",
+            score_template=_SCORE_TEMPLATE,
+        )
+    )
+    db_session.add(
+        JobScore(
+            id="score_old_1",
+            user_id=uid,
+            job_id="jb_cat_recompute_1",
+            fit_score=4.0,
+            fit_reasons=["stale"],
+            risk_flags=[],
+            dimension_scores=_SCORE_TEMPLATE["dimension_scores"],
+        )
+    )
+    await db_session.commit()
+
+    refreshed = await recompute_job_scores_for_user(db_session, uid)
+    assert refreshed == 1
+
+    res = await list_jobs(db_session, uid, min_fit=0.0, location=None, page=1, per_page=20)
+    assert res.total == 1
+    item = res.items[0]
+    assert item.score.fit_score < 4.0
+    assert any("Keyword overlap signal" in r for r in item.score.fit_reasons)

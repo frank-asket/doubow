@@ -83,6 +83,8 @@ class Settings(BaseSettings):
     orchestrator_chat_transcript_max_chars: int = 12000
     # Blend weight for semantic score in final fit score. 0.0 disables impact.
     semantic_matching_weight: float = 0.25
+    # Fallback lexical overlap blend when semantic matcher is disabled/unavailable.
+    lexical_matching_weight: float = 0.45
     # Jobs list cache TTL (seconds). Default: 6 hours.
     jobs_cache_ttl_seconds: int = 21600
     # Provider connectors (optional) for global job catalog ingestion.

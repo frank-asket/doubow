@@ -8,6 +8,7 @@ the dependency is unavailable.
 from __future__ import annotations
 
 from functools import lru_cache
+import re
 
 from models.job import Job
 
@@ -41,6 +42,54 @@ def _job_text(job: Job) -> str:
     return "\n".join(
         p for p in (job.title, job.company, job.location or "", job.description or "") if p
     )
+
+
+_TOKEN_RE = re.compile(r"[a-z][a-z0-9+.#-]{2,}")
+_STOPWORDS = {
+    "and",
+    "the",
+    "with",
+    "for",
+    "from",
+    "that",
+    "this",
+    "your",
+    "you",
+    "our",
+    "role",
+    "job",
+    "work",
+    "team",
+    "experience",
+    "years",
+    "school",
+}
+
+
+def _tokenize(text: str) -> set[str]:
+    tokens = {m.group(0).lower() for m in _TOKEN_RE.finditer(text)}
+    return {t for t in tokens if t not in _STOPWORDS}
+
+
+def keyword_fit_score(parsed_profile: dict | None, job: Job) -> float | None:
+    """Cheap lexical overlap fallback (1.0-5.0), used when embeddings are disabled."""
+    profile = _profile_text(parsed_profile)
+    posting = _job_text(job)
+    if not profile or not posting:
+        return None
+    p_tokens = _tokenize(profile)
+    j_tokens = _tokenize(posting)
+    if not p_tokens or not j_tokens:
+        return None
+
+    overlap = len(p_tokens & j_tokens)
+    if overlap == 0:
+        return 1.0
+
+    # Use profile coverage to avoid inflating large postings with sparse overlap.
+    coverage = overlap / max(1, len(p_tokens))
+    scaled = 1.0 + min(1.0, coverage) * 4.0
+    return max(1.0, min(5.0, scaled))
 
 
 def semantic_fit_score(parsed_profile: dict | None, job: Job) -> float | None:

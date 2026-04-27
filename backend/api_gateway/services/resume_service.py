@@ -1,5 +1,6 @@
 import re
 from datetime import UTC, datetime
+import logging
 from pathlib import Path
 from uuid import uuid4
 
@@ -23,6 +24,7 @@ from services.openrouter import chat_completion
 from services.resume_parser import parse_resume
 
 MAX_RESUME_BYTES = 15 * 1024 * 1024
+logger = logging.getLogger(__name__)
 _ALLOWED_MIME_TYPES = {
     "application/pdf",
     "application/x-pdf",
@@ -244,6 +246,14 @@ async def upload_resume_for_user(
     )
     session.add(row)
     await session.commit()
+    # Best-effort: refresh existing template-backed job scores so newly uploaded profiles
+    # immediately affect discover ranking without requiring a separate manual trigger.
+    try:
+        from services.jobs_service import recompute_job_scores_for_user
+
+        await recompute_job_scores_for_user(session, user_id)
+    except Exception:
+        logger.exception("Resume upload score refresh failed user_id=%s", user_id)
     await session.refresh(row)
     return resume_row_to_response(row)
 

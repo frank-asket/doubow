@@ -100,3 +100,8 @@ class AdzunaIngestResponse(BaseModel):
 class AdzunaPresetIngestResponse(AdzunaIngestResponse):
     preset: Literal["hourly", "daily"]
     catalog_actor_user_id: str = Field(description="User id used for ingestion runs (typically JOB_CATALOG_INGESTION_USER_ID)")
+
+
+class JobScoresRecomputeResponse(BaseModel):
+    user_id: str
+    refreshed_scores: int

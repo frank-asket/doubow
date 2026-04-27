@@ -4,6 +4,7 @@ from pathlib import Path
 from config import settings
 from models.user import User
 from models.job import Job
+from models.job_score import JobScore
 from services.jobs_service import list_jobs
 from schemas.resume import UserPreferencesPatch
 from services.resume_service import (
@@ -230,6 +231,82 @@ async def test_analyze_resume_langchain_failure_falls_back(tmp_path, monkeypatch
     monkeypatch.setattr("services.resume_service.analyze_resume_with_langchain", _boom)
     out = await analyze_resume_for_user(db_session, "user_lc_fallback")
     assert "Profile:" in out
+
+
+@pytest.mark.asyncio
+async def test_upload_resume_triggers_score_recompute(tmp_path, monkeypatch, db_session):
+    monkeypatch.setattr(settings, "resume_storage_dir", str(tmp_path))
+    monkeypatch.setattr(settings, "use_semantic_matching", False)
+    monkeypatch.setattr(settings, "lexical_matching_weight", 0.5)
+
+    uid = "user_resume_recompute_1"
+    db_session.add(User(id=uid, email="rr1@example.com"))
+    db_session.add(
+        Job(
+            id="jb_resume_recompute_1",
+            source="catalog",
+            external_id="resume-recompute-1",
+            title="Senior AI Product Engineer",
+            company="Acme",
+            location="Remote",
+            salary_range=None,
+            description="Build ML platform and LLM features",
+            url="https://example.com/recompute",
+            score_template={
+                "fit_score": 4.0,
+                "fit_reasons": ["ok"],
+                "risk_flags": [],
+                "dimension_scores": {
+                    "tech": 4.0,
+                    "culture": 4.0,
+                    "seniority": 4.0,
+                    "comp": 4.0,
+                    "location": 4.0,
+                    "channel_recommendation": "email",
+                },
+            },
+        )
+    )
+    db_session.add(
+        JobScore(
+            id="score_resume_stale_1",
+            user_id=uid,
+            job_id="jb_resume_recompute_1",
+            fit_score=4.0,
+            fit_reasons=["stale"],
+            risk_flags=[],
+            dimension_scores={
+                "tech": 4.0,
+                "culture": 4.0,
+                "seniority": 4.0,
+                "comp": 4.0,
+                "location": 4.0,
+                "channel_recommendation": "email",
+            },
+        )
+    )
+    await db_session.commit()
+
+    async def _parse_resume(*args, **kwargs):  # type: ignore[no-untyped-def]
+        return {
+            "name": "Jane Doe",
+            "headline": "School Administrator",
+            "experience_years": 9,
+            "skills": ["curriculum", "administration", "operations", "communication"],
+            "top_skills": ["curriculum", "administration", "operations"],
+            "archetypes": [],
+            "gaps": [],
+            "summary": "Led student operations and policy compliance.",
+        }
+
+    monkeypatch.setattr("services.resume_service.parse_resume", _parse_resume)
+    await upload_resume_for_user(db_session, uid, b"%PDF-1.4 fake", "resume.pdf", "application/pdf")
+
+    listing = await list_jobs(db_session, uid, min_fit=0.0, location=None, page=1, per_page=20)
+    assert listing.total == 1
+    item = listing.items[0]
+    assert item.score.fit_score < 4.0
+    assert any("Keyword overlap signal" in r for r in item.score.fit_reasons)
 
 
 @pytest.mark.asyncio

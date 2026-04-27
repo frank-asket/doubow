@@ -18,7 +18,11 @@ from services.jobs_cache import (
     set_cached_jobs_list,
 )
 from services.job_score_mapping import job_score_to_api
-from services.semantic_match_service import SemanticMatcherUnavailableError, semantic_fit_score
+from services.semantic_match_service import (
+    SemanticMatcherUnavailableError,
+    keyword_fit_score,
+    semantic_fit_score,
+)
 
 _ALLOWED_JOB_SOURCES = {"ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog", "adzuna"}
 logger = logging.getLogger(__name__)
@@ -62,25 +66,44 @@ def _score_spec_from_template(raw: dict | None) -> dict | None:
     return raw
 
 
-async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) -> None:
-    """Create job_scores from jobs.score_template when the user has neither a score nor a dismissal."""
+async def _sync_template_scores_for_user(
+    session: AsyncSession,
+    user_id: str,
+    *,
+    force_recompute: bool = False,
+) -> int:
+    """Create or refresh template-backed job_scores for a user.
+
+    - default: only create missing scores (keep existing)
+    - force_recompute=True: delete existing score rows for template-backed, non-dismissed jobs then recreate
+    """
     stmt = select(Job).where(Job.score_template.isnot(None))
     jobs_with_templates = (await session.execute(stmt)).scalars().all()
     if not jobs_with_templates:
         return
 
     catalog_ids = [j.id for j in jobs_with_templates]
-    scored_rows = (
-        await session.execute(select(JobScore.job_id).where(JobScore.user_id == user_id, JobScore.job_id.in_(catalog_ids)))
-    ).all()
-    scored = {r[0] for r in scored_rows}
-
     dismissed_rows = (
         await session.execute(
             select(JobDismissal.job_id).where(JobDismissal.user_id == user_id, JobDismissal.job_id.in_(catalog_ids))
         )
     ).all()
     dismissed = {r[0] for r in dismissed_rows}
+    eligible_job_ids = [jid for jid in catalog_ids if jid not in dismissed]
+
+    scored_rows = (
+        await session.execute(select(JobScore.job_id).where(JobScore.user_id == user_id, JobScore.job_id.in_(catalog_ids)))
+    ).all()
+    scored = {r[0] for r in scored_rows}
+
+    if force_recompute and eligible_job_ids:
+        await session.execute(
+            delete(JobScore).where(
+                JobScore.user_id == user_id,
+                JobScore.job_id.in_(eligible_job_ids),
+            )
+        )
+        scored = set()
 
     latest_resume = (
         await session.execute(
@@ -93,9 +116,10 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
     parsed_profile = latest_resume.parsed_profile if latest_resume is not None else None
     semantic_weight = max(0.0, min(1.0, float(settings.semantic_matching_weight)))
     semantic_enabled = bool(settings.use_semantic_matching and semantic_weight > 0.0)
+    lexical_weight = max(0.0, min(1.0, float(settings.lexical_matching_weight)))
 
     now = datetime.now(timezone.utc)
-    added_scores = False
+    added_scores = 0
     for job in jobs_with_templates:
         if job.id in scored or job.id in dismissed:
             continue
@@ -120,6 +144,11 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
             if semantic_score is not None:
                 fit_score = round(((1.0 - semantic_weight) * fit_score) + (semantic_weight * semantic_score), 1)
                 fit_reasons = [*fit_reasons, f"Semantic similarity signal: {semantic_score:.1f}/5.0"]
+        elif lexical_weight > 0.0:
+            lexical_score = keyword_fit_score(parsed_profile, job)
+            if lexical_score is not None:
+                fit_score = round(((1.0 - lexical_weight) * fit_score) + (lexical_weight * lexical_score), 1)
+                fit_reasons = [*fit_reasons, f"Keyword overlap signal: {lexical_score:.1f}/5.0"]
         session.add(
             JobScore(
                 id=str(uuid4()),
@@ -132,10 +161,16 @@ async def _sync_template_scores_for_user(session: AsyncSession, user_id: str) ->
                 scored_at=now,
             )
         )
-        added_scores = True
+        added_scores += 1
     await session.commit()
-    if added_scores:
+    if added_scores > 0 or force_recompute:
         await invalidate_user_jobs_list_cache(user_id)
+    return added_scores
+
+
+async def recompute_job_scores_for_user(session: AsyncSession, user_id: str) -> int:
+    """Force-refresh template-backed scores for a user after resume/profile updates."""
+    return await _sync_template_scores_for_user(session, user_id, force_recompute=True)
 
 
 async def list_jobs(

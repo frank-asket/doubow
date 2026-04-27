@@ -193,10 +193,15 @@ curl -sS -X POST "$API_URL/v1/jobs/providers/adzuna/ingest/preset?preset=hourly"
 This endpoint normalizes Adzuna results, snapshots raw source payloads, and upserts jobs into the shared catalog.
 It records each page fetch in `job_ingestion_runs` and raw provider rows in `job_source_records`.
 
+One-shot score refresh endpoint (after resume/profile updates):
+- `POST /v1/jobs/recompute-scores` (authenticated user only)
+- Rebuilds existing template-backed `job_scores` for the caller using current resume/profile signals.
+
 Lightweight scheduler wrapper:
 - `python backend/scripts/adzuna_ingestion_runner.py --mode once --pages 2`
 - `python backend/scripts/adzuna_ingestion_runner.py --mode hourly --pages 3 --keywords "backend engineer"`
 - `python backend/scripts/adzuna_ingestion_runner.py --mode daily --country us --per-page 50`
+- `python backend/scripts/recompute_job_scores.py --user-id <USER_ID>`
 
 Required env vars:
 - `ADZUNA_APP_ID`
