@@ -75,7 +75,7 @@ def _validated_logo_url(candidate: str | None, canonical_url: str, company: str)
 
 
 async def discover_upsert_jobs(
-    session: AsyncSession, user_id: str, payload: DiscoverJobsRequest
+    session: AsyncSession, user_id: str, payload: DiscoverJobsRequest, *, sync_scores: bool = True
 ) -> DiscoverJobsResponse:
     """Upsert jobs by (source, external_id); sync template-driven scores for this user."""
     created = 0
@@ -140,6 +140,7 @@ async def discover_upsert_jobs(
 
     await session.commit()
 
-    await _sync_template_scores_for_user(session, user_id)
+    if sync_scores:
+        await _sync_template_scores_for_user(session, user_id)
 
     return DiscoverJobsResponse(created=created, updated=updated, job_ids=job_ids)

@@ -161,6 +161,54 @@ Runtime mapping:
 Safe diagnostics endpoint:
 - `GET /v1/me/debug/ai-config` returns model resolution and OpenRouter config health (never returns API keys).
 
+## Provider ingestion (Adzuna)
+
+Protected endpoint:
+- `POST /v1/jobs/providers/adzuna/ingest` (requires authenticated user)
+- body:
+
+```json
+{
+  "keywords": "software engineer",
+  "location": "Berlin",
+  "country": "de",
+  "start_page": 1,
+  "pages": 3,
+  "per_page": 50
+}
+```
+
+Cron-friendly preset endpoint (authenticated; catalog writes use `JOB_CATALOG_INGESTION_USER_ID`, not the caller):
+
+- `POST /v1/jobs/providers/adzuna/ingest/preset?preset=hourly` or `preset=daily`
+- Optional query overrides: `keywords`, `location`, `country`, `start_page`
+
+Example:
+
+```bash
+curl -sS -X POST "$API_URL/v1/jobs/providers/adzuna/ingest/preset?preset=hourly" \
+  -H "Authorization: Bearer $CRON_JWT"
+```
+
+This endpoint normalizes Adzuna results, snapshots raw source payloads, and upserts jobs into the shared catalog.
+It records each page fetch in `job_ingestion_runs` and raw provider rows in `job_source_records`.
+
+Lightweight scheduler wrapper:
+- `python backend/scripts/adzuna_ingestion_runner.py --mode once --pages 2`
+- `python backend/scripts/adzuna_ingestion_runner.py --mode hourly --pages 3 --keywords "backend engineer"`
+- `python backend/scripts/adzuna_ingestion_runner.py --mode daily --country us --per-page 50`
+
+Required env vars:
+- `ADZUNA_APP_ID`
+- `ADZUNA_APP_KEY`
+
+Optional env vars:
+- `ADZUNA_COUNTRY` (default `gb`)
+- `ADZUNA_RESULTS_PER_PAGE` (default `50`)
+- `ADZUNA_INGEST_HOURLY_PAGES` / `ADZUNA_INGEST_DAILY_PAGES` (preset endpoint page depth)
+- `ADZUNA_INGEST_DEFAULT_KEYWORDS` / `ADZUNA_INGEST_DEFAULT_LOCATION` (defaults when preset query omits overrides)
+- `JOB_CATALOG_INGESTION_USER_ID` (default `catalog_ingestion_system`, used by scheduler script and preset endpoint)
+
 ### Troubleshooting “404” on `/v1/agents/chat`
 
 The gateway defines `POST /v1/agents/chat`. If the browser reports **404**:

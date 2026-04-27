@@ -85,6 +85,20 @@ class Settings(BaseSettings):
     semantic_matching_weight: float = 0.25
     # Jobs list cache TTL (seconds). Default: 6 hours.
     jobs_cache_ttl_seconds: int = 21600
+    # Provider connectors (optional) for global job catalog ingestion.
+    adzuna_api_url: str = "https://api.adzuna.com/v1/api/jobs"
+    adzuna_app_id: str | None = None
+    adzuna_app_key: str | None = None
+    adzuna_country: str = "gb"
+    adzuna_results_per_page: int = 50
+    # Pagination depth for preset cron-style ingestion (hourly vs daily).
+    adzuna_ingest_hourly_pages: int = 2
+    adzuna_ingest_daily_pages: int = 5
+    # Optional defaults when cron calls preset endpoint without query overrides.
+    adzuna_ingest_default_keywords: str | None = None
+    adzuna_ingest_default_location: str | None = None
+    # System user id used by scheduled catalog ingestion wrappers.
+    job_catalog_ingestion_user_id: str = "catalog_ingestion_system"
 
     # PostHog (optional). When configured, telemetry is mirrored to PostHog and
     # activation KPI is sourced from PostHog events.

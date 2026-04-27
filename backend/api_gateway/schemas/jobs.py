@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-JobSource = Literal["ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog"]
+JobSource = Literal["ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog", "adzuna"]
 Channel = Literal["email", "linkedin", "company_site"]
 
 
@@ -77,3 +77,26 @@ class DiscoverJobsResponse(BaseModel):
     created: int
     updated: int
     job_ids: list[str]
+
+
+class AdzunaIngestRequest(BaseModel):
+    keywords: str | None = Field(default=None, max_length=255)
+    location: str | None = Field(default=None, max_length=255)
+    country: str | None = Field(default=None, max_length=8)
+    start_page: int = Field(default=1, ge=1)
+    pages: int = Field(default=1, ge=1, le=20)
+    per_page: int = Field(default=50, ge=1, le=50)
+
+
+class AdzunaIngestResponse(BaseModel):
+    provider: str
+    pages: int
+    created: int
+    updated: int
+    run_ids: list[str]
+    job_ids: list[str]
+
+
+class AdzunaPresetIngestResponse(AdzunaIngestResponse):
+    preset: Literal["hourly", "daily"]
+    catalog_actor_user_id: str = Field(description="User id used for ingestion runs (typically JOB_CATALOG_INGESTION_USER_ID)")

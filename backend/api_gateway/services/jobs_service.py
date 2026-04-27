@@ -20,7 +20,7 @@ from services.jobs_cache import (
 from services.job_score_mapping import job_score_to_api
 from services.semantic_match_service import SemanticMatcherUnavailableError, semantic_fit_score
 
-_ALLOWED_JOB_SOURCES = {"ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog"}
+_ALLOWED_JOB_SOURCES = {"ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog", "adzuna"}
 logger = logging.getLogger(__name__)
 
 

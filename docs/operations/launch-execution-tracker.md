@@ -59,6 +59,7 @@ Evidence:
 - 2026-04-26 readiness check: `/ready` returned `postgres=ok`, `redis=degraded` with `localhost:6379 connection refused` (production Redis env not healthy).
 - 2026-04-26 launch-probe (`iterations=20`) summary: `combined_5xx_rate=0.00%`, route 5xx all `0.00%`; P95 latency: jobs `616.1ms`, applications `621.1ms`, approvals `554.4ms`, agents first/full `564.6ms`; probe decision `GO`.
 - Caveat: that 20-iteration run sampled `401` responses (expired/invalid token window), so reliability/latency numerics are useful baseline but do not by themselves prove authenticated-user success behavior.
+- 2026-04-27 infra incident + fix: production briefly returned `502 Application failed to respond`; Railway logs showed startup crash `sqlalchemy.exc.ArgumentError: Could not parse SQLAlchemy URL` because `DATABASE_URL` was empty. After restoring `DATABASE_URL` and redeploying, `/healthz=200`, `/ready={"status":"ready","postgres":"ok","redis":"ok"}`, `/metrics=200`.
 - _(add dashboard link)_
 
 Owner: _(fill)_
