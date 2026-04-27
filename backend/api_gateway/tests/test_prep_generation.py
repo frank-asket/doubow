@@ -36,6 +36,8 @@ async def test_generate_prep_creates_session_and_get_returns_detail(db_session):
     assert detail.application.id == aid
     assert len(detail.questions) >= 1
     assert detail.company_brief
+    assert detail.star_stories
+    assert detail.star_stories[0].get("confidence") in {"low", "medium", "high"}
 
     loaded = await get_prep_detail_for_user(db_session, uid, aid)
     assert loaded is not None

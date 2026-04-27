@@ -40,7 +40,9 @@ def draft_email_system() -> str:
         + GROUNDING_RULES
         + " Match tone to the posting: startup vs enterprise when inferable from the description. "
         "Use plain language; avoid clichés and filler. "
-        "For email output: first line must be exactly `SUBJECT: <subject>` then a blank line, then the body."
+        "You will receive PROFILE_FACTS with ids (F1, F2, ...). Any personal claim (experience, skills, achievements) "
+        "must map to one or more provided fact ids. If there is not enough evidence, avoid the claim. "
+        "Return JSON only with keys: subject (string), body (string), used_fact_ids (array of ids)."
     )
 
 
@@ -48,7 +50,9 @@ def draft_linkedin_system() -> str:
     return (
         "You write short LinkedIn outreach notes for job seekers. "
         + GROUNDING_RULES
-        + " Maximum ~1200 characters. No subject line. Warm and specific to the role; no spammy cadence."
+        + " Maximum ~1200 characters. No subject line. Warm and specific to the role; no spammy cadence. "
+        "You will receive PROFILE_FACTS with ids (F1, F2, ...). Any personal claim must map to fact ids. "
+        "Return JSON only with keys: body (string), used_fact_ids (array of ids)."
     )
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from typing import Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -24,6 +25,7 @@ class StarStoryStructured(BaseModel):
     result: str = ""
     reflection: str = ""
     tags: list[str] = Field(default_factory=list)
+    confidence: Literal["low", "medium", "high"] = "medium"
 
 
 class PrepStructured(BaseModel):
@@ -59,6 +61,7 @@ def _fallback_prep(job: Job) -> PrepStructured:
                 result="Shipped on schedule with measurable quality improvement post-launch.",
                 reflection="Earlier alignment on scope with stakeholders would have reduced rework.",
                 tags=["delivery", "collaboration"],
+                confidence="medium",
             )
         ],
         company_brief=(
@@ -67,12 +70,24 @@ def _fallback_prep(job: Job) -> PrepStructured:
     )
 
 
+def _infer_story_confidence(story: StarStoryStructured) -> Literal["low", "medium", "high"]:
+    parts = [story.situation, story.task, story.action, story.result]
+    shortest = min((len((p or "").strip()) for p in parts), default=0)
+    total = sum(len((p or "").strip()) for p in parts)
+    has_metric = bool(re.search(r"\b\d+([.,]\d+)?\b", (story.result or "") + " " + (story.action or "")))
+    if shortest < 24 or total < 180:
+        return "low"
+    if has_metric and total >= 320 and len((story.action or "").strip()) >= 80:
+        return "high"
+    return "medium"
+
+
 async def generate_prep_structured(job: Job) -> PrepStructured:
     posting = (job.description or "").strip()[:8000]
     sys_msg = prep_json_only_system()
     user_msg = (
         "Produce interview prep as JSON with keys: questions (array of 5 strings), "
-        "star_stories (array of up to 2 objects with keys situation, task, action, result, reflection, tags), "
+        "star_stories (array of up to 2 objects with keys situation, task, action, result, reflection, tags, confidence), "
         "company_brief (string, 2-4 sentences about the employer inferred from the posting).\n\n"
         f"Role: {job.title}\nCompany: {job.company}\nLocation: {job.location or 'unspecified'}\n\n"
         f"Job posting:\n{posting}"
@@ -83,6 +98,9 @@ async def generate_prep_structured(job: Job) -> PrepStructured:
             raw = await chat_completion(system_message=sys_msg, user_message=user_msg, use_case="prep")
             data = _extract_json_object(raw)
             structured = PrepStructured.model_validate(data)
+            for story in structured.star_stories:
+                # Enforce deterministic confidence classification from content quality.
+                story.confidence = _infer_story_confidence(story)
             if not structured.questions:
                 structured = _fallback_prep(job)
             return structured
@@ -104,6 +122,7 @@ def prep_structured_to_storage_dict(structured: PrepStructured, job: Job) -> tup
                 "result": s.result.strip(),
                 "reflection": s.reflection.strip(),
                 "tags": [str(t).strip() for t in (s.tags or []) if str(t).strip()][:12],
+                "confidence": s.confidence,
             }
         )
     brief = structured.company_brief.strip() or (
