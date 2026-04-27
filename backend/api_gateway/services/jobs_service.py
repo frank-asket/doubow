@@ -118,11 +118,15 @@ async def _sync_template_scores_for_user(
     semantic_weight = max(0.0, min(1.0, float(settings.semantic_matching_weight)))
     semantic_enabled = bool(settings.use_semantic_matching and semantic_weight > 0.0)
     llm_weight = max(0.0, min(1.0, float(settings.llm_job_matching_weight)))
-    llm_enabled = bool(settings.use_llm_job_matching and llm_weight > 0.0 and settings.openrouter_api_key)
+    llm_top_n = max(0, int(settings.llm_job_matching_top_n))
+    llm_enabled = bool(
+        settings.use_llm_job_matching and llm_weight > 0.0 and llm_top_n > 0 and settings.openrouter_api_key
+    )
     lexical_weight = max(0.0, min(1.0, float(settings.lexical_matching_weight)))
 
     now = datetime.now(timezone.utc)
     added_scores = 0
+    pending_rows: list[dict] = []
     for job in jobs_with_templates:
         if job.id in scored or job.id in dismissed:
             continue
@@ -152,27 +156,45 @@ async def _sync_template_scores_for_user(
             if lexical_score is not None:
                 fit_score = round(((1.0 - lexical_weight) * fit_score) + (lexical_weight * lexical_score), 1)
                 fit_reasons = [*fit_reasons, f"Keyword overlap signal: {lexical_score:.1f}/5.0"]
+        pending_rows.append(
+            {
+                "job": job,
+                "fit_score": fit_score,
+                "fit_reasons": fit_reasons,
+                "risk_flags": risk_flags,
+                "dims_raw": dims_raw,
+            }
+        )
 
-        if llm_enabled:
+    if llm_enabled and pending_rows:
+        top_candidates = sorted(pending_rows, key=lambda row: float(row["fit_score"]), reverse=True)[:llm_top_n]
+        for row in top_candidates:
+            job = row["job"]
             try:
                 llm_score, llm_reasons = await llm_fit_signal(parsed_profile, job)
             except Exception:
                 llm_score, llm_reasons = None, []
             if llm_score is not None:
-                fit_score = round(((1.0 - llm_weight) * fit_score) + (llm_weight * llm_score), 1)
+                blended = round(((1.0 - llm_weight) * float(row["fit_score"])) + (llm_weight * llm_score), 1)
+                row["fit_score"] = blended
                 if llm_reasons:
-                    fit_reasons = [*fit_reasons, *[f"LLM fit signal: {r}" for r in llm_reasons]]
+                    row["fit_reasons"] = [
+                        *row["fit_reasons"],
+                        *[f"LLM fit signal: {r}" for r in llm_reasons],
+                    ]
                 else:
-                    fit_reasons = [*fit_reasons, f"LLM fit signal: {llm_score:.1f}/5.0"]
+                    row["fit_reasons"] = [*row["fit_reasons"], f"LLM fit signal: {llm_score:.1f}/5.0"]
+
+    for row in pending_rows:
         session.add(
             JobScore(
                 id=str(uuid4()),
                 user_id=user_id,
-                job_id=job.id,
-                fit_score=fit_score,
-                fit_reasons=fit_reasons,
-                risk_flags=risk_flags,
-                dimension_scores=dims_raw,
+                job_id=row["job"].id,
+                fit_score=float(row["fit_score"]),
+                fit_reasons=list(row["fit_reasons"]),
+                risk_flags=list(row["risk_flags"]),
+                dimension_scores=row["dims_raw"],
                 scored_at=now,
             )
         )

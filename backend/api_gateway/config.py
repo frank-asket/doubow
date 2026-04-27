@@ -87,6 +87,8 @@ class Settings(BaseSettings):
     semantic_matching_weight: float = 0.25
     # Blend weight for LLM fit signal in final fit score. 0.0 disables impact.
     llm_job_matching_weight: float = 0.2
+    # Cost guardrail: only apply LLM fit matching to top-N candidate jobs per user recompute.
+    llm_job_matching_top_n: int = 25
     # Fallback lexical overlap blend when semantic matcher is disabled/unavailable.
     lexical_matching_weight: float = 0.45
     # Jobs list cache TTL (seconds). Default: 6 hours.
