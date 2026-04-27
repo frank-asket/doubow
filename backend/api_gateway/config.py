@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     use_langchain: bool = False
     # Feature flag: blend semantic resume/job similarity into fit scoring.
     use_semantic_matching: bool = False
+    # Feature flag: optional LLM-based resume/job fit signal blended into score.
+    use_llm_job_matching: bool = False
     # Feature flag: run autopilot executor through LangGraph wrapper (parity mode).
     use_langgraph_autopilot: bool = False
     # Feature flag: log per-node LangGraph autopilot trace events (debug only).
@@ -83,6 +85,8 @@ class Settings(BaseSettings):
     orchestrator_chat_transcript_max_chars: int = 12000
     # Blend weight for semantic score in final fit score. 0.0 disables impact.
     semantic_matching_weight: float = 0.25
+    # Blend weight for LLM fit signal in final fit score. 0.0 disables impact.
+    llm_job_matching_weight: float = 0.2
     # Fallback lexical overlap blend when semantic matcher is disabled/unavailable.
     lexical_matching_weight: float = 0.45
     # Jobs list cache TTL (seconds). Default: 6 hours.

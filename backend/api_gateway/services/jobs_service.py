@@ -23,6 +23,7 @@ from services.semantic_match_service import (
     keyword_fit_score,
     semantic_fit_score,
 )
+from services.llm_job_match_service import llm_fit_signal
 
 _ALLOWED_JOB_SOURCES = {"ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog", "adzuna"}
 logger = logging.getLogger(__name__)
@@ -116,6 +117,8 @@ async def _sync_template_scores_for_user(
     parsed_profile = latest_resume.parsed_profile if latest_resume is not None else None
     semantic_weight = max(0.0, min(1.0, float(settings.semantic_matching_weight)))
     semantic_enabled = bool(settings.use_semantic_matching and semantic_weight > 0.0)
+    llm_weight = max(0.0, min(1.0, float(settings.llm_job_matching_weight)))
+    llm_enabled = bool(settings.use_llm_job_matching and llm_weight > 0.0 and settings.openrouter_api_key)
     lexical_weight = max(0.0, min(1.0, float(settings.lexical_matching_weight)))
 
     now = datetime.now(timezone.utc)
@@ -149,6 +152,18 @@ async def _sync_template_scores_for_user(
             if lexical_score is not None:
                 fit_score = round(((1.0 - lexical_weight) * fit_score) + (lexical_weight * lexical_score), 1)
                 fit_reasons = [*fit_reasons, f"Keyword overlap signal: {lexical_score:.1f}/5.0"]
+
+        if llm_enabled:
+            try:
+                llm_score, llm_reasons = await llm_fit_signal(parsed_profile, job)
+            except Exception:
+                llm_score, llm_reasons = None, []
+            if llm_score is not None:
+                fit_score = round(((1.0 - llm_weight) * fit_score) + (llm_weight * llm_score), 1)
+                if llm_reasons:
+                    fit_reasons = [*fit_reasons, *[f"LLM fit signal: {r}" for r in llm_reasons]]
+                else:
+                    fit_reasons = [*fit_reasons, f"LLM fit signal: {llm_score:.1f}/5.0"]
         session.add(
             JobScore(
                 id=str(uuid4()),
