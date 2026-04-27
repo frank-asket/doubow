@@ -4,7 +4,7 @@ PYTHON ?= python3
 ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
 
-.PHONY: db-migrate db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe
+.PHONY: db-migrate db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe jobs-cache-preview jobs-cache-invalidate
 
 # libpq/psql does not accept SQLAlchemy async URLs (postgresql+asyncpg://). Strip the driver for psql targets.
 define PSQL_CMD
@@ -77,3 +77,20 @@ auth-probe:
 			--iterations "$${AUTH_PROBE_ITERATIONS:-10}" \
 			--sleep-seconds "$${AUTH_PROBE_SLEEP_SECONDS:-1.0}" \
 			--token-env "$${LAUNCH_PROBE_TOKEN_ENV:-DOUBOW_LAUNCH_PROBE_TOKEN}"
+
+# Jobs list cache ops helper (safe default: dry-run).
+jobs-cache-preview:
+	@cd "$(API_PY_PATH)" && PYTHONPATH=. \
+		uv run --with-requirements requirements.txt python ../scripts/invalidate_jobs_cache.py \
+			--pattern "$${JOBS_CACHE_PATTERN:-jobs:list:*}" \
+			$${JOBS_CACHE_USER_ID:+--user-id "$${JOBS_CACHE_USER_ID}"} \
+			--max-keys "$${JOBS_CACHE_MAX_KEYS:-5000}"
+
+# Destructive variant: use intentionally after backfills/upserts.
+jobs-cache-invalidate:
+	@cd "$(API_PY_PATH)" && PYTHONPATH=. \
+		uv run --with-requirements requirements.txt python ../scripts/invalidate_jobs_cache.py \
+			--pattern "$${JOBS_CACHE_PATTERN:-jobs:list:*}" \
+			$${JOBS_CACHE_USER_ID:+--user-id "$${JOBS_CACHE_USER_ID}"} \
+			--max-keys "$${JOBS_CACHE_MAX_KEYS:-5000}" \
+			--execute
