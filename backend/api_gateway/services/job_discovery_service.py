@@ -126,9 +126,14 @@ async def discover_upsert_jobs(
             existing.location = item.location
             existing.salary_range = item.salary_range
             existing.logo_url = logo_url
-            existing.description_raw = description_raw or None
-            existing.description_clean = description_clean or None
-            existing.description = description_clean or description_raw or None
+            # Preserve previously indexed description fields when provider updates
+            # arrive without description content.
+            if description_raw:
+                existing.description_raw = description_raw
+            if description_clean:
+                existing.description_clean = description_clean
+            if description_clean or description_raw:
+                existing.description = description_clean or description_raw
             existing.canonical_url = canonical_url
             existing.url = canonical_url
             if item.posted_at is not None:

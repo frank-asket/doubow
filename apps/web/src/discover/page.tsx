@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
@@ -97,12 +96,13 @@ function CompanyLogo({
   }
 
   return (
-    <Image
+    <img
       src={logoUrl}
       alt={`${company} logo`}
+      className={cn('object-contain opacity-90', className)}
       width={imageSize}
       height={imageSize}
-      className={cn('object-contain opacity-90', className)}
+      loading="lazy"
       onError={() => setFailed(true)}
     />
   )

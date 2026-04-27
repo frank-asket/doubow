@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 import logging
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlparse
 
 import httpx
 
@@ -35,6 +36,19 @@ def _first_non_empty(*values: object) -> str:
             if text:
                 return text
     return ""
+
+
+def _logo_from_listing_url(url: str | None) -> str | None:
+    normalized = normalize_optional_http_url(url)
+    if not normalized:
+        return None
+    try:
+        domain = (urlparse(normalized).hostname or "").strip().lower()
+    except Exception:
+        return None
+    if not domain:
+        return None
+    return f"https://logo.clearbit.com/{domain}"
 
 
 class AdzunaAdapter(ProviderAdapter):
@@ -116,7 +130,7 @@ class AdzunaAdapter(ProviderAdapter):
                     company=company_name,
                     location=location or None,
                     salary_range=salary_range,
-                    logo_url=None,
+                    logo_url=_logo_from_listing_url(canonical_url),
                     description_raw=description,
                     description=description,
                     url=canonical_url,
