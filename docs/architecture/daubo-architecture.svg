@@ -1,178 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="1560" viewBox="0 0 680 780">
-  <title>Daubo high-level architecture</title>
-  <desc>Five-layer architecture: browser, Next.js web app, FastAPI backend with 8 agents, semantic matching/evaluation flow, data stores, and external integrations</desc>
-
-  <!-- Background -->
-  <rect width="680" height="720" fill="#FFFFFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="980" viewBox="0 0 1560 980">
+  <title>Doubow high-level architecture</title>
+  <desc>Static architecture diagram matching docs/architecture/doubow-high-level-flow.md exactly.</desc>
 
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
     <style>
       text { font-family: Arial, sans-serif; fill: #1A1A1A; }
-      .th  { font-size: 14px; font-weight: 500; }
-      .ts  { font-size: 12px; font-weight: 400; fill: #555555; }
+      .title { font-size: 13px; font-weight: 700; }
+      .sub { font-size: 11px; fill: #555; }
+      .edge { stroke: #666; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+      .edge-label { font-size: 10px; fill: #666; }
     </style>
   </defs>
 
-  <!-- Layer 1: Browser -->
-  <rect x="40" y="28" width="600" height="60" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="340" y="52" text-anchor="middle">Browser / client</text>
-  <text class="ts" x="340" y="72" text-anchor="middle">Next.js App Router · Zustand · SWR · SSE streaming</text>
+  <rect width="1560" height="980" fill="#FFF"/>
 
-  <!-- Arrow 1→2 -->
-  <line x1="340" y1="90" x2="340" y2="116" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
-  <text class="ts" x="358" y="107" fill="#888780">HTTP / SSE</text>
+  <!-- Nodes (matching Mermaid names 1:1) -->
+  <rect x="60" y="80" width="180" height="60" rx="10" fill="#F4F4F4" stroke="#999"/>
+  <text class="title" x="150" y="108" text-anchor="middle">User Web App</text>
+  <text class="sub" x="150" y="126" text-anchor="middle">U</text>
 
-  <!-- Layer 2: FastAPI -->
-  <rect x="40" y="118" width="600" height="60" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
-  <text class="th" x="340" y="142" text-anchor="middle" fill="#085041">FastAPI — API layer</text>
-  <text class="ts" x="340" y="162" text-anchor="middle" fill="#0F6E56">9 routers · JWT auth · idempotency · rate limiting · CORS (localhost regex)</text>
+  <rect x="300" y="80" width="210" height="72" rx="10" fill="#EAF4FF" stroke="#3A79C9"/>
+  <text class="title" x="405" y="108" text-anchor="middle">Frontend</text>
+  <text class="sub" x="405" y="126" text-anchor="middle">Next.js App Router</text>
+  <text class="sub" x="405" y="142" text-anchor="middle">FE</text>
 
-  <!-- Arrow 2→3 -->
-  <line x1="340" y1="180" x2="340" y2="206" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow)"/>
+  <rect x="300" y="210" width="210" height="72" rx="10" fill="#F5ECFF" stroke="#7D4AB8"/>
+  <text class="title" x="405" y="238" text-anchor="middle">Clerk</text>
+  <text class="sub" x="405" y="256" text-anchor="middle">Auth + Session</text>
+  <text class="sub" x="405" y="272" text-anchor="middle">CL</text>
 
-  <!-- Layer 3: Agents container -->
-  <rect x="40" y="208" width="600" height="130" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
-  <text class="th" x="340" y="232" text-anchor="middle" fill="#3C3489">Multi-agent orchestration layer</text>
+  <rect x="610" y="80" width="220" height="84" rx="10" fill="#E6FAF2" stroke="#1D8F65"/>
+  <text class="title" x="720" y="108" text-anchor="middle">API Gateway</text>
+  <text class="sub" x="720" y="126" text-anchor="middle">FastAPI</text>
+  <text class="sub" x="720" y="144" text-anchor="middle">API</text>
 
-  <!-- Orchestrator -->
-  <rect x="254" y="248" width="172" height="42" rx="8" fill="#EEEDFE" stroke="#7F77DD" stroke-width="1"/>
-  <text class="th" x="340" y="268" text-anchor="middle" fill="#3C3489">Orchestrator</text>
-  <text class="ts" x="340" y="282" text-anchor="middle" fill="#534AB7">routes · locks · gate</text>
+  <rect x="900" y="70" width="260" height="94" rx="10" fill="#F0EDFF" stroke="#5D47B0"/>
+  <text class="title" x="1030" y="98" text-anchor="middle">Domain/Agent Services</text>
+  <text class="sub" x="1030" y="116" text-anchor="middle">Discover - Scoring - Writing</text>
+  <text class="sub" x="1030" y="132" text-anchor="middle">Apply - Prep - Monitor</text>
+  <text class="sub" x="1030" y="148" text-anchor="middle">AG</text>
 
-  <!-- Discovery -->
-  <rect x="50" y="248" width="88" height="42" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="94" y="268" text-anchor="middle">Discovery</text>
-  <text class="ts" x="94" y="282" text-anchor="middle">45+ portals</text>
+  <rect x="900" y="230" width="220" height="72" rx="10" fill="#FFF4E8" stroke="#C7852E"/>
+  <text class="title" x="1010" y="258" text-anchor="middle">Autopilot Runs</text>
+  <text class="sub" x="1010" y="276" text-anchor="middle">Idempotency - Run History</text>
+  <text class="sub" x="1010" y="292" text-anchor="middle">Resume API (AUTO)</text>
 
-  <!-- Scorer -->
-  <rect x="150" y="248" width="88" height="42" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="194" y="268" text-anchor="middle">Scorer</text>
-  <text class="ts" x="194" y="282" text-anchor="middle">1–5 fit score</text>
+  <rect x="1180" y="230" width="220" height="72" rx="10" fill="#EFEAFF" stroke="#6F55C6"/>
+  <text class="title" x="1290" y="258" text-anchor="middle">LangGraph Autopilot</text>
+  <text class="sub" x="1290" y="276" text-anchor="middle">Parity Graph (Optional)</text>
+  <text class="sub" x="1290" y="292" text-anchor="middle">LG</text>
 
-  <!-- Writer -->
-  <rect x="440" y="248" width="88" height="42" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="484" y="268" text-anchor="middle">Writer</text>
-  <text class="ts" x="484" y="282" text-anchor="middle">drafts letters</text>
+  <rect x="900" y="340" width="230" height="72" rx="10" fill="#FFF0F6" stroke="#C04C86"/>
+  <text class="title" x="1015" y="368" text-anchor="middle">Channel Integrations</text>
+  <text class="sub" x="1015" y="386" text-anchor="middle">Google OAuth - LinkedIn OAuth</text>
+  <text class="sub" x="1015" y="402" text-anchor="middle">OAUTH</text>
 
-  <!-- Apply -->
-  <rect x="540" y="248" width="88" height="42" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="584" y="268" text-anchor="middle">Apply</text>
-  <text class="ts" x="584" y="282" text-anchor="middle">post-approval</text>
+  <rect x="610" y="320" width="220" height="72" rx="10" fill="#EFEFEF" stroke="#777"/>
+  <text class="title" x="720" y="348" text-anchor="middle">Supabase Postgres</text>
+  <text class="sub" x="720" y="366" text-anchor="middle">DB</text>
 
-  <!-- Tailor -->
-  <rect x="50" y="302" width="88" height="28" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="94" y="320" text-anchor="middle">Tailor</text>
+  <rect x="610" y="420" width="220" height="72" rx="10" fill="#EFEFEF" stroke="#777"/>
+  <text class="title" x="720" y="448" text-anchor="middle">Redis</text>
+  <text class="sub" x="720" y="466" text-anchor="middle">RD</text>
 
-  <!-- Monitor -->
-  <rect x="150" y="302" width="88" height="28" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="194" y="320" text-anchor="middle">Monitor</text>
+  <rect x="610" y="520" width="220" height="72" rx="10" fill="#E8F9FF" stroke="#2F90B6"/>
+  <text class="title" x="720" y="548" text-anchor="middle">LLM Provider</text>
+  <text class="sub" x="720" y="566" text-anchor="middle">OpenRouter/Anthropic</text>
+  <text class="sub" x="720" y="582" text-anchor="middle">LLM</text>
 
-  <!-- Prep -->
-  <rect x="440" y="302" width="88" height="28" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="484" y="320" text-anchor="middle">Prep</text>
+  <rect x="300" y="520" width="210" height="72" rx="10" fill="#F8F8E8" stroke="#8A8A3A"/>
+  <text class="title" x="405" y="548" text-anchor="middle">PostHog</text>
+  <text class="sub" x="405" y="566" text-anchor="middle">PH</text>
 
-  <!-- Approval gate -->
-  <rect x="432" y="256" width="6" height="26" rx="2" fill="#EF9F27" opacity="0.9"/>
-  <text class="ts" x="440" y="263" fill="#633806">✓ approval</text>
-  <text class="ts" x="440" y="276" fill="#633806">gate</text>
+  <rect x="300" y="620" width="210" height="72" rx="10" fill="#FDEEEF" stroke="#C34E5C"/>
+  <text class="title" x="405" y="648" text-anchor="middle">Sentry</text>
+  <text class="sub" x="405" y="666" text-anchor="middle">SENTRY</text>
 
-  <!-- Arrow 3→4 -->
-  <line x1="340" y1="340" x2="340" y2="366" stroke="#7F77DD" stroke-width="1" marker-end="url(#arrow)"/>
-  <text class="ts" x="358" y="357" fill="#888780">services</text>
+  <rect x="610" y="620" width="220" height="72" rx="10" fill="#EEF7FD" stroke="#4E89B8"/>
+  <text class="title" x="720" y="648" text-anchor="middle">Metrics Endpoint</text>
+  <text class="sub" x="720" y="666" text-anchor="middle">METRICS</text>
 
-  <!-- Layer 4: Services -->
-  <rect x="40" y="368" width="140" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
-  <text class="th" x="110" y="390" text-anchor="middle" fill="#085041">Anthropic</text>
-  <text class="ts" x="110" y="406" text-anchor="middle" fill="#0F6E56">claude-sonnet-4</text>
+  <!-- Edges (matching Mermaid edges 1:1) -->
+  <line class="edge" x1="240" y1="110" x2="300" y2="110"/>
+  <line class="edge" x1="405" y1="152" x2="405" y2="210"/>
+  <text class="edge-label" x="418" y="184">Sign-in / session</text>
 
-  <rect x="192" y="368" width="120" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="252" y="390" text-anchor="middle">Resume parser</text>
-  <text class="ts" x="252" y="406" text-anchor="middle">PDF · DOCX</text>
+  <line class="edge" x1="510" y1="110" x2="610" y2="110"/>
+  <text class="edge-label" x="540" y="98">Bearer JWT</text>
 
-  <rect x="324" y="368" width="120" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="384" y="390" text-anchor="middle">Idempotency</text>
-  <text class="ts" x="384" y="406" text-anchor="middle">SHA-256 · Redis</text>
+  <line class="edge" x1="660" y1="164" x2="460" y2="210"/>
+  <text class="edge-label" x="520" y="178">JWT verify</text>
 
-  <rect x="456" y="368" width="184" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="548" y="390" text-anchor="middle">Portal scanner</text>
-  <text class="ts" x="548" y="406" text-anchor="middle">Playwright · Greenhouse · Ashby</text>
+  <line class="edge" x1="830" y1="104" x2="900" y2="104"/>
+  <line class="edge" x1="830" y1="128" x2="900" y2="364"/>
+  <line class="edge" x1="830" y1="144" x2="900" y2="266"/>
 
-  <!-- Semantic matching/eval note -->
-  <text class="ts" x="340" y="436" text-anchor="middle" fill="#534AB7">Semantic matching (feature-flagged) blends into scoring · offline precision evaluator compares baseline vs blend</text>
+  <line class="edge" x1="720" y1="164" x2="720" y2="320"/>
+  <line class="edge" x1="720" y1="164" x2="720" y2="420"/>
+  <line class="edge" x1="720" y1="164" x2="720" y2="520"/>
+  <line class="edge" x1="720" y1="164" x2="720" y2="620"/>
+  <line class="edge" x1="690" y1="164" x2="460" y2="620"/>
+  <line class="edge" x1="640" y1="164" x2="460" y2="520"/>
 
-  <!-- Arrow 4→5 -->
-  <line x1="340" y1="422" x2="340" y2="448" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
+  <line class="edge" x1="1010" y1="164" x2="720" y2="320"/>
+  <line class="edge" x1="1030" y1="164" x2="720" y2="420"/>
+  <line class="edge" x1="1050" y1="164" x2="720" y2="520"/>
 
-  <!-- Layer 5: Data -->
-  <rect x="40" y="450" width="600" height="52" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="340" y="472" text-anchor="middle">Data layer</text>
-  <text class="ts" x="340" y="490" text-anchor="middle">PostgreSQL (Supabase + RLS)  ·  Redis (cache · locks · idempotency)  ·  Supabase Storage (resumes)</text>
+  <line class="edge" x1="1120" y1="266" x2="1180" y2="266"/>
+  <line class="edge" x1="1010" y1="302" x2="720" y2="356"/>
+  <line class="edge" x1="980" y1="302" x2="720" y2="456"/>
+  <line class="edge" x1="1290" y1="302" x2="780" y2="356"/>
 
-  <!-- Celery sidebar -->
-  <rect x="596" y="208" width="44" height="130" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
-  <text class="th" x="618" y="266" text-anchor="middle" transform="rotate(-90,618,266)" fill="#633806">Celery workers</text>
-  <text class="ts" x="618" y="282" text-anchor="middle" transform="rotate(-90,618,282)" fill="#854F0B">beat · broker</text>
+  <line class="edge" x1="510" y1="556" x2="300" y2="556"/>
+  <line class="edge" x1="720" y1="164" x2="300" y2="556"/>
 
-  <!-- External integrations label -->
-  <text class="ts" x="340" y="528" text-anchor="middle" fill="#888780">external integrations</text>
-  <line x1="340" y1="504" x2="340" y2="533" stroke="#888780" stroke-width="1" stroke-dasharray="3 3"/>
-
-  <!-- Integrations row -->
-  <rect x="40" y="535" width="120" height="44" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
-  <text class="th" x="100" y="555" text-anchor="middle" fill="#0C447C">Gmail API</text>
-  <text class="ts" x="100" y="571" text-anchor="middle" fill="#185FA5">drafts only</text>
-
-  <rect x="172" y="535" width="120" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
-  <text class="th" x="232" y="555" text-anchor="middle" fill="#3C3489">LinkedIn API</text>
-  <text class="ts" x="232" y="571" text-anchor="middle" fill="#534AB7">post-approval</text>
-
-  <rect x="304" y="535" width="120" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="364" y="555" text-anchor="middle">NextAuth</text>
-  <text class="ts" x="364" y="571" text-anchor="middle">Google · LinkedIn</text>
-
-  <rect x="436" y="535" width="120" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="496" y="555" text-anchor="middle">Sentry</text>
-  <text class="ts" x="496" y="571" text-anchor="middle">errors · traces</text>
-
-  <rect x="568" y="535" width="72" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="th" x="604" y="555" text-anchor="middle">Prometheus</text>
-  <text class="ts" x="604" y="571" text-anchor="middle">metrics</text>
-
-  <!-- Legend -->
-  <rect x="40" y="604" width="600" height="166" rx="8" fill="none" stroke="#DDDDDD" stroke-width="0.5" stroke-dasharray="4 3"/>
-  <text class="ts" x="60" y="622" fill="#888780">Legend</text>
-
-  <rect x="60" y="634" width="14" height="14" rx="3" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
-  <text class="ts" x="82" y="645">API gateway + AI service</text>
-
-  <rect x="60" y="656" width="14" height="14" rx="3" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
-  <text class="ts" x="82" y="667">Agent layer</text>
-
-  <rect x="60" y="678" width="14" height="14" rx="3" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text class="ts" x="82" y="689">Services · data · integrations</text>
-
-  <rect x="230" y="634" width="14" height="14" rx="3" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
-  <text class="ts" x="252" y="645">Async task queue (Celery)</text>
-
-  <rect x="230" y="652" width="6" height="14" rx="2" fill="#EF9F27"/>
-  <text class="ts" x="252" y="663">Approval gate — blocks Apply agent until user approves</text>
-
-  <line x1="230" y1="685" x2="248" y2="685" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
-  <text class="ts" x="256" y="689">Synchronous HTTP · SSE stream</text>
-
-  <line x1="390" y1="685" x2="408" y2="685" stroke="#888780" stroke-width="1" stroke-dasharray="3 3"/>
-  <text class="ts" x="416" y="689">Internal service call</text>
-
-  <rect x="60" y="716" width="14" height="14" rx="3" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
-  <text class="ts" x="82" y="727">Activation flow: Discover empty → Resume upload → Scoring in progress (ETA) → First jobs</text>
-
-  <rect x="60" y="738" width="14" height="14" rx="3" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
-  <text class="ts" x="82" y="749">Human-in-the-loop trust: reject action remains visible in every approval state</text>
-
-  <rect x="390" y="716" width="14" height="14" rx="3" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
-  <text class="ts" x="412" y="727">Phase 3: semantic score blend experiment + offline evaluator script (`scripts/semantic_precision_eval.py`)</text>
+  <!-- Footer note -->
+  <text class="sub" x="60" y="930">This static SVG intentionally mirrors docs/architecture/doubow-high-level-flow.md node names and edges 1:1.</text>
 </svg>
