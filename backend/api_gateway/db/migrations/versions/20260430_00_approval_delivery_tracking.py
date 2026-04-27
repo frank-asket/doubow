@@ -5,7 +5,6 @@ Revises: 20260429_00
 Create Date: 2026-04-30
 """
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "20260430_00"
@@ -15,15 +14,16 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("approvals", sa.Column("send_provider", sa.String(length=32), nullable=True))
-    op.add_column(
-        "approvals",
-        sa.Column("delivery_status", sa.String(length=32), nullable=False, server_default="not_sent"),
+    # Idempotent DDL: these columns may already exist on long-lived environments
+    # where startup guards added them before this revision was applied.
+    op.execute("ALTER TABLE approvals ADD COLUMN IF NOT EXISTS send_provider VARCHAR(32)")
+    op.execute(
+        "ALTER TABLE approvals ADD COLUMN IF NOT EXISTS delivery_status VARCHAR(32) NOT NULL DEFAULT 'not_sent'"
     )
-    op.add_column("approvals", sa.Column("delivery_error", sa.Text(), nullable=True))
-    op.add_column("approvals", sa.Column("provider_message_id", sa.String(length=255), nullable=True))
-    op.add_column("approvals", sa.Column("provider_thread_id", sa.String(length=255), nullable=True))
-    op.add_column("approvals", sa.Column("provider_confirmed_at", sa.DateTime(timezone=True), nullable=True))
+    op.execute("ALTER TABLE approvals ADD COLUMN IF NOT EXISTS delivery_error TEXT")
+    op.execute("ALTER TABLE approvals ADD COLUMN IF NOT EXISTS provider_message_id VARCHAR(255)")
+    op.execute("ALTER TABLE approvals ADD COLUMN IF NOT EXISTS provider_thread_id VARCHAR(255)")
+    op.execute("ALTER TABLE approvals ADD COLUMN IF NOT EXISTS provider_confirmed_at TIMESTAMPTZ")
 
     op.execute(
         """

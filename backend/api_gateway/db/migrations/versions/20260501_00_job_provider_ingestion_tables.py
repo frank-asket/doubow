@@ -6,7 +6,6 @@ Create Date: 2026-05-01 00:00:00.000000
 """
 
 from alembic import op
-import sqlalchemy as sa
 
 
 revision = "20260501_00"
@@ -16,32 +15,36 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "job_ingestion_runs",
-        sa.Column("id", sa.String(length=36), nullable=False),
-        sa.Column("provider", sa.String(length=64), nullable=False),
-        sa.Column("status", sa.String(length=32), nullable=False, server_default=sa.text("'running'")),
-        sa.Column("started_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("finished_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("records_seen", sa.Integer(), nullable=False, server_default=sa.text("0")),
-        sa.Column("records_upserted", sa.Integer(), nullable=False, server_default=sa.text("0")),
-        sa.Column("error_message", sa.Text(), nullable=True),
-        sa.Column("metadata_json", sa.JSON(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
+    op.execute(
+        """
+        CREATE TABLE IF NOT EXISTS job_ingestion_runs (
+            id VARCHAR(36) PRIMARY KEY,
+            provider VARCHAR(64) NOT NULL,
+            status VARCHAR(32) NOT NULL DEFAULT 'running',
+            started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            finished_at TIMESTAMPTZ NULL,
+            records_seen INTEGER NOT NULL DEFAULT 0,
+            records_upserted INTEGER NOT NULL DEFAULT 0,
+            error_message TEXT NULL,
+            metadata_json JSON NULL
+        )
+        """
     )
-    op.create_index("ix_job_ingestion_runs_provider", "job_ingestion_runs", ["provider"], unique=False)
+    op.execute("CREATE INDEX IF NOT EXISTS ix_job_ingestion_runs_provider ON job_ingestion_runs (provider)")
 
-    op.create_table(
-        "job_source_records",
-        sa.Column("id", sa.String(length=36), nullable=False),
-        sa.Column("provider", sa.String(length=64), nullable=False),
-        sa.Column("provider_job_id", sa.String(length=255), nullable=False),
-        sa.Column("raw_payload", sa.JSON(), nullable=False),
-        sa.Column("fetched_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("provider", "provider_job_id", name="uq_job_source_records_provider_job"),
+    op.execute(
+        """
+        CREATE TABLE IF NOT EXISTS job_source_records (
+            id VARCHAR(36) PRIMARY KEY,
+            provider VARCHAR(64) NOT NULL,
+            provider_job_id VARCHAR(255) NOT NULL,
+            raw_payload JSON NOT NULL,
+            fetched_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT uq_job_source_records_provider_job UNIQUE (provider, provider_job_id)
+        )
+        """
     )
-    op.create_index("ix_job_source_records_provider", "job_source_records", ["provider"], unique=False)
+    op.execute("CREATE INDEX IF NOT EXISTS ix_job_source_records_provider ON job_source_records (provider)")
 
 
 def downgrade() -> None:
