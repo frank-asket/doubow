@@ -121,6 +121,29 @@ class AdzunaPresetIngestResponse(AdzunaIngestResponse):
     catalog_actor_user_id: str = Field(description="User id used for ingestion runs (typically JOB_CATALOG_INGESTION_USER_ID)")
 
 
+class ProviderIngestSummary(BaseModel):
+    provider: str
+    status: Literal["completed", "failed", "skipped"]
+    pages: int = 0
+    created: int = 0
+    updated: int = 0
+    deduped: int = 0
+    run_ids: list[str] = Field(default_factory=list)
+    error: str | None = None
+
+
+class CatalogPresetIngestResponse(BaseModel):
+    preset: Literal["hourly", "daily"]
+    catalog_actor_user_id: str
+    status: Literal["ok", "partial", "failed"]
+    providers: list[ProviderIngestSummary]
+    created: int
+    updated: int
+    deduped: int = 0
+    run_ids: list[str]
+    job_ids: list[str]
+
+
 class JobScoresRecomputeResponse(BaseModel):
     user_id: str
     refreshed_scores: int

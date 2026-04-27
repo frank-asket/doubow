@@ -12,12 +12,14 @@ from schemas.jobs import (
     AdzunaIngestRequest,
     AdzunaIngestResponse,
     AdzunaPresetIngestResponse,
+    CatalogPresetIngestResponse,
     DiscoverJobsRequest,
     DiscoverJobsResponse,
     GreenhouseIngestRequest,
     GreenhouseIngestResponse,
     JobsListResponse,
     JobScoresRecomputeResponse,
+    ProviderIngestSummary,
 )
 from services.adzuna_adapter import AdzunaAdapter, resolve_adzuna_scheduled_ingest_params
 from services.greenhouse_adapter import GreenhouseAdapter
@@ -138,6 +140,153 @@ async def ingest_adzuna_preset_route(
         **result,
         preset=preset.value,  # type: ignore[arg-type]
         catalog_actor_user_id=actor,
+    )
+
+
+@router.post("/providers/catalog/ingest/preset", response_model=CatalogPresetIngestResponse)
+async def ingest_catalog_multi_provider_preset_route(
+    preset: AdzunaPreset,
+    keywords: str | None = Query(default=None, max_length=255),
+    location: str | None = Query(default=None, max_length=255),
+    country: str | None = Query(default=None, max_length=8),
+    start_page: int = Query(default=1, ge=1),
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(get_authenticated_user),
+) -> CatalogPresetIngestResponse:
+    """Cron-friendly multi-source ingest (Adzuna + configured Greenhouse boards)."""
+    try:
+        pages, base_params = resolve_adzuna_scheduled_ingest_params(
+            settings,
+            preset=preset.value,
+            keywords=keywords,
+            location=location,
+            country=country,
+            start_page=start_page,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+
+    actor = settings.job_catalog_ingestion_user_id.strip()
+    if not actor:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="JOB_CATALOG_INGESTION_USER_ID is not configured",
+        )
+
+    provider_summaries: list[ProviderIngestSummary] = []
+    job_ids: list[str] = []
+    run_ids: list[str] = []
+    created = 0
+    updated = 0
+    deduped = 0
+
+    # Always attempt Adzuna first.
+    try:
+        adzuna_result = await ingest_provider_jobs_paginated(
+            session,
+            user_id=actor,
+            adapter=AdzunaAdapter(),
+            base_params=base_params,
+            pages=pages,
+        )
+        provider_summaries.append(
+            ProviderIngestSummary(
+                provider="adzuna",
+                status="completed",
+                pages=int(adzuna_result["pages"]),
+                created=int(adzuna_result["created"]),
+                updated=int(adzuna_result["updated"]),
+                deduped=int(adzuna_result.get("deduped", 0) or 0),
+                run_ids=[str(r) for r in adzuna_result["run_ids"]],
+            )
+        )
+        created += int(adzuna_result["created"])
+        updated += int(adzuna_result["updated"])
+        deduped += int(adzuna_result.get("deduped", 0) or 0)
+        job_ids.extend([str(j) for j in adzuna_result["job_ids"]])
+        run_ids.extend([str(r) for r in adzuna_result["run_ids"]])
+    except Exception as exc:  # pragma: no cover - defensive route behavior
+        provider_summaries.append(
+            ProviderIngestSummary(
+                provider="adzuna",
+                status="failed",
+                pages=pages,
+                error=str(exc)[:500],
+            )
+        )
+
+    # Try Greenhouse if boards are configured; do not fail whole ingest if unavailable.
+    greenhouse_tokens = settings.greenhouse_board_tokens_list()
+    if greenhouse_tokens:
+        try:
+            greenhouse_result = await ingest_provider_jobs_paginated(
+                session,
+                user_id=actor,
+                adapter=GreenhouseAdapter(board_tokens=greenhouse_tokens),
+                base_params=ProviderFetchParams(
+                    keywords=base_params.keywords,
+                    location=base_params.location,
+                    country=None,
+                    page=base_params.page,
+                    per_page=base_params.per_page,
+                    posted_after=base_params.posted_after,
+                ),
+                pages=pages,
+            )
+            provider_summaries.append(
+                ProviderIngestSummary(
+                    provider="greenhouse",
+                    status="completed",
+                    pages=int(greenhouse_result["pages"]),
+                    created=int(greenhouse_result["created"]),
+                    updated=int(greenhouse_result["updated"]),
+                    deduped=int(greenhouse_result.get("deduped", 0) or 0),
+                    run_ids=[str(r) for r in greenhouse_result["run_ids"]],
+                )
+            )
+            created += int(greenhouse_result["created"])
+            updated += int(greenhouse_result["updated"])
+            deduped += int(greenhouse_result.get("deduped", 0) or 0)
+            job_ids.extend([str(j) for j in greenhouse_result["job_ids"]])
+            run_ids.extend([str(r) for r in greenhouse_result["run_ids"]])
+        except Exception as exc:  # pragma: no cover - defensive route behavior
+            provider_summaries.append(
+                ProviderIngestSummary(
+                    provider="greenhouse",
+                    status="failed",
+                    pages=pages,
+                    error=str(exc)[:500],
+                )
+            )
+    else:
+        provider_summaries.append(
+            ProviderIngestSummary(
+                provider="greenhouse",
+                status="skipped",
+                pages=0,
+                error="GREENHOUSE_BOARD_TOKENS is empty; provider skipped.",
+            )
+        )
+
+    completed = sum(1 for p in provider_summaries if p.status == "completed")
+    failed = sum(1 for p in provider_summaries if p.status == "failed")
+    if completed > 0 and failed == 0:
+        overall_status = "ok"
+    elif completed > 0:
+        overall_status = "partial"
+    else:
+        overall_status = "failed"
+
+    return CatalogPresetIngestResponse(
+        preset=preset.value,  # type: ignore[arg-type]
+        catalog_actor_user_id=actor,
+        status=overall_status,  # type: ignore[arg-type]
+        providers=provider_summaries,
+        created=created,
+        updated=updated,
+        deduped=deduped,
+        run_ids=run_ids,
+        job_ids=job_ids,
     )
 
 
