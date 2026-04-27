@@ -1,11 +1,18 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.approval import Approval
+from models.autopilot_run import AutopilotRun
 from models.telemetry_event import TelemetryEvent
-from schemas.telemetry import ActivationKPIResponse, OutcomeKPIResponse, TelemetryEventIn
+from schemas.telemetry import (
+    ActivationKPIResponse,
+    LaunchScorecardResponse,
+    OutcomeKPIResponse,
+    StabilityKPIResponse,
+    TelemetryEventIn,
+)
 from services.posthog_service import capture_event, fetch_activation_event_pairs
 
 
@@ -127,4 +134,131 @@ async def get_outcome_kpi(session: AsyncSession, user_id: str) -> OutcomeKPIResp
         approval_resolution_rate=_rate(approvals_resolved, approvals_created),
         approval_acceptance_rate=_rate(approvals_approved_or_edited, approvals_created),
         approval_send_rate=_rate(approvals_sent, approvals_created),
+    )
+
+
+async def get_stability_kpi(session: AsyncSession, user_id: str, *, window_days: int = 7) -> StabilityKPIResponse:
+    cutoff = datetime.now(UTC) - timedelta(days=max(1, window_days))
+
+    autopilot_runs_total = int(
+        (
+            await session.execute(
+                select(func.count())
+                .select_from(AutopilotRun)
+                .where(AutopilotRun.user_id == user_id, AutopilotRun.created_at >= cutoff)
+            )
+        ).scalar_one()
+        or 0
+    )
+    autopilot_runs_failed = int(
+        (
+            await session.execute(
+                select(func.count())
+                .select_from(AutopilotRun)
+                .where(
+                    AutopilotRun.user_id == user_id,
+                    AutopilotRun.created_at >= cutoff,
+                    AutopilotRun.status == "failed",
+                )
+            )
+        ).scalar_one()
+        or 0
+    )
+    autopilot_runs_running = int(
+        (
+            await session.execute(
+                select(func.count())
+                .select_from(AutopilotRun)
+                .where(
+                    AutopilotRun.user_id == user_id,
+                    AutopilotRun.created_at >= cutoff,
+                    AutopilotRun.status == "running",
+                )
+            )
+        ).scalar_one()
+        or 0
+    )
+
+    approvals_pending = int(
+        (
+            await session.execute(
+                select(func.count()).select_from(Approval).where(Approval.user_id == user_id, Approval.status == "pending")
+            )
+        ).scalar_one()
+        or 0
+    )
+    approvals_delivery_failed = int(
+        (
+            await session.execute(
+                select(func.count()).select_from(Approval).where(
+                    Approval.user_id == user_id,
+                    (
+                        Approval.delivery_error.is_not(None)
+                        | Approval.delivery_status.in_(("failed", "error", "provider_failed"))
+                    ),
+                )
+            )
+        ).scalar_one()
+        or 0
+    )
+
+    delivery_failure_rate = None
+    if approvals_pending + approvals_delivery_failed > 0:
+        delivery_failure_rate = float(approvals_delivery_failed) / float(approvals_pending + approvals_delivery_failed)
+
+    return StabilityKPIResponse(
+        window_days=max(1, window_days),
+        autopilot_runs_total=autopilot_runs_total,
+        autopilot_runs_failed=autopilot_runs_failed,
+        autopilot_runs_running=autopilot_runs_running,
+        approvals_pending=approvals_pending,
+        approvals_delivery_failed=approvals_delivery_failed,
+        approval_delivery_failure_rate=delivery_failure_rate,
+    )
+
+
+def _launch_signal(
+    *,
+    activation: ActivationKPIResponse,
+    outcome: OutcomeKPIResponse,
+    stability: StabilityKPIResponse,
+) -> tuple[str, list[str]]:
+    reasons: list[str] = []
+    signal = "go"
+
+    if stability.autopilot_runs_failed >= 3:
+        signal = "no_go"
+        reasons.append("autopilot failures are elevated in the last window")
+    if (stability.approval_delivery_failure_rate or 0.0) >= 0.15:
+        signal = "no_go"
+        reasons.append("approval delivery failure rate exceeds 15%")
+
+    if signal != "no_go":
+        if stability.autopilot_runs_running >= 5:
+            signal = "watch"
+            reasons.append("many autopilot runs are still in running state")
+        if outcome.approvals_created >= 5 and (outcome.approval_acceptance_rate or 0.0) < 0.2:
+            signal = "watch"
+            reasons.append("approval acceptance rate is below 20%")
+        if activation.sample_size > 0 and (activation.avg_time_to_first_matches_seconds or 0.0) > 24 * 3600:
+            signal = "watch"
+            reasons.append("activation speed is slower than 24 hours")
+
+    if not reasons:
+        reasons.append("core activation, outcome, and stability indicators are within target bounds")
+    return signal, reasons
+
+
+async def get_launch_scorecard(session: AsyncSession, user_id: str) -> LaunchScorecardResponse:
+    activation = await get_activation_kpi(session=session, user_id=user_id)
+    outcome = await get_outcome_kpi(session=session, user_id=user_id)
+    stability = await get_stability_kpi(session=session, user_id=user_id)
+    signal, reasons = _launch_signal(activation=activation, outcome=outcome, stability=stability)
+    return LaunchScorecardResponse(
+        generated_at=datetime.now(UTC),
+        signal=signal,
+        reasons=reasons,
+        activation=activation,
+        outcome=outcome,
+        stability=stability,
     )

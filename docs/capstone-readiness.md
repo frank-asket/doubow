@@ -17,6 +17,10 @@ These are the **measurable signals** referenced in the rubric. Wire them into Po
 | Approval conversion | `approved_and_sent / pending_approvals_created` | Approvals service + telemetry |
 | API reliability | Error rate on key dashboard and mutating routes | Logs + telemetry error envelopes |
 
+Operational roll-up endpoint for demos/reviews:
+
+- `GET /v1/me/telemetry/launch-scorecard` — combines activation KPI, outcome KPI, and stability indicators into a single `go` / `watch` / `no_go` signal with reasons.
+
 See **`docs/stack-decisions.md`** for baseline KPI definitions.
 
 ### Retrieval / scoring experiments (offline)

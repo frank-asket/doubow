@@ -4,8 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
-from schemas.telemetry import ActivationKPIResponse, OutcomeKPIResponse, TelemetryAcknowledgeResponse, TelemetryEventIn
-from services.telemetry_service import get_activation_kpi, get_outcome_kpi, record_event
+from schemas.telemetry import (
+    ActivationKPIResponse,
+    LaunchScorecardResponse,
+    OutcomeKPIResponse,
+    TelemetryAcknowledgeResponse,
+    TelemetryEventIn,
+)
+from services.telemetry_service import get_activation_kpi, get_launch_scorecard, get_outcome_kpi, record_event
 
 router = APIRouter(prefix="/me/telemetry", tags=["telemetry"])
 
@@ -34,3 +40,11 @@ async def outcome_kpi(
     user: User = Depends(get_authenticated_user),
 ) -> OutcomeKPIResponse:
     return await get_outcome_kpi(session=session, user_id=user.id)
+
+
+@router.get("/launch-scorecard", response_model=LaunchScorecardResponse)
+async def launch_scorecard(
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> LaunchScorecardResponse:
+    return await get_launch_scorecard(session=session, user_id=user.id)

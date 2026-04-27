@@ -230,7 +230,8 @@ Behavior:
 - Frontend captures product events/pageviews.
 - Backend mirrors product events and serves:
   - `GET /v1/me/telemetry/activation-kpi` (avg/latest/sample size for resume -> first matches),
-  - `GET /v1/me/telemetry/outcome-kpi` (approval resolution/acceptance/send conversion rates).
+  - `GET /v1/me/telemetry/outcome-kpi` (approval resolution/acceptance/send conversion rates),
+  - `GET /v1/me/telemetry/launch-scorecard` (single GO/WATCH/NO_GO snapshot combining activation, outcomes, and stability signals).
 
 ## 🛣️ Product Surfaces
 

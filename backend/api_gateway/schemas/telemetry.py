@@ -38,3 +38,22 @@ class OutcomeKPIResponse(BaseModel):
     approval_resolution_rate: float | None = None
     approval_acceptance_rate: float | None = None
     approval_send_rate: float | None = None
+
+
+class StabilityKPIResponse(BaseModel):
+    window_days: int = 7
+    autopilot_runs_total: int
+    autopilot_runs_failed: int
+    autopilot_runs_running: int
+    approvals_pending: int
+    approvals_delivery_failed: int
+    approval_delivery_failure_rate: float | None = None
+
+
+class LaunchScorecardResponse(BaseModel):
+    generated_at: datetime
+    signal: Literal["go", "watch", "no_go"]
+    reasons: list[str] = Field(default_factory=list)
+    activation: ActivationKPIResponse
+    outcome: OutcomeKPIResponse
+    stability: StabilityKPIResponse
