@@ -49,8 +49,9 @@ async def test_ingest_provider_jobs_paginated_creates_runs_sources_and_jobs(db_s
 
     assert summary["provider"] == "fake_provider"
     assert summary["pages"] == 2
-    assert summary["created"] == 2
+    assert summary["created"] == 1
     assert summary["updated"] == 0
+    assert summary["deduped"] >= 1
     assert len(summary["run_ids"]) == 2
 
     runs = (await db_session.execute(select(JobIngestionRun))).scalars().all()
@@ -61,7 +62,40 @@ async def test_ingest_provider_jobs_paginated_creates_runs_sources_and_jobs(db_s
     assert len(source_records) == 2
 
     jobs = (await db_session.execute(select(Job).where(Job.company == "Example Co"))).scalars().all()
-    assert len(jobs) == 2
+    assert len(jobs) == 1
+
+
+@pytest.mark.asyncio
+async def test_ingest_provider_jobs_paginated_dedupes_against_existing_catalog(db_session):
+    user_id = "ingest_user_2"
+    db_session.add(User(id=user_id, email="ingest2@example.com"))
+    db_session.add(
+        Job(
+            id="jb_existing_1",
+            source="catalog",
+            external_id="existing-1",
+            title="Backend Engineer",
+            company="Example Co",
+            location="Remote",
+            salary_range=None,
+            description="Build APIs",
+            url="https://example.com/existing",
+            score_template=None,
+        )
+    )
+    await db_session.commit()
+
+    summary = await ingest_provider_jobs_paginated(
+        db_session,
+        user_id=user_id,
+        adapter=_FakeProvider(),
+        base_params=ProviderFetchParams(page=1, per_page=10),
+        pages=1,
+    )
+
+    assert summary["created"] == 0
+    assert summary["updated"] == 0
+    assert summary["deduped"] >= 1
 
 
 def test_resolve_adzuna_scheduled_ingest_params(monkeypatch):

@@ -97,6 +97,25 @@ class AdzunaIngestResponse(BaseModel):
     job_ids: list[str]
 
 
+class GreenhouseIngestRequest(BaseModel):
+    board_tokens: list[str] | None = None
+    keywords: str | None = Field(default=None, max_length=255)
+    location: str | None = Field(default=None, max_length=255)
+    start_page: int = Field(default=1, ge=1)
+    pages: int = Field(default=1, ge=1, le=20)
+    per_page: int = Field(default=50, ge=1, le=50)
+
+
+class GreenhouseIngestResponse(BaseModel):
+    provider: str
+    pages: int
+    created: int
+    updated: int
+    run_ids: list[str]
+    job_ids: list[str]
+    deduped: int = 0
+
+
 class AdzunaPresetIngestResponse(AdzunaIngestResponse):
     preset: Literal["hourly", "daily"]
     catalog_actor_user_id: str = Field(description="User id used for ingestion runs (typically JOB_CATALOG_INGESTION_USER_ID)")

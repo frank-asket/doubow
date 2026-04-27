@@ -14,10 +14,13 @@ from schemas.jobs import (
     AdzunaPresetIngestResponse,
     DiscoverJobsRequest,
     DiscoverJobsResponse,
+    GreenhouseIngestRequest,
+    GreenhouseIngestResponse,
     JobsListResponse,
     JobScoresRecomputeResponse,
 )
 from services.adzuna_adapter import AdzunaAdapter, resolve_adzuna_scheduled_ingest_params
+from services.greenhouse_adapter import GreenhouseAdapter
 from services.job_discovery_service import discover_upsert_jobs
 from services.job_provider_ingestion_service import ingest_provider_jobs_paginated
 from services.provider_adapter import ProviderFetchParams
@@ -67,6 +70,30 @@ async def ingest_adzuna_jobs_route(
         pages=payload.pages,
     )
     return AdzunaIngestResponse(**result)
+
+
+@router.post("/providers/greenhouse/ingest", response_model=GreenhouseIngestResponse)
+async def ingest_greenhouse_jobs_route(
+    payload: GreenhouseIngestRequest,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> GreenhouseIngestResponse:
+    """Protected ingestion endpoint for Greenhouse boards into the shared catalog."""
+    adapter = GreenhouseAdapter(board_tokens=payload.board_tokens)
+    result = await ingest_provider_jobs_paginated(
+        session,
+        user_id=user.id,
+        adapter=adapter,
+        base_params=ProviderFetchParams(
+            keywords=payload.keywords,
+            location=payload.location,
+            country=None,
+            page=payload.start_page,
+            per_page=payload.per_page,
+        ),
+        pages=payload.pages,
+    )
+    return GreenhouseIngestResponse(**result)
 
 
 @router.post("/providers/adzuna/ingest/preset", response_model=AdzunaPresetIngestResponse)

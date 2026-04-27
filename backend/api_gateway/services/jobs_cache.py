@@ -7,6 +7,7 @@ from config import settings
 from schemas.jobs import JobsListResponse
 
 logger = logging.getLogger(__name__)
+JOBS_LIST_CACHE_VERSION = "v2"
 
 
 @lru_cache(maxsize=1)
@@ -20,7 +21,7 @@ def _get_redis_client():
 
 def jobs_list_cache_key(*, user_id: str, min_fit: float, location: str | None, page: int, per_page: int) -> str:
     loc = (location or "").strip().lower()
-    return f"jobs:list:v1:{user_id}:{min_fit:.2f}:{loc}:{page}:{per_page}"
+    return f"jobs:list:{JOBS_LIST_CACHE_VERSION}:{user_id}:{min_fit:.2f}:{loc}:{page}:{per_page}"
 
 
 async def get_cached_jobs_list(key: str) -> JobsListResponse | None:
@@ -54,7 +55,7 @@ async def invalidate_user_jobs_list_cache(user_id: str) -> None:
     client = _get_redis_client()
     if client is None:
         return
-    pattern = f"jobs:list:v1:{user_id}:*"
+    pattern = f"jobs:list:*:{user_id}:*"
     try:
         keys = [key async for key in client.scan_iter(match=pattern)]
         if keys:

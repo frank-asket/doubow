@@ -161,7 +161,7 @@ Runtime mapping:
 Safe diagnostics endpoint:
 - `GET /v1/me/debug/ai-config` returns model resolution and OpenRouter config health (never returns API keys).
 
-## Provider ingestion (Adzuna)
+## Provider ingestion (Adzuna + Greenhouse)
 
 Protected endpoint:
 - `POST /v1/jobs/providers/adzuna/ingest` (requires authenticated user)
@@ -174,6 +174,21 @@ Protected endpoint:
   "country": "de",
   "start_page": 1,
   "pages": 3,
+  "per_page": 50
+}
+```
+
+Protected Greenhouse endpoint:
+- `POST /v1/jobs/providers/greenhouse/ingest` (requires authenticated user)
+- body:
+
+```json
+{
+  "board_tokens": ["notion", "openai"],
+  "keywords": "backend engineer",
+  "location": "Remote",
+  "start_page": 1,
+  "pages": 2,
   "per_page": 50
 }
 ```
@@ -192,6 +207,7 @@ curl -sS -X POST "$API_URL/v1/jobs/providers/adzuna/ingest/preset?preset=hourly"
 
 This endpoint normalizes Adzuna results, snapshots raw source payloads, and upserts jobs into the shared catalog.
 It records each page fetch in `job_ingestion_runs` and raw provider rows in `job_source_records`.
+Greenhouse ingestion uses the same storage path and supports simple cross-provider dedupe skeleton before upsert.
 
 One-shot score refresh endpoint (after resume/profile updates):
 - `POST /v1/jobs/recompute-scores` (authenticated user only)
@@ -212,6 +228,7 @@ Optional env vars:
 - `ADZUNA_RESULTS_PER_PAGE` (default `50`)
 - `ADZUNA_INGEST_HOURLY_PAGES` / `ADZUNA_INGEST_DAILY_PAGES` (preset endpoint page depth)
 - `ADZUNA_INGEST_DEFAULT_KEYWORDS` / `ADZUNA_INGEST_DEFAULT_LOCATION` (defaults when preset query omits overrides)
+- `GREENHOUSE_BOARD_TOKENS` (comma-separated board slugs, e.g. `notion,openai,figma`)
 - `JOB_CATALOG_INGESTION_USER_ID` (default `catalog_ingestion_system`, used by scheduler script and preset endpoint)
 
 ### Troubleshooting “404” on `/v1/agents/chat`

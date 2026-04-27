@@ -99,6 +99,9 @@ class Settings(BaseSettings):
     # Optional defaults when cron calls preset endpoint without query overrides.
     adzuna_ingest_default_keywords: str | None = None
     adzuna_ingest_default_location: str | None = None
+    greenhouse_api_url: str = "https://boards-api.greenhouse.io/v1/boards"
+    # Comma-separated board tokens, e.g. "openai,notion,figma".
+    greenhouse_board_tokens: str | None = None
     # System user id used by scheduled catalog ingestion wrappers.
     job_catalog_ingestion_user_id: str = "catalog_ingestion_system"
 
@@ -152,6 +155,12 @@ class Settings(BaseSettings):
         }
         candidate = (per_case.get(key) or self.openrouter_model or self.anthropic_model or "").strip()
         return candidate
+
+    def greenhouse_board_tokens_list(self) -> list[str]:
+        raw = (self.greenhouse_board_tokens or "").strip()
+        if not raw:
+            return []
+        return [p.strip() for p in raw.split(",") if p.strip()]
 
     def google_oauth_is_configured(self) -> bool:
         return bool(
