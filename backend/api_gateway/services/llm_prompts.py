@@ -198,3 +198,10 @@ def normalize_orchestrator_response(text: str) -> str:
             *next_step,
         ]
     )
+
+
+def normalize_orchestrator_response_with_meta(text: str) -> tuple[str, bool]:
+    """Return normalized output and whether post-processing changed payload shape/content."""
+    normalized = normalize_orchestrator_response(text)
+    raw = (text or "").strip()
+    return normalized, (normalized.strip() != raw)

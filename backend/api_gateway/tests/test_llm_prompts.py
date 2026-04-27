@@ -5,6 +5,7 @@ from services.llm_prompts import (
     ORCHESTRATOR_SYSTEM,
     draft_email_system,
     draft_linkedin_system,
+    normalize_orchestrator_response_with_meta,
     normalize_orchestrator_response,
     prep_json_only_system,
     resume_profile_analysis_system,
@@ -64,3 +65,27 @@ def test_normalize_orchestrator_response_preserves_section_content():
     assert "- Update headline for fintech focus." in normalized
     assert "- Recruiters scan headline first." in normalized
     assert "- Rewrite your headline today." in normalized
+
+
+def test_normalize_orchestrator_response_with_meta_marks_changed_for_freeform():
+    normalized, changed = normalize_orchestrator_response_with_meta(
+        "Try two applications today.\nThen update your headline."
+    )
+    assert changed is True
+    assert "Summary:" in normalized
+
+
+def test_normalize_orchestrator_response_with_meta_marks_unchanged_for_contract_shape():
+    raw = (
+        "Summary:\n"
+        "- Strong fit for PM roles.\n"
+        "Recommended Actions:\n"
+        "- Apply to two jobs today.\n"
+        "Why:\n"
+        "- Keeps momentum high.\n"
+        "Next Step:\n"
+        "- Submit first application now."
+    )
+    normalized, changed = normalize_orchestrator_response_with_meta(raw)
+    assert changed is False
+    assert normalized == raw

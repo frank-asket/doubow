@@ -18,7 +18,7 @@ Rate each criterion from 1-5, then multiply by its weight.
 |---|---:|---|---:|---:|
 | Technical Depth | 20% | Problem selection and scope | 4.5 |  |
 | Technical Depth | 20% | Architecture and design choices | 4.5 |  |
-| Technical Depth | 20% | Prompt/model interaction quality | 3.5 |  |
+| Technical Depth | 20% | Prompt/model interaction quality | 4.2 |  |
 | Technical Depth | 20% | Orchestration and control flow | 4.0 |  |
 | Engineering Practices | 20% | Code quality | 4.0 |  |
 | Engineering Practices | 20% | Logging and error handling | 4.0 |  |
@@ -41,6 +41,7 @@ Rate each criterion from 1-5, then multiply by its weight.
 - **Technical Depth: Prompt/model interaction quality**
   - `backend/api_gateway/services/openrouter.py` — `_USE_CASE_DEFAULTS` (`temperature`, `max_tokens`, `top_p`, optional `frequency_penalty` for drafts), debug logging with `use_case` + model, Prometheus hooks on success/failure paths.
   - `backend/api_gateway/services/llm_prompts.py` — centralized system prompts + **grounding rules** (anti-hallucination) per channel (draft email/LinkedIn, prep JSON/assist, resume analysis, orchestrator).
+  - `backend/api_gateway/services/llm_prompts.py` + `backend/api_gateway/tests/test_llm_prompts.py` — explicit orchestrator response contract (`Summary`, `Recommended Actions`, `Why`, `Next Step`) plus post-generation normalization to enforce shape consistency.
   - `backend/api_gateway/services/draft_service.py` / `prep_generation.py` / `resume_service.py` / `prep_assist_service.py` / `langchain_resume_analysis.py` — prompts imported from `llm_prompts`; LLM calls pass explicit `use_case` into OpenRouter helpers.
   - `backend/api_gateway/tests/test_openrouter_model_routing.py` — asserts `resolve_openrouter_model(use_case)`, payload merging, retries, and circuit-open behavior; see also `test_openrouter_slug.py` for model-id normalization.
 - **Technical Depth: Orchestration and control flow**
@@ -80,12 +81,12 @@ Copy this into your notes/spreadsheet:
 
 Draft filled values:
 
-- Technical Depth avg: `4.13 / 5` -> contribution: `82.5 * 0.20 = 16.5`
+- Technical Depth avg: `4.30 / 5` -> contribution: `86.0 * 0.20 = 17.2`
 - Engineering Practices avg: `3.88 / 5` -> contribution: `77.5 * 0.20 = 15.5`
 - Production Readiness avg: `3.50 / 5` -> contribution: `70.0 * 0.15 = 10.5`
 - Presentation avg: `4.00 / 5` -> contribution: `80.0 * 0.15 = 12.0`
-- **Weighted subtotal (per rubric weights listed): `54.5 / 70`**
-- **Normalized final score: `77.9 / 100`**
+- **Weighted subtotal (per rubric weights listed): `55.2 / 70`**
+- **Normalized final score: `78.9 / 100`**
 
 ## Rating Anchors by Category
 
@@ -117,7 +118,7 @@ Draft filled values:
   - Strong safety posture improvements: user-scoped tenancy, typed error envelopes, idempotency checks, integration tests.
   - Dashboard UX quality significantly improved with cross-breakpoint visual regression coverage.
 - Key risks:
-  - Evaluation strategy for LLM quality is still light (limited quantitative quality benchmarks and acceptance gates).
+  - Evaluation strategy for LLM quality is stronger on structure/reliability than semantic judgment (limited judge-model or human-rated quality benchmarks).
   - Observability is good for events but not yet full production ops (alerts, SLOs, tracing depth).
   - Deployment hardening and rollback playbooks need tighter explicit documentation.
 - Must-fix before production (status):

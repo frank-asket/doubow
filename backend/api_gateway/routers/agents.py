@@ -2,10 +2,11 @@ import asyncio
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from services.generative_quality_rubric import assess_generative_text
 from db.session import get_session
 from dependencies import get_authenticated_user
 from models.chat_thread import ChatThread
@@ -26,7 +27,8 @@ from services.agent_chat_service import (
     recent_thread_transcript,
 )
 from services.agents_service import build_orchestrator_user_context, list_agent_status
-from services.llm_prompts import ORCHESTRATOR_SYSTEM, normalize_orchestrator_response
+from services.llm_prompts import ORCHESTRATOR_SYSTEM, normalize_orchestrator_response_with_meta
+from services.metrics import observe_llm_output_quality
 from services.openrouter import stream_chat_completion_chunks
 
 logger = logging.getLogger(__name__)
@@ -61,15 +63,17 @@ async def status_stream(
 @router.post("/chat")
 async def orchestrator_chat(
     payload: OrchestratorChatRequest,
+    request: Request,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> StreamingResponse:
     """SSE stream compatible with ``streamOrchestratorChat`` in the web client (OpenRouter)."""
 
     logger.debug(
-        "orchestrator_chat user=%s message_chars=%s",
+        "orchestrator_chat user=%s message_chars=%s request_id=%s",
         user.id,
         len(payload.message),
+        getattr(request.state, "request_id", "-"),
     )
     try:
         thread = await ensure_thread_for_user(session=session, user_id=user.id, thread_id=payload.thread_id)
@@ -83,7 +87,11 @@ async def orchestrator_chat(
         await session.commit()
         user_context = await build_orchestrator_user_context(session=session, user_id=user.id)
     except Exception:
-        logger.exception("orchestrator_chat setup failed user=%s", user.id)
+        logger.exception(
+            "orchestrator_chat setup failed user=%s request_id=%s",
+            user.id,
+            getattr(request.state, "request_id", "-"),
+        )
 
         async def setup_error_stream():
             err = json.dumps({"delta": {"text": "(Error) Assistant is temporarily unavailable."}})
@@ -117,7 +125,21 @@ async def orchestrator_chat(
                 use_case="chat",
             ):
                 acc += fragment
-            normalized = normalize_orchestrator_response(acc)
+            if not acc.strip():
+                observe_llm_output_quality(use_case="chat", outcome="empty_raw")
+            normalized, was_normalized = normalize_orchestrator_response_with_meta(acc)
+            observe_llm_output_quality(
+                use_case="chat",
+                outcome="normalized" if was_normalized else "already_structured",
+            )
+            rubric = assess_generative_text(normalized, use_case="chat")
+            observe_llm_output_quality(
+                use_case="chat",
+                outcome="rubric_pass" if rubric.passed else "rubric_fail",
+            )
+            if not rubric.passed:
+                for v in rubric.violations[:3]:
+                    observe_llm_output_quality(use_case="chat", outcome=f"violation_{v.split(' ')[0][:24]}")
             chunk = json.dumps({"delta": {"text": normalized}})
             yield f"data: {chunk}\n\n"
             row = await session.get(ChatThread, thread.id)
@@ -130,7 +152,11 @@ async def orchestrator_chat(
             yield f"data: {err}\n\n"
             yield "data: [DONE]\n\n"
         except Exception:
-            logger.exception("orchestrator_chat stream failed user=%s", user.id)
+            logger.exception(
+                "orchestrator_chat stream failed user=%s request_id=%s",
+                user.id,
+                getattr(request.state, "request_id", "-"),
+            )
             err = json.dumps({"delta": {"text": "(Error) Could not complete response."}})
             yield f"data: {err}\n\n"
             yield "data: [DONE]\n\n"
