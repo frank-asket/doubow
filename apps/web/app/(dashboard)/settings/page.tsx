@@ -1,6 +1,30 @@
 'use client'
 
+import { useCallback, useState } from 'react'
+
+import { ApiError, googleIntegrationsApi, linkedinIntegrationsApi } from '@/lib/api'
+
 export default function SettingsPage() {
+  const [reconnectBusy, setReconnectBusy] = useState<'google' | 'linkedin' | null>(null)
+  const [reconnectError, setReconnectError] = useState<string | null>(null)
+
+  const startReconnect = useCallback(async (provider: 'google' | 'linkedin') => {
+    setReconnectError(null)
+    setReconnectBusy(provider)
+    try {
+      const { authorization_url } =
+        provider === 'google'
+          ? await googleIntegrationsApi.getAuthorizationUrl()
+          : await linkedinIntegrationsApi.getAuthorizationUrl()
+      window.location.assign(authorization_url)
+    } catch (e) {
+      const fallback =
+        provider === 'google' ? 'Could not start Gmail reconnect.' : 'Could not start LinkedIn reconnect.'
+      setReconnectError(e instanceof ApiError ? e.detail : fallback)
+      setReconnectBusy(null)
+    }
+  }, [])
+
   return (
     <div className="mx-auto max-w-7xl space-y-4 bg-[#f5faf8] px-4 py-4 dark:bg-transparent sm:px-6">
       <section className="relative flex flex-col gap-3 border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 bg-white dark:bg-slate-900 p-4 md:flex-row md:items-start md:justify-between">
@@ -14,10 +38,20 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
-        <button className="inline-flex h-8 items-center justify-center border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 px-3 text-[11px] font-semibold uppercase leading-none tracking-[0.06em] text-[#00685f] dark:text-teal-400">
+        <button
+          type="button"
+          onClick={() => void startReconnect('linkedin')}
+          disabled={reconnectBusy !== null}
+          className="inline-flex h-8 items-center justify-center border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 px-3 text-[11px] font-semibold uppercase leading-none tracking-[0.06em] text-[#00685f] dark:text-teal-400 disabled:cursor-not-allowed disabled:opacity-60"
+        >
           Reconnect now
         </button>
       </section>
+      {reconnectError ? (
+        <p className="border border-amber-300/60 bg-amber-50/50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-amber-200" role="alert">
+          {reconnectError}
+        </p>
+      ) : null}
 
       <section className="flex flex-wrap items-end justify-between gap-3 border-b border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 pb-3">
         <div>
@@ -95,7 +129,12 @@ export default function SettingsPage() {
                     <p className="mt-1 text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-[#00685f] dark:text-teal-400">Active &amp; Syncing</p>
                   </div>
                 </div>
-                <button className="h-7 border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 px-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f] dark:text-teal-400">
+                <button
+                  type="button"
+                  onClick={() => void startReconnect('google')}
+                  disabled={reconnectBusy !== null}
+                  className="h-7 border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 px-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f] dark:text-teal-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
                   Reconnect
                 </button>
               </div>
@@ -115,7 +154,12 @@ export default function SettingsPage() {
                     <p className="mt-1 text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-[#D97706]">Re-authentication Required</p>
                   </div>
                 </div>
-                <button className="h-7 bg-[#00685f] px-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                <button
+                  type="button"
+                  onClick={() => void startReconnect('linkedin')}
+                  disabled={reconnectBusy !== null}
+                  className="h-7 bg-[#00685f] px-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
                   Reconnect
                 </button>
               </div>
