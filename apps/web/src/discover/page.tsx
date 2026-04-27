@@ -115,8 +115,13 @@ function CompanyLogo({
 function JobCard({ job }: { job: JobWithScore }) {
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
   const dismissJob = useJobStore((s) => s.dismissJob)
   const queueIdempotencyKey = useMemo(() => crypto.randomUUID(), [])
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   async function handleQueue() {
     setQueuing(true)
@@ -178,7 +183,7 @@ function JobCard({ job }: { job: JobWithScore }) {
             via {channelLabel(job.score.channel_recommendation)}
           </span>
           <span className="text-xs font-medium text-zinc-500">Source: {sourceLabel(job.source)}</span>
-          <span className="text-xs text-zinc-500">{relativeTime(job.discovered_at)}</span>
+          <span className="text-xs text-zinc-500">{isHydrated ? relativeTime(job.discovered_at) : '—'}</span>
         </div>
 
         <div className="rounded-sm border border-[0.5px] bg-zinc-50 p-3 text-xs leading-relaxed text-zinc-700" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
