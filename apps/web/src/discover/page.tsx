@@ -86,18 +86,22 @@ function CompanyLogo({
 }) {
   const [failed, setFailed] = useState(false)
   const initials = company.slice(0, 2).toUpperCase()
+  const safeLogoUrl = useMemo(() => {
+    if (!logoUrl) return logoUrl
+    return logoUrl.replace('job-boards.greenhouse.io', 'boards.greenhouse.io')
+  }, [logoUrl])
 
   useEffect(() => {
     setFailed(false)
-  }, [logoUrl, company])
+  }, [safeLogoUrl, company])
 
-  if (!logoUrl || failed) {
+  if (!safeLogoUrl || failed) {
     return <span className={cn('text-xs font-semibold text-zinc-700', className)}>{initials}</span>
   }
 
   return (
     <img
-      src={logoUrl}
+      src={safeLogoUrl}
       alt={`${company} logo`}
       className={cn('object-contain opacity-90', className)}
       width={imageSize}
