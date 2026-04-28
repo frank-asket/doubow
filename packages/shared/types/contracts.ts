@@ -229,6 +229,11 @@ export type ApprovalDeliveryStatus =
   | 'provider_accepted'
   | 'provider_confirmed'
   | 'failed'
+export type ApprovalConfirmationCopyStatus =
+  | 'pending'
+  | 'delivered'
+  | 'failed'
+  | 'not_applicable'
 
 export interface Approval {
   id: string
@@ -246,6 +251,7 @@ export interface Approval {
   provider_message_id?: string
   provider_thread_id?: string
   provider_confirmed_at?: string
+  confirmation_copy_status?: ApprovalConfirmationCopyStatus
   idempotency_key: string
   created_at: string
 }

@@ -15,6 +15,7 @@ ApprovalDeliveryStatus = Literal[
     "provider_confirmed",
     "failed",
 ]
+ApprovalConfirmationCopyStatus = Literal["pending", "delivered", "failed", "not_applicable"]
 Channel = Literal["email", "linkedin", "company_site"]
 
 
@@ -34,6 +35,7 @@ class Approval(BaseModel):
     provider_message_id: str | None = None
     provider_thread_id: str | None = None
     provider_confirmed_at: datetime | None = None
+    confirmation_copy_status: ApprovalConfirmationCopyStatus = "pending"
     idempotency_key: str
     created_at: datetime
 

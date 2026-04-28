@@ -40,14 +40,17 @@ async def _send_user_confirmation(
         f"Original subject: {subject}\n"
     )
     if via_gmail_token and sender_email:
-        await send_gmail_message(
-            refresh_token_encrypted=via_gmail_token,
-            from_addr=sender_email,
-            to_addr=user_email,
-            subject=confirm_subject,
-            body=confirm_body,
-        )
-        return
+        try:
+            await send_gmail_message(
+                refresh_token_encrypted=via_gmail_token,
+                from_addr=sender_email,
+                to_addr=user_email,
+                subject=confirm_subject,
+                body=confirm_body,
+            )
+            return
+        except Exception:
+            logger.exception("send_stub: gmail confirmation copy failed; falling back to SMTP")
     await send_email_outbound(to_addr=user_email, subject=confirm_subject, body=confirm_body)
 
 
@@ -135,6 +138,9 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
     now = datetime.now(timezone.utc)
     approval.delivery_status = "queued"
     approval.delivery_error = None
+    confirmation_pending = False
+    confirmation_sender_email: str | None = None
+    confirmation_token: str | None = None
 
     try:
         if approval.channel == "email":
@@ -165,10 +171,10 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                             approval.provider_thread_id = None
                             approval.provider_confirmed_at = None
                             approval.delivery_error = None
-                            # Trust semantics: sending outreach/drafts is not the same as
-                            # submitting an application on the employer side.
-                            await session.commit()
-                            return
+                            # Draft created successfully; still send user confirmation copy.
+                            confirmation_pending = True
+                            confirmation_sender_email = gmail_sender_email
+                            confirmation_token = gmail_token
                         except Exception:
                             logger.exception(
                                 "send_stub: gmail draft failed approval_id=%s; falling back to gmail send",
@@ -188,6 +194,9 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                             approval.provider_thread_id = send_res.get("threadId") or None
                             approval.provider_confirmed_at = now
                             approval.sent_at = now
+                            confirmation_pending = True
+                            confirmation_sender_email = gmail_sender_email
+                            confirmation_token = gmail_token
                     else:
                         send_res = await send_gmail_message(
                             refresh_token_encrypted=gmail_row.refresh_token_encrypted,
@@ -203,6 +212,9 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                         approval.provider_thread_id = send_res.get("threadId") or None
                         approval.provider_confirmed_at = now
                         approval.sent_at = now
+                        confirmation_pending = True
+                        confirmation_sender_email = gmail_sender_email
+                        confirmation_token = gmail_token
                 except Exception:
                     logger.exception(
                         "send_stub: gmail failed approval_id=%s user_id=%s; falling back to SMTP/dry-run",
@@ -218,15 +230,9 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                 approval.provider_thread_id = None
                 approval.provider_confirmed_at = None
                 approval.sent_at = now
-            # send confirmation copy to user inbox after successful dispatch
-            await _send_user_confirmation(
-                user_email=user.email,
-                sender_email=gmail_sender_email,
-                via_gmail_token=gmail_token if sent_via_gmail else None,
-                subject=subject,
-                provider=approval.send_provider or "smtp",
-                provider_message_id=approval.provider_message_id,
-            )
+                confirmation_pending = True
+                confirmation_sender_email = None
+                confirmation_token = None
         elif approval.channel == "linkedin":
             li_row = (
                 await session.execute(select(LinkedInOAuthCredential).where(LinkedInOAuthCredential.user_id == user_id))
@@ -275,7 +281,25 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
         await session.commit()
         return
 
-    approval.delivery_error = None
+    if confirmation_pending:
+        try:
+            await _send_user_confirmation(
+                user_email=user.email,
+                sender_email=confirmation_sender_email,
+                via_gmail_token=confirmation_token,
+                subject=subject,
+                provider=approval.send_provider or "smtp",
+                provider_message_id=approval.provider_message_id,
+            )
+        except Exception:
+            # Do not downgrade a successful dispatch solely because confirmation proof failed.
+            logger.exception("send_stub: confirmation copy failed approval_id=%s", approval_id)
+            approval.delivery_error = (
+                f"{approval.delivery_error};confirmation_copy_failed"
+                if approval.delivery_error
+                else "confirmation_copy_failed"
+            )
+
     await session.commit()
 
 

@@ -24,6 +24,7 @@ _ALLOWED_DELIVERY_STATUSES = {
     "failed",
 }
 _ALLOWED_CHANNELS = {"email", "linkedin", "company_site"}
+_ALLOWED_CONFIRMATION_COPY_STATUSES = {"pending", "delivered", "failed", "not_applicable"}
 logger = logging.getLogger(__name__)
 
 
@@ -47,6 +48,18 @@ def _safe_channel(raw: object) -> str:
     return s if s in _ALLOWED_CHANNELS else "email"
 
 
+def _confirmation_copy_status(approval: Approval) -> str:
+    if _safe_channel(approval.channel) != "email":
+        return "not_applicable"
+    err = str(approval.delivery_error or "").lower()
+    if "confirmation_copy_failed" in err:
+        return "failed"
+    status = _safe_delivery_status(approval.delivery_status)
+    if status in {"provider_accepted", "provider_confirmed", "draft_created"}:
+        return "delivered"
+    return "pending"
+
+
 class ApprovalIdempotencyConflictError(Exception):
     def __init__(self, prior_approval_id: str):
         super().__init__(prior_approval_id)
@@ -57,6 +70,7 @@ def build_approval_schema(
     approval: Approval, app: Application, job: Job, score_row: JobScoreRow | None
 ) -> ApprovalSchema:
     app_schema = application_to_schema(app, job, score_row, approval=approval)
+    confirmation_copy_status = _confirmation_copy_status(approval)
     return ApprovalSchema(
         id=approval.id,
         application=app_schema,
@@ -73,6 +87,9 @@ def build_approval_schema(
         provider_message_id=approval.provider_message_id,
         provider_thread_id=approval.provider_thread_id,
         provider_confirmed_at=approval.provider_confirmed_at,
+        confirmation_copy_status=(
+            confirmation_copy_status if confirmation_copy_status in _ALLOWED_CONFIRMATION_COPY_STATUSES else "pending"
+        ),  # type: ignore[arg-type]
         idempotency_key=approval.idempotency_key or f"approval-{approval.id}",
         created_at=approval.created_at,
     )
