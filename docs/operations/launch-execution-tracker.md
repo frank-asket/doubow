@@ -3,6 +3,7 @@
 Operational companion to:
 
 - `docs/operations/launch-go-no-go-checklist.md`
+- `docs/operations/oauth-hardening-reconnect-runbook.md`
 
 Use this file to execute each gate in order and track evidence links + owner signoff.
 
@@ -268,6 +269,31 @@ Owner: _(fill)_
 | P1-6 Monitoring readiness | YELLOW | Metrics/readiness are healthy, Sentry env is configured, and ingest endpoint accepted test event (`9a7a6491da804b03a693cd1271df446b`); still need alert routing + timed drill evidence | |
 
 Decision: **NO-GO** (until all P0 green and P1 green)
+
+---
+
+## Step 7 — OAuth hardening + reconnect reliability
+
+Goal:
+
+- Rotated OAuth secrets in production
+- Gmail and LinkedIn reconnect pass end-to-end
+- No immediate re-auth loop after successful reconnect
+
+Execution:
+
+1. Run `docs/operations/oauth-hardening-reconnect-runbook.md` from top to bottom.
+2. Complete API preflight for `/v1/integrations/{google,linkedin}/{status,authorize}`.
+3. Complete UI reconnect flow in production settings page.
+4. Complete functional verification with one Gmail send and one LinkedIn handoff.
+5. Capture callback query outcomes and final `/status` evidence.
+
+Status: **RED**  
+Evidence:
+
+- Pending: explicit secret rotation event and reconnect signoff in production.
+
+Owner: _(fill)_
 
 ---
 
