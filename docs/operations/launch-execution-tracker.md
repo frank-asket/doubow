@@ -30,8 +30,8 @@ Scope: Days 15-21 launch-readiness closure.
 | 15 | Durable background mode cutover | COMPLETE | 2026-04-28 verification passed: `GET /ready` now reports `background_durability.send_mode=celery`, `autopilot_mode=celery`, `allow_inprocess_fallback_in_production=false`, `enqueue=ok` on `https://doubow-production.up.railway.app/ready`. |
 | 16 | Authenticated reliability reruns (P0-1) | COMPLETE (PARTIAL PASS) | 2026-04-28 rerun with fresh token: `auth-probe` passed (`200` on all auth-path endpoints; `0` 5xx). `launch-probe` (`iterations=20`) showed `0.00%` 5xx across all core routes but sampled `401` responses as token lifetime elapsed mid-run; additional long-lived authenticated sample still required for strict P0-1 signoff. |
 | 17 | Authenticated latency reruns (P1-4) | COMPLETE (FAILED) | 2026-04-28 ran A/B/C probe samples (`iterations=10` each). All three runs had `5xx=0.00%`, but all responses were `401`, so measurements are unauthorized and not valid for authenticated latency signoff. |
-| 18 | Monitoring drill + alert routing (P1-6) | IN_PROGRESS | Day 18 tooling/runbook added: `scripts/monitoring_drill_report.py` + `make -C backend monitoring-drill-report` + `docs/operations/day18-monitoring-drill-runbook.md`. Pending live drill timestamps + alert thread evidence to close. |
-| 19 | Data safety ops review (P1-5) | IN_PROGRESS | Added Day 19 template + evidence artifact: `docs/operations/day19-data-safety-ops-review-template.md` and `docs/operations/evidence/day19-data-safety-ops-review.md`. Pending live review completion + reviewer/approver signoff. |
+| 18 | Monitoring drill + alert routing (P1-6) | IN_PROGRESS (BLOCKED: external alert evidence) | Day 18 tooling/runbook added: `scripts/monitoring_drill_report.py` + `make -C backend monitoring-drill-report` + `docs/operations/day18-monitoring-drill-runbook.md`. Snapshot captured in `docs/operations/evidence/day18-monitoring-drill.md`; still needs live alert timestamp/thread evidence from on-call systems. |
+| 19 | Data safety ops review (P1-5) | IN_PROGRESS (BLOCKED: external support/Sentry access) | Added Day 19 template + evidence artifact: `docs/operations/day19-data-safety-ops-review-template.md` and `docs/operations/evidence/day19-data-safety-ops-review.md`. Autonomous prep pass filled available baseline; final reviewer/approver signoff still requires support/Sentry/incident system checks. |
 | 20 | OAuth hardening signoff (Step 7) | TODO | Complete reconnect runbook evidence and provider-scope signoff. |
 | 21 | Final gate reconciliation + decision | TODO | Align tracker/checklist owners and finalize GO/NO-GO decision packet. |
 
@@ -337,6 +337,8 @@ Evidence:
 - 2026-04-26 production DB check (Railway): `current_user=postgres`, `is_superuser=False`; RLS enabled on `users`, `resumes`, `jobs`, `job_scores`, `applications`, `approvals`, `chat_threads`, `chat_messages`; tenant policies present on core per-user tables.
 - 2026-04-28 Day 19 implementation pass: created repeatable ops review template (`docs/operations/day19-data-safety-ops-review-template.md`) and initialized evidence artifact (`docs/operations/evidence/day19-data-safety-ops-review.md`) to capture support/log anomaly review + signoff.
 - Remaining to close GREEN: complete live review checklist entries for support/log/Sentry/Railway windows and fill reviewer + approver signoff in evidence artifact.
+- Execution note: once live evidence fields are filled in `docs/operations/evidence/day19-data-safety-ops-review.md`, flip Step 5 status to `GREEN` and update final scorecard P1-5 row from `RED` to `GREEN`.
+- 2026-04-28 autonomous follow-up: baseline evidence fields were pre-filled where workspace-verifiable; unresolved items are explicitly marked blocked pending external support/Sentry visibility and human approver signoff.
 
 Owner: _(fill)_
 
@@ -363,6 +365,8 @@ Evidence:
 - 2026-04-26 Sentry ingest drill: envelope POST to `https://o4511288403034112.ingest.us.sentry.io/api/4511288475779072/envelope/` returned `200`; test event id `9a7a6491da804b03a693cd1271df446b` with tag `launch-drill-20260426-215121-9a7a6491`.
 - 2026-04-28 Day 18 implementation pass: added reusable drill evidence tooling (`scripts/monitoring_drill_report.py`) and Make target (`make -C backend monitoring-drill-report`) to capture `/healthz`, `/ready`, `/metrics` snapshot and compute detection latency from drill timestamps; runbook added at `docs/operations/day18-monitoring-drill-runbook.md`.
 - Alert routing thread evidence and one live timed drill run are still required for GREEN.
+- Execution note: once `docs/operations/evidence/day18-monitoring-drill.md` has live incident/alert timestamps, on-call owner, and evidence links with detection <=10m, flip Step 6 status to `GREEN` and update final scorecard P1-6 row from `RED` to `GREEN`.
+- 2026-04-28 autonomous follow-up: Day 18 evidence file now includes explicit blocker annotations where external alerting systems are required; no fabricated timestamps were added.
 
 Owner: _(fill)_
 

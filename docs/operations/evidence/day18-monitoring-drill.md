@@ -3,6 +3,25 @@
 - Generated at (UTC): `2026-04-28T18:59:46Z`
 - Detection latency: `N/A` (set both --incident-started-at and --alert-detected-at)
 
+## Live Drill Fill-In
+
+- Incident started at (UTC): `N/A (external alert trigger not executed from this workspace)`
+- Alert detected at (UTC): `N/A (requires Slack/PagerDuty visibility)`
+- On-call owner: `UNASSIGNED`
+- Detection latency result: `N/A`
+- Threshold check (<=10m): `BLOCKED`
+
+## Alert Routing Evidence
+
+- Alert notification thread/link: `N/A (not accessible from current workspace tools)`
+- Dashboard link/screenshot: `Pending operator attachment`
+- Incident channel summary link: `N/A (not accessible from current workspace tools)`
+
+## Notes
+
+- 2026-04-28 autonomous pass completed snapshot capture and evidence template wiring.
+- Final Day 18 GREEN signoff remains blocked on external alert-routing proof and timed drill timestamps from on-call systems.
+
 ## Endpoint Snapshot
 
 | Endpoint | Status | Latency (ms) | Key notes |
