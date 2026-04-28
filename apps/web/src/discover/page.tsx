@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { Route } from 'next'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
@@ -41,6 +42,34 @@ import { useDashboard } from '../../hooks/useDashboard'
 import type { JobWithScore } from '@doubow/shared'
 
 const MotionLink = motion(Link)
+
+function AnimatedMetricValue({
+  value,
+  className,
+}: {
+  value: string
+  className?: string
+}) {
+  const prefersReducedMotion = useReducedMotion()
+  if (prefersReducedMotion) {
+    return <span className={cn('inline-flex', className)}>{value}</span>
+  }
+  return (
+    <span className={cn('inline-flex', className)}>
+      <AnimatePresence initial={false} mode="wait">
+        <motion.span
+          key={value}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  )
+}
 
 const DIMENSION_LABELS: Record<string, string> = {
   tech: 'Tech match', culture: 'Culture', seniority: 'Seniority', comp: 'Compensation', location: 'Location',
@@ -237,7 +266,7 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
         {/* Actions */}
         <div className="mt-3 flex items-center gap-3">
           <MotionLink
-            href={`/discover/${job.id}`}
+            href={`/discover/${job.id}` as Route}
             {...ctaMotion}
             className={cn(
               'inline-flex h-9 flex-1 items-center justify-center gap-1 border border-[0.5px] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors',
@@ -388,7 +417,7 @@ function CatalogFeaturedMatch({ job, motionEnabled }: { job: JobWithScore; motio
           <BookOpen size={12} />
           Interview prep
         </MotionLink>
-        <MotionLink href={`/discover/${job.id}`} {...ctaMotion} className="btn text-xs inline-flex items-center gap-1.5">
+        <MotionLink href={`/discover/${job.id}` as Route} {...ctaMotion} className="btn text-xs inline-flex items-center gap-1.5">
           View details
         </MotionLink>
         <motion.a
@@ -949,7 +978,9 @@ function DiscoverPageContent() {
               {precisionMode ? 'Global FitScore' : 'Your Fit Index'}
             </p>
             <p className="text-2xl font-bold text-teal-700">
-              {summary?.avg_fit_score != null ? `${(summary.avg_fit_score * 20).toFixed(1)}` : '—'}
+              <AnimatedMetricValue
+                value={summary?.avg_fit_score != null ? `${(summary.avg_fit_score * 20).toFixed(1)}` : '—'}
+              />
             </p>
             <p className="text-[10px] text-zinc-500">
               {precisionMode
@@ -963,9 +994,11 @@ function DiscoverPageContent() {
           <div className="flex items-center justify-between">
             <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
               <Compass size={13} className="text-teal-600" />
-              {precisionMode
-                ? `${filteredJobs.length} precision matches via DiscoveryAgent`
-                : `${filteredJobs.length} active opportunities found`}
+              <AnimatedMetricValue
+                className="min-w-[1ch]"
+                value={String(filteredJobs.length)}
+              />
+              {precisionMode ? ' precision matches via DiscoveryAgent' : ' active opportunities found'}
             </p>
             <p className="text-xs text-zinc-600">
               Sort:{' '}
@@ -977,12 +1010,25 @@ function DiscoverPageContent() {
         </div>
       </section>
 
-      {showFeaturedCard && topMatch ? <CatalogFeaturedMatch job={topMatch} motionEnabled={motionEnabled} /> : null}
+      <AnimatePresence initial={false} mode="wait">
+        {showFeaturedCard && topMatch ? (
+          <motion.div
+            key={`featured-${topMatch.id}`}
+            layout={motionEnabled}
+            variants={motionEnabled ? fadeInUpVariants : undefined}
+            initial={motionEnabled ? 'hidden' : false}
+            animate={motionEnabled ? 'visible' : undefined}
+            exit={motionEnabled ? 'exit' : undefined}
+          >
+            <CatalogFeaturedMatch job={topMatch} motionEnabled={motionEnabled} />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {/* Job list */}
       <div className="mb-3 flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-          Top matches · {jobsForList.length} in list
+          Top matches · <AnimatedMetricValue className="mx-1" value={String(jobsForList.length)} /> in list
           {showFeaturedCard ? ' · spotlight above' : ''}
         </p>
       </div>
