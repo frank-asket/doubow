@@ -137,19 +137,22 @@ Fail condition:
 
 | Gate | Status (Green/Red) | Evidence link | Owner |
 |---|---|---|---|
-| P0-1 Core API reliability |  |  |  |
-| P0-2 Auth/session health |  |  |  |
-| P0-3 Critical journey success |  |  |  |
-| P1-4 Latency thresholds |  |  |  |
-| P1-5 Data safety/tenancy |  |  |  |
-| P1-6 Monitoring readiness |  |  |  |
+| P0-1 Core API reliability | Red | `docs/operations/launch-execution-tracker.md` (Step 1: authenticated window evidence still incomplete) | _(fill)_ |
+| P0-2 Auth/session health | Green | `docs/operations/launch-execution-tracker.md` (Step 2: fresh-token probe all 200) | _(fill)_ |
+| P0-3 Critical journey success | Green | `docs/operations/launch-execution-tracker.md` + `docs/operations/evidence/day12-cold-run/` (strict cold runs 8-10 pass) | _(fill)_ |
+| P1-4 Latency thresholds | Red | `docs/operations/launch-execution-tracker.md` (needs authenticated 2xx p95 reruns A/B/C) | _(fill)_ |
+| P1-5 Data safety/tenancy | Red | `docs/operations/launch-execution-tracker.md` (support-log anomaly review pending) | _(fill)_ |
+| P1-6 Monitoring readiness | Red | `docs/operations/launch-execution-tracker.md` (alert routing + timed drill pending) | _(fill)_ |
 
 Final decision:
 
-- **GO / NO-GO:** ________
-- Date/time:
-- Incident commander:
+- **GO / NO-GO:** **NO-GO**
+- Date/time: **2026-04-28**
+- Incident commander: _(fill)_
 - Notes:
+  - Public launch blocked pending remaining red gates.
+  - Explicit Day 14 production decision: require Celery durable background mode for launch; current production `/ready` reports `inprocess` for send/autopilot.
+  - Reference handoff: `docs/operations/day14-release-gate-handoff.md`.
 
 ---
 

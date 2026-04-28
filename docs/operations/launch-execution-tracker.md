@@ -45,6 +45,7 @@ Week 2 progress note:
 - Day 11 guardrail pack started: added targeted durability/authz/health test suite and explicit CI guardrail step for these files.
 - Day 12 cold-session validation + evidence completed: strict cold runs (8-10) passed with approvals rendering fix and artifacts linked at `docs/operations/evidence/day12-cold-run/`.
 - Day 13 metrics review + copy polish completed: production snapshots on 2026-04-28 show `/ready={"status":"ready","postgres":"ok","redis":"ok","background_durability":{"send_mode":"inprocess","autopilot_mode":"inprocess","allow_inprocess_fallback_in_production":false,"enqueue":"ok"}}` and `/metrics` responded `200` in `0.514s`; user-facing discover copy was tightened for clarity (`apps/web/src/discover/page.tsx`).
+- Day 14 release gate + handoff completed: formal decision artifact captured in `docs/operations/day14-release-gate-handoff.md` with explicit production background-mode decision (**require Celery durable mode before GO**) and operator action checklist.
 
 On-call quick verification:
 
@@ -318,14 +319,17 @@ Owner: _(fill)_
 
 | Gate | Status | Evidence | Owner |
 |---|---|---|---|
-| P0-1 Core API reliability | YELLOW | Latest launch-probe (20 iterations) shows 0.00% 5xx and GO, but sample set was unauthorized (`401`) and not yet validated over a full 48-72h authenticated window | |
+| P0-1 Core API reliability | RED | Latest launch-probe (20 iterations) shows 0.00% 5xx and GO, but sample set was unauthorized (`401`) and not yet validated over a full 48-72h authenticated window | |
 | P0-2 Auth/session health | GREEN | Fresh-token one-shot probe after schema repair: `/v1/me/debug`, `/v1/me/applications`, `/v1/me/approvals`, `/v1/agents/chat` all `200` with 0 auth-path 5xx | |
-| P0-3 Critical journey success | YELLOW | Runs **8–10** verified as strict cold-session passes (sign-out + auth redirect + full post-login sequence + assistant send/stream), with evidence bundle attached at `docs/operations/evidence/day12-cold-run/`; ready for owner signoff. | |
-| P1-4 Latency thresholds | YELLOW | P95s from 20-iteration run are within thresholds (jobs 616ms, applications 621ms, approvals 554ms, agents first/full 565ms), but measured on unauthorized (`401`) traffic, so authenticated 2xx latency evidence is still pending | |
-| P1-5 Data safety/tenancy | YELLOW | Isolation tests pass and production RLS/role checks pass; remaining item is explicit support/log review for cross-user anomalies | |
-| P1-6 Monitoring readiness | YELLOW | Metrics/readiness are healthy, Sentry env is configured, and ingest endpoint accepted test event (`9a7a6491da804b03a693cd1271df446b`); still need alert routing + timed drill evidence | |
+| P0-3 Critical journey success | GREEN | Runs **8–10** verified as strict cold-session passes (sign-out + auth redirect + full post-login sequence + assistant send/stream), with evidence bundle attached at `docs/operations/evidence/day12-cold-run/`. | |
+| P1-4 Latency thresholds | RED | P95s from 20-iteration run are within thresholds (jobs 616ms, applications 621ms, approvals 554ms, agents first/full 565ms), but measured on unauthorized (`401`) traffic, so authenticated 2xx latency evidence is still pending | |
+| P1-5 Data safety/tenancy | RED | Isolation tests pass and production RLS/role checks pass; remaining item is explicit support/log review for cross-user anomalies | |
+| P1-6 Monitoring readiness | RED | Metrics/readiness are healthy, Sentry env is configured, and ingest endpoint accepted test event (`9a7a6491da804b03a693cd1271df446b`); still need alert routing + timed drill evidence | |
 
 Decision: **NO-GO** (until all P0 green and P1 green)
+
+Background mode release decision: **NO-GO while `/ready` reports `send_mode=inprocess` and `autopilot_mode=inprocess` in production.**  
+Launch GO requires durable mode (`send_mode=celery`, `autopilot_mode=celery`) with `enqueue=ok` and worker health evidence.
 
 ---
 
