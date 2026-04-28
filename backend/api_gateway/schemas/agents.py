@@ -30,7 +30,7 @@ class ChatThreadSummaryResponse(BaseModel):
 
 class ChatMessageResponse(BaseModel):
     id: str
-    role: Literal["user", "assistant"]
+    role: Literal["user", "assistant", "tool"]
     content: str
     created_at: str
 

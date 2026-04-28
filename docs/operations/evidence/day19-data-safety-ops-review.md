@@ -6,8 +6,8 @@
 - Window start (UTC): `2026-04-28T18:30:00Z`
 - Window end (UTC): `2026-04-28T19:08:00Z`
 - Support search links: `N/A (support system not accessible from workspace tools)`
-- Sentry query links: `N/A (requires Sentry UI access/session)`
-- Railway/app log query links: `Pending operator links/screenshots`
+- Sentry query links: `https://sentry.io/api/0/projects/doubow/python-fastapi/events/?statsPeriod=14d&query=message%3Aauth%20OR%20message%3Atoken%20OR%20message%3Aissuer`, `https://sentry.io/api/0/projects/doubow/python-fastapi/events/?statsPeriod=14d&query=message%3Auser%20message%3Amismatch`, `https://sentry.io/api/0/projects/doubow/python-fastapi/events/?statsPeriod=14d&query=message%3Apermission%20OR%20message%3Aforbidden`, `https://sentry.io/api/0/projects/doubow/python-fastapi/events/?statsPeriod=14d&query=message%3Across%20message%3Atenant`
+- Railway/app log query links: `Pending operator links/screenshots (not accessible via Sentry API token)`
 
 ## Scope
 
@@ -37,7 +37,9 @@ Reference template:
 - Status: `PENDING LIVE REVIEW`
 - Notes:
   - Baseline checks and evidence structure are complete.
-  - Final signoff is pending human review in support/Sentry/incident systems that are not accessible from this workspace.
+  - Sentry API review for the 14d window returned `0` events for targeted cross-tenant/auth-mismatch query set.
+  - Notable 14d issues still present (operational, not cross-tenant evidence): auth provider unavailable, OAuth invalid_grant/code verifier, LinkedIn OAuth config, launch drill test event.
+  - Final signoff is pending human review in support/incident systems that are not accessible from this workspace.
 
 ## Live Review Summary (required for GREEN)
 

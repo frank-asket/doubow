@@ -30,12 +30,53 @@ Scope: Days 15-21 launch-readiness closure.
 | 15 | Durable background mode cutover | COMPLETE | 2026-04-28 verification passed: `GET /ready` now reports `background_durability.send_mode=celery`, `autopilot_mode=celery`, `allow_inprocess_fallback_in_production=false`, `enqueue=ok` on `https://doubow-production.up.railway.app/ready`. |
 | 16 | Authenticated reliability reruns (P0-1) | COMPLETE (PARTIAL PASS) | 2026-04-28 rerun with fresh token: `auth-probe` passed (`200` on all auth-path endpoints; `0` 5xx). `launch-probe` (`iterations=20`) showed `0.00%` 5xx across all core routes but sampled `401` responses as token lifetime elapsed mid-run; additional long-lived authenticated sample still required for strict P0-1 signoff. |
 | 17 | Authenticated latency reruns (P1-4) | COMPLETE (FAILED) | 2026-04-28 ran A/B/C probe samples (`iterations=10` each). All three runs had `5xx=0.00%`, but all responses were `401`, so measurements are unauthorized and not valid for authenticated latency signoff. |
-| 18 | Monitoring drill + alert routing (P1-6) | IN_PROGRESS (BLOCKED: external alert evidence) | Day 18 tooling/runbook added: `scripts/monitoring_drill_report.py` + `make -C backend monitoring-drill-report` + `docs/operations/day18-monitoring-drill-runbook.md`. Snapshot captured in `docs/operations/evidence/day18-monitoring-drill.md`; still needs live alert timestamp/thread evidence from on-call systems. |
-| 19 | Data safety ops review (P1-5) | IN_PROGRESS (BLOCKED: external support/Sentry access) | Added Day 19 template + evidence artifact: `docs/operations/day19-data-safety-ops-review-template.md` and `docs/operations/evidence/day19-data-safety-ops-review.md`. Autonomous prep pass filled available baseline; final reviewer/approver signoff still requires support/Sentry/incident system checks. |
+| 18 | Monitoring drill + alert routing (P1-6) | IN_PROGRESS (PARTIAL PASS) | Day 18 tooling/runbook added: `scripts/monitoring_drill_report.py` + `make -C backend monitoring-drill-report` + `docs/operations/day18-monitoring-drill-runbook.md`. Sentry API now confirms drill issue/event timing (`issue 7443338682`) and alert rule presence (`rule 16968434`); remaining gap is explicit human on-call acknowledgement evidence. |
+| 19 | Data safety ops review (P1-5) | IN_PROGRESS (PARTIAL PASS) | Added Day 19 template + evidence artifact: `docs/operations/day19-data-safety-ops-review-template.md` and `docs/operations/evidence/day19-data-safety-ops-review.md`. Sentry 14d targeted anomaly queries returned `0` results for cross-tenant/auth-mismatch patterns; final reviewer/approver signoff still requires support + incident channel checks. |
 | 20 | OAuth hardening signoff (Step 7) | TODO | Complete reconnect runbook evidence and provider-scope signoff. |
 | 21 | Final gate reconciliation + decision | TODO | Align tracker/checklist owners and finalize GO/NO-GO decision packet. |
 
 ---
+
+### Week 4 execution kickoff (parallel to remaining Week 3 evidence blockers)
+
+Scope: Days 22+ execution can proceed in parallel, while Day 16/17 authenticated token-window evidence remains open.
+
+| Day | Focus | Status | Evidence |
+|---|---|---|---|
+| 22 | Launch readiness hardening kickoff (parallel stream) | IN_PROGRESS | Week 4 kickoff artifacts created: `docs/operations/week4-execution-plan.md` and `docs/operations/day21-launch-decision-packet-draft.md`; Week 3 blockers retained as carry-over prerequisites for final GO. |
+
+Day 22 scope (concrete kickoff):
+
+- Establish a parallel execution lane that improves launch resilience without waiting on token-window availability.
+- Keep Day 16/17 as explicit carry-over blockers, but prevent schedule stall by progressing ops/compliance/documentation closure.
+- Produce a single owner-visible worklist for the next 24 hours with acceptance criteria.
+
+Day 22 tasks:
+
+1. Reliability evidence lane:
+   - Keep a ready-to-run command block for Day 16/17 reruns (`auth-probe` + `launch-probe` + latency A/B/C) and execute immediately when a long-lived token is available.
+   - Owner: Engineering (API)
+2. Ops signoff lane:
+   - Close remaining Day 18/19 human signoff gaps (on-call acknowledgement link + reviewer/approver completion).
+   - Owner: On-call / Incident commander
+3. OAuth closure lane:
+   - Prepare final Step 7 production signoff packet (secret-rotation record + reconnect verification links).
+   - Owner: Integrations/Ops
+4. Decision packet lane:
+   - Pre-draft Day 21 reconciliation update so only final gate flips are pending once evidence lands.
+   - Owner: Release manager
+
+Day 22 definition of done:
+
+- Week 4 kickoff is active with owners assigned and tasks tracked in this file.
+- Day 16/17 rerun command path is ready and documented as immediate-execute on token availability.
+- Day 18/19 evidence files are fully wired with only external signoff fields remaining.
+- A pre-finalized launch decision packet draft exists with clearly marked remaining blockers (no ambiguity on GO prerequisites).
+
+Carry-over blockers (must still be closed for launch GO):
+
+- Day 16: one full-window authenticated `2xx` reliability run.
+- Day 17: authenticated latency A/B/C with valid `2xx` samples.
 
 ### Week 1 execution closure (engineering sprint)
 
@@ -339,6 +380,7 @@ Evidence:
 - Remaining to close GREEN: complete live review checklist entries for support/log/Sentry/Railway windows and fill reviewer + approver signoff in evidence artifact.
 - Execution note: once live evidence fields are filled in `docs/operations/evidence/day19-data-safety-ops-review.md`, flip Step 5 status to `GREEN` and update final scorecard P1-5 row from `RED` to `GREEN`.
 - 2026-04-28 autonomous follow-up: baseline evidence fields were pre-filled where workspace-verifiable; unresolved items are explicitly marked blocked pending external support/Sentry visibility and human approver signoff.
+- 2026-04-28 Sentry API pass: org/project resolved (`doubow/python-fastapi`), and 14-day targeted queries for `auth/token/issuer`, `user mismatch`, `permission/forbidden`, and `cross tenant` returned `0` events; evidence links captured in `docs/operations/evidence/day19-data-safety-ops-review.md`.
 
 Owner: _(fill)_
 
@@ -367,6 +409,7 @@ Evidence:
 - Alert routing thread evidence and one live timed drill run are still required for GREEN.
 - Execution note: once `docs/operations/evidence/day18-monitoring-drill.md` has live incident/alert timestamps, on-call owner, and evidence links with detection <=10m, flip Step 6 status to `GREEN` and update final scorecard P1-6 row from `RED` to `GREEN`.
 - 2026-04-28 autonomous follow-up: Day 18 evidence file now includes explicit blocker annotations where external alerting systems are required; no fabricated timestamps were added.
+- 2026-04-28 Sentry API pass: validated drill issue `https://doubow.sentry.io/issues/7443338682/` with `firstSeen=2026-04-26T21:51:21.850596Z`, event id `9a7a6491da804b03a693cd1271df446b`, and project alert rule `16968434` ("Send a notification for high priority issues"); pending only explicit on-call acknowledgement thread evidence.
 
 Owner: _(fill)_
 

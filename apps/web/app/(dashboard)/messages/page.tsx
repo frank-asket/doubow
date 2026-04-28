@@ -24,6 +24,46 @@ type ChatMessage = {
   timeLabel?: string
 }
 
+type ToolActivity = {
+  id: string
+  name: string
+  arguments?: Record<string, unknown>
+  status: 'running' | 'done' | 'failed'
+  summary?: string
+}
+
+function parsePersistedToolActivity(messageId: string, content: string): ToolActivity | null {
+  try {
+    const parsed = JSON.parse(content) as {
+      kind?: unknown
+      name?: unknown
+      arguments?: Record<string, unknown>
+      ok?: unknown
+      summary?: unknown
+    }
+    if (typeof parsed.name !== 'string') return null
+    if (parsed.kind === 'tool_call') {
+      return {
+        id: messageId,
+        name: parsed.name,
+        arguments: parsed.arguments,
+        status: 'running',
+      }
+    }
+    if (parsed.kind === 'tool_result') {
+      return {
+        id: messageId,
+        name: parsed.name,
+        status: parsed.ok === false ? 'failed' : 'done',
+        summary: typeof parsed.summary === 'string' ? parsed.summary : undefined,
+      }
+    }
+  } catch {
+    /* ignore malformed legacy tool payload */
+  }
+  return null
+}
+
 type AgentTask = {
   id: string
   title: string
@@ -154,6 +194,7 @@ export default function MessagesPage() {
   const [hydratedChatThreadId, setHydratedChatThreadId] = useState<string | null>(null)
   const [hasMoreChat, setHasMoreChat] = useState(false)
   const [loadingOlder, setLoadingOlder] = useState(false)
+  const [toolActivity, setToolActivity] = useState<ToolActivity[]>([])
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
 
@@ -265,19 +306,40 @@ export default function MessagesPage() {
 
   useEffect(() => {
     setHydratedChatThreadId(null)
+    setToolActivity([])
   }, [threadId])
 
   useEffect(() => {
     if (!threadId || !backendThreadDetail) return
     if (backendThreadDetail.thread.id !== threadId) return
     if (hydratedChatThreadId === threadId) return
-    setMessages(
-      (backendThreadDetail.messages ?? []).map((m) => ({
+    const all = backendThreadDetail.messages ?? []
+    const visible = all
+      .filter((m) => m.role !== 'tool')
+      .map((m) => ({
         id: m.id,
         role: m.role === 'assistant' ? 'assistant' : 'user',
         text: m.content,
-      })),
-    )
+      }))
+    const persistedTool = all
+      .filter((m) => m.role === 'tool')
+      .map((m) => parsePersistedToolActivity(m.id, m.content))
+      .filter((m): m is ToolActivity => Boolean(m))
+    const grouped: ToolActivity[] = []
+    for (const item of persistedTool) {
+      if (item.status === 'running') {
+        grouped.push(item)
+        continue
+      }
+      const idx = [...grouped]
+        .map((g, i) => ({ g, i }))
+        .reverse()
+        .find(({ g }) => g.name === item.name && g.status === 'running')?.i
+      if (idx == null) grouped.push(item)
+      else grouped[idx] = { ...grouped[idx], status: item.status, summary: item.summary }
+    }
+    setMessages(visible)
+    setToolActivity(grouped)
     setHasMoreChat(Boolean(backendThreadDetail.has_more_messages))
     setHydratedChatThreadId(threadId)
   }, [threadId, backendThreadDetail, hydratedChatThreadId])
@@ -295,8 +357,15 @@ export default function MessagesPage() {
         id: m.id,
         role: m.role === 'assistant' ? ('assistant' as const) : ('user' as const),
         text: m.content,
-      }))
+      })).filter((m, idx) => page.messages[idx].role !== 'tool')
+      const olderTool = page.messages
+        .filter((m) => m.role === 'tool')
+        .map((m) => parsePersistedToolActivity(m.id, m.content))
+        .filter((m): m is ToolActivity => Boolean(m))
       setMessages((current) => [...older, ...current])
+      if (olderTool.length) {
+        setToolActivity((current) => [...olderTool, ...current])
+      }
       setHasMoreChat(Boolean(page.has_more_messages))
     } finally {
       setLoadingOlder(false)
@@ -351,6 +420,48 @@ export default function MessagesPage() {
           if (meta.thread_id && !threadId) {
             setThreadId(meta.thread_id)
           }
+        },
+        onToolEvent: (event) => {
+          setToolActivity((current) => {
+            if (event.type === 'tool_call') {
+              sequenceRef.current += 1
+              const id = `tool-${sequenceRef.current}`
+              return [
+                ...current,
+                {
+                  id,
+                  name: event.name,
+                  arguments: event.arguments,
+                  status: 'running',
+                },
+              ]
+            }
+            const idx = [...current]
+              .map((item, i) => ({ i, item }))
+              .reverse()
+              .find(({ item }) => item.name === event.name && item.status === 'running')?.i
+            if (idx == null) {
+              sequenceRef.current += 1
+              return [
+                ...current,
+                {
+                  id: `tool-${sequenceRef.current}`,
+                  name: event.name,
+                  status: event.ok ? 'done' : 'failed',
+                  summary: event.summary,
+                },
+              ]
+            }
+            return current.map((item, i) =>
+              i === idx
+                ? {
+                    ...item,
+                    status: event.ok ? 'done' : 'failed',
+                    summary: event.summary,
+                  }
+                : item,
+            )
+          })
         },
       },
       () => {
@@ -425,6 +536,59 @@ export default function MessagesPage() {
                   <p className="mt-1 text-[13px] text-zinc-600 dark:text-slate-400">
                     Replies stream from your Doubow backend. Pick a prompt below or type your own.
                   </p>
+                </div>
+              ) : null}
+
+              {toolActivity.length ? (
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-slate-700 dark:bg-slate-800/40">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-slate-300">
+                      Tool Activity
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setToolActivity((current) => current.filter((item) => item.status === 'running'))
+                      }
+                      disabled={!toolActivity.some((item) => item.status !== 'running')}
+                      className="rounded border border-zinc-300 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      Clear completed
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {toolActivity.slice(-6).map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-start justify-between gap-2 rounded border border-zinc-200 bg-white px-2.5 py-1.5 text-[12px] dark:border-slate-700 dark:bg-slate-900"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-zinc-800 dark:text-slate-100">
+                            {item.name}
+                            {item.arguments && Object.keys(item.arguments).length ? (
+                              <span className="ml-1 font-normal text-zinc-500 dark:text-slate-300">
+                                {JSON.stringify(item.arguments)}
+                              </span>
+                            ) : null}
+                          </p>
+                          {item.summary ? (
+                            <p className="truncate text-zinc-500 dark:text-slate-300">{item.summary}</p>
+                          ) : null}
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                            item.status === 'running'
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                              : item.status === 'done'
+                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
+                                : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 

@@ -77,13 +77,15 @@ def _trim_transcript_by_chars(chronological: list[ChatMessage], max_chars: int) 
     if max_chars <= 0 or not chronological:
         return chronological
 
+    visible = [m for m in chronological if m.role in ("user", "assistant")]
+
     def _line_len(m: ChatMessage) -> int:
         role = "Assistant" if m.role == "assistant" else "User"
         return len(f"{role}: {m.content}") + 1
 
-    while chronological and sum(_line_len(m) for m in chronological) > max_chars:
-        chronological.pop(0)
-    return chronological
+    while visible and sum(_line_len(m) for m in visible) > max_chars:
+        visible.pop(0)
+    return visible
 
 
 async def recent_thread_transcript(
@@ -104,7 +106,7 @@ async def recent_thread_transcript(
     ).scalars().all()
     if not rows:
         return ""
-    chronological = list(reversed(rows))
+    chronological = [m for m in reversed(rows) if m.role in ("user", "assistant")]
     chronological = _trim_transcript_by_chars(chronological, max_chars)
     parts: list[str] = []
     for item in chronological:
@@ -173,7 +175,7 @@ async def get_chat_thread_for_user(
         messages=[
             ChatMessageResponse(
                 id=m.id,
-                role="assistant" if m.role == "assistant" else "user",
+                role="assistant" if m.role == "assistant" else ("tool" if m.role == "tool" else "user"),
                 content=m.content,
                 created_at=_iso(m.created_at),
             )

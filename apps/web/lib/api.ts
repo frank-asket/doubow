@@ -309,7 +309,7 @@ export type ChatThreadSummary = {
 
 export type ChatThreadMessage = {
   id: string
-  role: 'user' | 'assistant'
+  role: 'user' | 'assistant' | 'tool'
   content: string
   created_at: string
 }
@@ -419,7 +419,17 @@ export function streamAgentStatus(
 export function streamOrchestratorChat(
   message: string,
   onChunk: (text: string) => void,
-  options?: { threadId?: string | null; onMeta?: (meta: { thread_id?: string }) => void },
+  options?: {
+    threadId?: string | null
+    onMeta?: (meta: { thread_id?: string }) => void
+    onToolEvent?: (event: {
+      type: 'tool_call' | 'tool_result'
+      name: string
+      arguments?: Record<string, unknown>
+      ok?: boolean
+      summary?: string
+    }) => void
+  },
   onDone?: () => void,
   onError?: (err: string) => void,
 ): () => void {
@@ -498,6 +508,33 @@ export function streamOrchestratorChat(
           const parsed = JSON.parse(data)
           if (parsed.meta && typeof parsed.meta === 'object') {
             options?.onMeta?.(parsed.meta as { thread_id?: string })
+            continue
+          }
+          if (parsed.tool_call && typeof parsed.tool_call === 'object') {
+            const call = parsed.tool_call as { name?: unknown; arguments?: Record<string, unknown> }
+            if (typeof call.name === 'string') {
+              options?.onToolEvent?.({
+                type: 'tool_call',
+                name: call.name,
+                arguments: call.arguments,
+              })
+            }
+            continue
+          }
+          if (parsed.tool_result && typeof parsed.tool_result === 'object') {
+            const result = parsed.tool_result as {
+              name?: unknown
+              ok?: unknown
+              summary?: unknown
+            }
+            if (typeof result.name === 'string') {
+              options?.onToolEvent?.({
+                type: 'tool_result',
+                name: result.name,
+                ok: Boolean(result.ok),
+                summary: typeof result.summary === 'string' ? result.summary : undefined,
+              })
+            }
             continue
           }
           if (parsed.delta?.text) onChunk(parsed.delta.text)
