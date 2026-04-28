@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useAuth } from '@clerk/nextjs'
+import Link from 'next/link'
 import { Upload, CheckCircle, Loader2, Sparkles, X, AlertCircle, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, useReducedMotion, fadeInUpVariants, staggerContainerVariants, getMicroInteractionMotion } from '@/lib/motion'
@@ -532,6 +533,15 @@ export default function ResumePage() {
             <span>{prefsStatus.text}</span>
           </div>
         )}
+        {resumeExists && !loadingProfile && (
+          <div className="mt-3 flex items-center gap-2 border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
+            <CheckCircle size={12} className="mt-0.5 flex-shrink-0" />
+            <span>You can explore matches now. Preferences can be refined anytime.</span>
+            <Link href="/discover" className="ml-auto font-semibold text-teal-900 underline-offset-2 hover:underline">
+              Open matches
+            </Link>
+          </div>
+        )}
         {!loadingProfile && !resumeExists && (
           <div className="mt-3 flex items-start gap-2 border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
@@ -539,11 +549,19 @@ export default function ResumePage() {
           </div>
         )}
         <div className="mt-3 flex gap-2 border-t border-[0.5px] border-[#bcc9c6] dark:border-slate-700 pt-3">
+          {resumeExists && !loadingProfile ? (
+            <Link
+              href="/discover"
+              className="inline-flex h-8 items-center border border-[0.5px] border-[#008378] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-white"
+            >
+              Open first matches
+            </Link>
+          ) : null}
           <motion.button
             onClick={() => savePreferences()}
             disabled={savingPrefs || loadingProfile || !resumeExists}
             {...microInteractionMotion}
-            className="inline-flex h-8 items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-white disabled:opacity-70"
+            className="inline-flex h-8 items-center gap-1 border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#171d1c] dark:text-slate-100 disabled:opacity-70"
           >
             {savingPrefs ? <Loader2 size={12} className="animate-spin" /> : null}
             {savingPrefs ? 'Saving...' : 'Save Preferences'}

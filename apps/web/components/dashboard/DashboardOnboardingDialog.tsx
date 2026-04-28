@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Compass,
-  FileText,
   LayoutDashboard,
   ListFilter,
   Rocket,
@@ -62,26 +61,16 @@ const STEPS: Step[] = [
     ],
   },
   {
-    title: 'Upload your resume',
+    title: 'Get first matches',
     description:
-      'Start by uploading a PDF or document. We parse your experience and skills so fit scores, drafts, and prep stay aligned with how you actually work.',
+      'Upload your resume to unlock first scored matches quickly. Preferences on the same page are optional at first and can be refined after you review early matches.',
     icon: Upload,
     hints: [
-      'Supported formats appear on the Resume page.',
-      'You can re-upload later when your CV changes.',
-    ],
-    primaryAction: { label: 'Go to Resume & upload', href: '/resume' },
-  },
-  {
-    title: 'Set your preferences',
-    description:
-      'On the same Resume page, add your target role, location, salary expectations, and skills. Saving preferences helps Doubow surface the right roles and tailor outreach.',
-    icon: FileText,
-    hints: [
-      'Save preferences after upload so discovery and scoring use your targets.',
+      'Resume upload is the only required step for first value.',
+      'Use defaults if you are in a hurry; refine role/location/salary after first matches.',
       'Refine skills over time — the Assistant can suggest edits.',
     ],
-    primaryAction: { label: 'Open Resume & preferences', href: '/resume' },
+    primaryAction: { label: 'Open Resume and get matches', href: '/resume' },
   },
   {
     title: 'Explore job matches',

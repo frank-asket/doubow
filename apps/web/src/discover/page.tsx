@@ -1084,13 +1084,15 @@ function DiscoverPageContent() {
                 <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-2xs font-medium text-amber-900">
                   No resume connected
                 </div>
-                <p className="text-lg font-medium text-zinc-900">No jobs yet — upload your resume to start matching.</p>
+                <p className="text-lg font-medium text-zinc-900">Start with a resume upload to unlock your first scored matches.</p>
                 <p className="mt-2 text-sm text-zinc-500">
-                  Doubow scores your fit across tech, culture, seniority, comp, and location before showing jobs.
+                  Upload first for immediate scoring, then refine preferences later if needed.
                 </p>
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                   <Link href="/resume" className="btn btn-primary text-xs">Upload Resume</Link>
-                  <Link href="/resume" className="btn text-xs">How matching works</Link>
+                  <Link href="/resume" className="text-xs font-medium text-zinc-600 underline-offset-2 hover:underline">
+                    Learn how matching works
+                  </Link>
                 </div>
               </div>
             </motion.div>
