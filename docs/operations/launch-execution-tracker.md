@@ -191,10 +191,10 @@ Manual run matrix (fill all 10):
 | 4 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | Same persisted Clerk session as runs 1–3 (not cold sign-in). Route pattern: `/resume` → `/discover` → `/pipeline` → `/approvals` (waited for `Draft Approvals`) → `/messages` (waited for `Discovery agent`). Discover showed **0 active opportunities** in this pass (empty state). Assistant **send/stream** not exercised in automation (same limitation as run 1). |
 | 5 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | Same session; repeated identical route pattern. Discover **0 active opportunities** in this pass. |
 | 6 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | Same session; repeated route pattern. Discover showed **4 active opportunities** (e.g. Northwind Labs — Senior AI Product Engineer) and job cards rendered — confirms live catalog path in this pass. Assistant **send/stream** still manual/operator confirm. |
-| 7 |  |  |  |  |  |  |  |  |
-| 8 |  |  |  |  |  |  |  |  |
-| 9 |  |  |  |  |  |  |  |  |
-| 10 |  |  |  |  |  |  |  |  |
+| 7 | PASS (warm) | PASS | PASS | PASS | FAIL | PASS | FAIL | 2026-04-28 browser MCP pass on existing session. `/resume`, `/discover`, `/pipeline`, `/messages` loaded. `/approvals` route loaded but expected primary heading/content (`Draft Approvals` queue panel) did not render in this run. Assistant send was executed and transitioned to `Stop response`, then returned to idle state. |
+| 8 | FAIL |  |  |  |  |  | FAIL | 2026-04-28 cold-session rerun: navigation to `/approvals` correctly redirected to Clerk sign-in (`/auth/sign-in?redirect_url=...`). Automated continuation blocked because the auth widget is not interactable via browser MCP snapshot in this context (manual login required to complete run). |
+| 9 | PASS (warm) | PASS | PASS | PASS | FAIL | PASS | FAIL | 2026-04-28 post-login run: `/resume`, `/discover`, `/pipeline` loaded and assistant send/stream lifecycle succeeded (`Send message` -> `Stop response`). `/approvals` route loaded but `Draft Approvals` heading/queue content was absent in this production pass. |
+| 10 | PASS (warm) | PASS | PASS | PASS | FAIL | PASS | FAIL | 2026-04-28 second confirmation run produced the same result as run 9: approvals shell/chrome visible but primary queue heading/content missing; assistant send/stream still succeeds. |
 
 Acceptance:
 
@@ -206,6 +206,10 @@ Evidence:
 
 - Authenticated API blockers have been cleared by fresh-token probe (`/v1/me/*` + `/v1/agents/chat` all `200`).
 - 2026-04-26: P0-3 matrix runs **1–6** recorded (production web) via Cursor IDE browser on `https://doubow.vercel.app` using a **single persisted Clerk session** — this **does not** satisfy the gate’s “fresh browser session each run” requirement for launch signoff. For each run: Resume → Discover → Pipeline → Approvals (wait for `Draft Approvals`) → Assistant (wait for `Discovery agent`). Run 6 observed **populated** discover (4 roles); runs 4–5 observed **empty** discover in-session (still valid UI paths). Assistant **Send** + streaming reply: confirm manually per run if required for strict acceptance.
+- 2026-04-28: additional run (**run 7**) via browser MCP confirms assistant send/stream lifecycle works in production UI (`Send message` -> `Stop response` -> idle), but surfaced two blockers for strict cold-session acceptance: (1) `/approvals` rendered without the expected main queue heading in this pass, and (2) in-app `Sign out` did not terminate the session during automation, preventing reliable back-to-back cold-session loops without an incognito reset.
+- 2026-04-28: cold rerun (**run 8**) reached Clerk redirect as expected (`/auth/sign-in?redirect_url=/approvals`), confirming sign-out now invalidates session. Remaining blocker is manual auth takeover to complete the post-login path checks in automated browser mode.
+- 2026-04-28: runs **9-10** (post-login continuation) both reproduced the same approvals failure mode in production: route chrome renders, but expected primary content (`Draft Approvals` heading / queue panel) is missing. Other steps remained healthy (resume/discover/pipeline + assistant send/stream all pass), so Step 3 remains RED pending deployed approvals fix verification.
+- 2026-04-28: targeted approvals hardening patch prepared for deploy: non-null route fallback (`app/(dashboard)/approvals/page.tsx`), route-level `loading.tsx` + `error.tsx`, and client-side payload guard/instrumentation in `src/approvals/page.tsx` to skip malformed rows and log exact counts. Re-run runs 9-10 immediately after web deploy.
 - Remaining to clear P0-3: runs **7–10** using the **cold-session playbook** above (incognito per run + sign-out between runs), one **screen recording** of a full journey, and **Assistant chat** = confirmed **send + streaming reply** per run (UI overlap on Send was addressed in app: FAB lifted + composer stacking; redeploy web before re-testing).
 
 Owner: _(fill)_

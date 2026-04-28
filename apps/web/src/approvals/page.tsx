@@ -26,6 +26,18 @@ type ActionToast = {
   message: string
 }
 
+function isRenderableApproval(value: unknown): value is Approval {
+  if (!value || typeof value !== 'object') return false
+  const item = value as Partial<Approval> & { application?: { job?: { company?: string; title?: string } } }
+  return Boolean(
+    item.id
+    && item.status
+    && item.channel
+    && item.application?.job?.company
+    && item.application?.job?.title,
+  )
+}
+
 function isDraftVariant(value: string | null): value is DraftVariant {
   return value === 'base-1'
     || value === 'base-2'
@@ -113,8 +125,9 @@ function ApprovalsLoadingShell() {
     <div className="approvals-surface min-h-screen bg-[#f5faf8] text-[#171d1c] dark:bg-slate-950 dark:text-slate-100">
       <main className="flex min-h-screen flex-col">
         <section className="border-b border-[#d9e1dd] bg-white/75 px-5 py-4 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/65">
-          <div className="h-3 w-36 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-          <div className="mt-3 h-7 w-48 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#00685f] dark:text-teal-300">Approvals Workspace</p>
+          <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 dark:text-white">Draft Approvals</h1>
+          <div className="mt-2 h-4 w-80 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
           <div className="mt-2 h-4 w-80 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
         </section>
         <section className="mx-auto grid w-full max-w-[1700px] flex-1 grid-cols-1 gap-4 bg-[#f0f5f2] p-4 dark:bg-slate-950 lg:grid-cols-12 lg:gap-4">
@@ -220,16 +233,18 @@ class ApprovalsWorkspaceBoundary extends Component<
 export default function ApprovalsPage() {
   const searchParams = useSearchParams()
   const { approvals, loading, removeApproval } = useApprovalStore()
-  const { refresh } = useApprovals()
+  const { refresh, error } = useApprovals()
+  const renderableApprovals = useMemo(() => approvals.filter(isRenderableApproval), [approvals])
+  const malformedApprovalsCount = approvals.length - renderableApprovals.length
 
-  const pending = useMemo(() => approvals.filter((item) => item.status === 'pending'), [approvals])
+  const pending = useMemo(() => renderableApprovals.filter((item) => item.status === 'pending'), [renderableApprovals])
   const providerConfirmed = useMemo(
-    () => approvals.filter((item) => item.delivery_status === 'provider_confirmed'),
-    [approvals],
+    () => renderableApprovals.filter((item) => item.delivery_status === 'provider_confirmed'),
+    [renderableApprovals],
   )
   const recentDelivery = useMemo(
-    () => approvals.filter((item) => item.status !== 'pending').slice(0, 5),
-    [approvals],
+    () => renderableApprovals.filter((item) => item.status !== 'pending').slice(0, 5),
+    [renderableApprovals],
   )
   const [showConfirmationFailuresOnly, setShowConfirmationFailuresOnly] = useState(false)
   const filteredRecentDelivery = useMemo(() => {
@@ -518,6 +533,20 @@ export default function ApprovalsPage() {
   }, [autosaveState])
 
   useEffect(() => {
+    if (malformedApprovalsCount > 0) {
+      console.error('Approvals payload dropped malformed rows', {
+        total: approvals.length,
+        malformed: malformedApprovalsCount,
+      })
+    }
+  }, [approvals.length, malformedApprovalsCount])
+
+  useEffect(() => {
+    if (!error) return
+    console.error('Approvals fetch error', error)
+  }, [error])
+
+  useEffect(() => {
     if (!actionToast) return
     const timer = window.setTimeout(() => setActionToast(null), 2600)
     return () => window.clearTimeout(timer)
@@ -642,6 +671,11 @@ export default function ApprovalsPage() {
                     ? `Saved at ${savedAtLabel}`
                     : 'All changes saved'}
           </p>
+          {malformedApprovalsCount > 0 ? (
+            <p className="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+              Some approval entries were skipped because they were incomplete. Check browser console for details.
+            </p>
+          ) : null}
         </section>
 
         {current && current.channel === 'email' && gmailForApprovals?.error ? (

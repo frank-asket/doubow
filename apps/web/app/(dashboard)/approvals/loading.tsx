@@ -1,7 +1,4 @@
-import { Suspense } from 'react'
-import ApprovalsPage from '@/src/approvals/page'
-
-function ApprovalsRouteFallback() {
+export default function ApprovalsRouteLoading() {
   return (
     <div className="approvals-surface min-h-screen bg-[#f5faf8] text-[#171d1c] dark:bg-slate-950 dark:text-slate-100">
       <main className="flex min-h-screen flex-col">
@@ -12,13 +9,5 @@ function ApprovalsRouteFallback() {
         </section>
       </main>
     </div>
-  )
-}
-
-export default function ApprovalsRoutePage() {
-  return (
-    <Suspense fallback={<ApprovalsRouteFallback />}>
-      <ApprovalsPage />
-    </Suspense>
   )
 }
