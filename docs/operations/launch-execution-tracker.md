@@ -30,7 +30,7 @@ Scope: Days 15-21 launch-readiness closure.
 | 15 | Durable background mode cutover | COMPLETE | 2026-04-28 verification passed: `GET /ready` now reports `background_durability.send_mode=celery`, `autopilot_mode=celery`, `allow_inprocess_fallback_in_production=false`, `enqueue=ok` on `https://doubow-production.up.railway.app/ready`. |
 | 16 | Authenticated reliability reruns (P0-1) | COMPLETE (PARTIAL PASS) | 2026-04-28 rerun with fresh token: `auth-probe` passed (`200` on all auth-path endpoints; `0` 5xx). `launch-probe` (`iterations=20`) showed `0.00%` 5xx across all core routes but sampled `401` responses as token lifetime elapsed mid-run; additional long-lived authenticated sample still required for strict P0-1 signoff. |
 | 17 | Authenticated latency reruns (P1-4) | COMPLETE (FAILED) | 2026-04-28 ran A/B/C probe samples (`iterations=10` each). All three runs had `5xx=0.00%`, but all responses were `401`, so measurements are unauthorized and not valid for authenticated latency signoff. |
-| 18 | Monitoring drill + alert routing (P1-6) | TODO | Capture alert route proof and timed incident detection evidence. |
+| 18 | Monitoring drill + alert routing (P1-6) | IN_PROGRESS | Day 18 tooling/runbook added: `scripts/monitoring_drill_report.py` + `make -C backend monitoring-drill-report` + `docs/operations/day18-monitoring-drill-runbook.md`. Pending live drill timestamps + alert thread evidence to close. |
 | 19 | Data safety ops review (P1-5) | TODO | Add support/log anomaly review evidence and reviewer signoff. |
 | 20 | OAuth hardening signoff (Step 7) | TODO | Complete reconnect runbook evidence and provider-scope signoff. |
 | 21 | Final gate reconciliation + decision | TODO | Align tracker/checklist owners and finalize GO/NO-GO decision packet. |
@@ -152,6 +152,15 @@ Evidence:
 - 2026-04-28 additional 20-iteration rerun with fresh token and `LAUNCH_PROBE_SLEEP_SECONDS=0` to keep within token lifetime:
   - Core routes again reported `5xx=0.00%` and combined `5xx=0.00%` (probe decision `GO`).
   - All responses were still `401` for this token context, so the run does not satisfy strict authenticated-user reliability evidence requirements.
+- 2026-04-28 rerun with newly supplied token (`exp=1777402204`) and zero-sleep launch window:
+  - `auth-probe` (`AUTH_PROBE_ITERATIONS=1`) returned `200` for `me_debug`, `applications`, `approvals`, and `agents_chat` (PASS, no auth-path 5xx).
+  - `launch-probe` (`LAUNCH_PROBE_ITERATIONS=20`, `LAUNCH_PROBE_SLEEP_SECONDS=0`) returned `200` for samples 1-3, then `401` for samples 4-20 across all routes; per-route and combined `5xx=0.00%`.
+  - Reported p95s from this run: jobs `730.0ms`, applications `922.9ms`, approvals `820.0ms`, agents first payload `1098.3ms`, agents full payload `2960.1ms`; still invalid for strict authenticated reliability/latency signoff because most of the run sampled unauthorized responses.
+- 2026-04-28 rerun with another newly supplied token (`exp=1777402345`):
+  - `auth-probe` (`AUTH_PROBE_ITERATIONS=1`) again returned all `200` (`me_debug`, `applications`, `approvals`, `agents_chat`) with no auth-path 5xx.
+  - `launch-probe` (`LAUNCH_PROBE_ITERATIONS=20`, `LAUNCH_PROBE_SLEEP_SECONDS=0`) sampled `401` on all 20 iterations for all routes; per-route and combined `5xx=0.00%`.
+  - Reported p95s from this unauthorized-only run: jobs `843.6ms`, applications `812.9ms`, approvals `1017.3ms` (threshold fail), agents first/full `812.7ms`; probe decision `NO-GO`.
+  - Interpretation: auth-path outage regression remains fixed (no 5xx), but strict authenticated-user reliability/latency evidence is still blocked by token validity/context window.
 - _(add dashboard link)_
 
 Owner: _(fill)_
@@ -350,7 +359,8 @@ Evidence:
 - 2026-04-26 production checks: `/metrics` returns `200`; after env update and redeploy, `/ready` reports `postgres=ok` and `redis=ok`.
 - 2026-04-26 runtime env check: `SENTRY_DSN` and `SENTRY_TRACES_SAMPLE_RATE` are now set on Railway `doubow`.
 - 2026-04-26 Sentry ingest drill: envelope POST to `https://o4511288403034112.ingest.us.sentry.io/api/4511288475779072/envelope/` returned `200`; test event id `9a7a6491da804b03a693cd1271df446b` with tag `launch-drill-20260426-215121-9a7a6491`.
-- Alert routing and drill evidence are still missing.
+- 2026-04-28 Day 18 implementation pass: added reusable drill evidence tooling (`scripts/monitoring_drill_report.py`) and Make target (`make -C backend monitoring-drill-report`) to capture `/healthz`, `/ready`, `/metrics` snapshot and compute detection latency from drill timestamps; runbook added at `docs/operations/day18-monitoring-drill-runbook.md`.
+- Alert routing thread evidence and one live timed drill run are still required for GREEN.
 
 Owner: _(fill)_
 

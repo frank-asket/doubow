@@ -4,7 +4,7 @@ PYTHON ?= python3
 ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
 
-.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe jobs-cache-preview jobs-cache-invalidate
+.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe monitoring-drill-report jobs-cache-preview jobs-cache-invalidate
 
 # libpq/psql does not accept SQLAlchemy async URLs (postgresql+asyncpg://). Strip the driver for psql targets.
 define PSQL_CMD
@@ -88,6 +88,16 @@ auth-probe:
 			--iterations "$${AUTH_PROBE_ITERATIONS:-10}" \
 			--sleep-seconds "$${AUTH_PROBE_SLEEP_SECONDS:-1.0}" \
 			--token-env "$${LAUNCH_PROBE_TOKEN_ENV:-DOUBOW_LAUNCH_PROBE_TOKEN}"
+
+# Day 18 monitoring drill evidence snapshot + MTTD calculator.
+monitoring-drill-report:
+	@cd .. && \
+		python3 scripts/monitoring_drill_report.py \
+			--base-url "$${LAUNCH_PROBE_BASE_URL:-https://doubow-production.up.railway.app}" \
+			$${DRILL_INCIDENT_STARTED_AT:+--incident-started-at "$${DRILL_INCIDENT_STARTED_AT}"} \
+			$${DRILL_ALERT_DETECTED_AT:+--alert-detected-at "$${DRILL_ALERT_DETECTED_AT}"} \
+			$${DRILL_ONCALL_OWNER:+--oncall-owner "$${DRILL_ONCALL_OWNER}"} \
+			--output "$${DRILL_REPORT_OUTPUT:-docs/operations/evidence/day18-monitoring-drill.md}"
 
 # Jobs list cache ops helper (safe default: dry-run).
 jobs-cache-preview:
