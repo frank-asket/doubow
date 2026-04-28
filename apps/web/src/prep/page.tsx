@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Lightbulb, MessageSquareText, ShieldCheck, Zap } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { motion, useReducedMotion, fadeInUpVariants, staggerContainerVariants, getMicroInteractionMotion } from '../../lib/motion'
 import type { PrepSession } from '@doubow/shared'
@@ -322,6 +323,79 @@ export default function PrepPage() {
           </article>
         </aside>
       </div>
+
+      <section className="space-y-3">
+        <article
+          className="rounded-2xl border border-[0.5px] bg-[#f6fbfa] p-5"
+          style={{ borderColor: SURFACE_BORDER }}
+        >
+          <h3 className="text-[34px] font-medium leading-none tracking-[-0.01em] text-[#2f3e3c]">TOP TIPS FOR SUCCESS</h3>
+          <div className="mt-5 space-y-5">
+            <div className="flex items-start gap-3">
+              <ShieldCheck size={18} className="mt-1 text-[#006d66]" />
+              <p className="text-[22px] leading-[1.18] text-[#0f1918]">
+                <span className="font-semibold">Be Precise.</span> Detailed job titles help our AI filter out noise.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <Zap size={18} className="mt-1 text-[#006d66]" />
+              <p className="text-[22px] leading-[1.18] text-[#0f1918]">
+                <span className="font-semibold">Stay Active.</span> Checking your progress weekly keeps the algorithm fresh.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <MessageSquareText size={18} className="mt-1 text-[#006d66]" />
+              <p className="text-[22px] leading-[1.18] text-[#0f1918]">
+                <span className="font-semibold">Ask AI.</span> Use the assistant in the sidebar for resume feedback anytime.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article
+          className="rounded-2xl border border-[0.5px] bg-white p-5 text-center"
+          style={{ borderColor: SURFACE_BORDER }}
+        >
+          <p className="text-[16px] font-medium uppercase tracking-[0.06em] text-[#5f6e6c]">Platform Impact</p>
+          <p className="mt-2 text-[68px] font-semibold leading-none tracking-[-0.02em] text-[#0058e6]">4.8k+</p>
+          <p className="mx-auto mt-2 max-w-3xl text-[22px] leading-[1.2] text-[#2a3433]">
+            Professionals placed this month using CareerPath Guides.
+          </p>
+        </article>
+
+        <article
+          className="rounded-2xl border border-[0.5px] bg-white p-5"
+          style={{ borderColor: SURFACE_BORDER }}
+        >
+          <h3 className="text-[50px] font-medium leading-none tracking-[-0.01em] text-[#1a2423]">Stuck?</h3>
+          <p className="mt-3 text-[24px] leading-[1.24] text-[#2f3e3c]">
+            Our career coaches are available for a 15-min chat.
+          </p>
+          <motion.button
+            {...microInteractionMotion}
+            className="mt-5 inline-flex h-14 w-full items-center justify-center rounded-xl border-2 border-[#0058e6] bg-white text-[20px] font-medium text-[#0058e6]"
+          >
+            Schedule Intro Call
+          </motion.button>
+        </article>
+
+        <article
+          className="rounded-2xl border border-[0.5px] bg-[#f2e2ff] px-5 py-4"
+          style={{ borderColor: '#e0c8ff' }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#e9d4ff] text-[#23005e]">
+              <Lightbulb size={20} />
+            </div>
+            <div>
+              <p className="text-[52px] font-medium leading-none tracking-[-0.01em] text-[#23005e]">Did you know?</p>
+              <p className="mt-1 text-[22px] leading-[1.2] text-[#23005e]">
+                Alex, profiles that include specific industry preferences are 2x more likely to land an interview within the first 30 days.
+              </p>
+            </div>
+          </div>
+        </article>
+      </section>
 
     </motion.div>
   )
