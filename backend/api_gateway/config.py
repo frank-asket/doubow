@@ -21,8 +21,14 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = "postgresql+asyncpg://doubow:doubow@localhost:5433/doubow"
     redis_url: str = "redis://localhost:6379"
-    # When True, enqueue send-after-approve via Celery (`tasks.send_tasks`). Worker must run separately.
-    use_celery_for_send: bool = False
+    # Background durability switches:
+    # - In production, default is Celery for critical workflows unless explicitly overridden.
+    # - In non-production, defaults remain in-process for faster local iteration.
+    # Set to true/false explicitly to override environment defaults.
+    use_celery_for_send: bool | None = None
+    use_celery_for_autopilot: bool | None = None
+    # Escape hatch: allow FastAPI BackgroundTasks in production for emergency use only.
+    allow_inprocess_background_in_production: bool = False
 
     # Optional SMTP for real outbound after approval (email channel). When disabled, send path logs only.
     smtp_enabled: bool = False
@@ -197,6 +203,16 @@ class Settings(BaseSettings):
             and self.linkedin_oauth_state_secret
             and linked_key
         )
+
+    def use_celery_for_send_effective(self) -> bool:
+        if self.use_celery_for_send is not None:
+            return self.use_celery_for_send
+        return self.environment.lower() == "production"
+
+    def use_celery_for_autopilot_effective(self) -> bool:
+        if self.use_celery_for_autopilot is not None:
+            return self.use_celery_for_autopilot
+        return self.environment.lower() == "production"
 
 
 settings = Settings()

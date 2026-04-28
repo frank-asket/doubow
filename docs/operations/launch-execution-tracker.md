@@ -38,6 +38,10 @@ Additional review note:
 
 - Reviewed `backend/api_gateway/ingestion/connectors/base.py` during Week 1 close; no additional blocker patch required for this sprint scope.
 
+Week 2 progress note:
+
+- Day 10 durability path started: production now defaults critical background work to Celery (`approvals` send + `autopilot` run/resume) with explicit escape hatch `ALLOW_INPROCESS_BACKGROUND_IN_PRODUCTION=false` by default.
+
 ---
 
 ### Step 1 — P0-1 Core API reliability

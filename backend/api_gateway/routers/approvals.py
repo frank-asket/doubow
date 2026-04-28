@@ -77,12 +77,18 @@ async def approve_approval(
             idempotency_key=idempotency_key,
         )
         if response.queued_send and response.send_task_id:
-            if settings.use_celery_for_send:
+            if settings.use_celery_for_send_effective():
                 try:
                     from tasks.send_tasks import send_approval_stub_task
 
                     send_approval_stub_task.delay(approval_id, user.id)
                 except Exception:
+                    if settings.environment.lower() == "production" and not settings.allow_inprocess_background_in_production:
+                        logger.exception("approve_approval: celery enqueue failed in production")
+                        raise HTTPException(
+                            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Approval queued but durable worker enqueue failed. Retry shortly.",
+                        )
                     background_tasks.add_task(run_send_stub_in_background, approval_id, user.id)
             else:
                 background_tasks.add_task(run_send_stub_in_background, approval_id, user.id)

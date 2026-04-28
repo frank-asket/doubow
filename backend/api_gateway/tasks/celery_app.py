@@ -37,5 +37,6 @@ celery_app.conf.beat_schedule = {
 }
 
 import tasks.send_tasks  # noqa: E402, F401 — register tasks
+import tasks.autopilot_tasks  # noqa: E402, F401 — register tasks
 import tasks.discovery_task  # noqa: E402, F401 — register tasks
 import ingestion.scheduler.celery_tasks  # noqa: E402, F401 — register tasks

@@ -59,11 +59,21 @@ export default function SettingsPage() {
           <p className="text-[13px] text-[#6d7a77] dark:text-slate-400">Profile version: 7.0.1-hardening</p>
         </div>
         <div className="flex gap-2">
-          <button className="inline-flex h-8 items-center justify-center border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 bg-white dark:bg-slate-900 px-4 text-[12px] font-medium uppercase leading-none tracking-[0.06em] text-[#171d1c] dark:text-slate-100">
-            Discard
+          <button
+            type="button"
+            disabled
+            title="Not wired yet"
+            className="inline-flex h-8 items-center justify-center border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 bg-white dark:bg-slate-900 px-4 text-[12px] font-medium uppercase leading-none tracking-[0.06em] text-[#6d7a77] dark:text-slate-400 opacity-60 cursor-not-allowed"
+          >
+            Discard (coming soon)
           </button>
-          <button className="inline-flex h-8 items-center justify-center border border-[0.5px] border-[#008378] bg-[#00685f] px-4 text-[12px] font-medium uppercase leading-none tracking-[0.06em] text-white">
-            Save changes
+          <button
+            type="button"
+            disabled
+            title="Not wired yet"
+            className="inline-flex h-8 items-center justify-center border border-[0.5px] border-[#008378] bg-[#00685f] px-4 text-[12px] font-medium uppercase leading-none tracking-[0.06em] text-white opacity-60 cursor-not-allowed"
+          >
+            Save changes (coming soon)
           </button>
         </div>
       </section>
@@ -182,11 +192,16 @@ export default function SettingsPage() {
                 <p className="text-[11px] text-[#3d4947] dark:text-slate-400">Using authenticator app for identity verification.</p>
               </div>
               <div className="border-t border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 pt-4">
-                <button className="inline-flex h-8 w-full items-center justify-center gap-2 border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#171d1c] dark:text-slate-100">
+                <button
+                  type="button"
+                  disabled
+                  title="Not wired yet"
+                  className="inline-flex h-8 w-full items-center justify-center gap-2 border border-[0.5px] border-[rgba(188,201,198,0.9)] dark:border-slate-700 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400 opacity-60 cursor-not-allowed"
+                >
                   <span className="material-symbols-outlined text-[14px]">download</span>
-                  Request Data Export
+                  Request Data Export (coming soon)
                 </button>
-                <p className="mt-2 text-center text-[10px] italic text-[#6d7a77] dark:text-slate-400">Last export: 14 days ago</p>
+                <p className="mt-2 text-center text-[10px] italic text-[#6d7a77] dark:text-slate-400">Export pipeline not wired yet.</p>
               </div>
             </div>
           </article>
@@ -274,8 +289,13 @@ export default function SettingsPage() {
             <h4 className="mb-1 text-sm font-bold text-[#ba1a1a]">Critical Account Actions</h4>
             <p className="text-[12px] text-[#3d4947] dark:text-slate-400">Purge identity graph, archive candidate profile, or deactivate account.</p>
           </div>
-          <button className="inline-flex h-8 items-center justify-center border border-[0.5px] border-[#ba1a1a] px-4 text-[11px] font-semibold uppercase leading-none tracking-[0.08em] text-[#ba1a1a]">
-            Deactivate Account
+          <button
+            type="button"
+            disabled
+            title="Not wired yet"
+            className="inline-flex h-8 items-center justify-center border border-[0.5px] border-[#ba1a1a] px-4 text-[11px] font-semibold uppercase leading-none tracking-[0.08em] text-[#ba1a1a] opacity-60 cursor-not-allowed"
+          >
+            Deactivate Account (coming soon)
           </button>
         </article>
       </section>

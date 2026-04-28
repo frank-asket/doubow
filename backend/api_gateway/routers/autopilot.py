@@ -1,7 +1,10 @@
+import logging
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from db.session import get_session
 from dependencies import get_authenticated_user, require_idempotency_key
 from models.user import User
@@ -20,6 +23,7 @@ from services.autopilot_service import (
 )
 
 router = APIRouter(prefix="/me/autopilot", tags=["autopilot"])
+logger = logging.getLogger(__name__)
 
 
 async def _execute_autopilot_resume_task(
@@ -54,12 +58,31 @@ async def run_autopilot_route(
             payload=payload,
         )
         if not replayed and response.status == "queued":
-            background_tasks.add_task(
-                execute_autopilot_run_background,
-                response.run_id,
-                user.id,
-                payload.application_ids,
-            )
+            if settings.use_celery_for_autopilot_effective():
+                try:
+                    from tasks.autopilot_tasks import autopilot_run_task
+
+                    autopilot_run_task.delay(response.run_id, user.id, payload.application_ids)
+                except Exception:
+                    if settings.environment.lower() == "production" and not settings.allow_inprocess_background_in_production:
+                        logger.exception("run_autopilot_route: celery enqueue failed in production")
+                        raise HTTPException(
+                            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Autopilot queued but durable worker enqueue failed. Retry shortly.",
+                        )
+                    background_tasks.add_task(
+                        execute_autopilot_run_background,
+                        response.run_id,
+                        user.id,
+                        payload.application_ids,
+                    )
+            else:
+                background_tasks.add_task(
+                    execute_autopilot_run_background,
+                    response.run_id,
+                    user.id,
+                    payload.application_ids,
+                )
         return response
     except ValueError as exc:
         body = IdempotencyConflictResponse(
@@ -95,12 +118,32 @@ async def resume_autopilot_run_route(
             detail="Resume already in progress for this run",
         )
 
-    background_tasks.add_task(
-        _execute_autopilot_resume_task,
-        run_id,
-        user.id,
-        None,
-    )
+    if settings.use_celery_for_autopilot_effective():
+        try:
+            from tasks.autopilot_tasks import autopilot_resume_run_task
+
+            autopilot_resume_run_task.delay(run_id, user.id)
+        except Exception:
+            if settings.environment.lower() == "production" and not settings.allow_inprocess_background_in_production:
+                release_resume_slot(run_id)
+                logger.exception("resume_autopilot_run_route: celery enqueue failed in production")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Autopilot resume enqueue failed. Retry shortly.",
+                )
+            background_tasks.add_task(
+                _execute_autopilot_resume_task,
+                run_id,
+                user.id,
+                None,
+            )
+    else:
+        background_tasks.add_task(
+            _execute_autopilot_resume_task,
+            run_id,
+            user.id,
+            None,
+        )
     return AutopilotResumeResponse(run_id=run_id, enqueued=True, detail=None)
 
 
