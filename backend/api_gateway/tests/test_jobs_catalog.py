@@ -308,3 +308,46 @@ async def test_list_jobs_llm_matching_applies_only_top_n(db_session, monkeypatch
     assert by_id["jb_cat_llm_2"].score.fit_score == 4.8
     # Outside top-N remains baseline template score.
     assert by_id["jb_cat_llm_3"].score.fit_score == 4.0
+
+
+@pytest.mark.asyncio
+async def test_list_jobs_has_salary_filter_returns_only_salary_rows(db_session):
+    uid = "user_jobs_salary_filter"
+    db_session.add(User(id=uid, email="salary-filter@example.com"))
+    db_session.add(
+        Job(
+            id="jb_salary_yes",
+            source="catalog",
+            external_id="salary-yes",
+            title="Comp-Visible Role",
+            company="Acme",
+            location="Remote",
+            salary_range="$120k-$150k",
+            description="Paid role",
+            url="https://example.com/salary-yes",
+            score_template=_SCORE_TEMPLATE,
+        )
+    )
+    db_session.add(
+        Job(
+            id="jb_salary_no",
+            source="catalog",
+            external_id="salary-no",
+            title="No-Comp Role",
+            company="Acme",
+            location="Remote",
+            salary_range=None,
+            description="No salary",
+            url="https://example.com/salary-no",
+            score_template=_SCORE_TEMPLATE,
+        )
+    )
+    await db_session.commit()
+
+    unfiltered = await list_jobs(db_session, uid, min_fit=0.0, location=None, has_salary=False, page=1, per_page=20)
+    assert unfiltered.total == 2
+
+    filtered = await list_jobs(db_session, uid, min_fit=0.0, location=None, has_salary=True, page=1, per_page=20)
+    assert filtered.total == 1
+    assert len(filtered.items) == 1
+    assert filtered.items[0].id == "jb_salary_yes"

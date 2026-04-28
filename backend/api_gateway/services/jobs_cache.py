@@ -19,9 +19,12 @@ def _get_redis_client():
     return Redis.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
 
 
-def jobs_list_cache_key(*, user_id: str, min_fit: float, location: str | None, page: int, per_page: int) -> str:
+def jobs_list_cache_key(
+    *, user_id: str, min_fit: float, location: str | None, has_salary: bool, page: int, per_page: int
+) -> str:
     loc = (location or "").strip().lower()
-    return f"jobs:list:{JOBS_LIST_CACHE_VERSION}:{user_id}:{min_fit:.2f}:{loc}:{page}:{per_page}"
+    salary = "salary" if has_salary else "anysalary"
+    return f"jobs:list:{JOBS_LIST_CACHE_VERSION}:{user_id}:{min_fit:.2f}:{loc}:{salary}:{page}:{per_page}"
 
 
 async def get_cached_jobs_list(key: str) -> JobsListResponse | None:

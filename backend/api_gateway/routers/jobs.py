@@ -294,12 +294,18 @@ async def ingest_catalog_multi_provider_preset_route(
 async def list_jobs(
     min_fit: float = Query(default=0.0, ge=0.0, le=5.0),
     location: str | None = Query(default=None),
+    has_salary: bool = Query(default=False),
     page: int = Query(default=1, ge=1),
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> JobsListResponse:
     return await list_jobs_service(
-        session=session, user_id=user.id, min_fit=min_fit, location=location, page=page
+        session=session,
+        user_id=user.id,
+        min_fit=min_fit,
+        location=location,
+        has_salary=has_salary,
+        page=page,
     )
 
 

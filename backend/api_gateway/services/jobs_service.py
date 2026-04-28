@@ -217,11 +217,13 @@ async def list_jobs(
     location: str | None,
     page: int,
     per_page: int = 20,
+    has_salary: bool = False,
 ) -> JobsListResponse:
     cache_key = jobs_list_cache_key(
         user_id=user_id,
         min_fit=min_fit,
         location=location,
+        has_salary=has_salary,
         page=page,
         per_page=per_page,
     )
@@ -234,6 +236,8 @@ async def list_jobs(
     filters = [JobScore.user_id == user_id, JobScore.fit_score >= min_fit]
     if location:
         filters.append(Job.location.ilike(f"%{location.strip()}%"))
+    if has_salary:
+        filters.append(func.length(func.trim(func.coalesce(Job.salary_range, ""))) > 0)
 
     count_stmt = (
         select(func.count())

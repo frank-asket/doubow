@@ -95,11 +95,12 @@ export const dashboardApi = {
 // ─── Jobs ──────────────────────────────────────────────────────────────────
 
 export const jobsApi = {
-  list: (params: { min_fit?: number; location?: string; page?: number } = {}) => {
+  list: (params: { min_fit?: number; location?: string; page?: number; has_salary?: boolean } = {}) => {
     const q = new URLSearchParams()
     if (params.min_fit)   q.set('min_fit', String(params.min_fit))
     if (params.location)  q.set('location', params.location)
     if (params.page)      q.set('page', String(params.page))
+    if (params.has_salary) q.set('has_salary', 'true')
     return request<PaginatedResponse<JobWithScore>>(`/v1/jobs?${q}`)
   },
   dismiss: (jobId: string) =>

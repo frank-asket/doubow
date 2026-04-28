@@ -416,7 +416,16 @@ function sortJobs(items: JobWithScore[], sort: DiscoverSort): JobWithScore[] {
 function DiscoverPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { jobs, loading, minFit, setMinFit, locationFilter, setLocationFilter } = useJobStore()
+  const {
+    jobs,
+    loading,
+    minFit,
+    setMinFit,
+    locationFilter,
+    setLocationFilter,
+    hasSalaryOnly,
+    setHasSalaryOnly,
+  } = useJobStore()
   usePipeline()
   const { summary, loading: dashLoading, refresh: refreshDashboard } = useDashboard()
   const { refresh: refreshJobs } = useJobs()
@@ -447,7 +456,8 @@ function DiscoverPageContent() {
     setSearchText(searchParams.get('q') ?? '')
     const incomingSort = (searchParams.get('sort') as DiscoverSort) || 'fit'
     setSortBy(incomingSort)
-  }, [searchParams])
+    setHasSalaryOnly(searchParams.get('has_salary') === 'true')
+  }, [searchParams, setHasSalaryOnly])
 
   /** Keep shareable `/discover?q=…` in sync when the user types (debounced). */
   useEffect(() => {
@@ -488,7 +498,8 @@ function DiscoverPageContent() {
   const activeFilterCount =
     Number(Boolean(searchText.trim())) +
     Number(Boolean(locationFilter.trim())) +
-    Number(minFit > 0)
+    Number(minFit > 0) +
+    Number(hasSalaryOnly)
   const precisionMode = activeFilterCount >= 2
   const highFitVisible = filteredJobs.filter((j) => j.score.fit_score >= 4).length
   const etaMinutes = onboarding?.eta_seconds ? Math.max(1, Math.round(onboarding.eta_seconds / 60)) : null

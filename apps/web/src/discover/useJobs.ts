@@ -8,12 +8,17 @@ import { useJobStore } from './jobStore'
 
 export function useJobs() {
   const { isLoaded, isSignedIn } = useAuth()
-  const { minFit, locationFilter, setJobs, setLoading } = useJobStore()
+  const { minFit, locationFilter, hasSalaryOnly, setJobs, setLoading } = useJobStore()
 
   const ready = isE2EAuthBypass() || (isLoaded && isSignedIn)
   const { data, error, isLoading, mutate } = useSWR(
-    ready ? ['jobs', minFit, locationFilter] : null,
-    () => jobsApi.list({ min_fit: minFit || undefined, location: locationFilter || undefined }),
+    ready ? ['jobs', minFit, locationFilter, hasSalaryOnly] : null,
+    () =>
+      jobsApi.list({
+        min_fit: minFit || undefined,
+        location: locationFilter || undefined,
+        has_salary: hasSalaryOnly || undefined,
+      }),
     { revalidateOnFocus: false, dedupingInterval: 30_000 }
   )
 

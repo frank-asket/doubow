@@ -707,11 +707,11 @@ export default function DashboardOverviewPage() {
                 listings refresh often — stay current in Discover.
               </p>
               <Link
-                href="/discover?q=remote"
+                href="/discover?q=remote&has_salary=true"
                 className="mt-6 inline-block rounded border-[0.5px] border-white bg-white px-4 py-2 text-[12px] font-semibold shadow-sm transition hover:bg-zinc-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                 style={{ color: tk.insightBlue }}
               >
-                View salary bands
+                View remote roles
               </Link>
             </div>
             <BarChart3
