@@ -15,11 +15,6 @@ import type { AgentState, AutopilotRun } from '@doubow/shared'
 const AGENT_META: Record<string, { icon: string; color: string }> = {
   discovery: { icon: '🔍', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
   scorer: { icon: '◆', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
-  tailor: { icon: '✂', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
-  writer: { icon: '✏', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
-  apply: { icon: '📤', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
-  prep: { icon: '🎯', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
-  monitor: { icon: '⚙', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
   orchestrator: { icon: '⊕', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
 }
 
@@ -156,11 +151,6 @@ export default function AgentsPage() {
   const displayAgents: AgentState[] = agents.length > 0 ? agents : [
     { name: 'discovery', label: 'Discovery agent', description: 'Scans 45+ portals — Ashby, Greenhouse, Lever, Wellfound', status: 'active' },
     { name: 'scorer', label: 'Match scorer', description: 'Runs fit scoring (1–5) against your resume profile', status: 'running', progress: 0.6, message: 'Scoring 14 new jobs…' },
-    { name: 'tailor', label: 'Resume tailor', description: 'Generates ATS-optimized resume variants per JD', status: 'active' },
-    { name: 'writer', label: 'Cover letter writer', description: 'Drafts personalized cover letters and LinkedIn notes', status: 'active' },
-    { name: 'apply', label: 'Apply agent', description: 'Executes channel-aware apply post-approval', status: 'idle' },
-    { name: 'prep', label: 'Prep agent', description: 'Generates STAR-R questions and company briefings', status: 'active' },
-    { name: 'monitor', label: 'Pipeline monitor', description: 'Deduplicates, normalizes statuses, flags stale entries', status: 'active' },
     { name: 'orchestrator', label: 'Orchestrator', description: 'Routes tasks, enforces approvals, prevents duplicate runs', status: 'running', progress: 0.3, message: 'Queuing tailor run…' },
   ]
 
