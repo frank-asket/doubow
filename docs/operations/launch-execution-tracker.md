@@ -20,6 +20,26 @@ Use this file to execute each gate in order and track evidence links + owner sig
 
 ## Step-by-step execution
 
+### Week 1 execution closure (engineering sprint)
+
+Scope: Days 1-7 from the 14-day execution plan.
+
+| Day | Focus | Status | Evidence |
+|---|---|---|---|
+| 1 | Kickoff + baseline alignment | COMPLETE | Tracker + OAuth runbook are now the canonical execution artifacts for Week 1 decisions and checks. |
+| 2 | Trust semantics contract | COMPLETE | Delivery semantics aligned in UI copy and draft approval language (`apps/web/src/approvals/page.tsx`, `apps/web/src/drafts/page.tsx`). |
+| 3 | Trust semantics implementation | COMPLETE | Replaced misleading draft send copy with outreach-safe copy (`apps/web/src/drafts/page.tsx`). |
+| 4 | LinkedIn reliability fixes | COMPLETE | Added LinkedIn OAuth credential + RLS migrations and decoupled config gate with provider token key fallback (`backend/api_gateway/db/migrations/versions/20260504_00_linkedin_oauth_credentials.py`, `20260504_01_linkedin_oauth_rls.py`, `backend/api_gateway/config.py`). |
+| 5 | OAuth smoke + diagnostics hardening | COMPLETE | Smoke supports provider scoping and diagnose mode with missing-key diagnostics (`scripts/oauth_reconnect_smoke.py`, `/v1/me/debug/oauth-config`). |
+| 6 | Discover queue correctness | COMPLETE | Removed false positive queue success; failures now show explicit retry error (`apps/web/src/discover/page.tsx`). |
+| 7 | Admin ingestion authorization | COMPLETE | Added production allow-list authorization guard + tests (`backend/api_gateway/routers/ingestion.py`, `backend/api_gateway/tests/test_ingestion_admin_authz.py`, `ADMIN_INGESTION_USER_IDS`). |
+
+Additional review note:
+
+- Reviewed `backend/api_gateway/ingestion/connectors/base.py` during Week 1 close; no additional blocker patch required for this sprint scope.
+
+---
+
 ### Step 1 — P0-1 Core API reliability
 
 Goal:

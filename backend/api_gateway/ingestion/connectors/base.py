@@ -36,6 +36,7 @@ class RawJob:
 
 @dataclass
 class JobRecord:
+    id: str
     source: str
     external_id: str
     dedup_hash: str
@@ -170,6 +171,7 @@ class BaseConnector(ABC):
     def _normalise(self, raw: RawJob) -> JobRecord:
         dedup_hash = hashlib.sha256(f"{raw.source}:{raw.external_id}".encode()).hexdigest()[:32]
         return JobRecord(
+            id=str(uuid.uuid4()),
             source=raw.source,
             external_id=str(raw.external_id),
             dedup_hash=dedup_hash,
@@ -217,12 +219,12 @@ class BaseConnector(ABC):
         sql = text(
             """
             INSERT INTO jobs (
-                source, external_id, dedup_hash, title, company, url,
+                id, source, external_id, dedup_hash, title, company, url,
                 description, location, remote, salary_range, salary_min,
                 salary_max, currency, posted_at, discovered_at, tags,
                 department, employment_type, is_active, raw_json
             ) VALUES (
-                :source, :external_id, :dedup_hash, :title, :company, :url,
+                :id, :source, :external_id, :dedup_hash, :title, :company, :url,
                 :description, :location, :remote, :salary_range, :salary_min,
                 :salary_max, :currency, :posted_at, :discovered_at, :tags,
                 :department, :employment_type, :is_active, :raw_json

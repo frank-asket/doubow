@@ -143,9 +143,14 @@ class Settings(BaseSettings):
     linkedin_oauth_redirect_uri: str | None = None
     linkedin_oauth_frontend_redirect_uri: str = "http://localhost:3000/settings"
     linkedin_oauth_state_secret: str | None = None
+    # Optional LinkedIn-specific Fernet key. Falls back to GOOGLE_OAUTH_TOKEN_FERNET_KEY for compatibility.
+    linkedin_oauth_token_fernet_key: str | None = None
 
     # Optional shared secret for POST /v1/webhooks/profile-impression (ATS / analytics workers).
     profile_impression_webhook_secret: str | None = None
+    # Comma-separated Clerk user ids allowed to call /v1/admin/ingestion/* in production.
+    # Example: "user_abc,user_def"
+    admin_ingestion_user_ids: str | None = None
 
     # Portal scanner safety: deny localhost/private targets by default.
     portal_scanner_allow_private_ips: bool = False
@@ -168,6 +173,12 @@ class Settings(BaseSettings):
             return []
         return [p.strip() for p in raw.split(",") if p.strip()]
 
+    def admin_ingestion_user_ids_list(self) -> list[str]:
+        raw = (self.admin_ingestion_user_ids or "").strip()
+        if not raw:
+            return []
+        return [p.strip() for p in raw.split(",") if p.strip()]
+
     def google_oauth_is_configured(self) -> bool:
         return bool(
             self.google_oauth_client_id
@@ -178,12 +189,13 @@ class Settings(BaseSettings):
         )
 
     def linkedin_oauth_is_configured(self) -> bool:
+        linked_key = self.linkedin_oauth_token_fernet_key or self.google_oauth_token_fernet_key
         return bool(
             self.linkedin_oauth_client_id
             and self.linkedin_oauth_client_secret
             and self.linkedin_oauth_redirect_uri
             and self.linkedin_oauth_state_secret
-            and self.google_oauth_token_fernet_key
+            and linked_key
         )
 
 

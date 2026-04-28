@@ -3,10 +3,11 @@ from __future__ import annotations
 import asyncio
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from db.session import get_session
 from dependencies import get_authenticated_user
 from ingestion.scheduler.celery_tasks import ingest_all_sources, ingest_single_source
@@ -16,11 +17,24 @@ from models.user import User
 router = APIRouter(prefix="/admin/ingestion", tags=["ingestion"])
 
 
+def _require_ingestion_admin(user: User) -> None:
+    allowed_ids = set(settings.admin_ingestion_user_ids_list())
+    # Keep local/dev fast unless explicit allow-list is configured.
+    if settings.environment.lower() != "production" and not allowed_ids:
+        return
+    if user.id not in allowed_ids:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin ingestion access is restricted",
+        )
+
+
 @router.get("/status")
 async def ingestion_status(
-    _user: User = Depends(get_authenticated_user),
+    user: User = Depends(get_authenticated_user),
     db: AsyncSession = Depends(get_session),
 ):
+    _require_ingestion_admin(user)
     total = (
         await db.execute(
             text("SELECT COUNT(*) FROM jobs WHERE coalesce(is_active, true) = true")
@@ -79,8 +93,9 @@ async def ingestion_status(
 @router.post("/run")
 async def trigger_ingestion(
     source: str | None = None,
-    _user: User = Depends(get_authenticated_user),
+    user: User = Depends(get_authenticated_user),
 ):
+    _require_ingestion_admin(user)
     if source:
         if source not in ALL_CONNECTORS:
             raise HTTPException(status_code=422, detail=f"Unknown source '{source}'")
@@ -93,9 +108,10 @@ async def trigger_ingestion(
 @router.get("/runs")
 async def ingestion_runs(
     limit: int = Query(default=20, ge=1, le=200),
-    _user: User = Depends(get_authenticated_user),
+    user: User = Depends(get_authenticated_user),
     db: AsyncSession = Depends(get_session),
 ):
+    _require_ingestion_admin(user)
     rows = (
         await db.execute(
             text(
@@ -125,7 +141,8 @@ async def ingestion_runs(
 
 
 @router.get("/health")
-async def connector_health(_user: User = Depends(get_authenticated_user)):
+async def connector_health(user: User = Depends(get_authenticated_user)):
+    _require_ingestion_admin(user)
     async def _check_one(name: str, connector_cls):
         try:
             return await connector_cls().health_check()

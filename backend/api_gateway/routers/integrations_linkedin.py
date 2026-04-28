@@ -16,7 +16,7 @@ from dependencies import get_authenticated_user
 from models.linkedin_oauth_credential import LinkedInOAuthCredential
 from models.user import User
 from services.google_oauth_state import sign_oauth_state, verify_oauth_state
-from services.google_token_crypto import encrypt_refresh_token
+from services.linkedin_token_crypto import encrypt_access_token
 from services.linkedin_oauth_service import build_authorization_url, exchange_code_for_access_token
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ async def linkedin_callback(
     token = bind_request_user_for_rls(user_id)
     try:
         access_token, expires_at = exchange_code_for_access_token(code=code)
-        enc = encrypt_refresh_token(access_token)
+        enc = encrypt_access_token(access_token)
         row = await session.get(LinkedInOAuthCredential, user_id)
         if row is None:
             row = LinkedInOAuthCredential(user_id=user_id)

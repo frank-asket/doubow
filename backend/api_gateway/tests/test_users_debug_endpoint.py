@@ -121,4 +121,4 @@ async def test_oauth_config_debug_endpoint_reports_missing_keys(db_session: Asyn
     assert "GOOGLE_OAUTH_TOKEN_FERNET_KEY" in payload["google"]["missing_required_keys"]
     assert payload["linkedin"]["configured"] is False
     assert "LINKEDIN_OAUTH_CLIENT_SECRET" in payload["linkedin"]["missing_required_keys"]
-    assert "GOOGLE_OAUTH_TOKEN_FERNET_KEY" in payload["linkedin"]["missing_required_keys"]
+    assert "LINKEDIN_OAUTH_TOKEN_FERNET_KEY_OR_GOOGLE_FALLBACK" in payload["linkedin"]["missing_required_keys"]

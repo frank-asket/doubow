@@ -173,6 +173,7 @@ function CompanyLogo({
 function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boolean }) {
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
+  const [queueError, setQueueError] = useState<string | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
   const dismissJob = useJobStore((s) => s.dismissJob)
   const queueIdempotencyKey = useMemo(() => crypto.randomUUID(), [])
@@ -183,14 +184,14 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
 
   async function handleQueue() {
     setQueuing(true)
+    setQueueError(null)
     try {
       await applicationsApi.create(job.id, job.score.channel_recommendation, {
         idempotencyKey: queueIdempotencyKey,
       })
       setQueued(true)
     } catch {
-      // optimistic UI update before server confirmation
-      setQueued(true)
+      setQueueError('Could not add to queue. Retry in a moment.')
     } finally {
       setQueuing(false)
     }
@@ -321,6 +322,7 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
               {!queuing && <ArrowRight size={12} />}
             </motion.button>
           )}
+          {queueError ? <span className="text-xs font-medium text-rose-700">{queueError}</span> : null}
         </div>
       </div>
     </motion.div>
@@ -330,18 +332,20 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
 function CatalogFeaturedMatch({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boolean }) {
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
+  const [queueError, setQueueError] = useState<string | null>(null)
   const queueKey = useMemo(() => crypto.randomUUID(), [])
   const fitPct = Math.min(100, Math.round((job.score.fit_score / 5) * 100))
 
   async function handleQueue() {
     setQueuing(true)
+    setQueueError(null)
     try {
       await applicationsApi.create(job.id, job.score.channel_recommendation, {
         idempotencyKey: queueKey,
       })
       setQueued(true)
     } catch {
-      setQueued(true)
+      setQueueError('Queue failed. Please retry.')
     } finally {
       setQueuing(false)
     }
@@ -438,6 +442,7 @@ function CatalogFeaturedMatch({ job, motionEnabled }: { job: JobWithScore; motio
             {!queuing ? <ArrowRight size={12} /> : null}
           </motion.button>
         )}
+        {queueError ? <span className="text-sm font-medium text-rose-700">{queueError}</span> : null}
         <MotionLink href="/prep" {...ctaMotion} className="btn text-xs inline-flex items-center gap-1.5">
           <BookOpen size={12} />
           Interview prep
@@ -953,8 +958,8 @@ function DiscoverPageContent() {
               </div>
               <div>
                 <div className="mb-1 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  <span>Annual comp (USD)</span>
-                  <span className="text-teal-700">$140k - $220k</span>
+                  <span>Minimum fit score</span>
+                  <span className="text-teal-700">{minFitChip}</span>
                 </div>
                 <input
                   type="range"

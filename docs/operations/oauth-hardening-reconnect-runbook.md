@@ -25,6 +25,7 @@ Scope: production OAuth for Gmail and LinkedIn in Doubow.
    - `GOOGLE_OAUTH_STATE_SECRET`
    - `LINKEDIN_OAUTH_STATE_SECRET`
    - `GOOGLE_OAUTH_TOKEN_FERNET_KEY`
+   - Optional: `LINKEDIN_OAUTH_TOKEN_FERNET_KEY` (if omitted, LinkedIn uses Google key fallback)
 4. Verify no plaintext secrets remain in:
    - chat snippets
    - docs
@@ -74,7 +75,7 @@ Frontend redirect env vars should point to settings UI:
 - client secret
 - redirect uri
 - state secret
-- token fernet key
+- token fernet key (`LINKEDIN_OAUTH_TOKEN_FERNET_KEY` or `GOOGLE_OAUTH_TOKEN_FERNET_KEY` fallback)
 
 If any are missing, `/authorize` returns `503`.
 

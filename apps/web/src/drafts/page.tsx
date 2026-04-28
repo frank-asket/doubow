@@ -69,9 +69,9 @@ export default function DraftsPage() {
       }
       removeApproval(current.id)
       await refresh()
-      setToast('Sent via Gmail successfully.')
+      setToast('Outreach approved and queued for delivery.')
     } catch {
-      setToast('Could not send via Gmail right now.')
+      setToast('Could not approve outreach right now.')
     } finally {
       setBusy(null)
     }
@@ -179,7 +179,7 @@ export default function DraftsPage() {
             className="inline-flex h-7 items-center gap-2 rounded-[2px] bg-[#00685f] px-6 text-[11px] font-semibold text-white disabled:opacity-60"
           >
             {busy === 'send' ? <Loader2 size={12} className="animate-spin" /> : null}
-            Send via Gmail
+            Approve outreach
           </button>
         </div>
       </footer>

@@ -113,8 +113,9 @@ async def get_me_debug_oauth_config(
         "LINKEDIN_OAUTH_CLIENT_SECRET": bool(settings.linkedin_oauth_client_secret),
         "LINKEDIN_OAUTH_REDIRECT_URI": bool(settings.linkedin_oauth_redirect_uri),
         "LINKEDIN_OAUTH_STATE_SECRET": bool(settings.linkedin_oauth_state_secret),
-        # Current LinkedIn config gate also depends on this shared key.
-        "GOOGLE_OAUTH_TOKEN_FERNET_KEY": bool(settings.google_oauth_token_fernet_key),
+        "LINKEDIN_OAUTH_TOKEN_FERNET_KEY_OR_GOOGLE_FALLBACK": bool(
+            settings.linkedin_oauth_token_fernet_key or settings.google_oauth_token_fernet_key
+        ),
     }
 
     def summarize(required: dict[str, bool], configured: bool) -> OAuthProviderConfigDebug:
