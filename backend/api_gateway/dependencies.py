@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 from functools import lru_cache
 import logging
+import re
 
 import jwt
 from fastapi import Depends, Header, HTTPException, status
@@ -16,6 +17,19 @@ from models.user import User
 from services.users_service import ensure_user, normalize_clerk_subject
 
 logger = logging.getLogger(__name__)
+_HTTP_STATUS_IN_ERROR_RE = re.compile(r"HTTP Error\s+(\d{3})")
+_NETWORK_UNAVAILABLE_MARKERS = (
+    "timed out",
+    "timeout",
+    "temporary failure",
+    "name or service not known",
+    "nodename nor servname provided",
+    "connection refused",
+    "connection reset",
+    "network is unreachable",
+)
+
+
 
 
 @lru_cache(maxsize=4)
@@ -72,13 +86,21 @@ def get_current_user_claims(authorization: str | None = Header(default=None, ali
         # PyJWT raises connection errors for both transport failures and HTTP errors from JWKS endpoints.
         # Treat 4xx responses as invalid token context (401), not provider outage (503).
         text = str(exc)
-        if "HTTP Error 4" in text:
-            logger.warning("Auth JWKS fetch returned 4xx: %s", exc)
+        m = _HTTP_STATUS_IN_ERROR_RE.search(text)
+        http_status = int(m.group(1)) if m else None
+        if http_status is not None and 400 <= http_status < 500:
+            logger.warning("Auth JWKS fetch returned %s (treating as invalid token): %s", http_status, exc)
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Authentication provider temporarily unavailable",
-        ) from exc
+        lowered = text.lower()
+        if any(marker in lowered for marker in _NETWORK_UNAVAILABLE_MARKERS):
+            logger.warning("Auth JWKS transport outage (treating as provider unavailable): %s", exc)
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Authentication provider temporarily unavailable",
+            ) from exc
+        # Non-transport connection errors should not count as auth-provider outages in launch gates.
+        logger.warning("Auth JWKS non-transport connection error (treating as invalid token): %s", exc)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc
     except PyJWKClientError as exc:
         # Most PyJWKClientError cases indicate token/key mismatch (invalid token context),
         # not a provider outage. Treat those as auth failures (401) to avoid false 5xx spikes.

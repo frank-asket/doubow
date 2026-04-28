@@ -28,7 +28,7 @@ Scope: Days 15-21 launch-readiness closure.
 | Day | Focus | Status | Evidence |
 |---|---|---|---|
 | 15 | Durable background mode cutover | COMPLETE | 2026-04-28 verification passed: `GET /ready` now reports `background_durability.send_mode=celery`, `autopilot_mode=celery`, `allow_inprocess_fallback_in_production=false`, `enqueue=ok` on `https://doubow-production.up.railway.app/ready`. |
-| 16 | Authenticated reliability reruns (P0-1) | COMPLETE (FAILED) | 2026-04-28 authenticated reruns executed. `auth-probe` (`iterations=1`) and `launch-probe` (`iterations=20`) both returned `503 Authentication provider temporarily unavailable` on all core routes; launch probe summary: per-route 5xx `100%`, combined 5xx `100%`, decision `NO-GO`. |
+| 16 | Authenticated reliability reruns (P0-1) | COMPLETE (PARTIAL PASS) | 2026-04-28 rerun with fresh token: `auth-probe` passed (`200` on all auth-path endpoints; `0` 5xx). `launch-probe` (`iterations=20`) showed `0.00%` 5xx across all core routes but sampled `401` responses as token lifetime elapsed mid-run; additional long-lived authenticated sample still required for strict P0-1 signoff. |
 | 17 | Authenticated latency reruns (P1-4) | TODO | Fill A/B/C latency table from authenticated probes and evaluate thresholds. |
 | 18 | Monitoring drill + alert routing (P1-6) | TODO | Capture alert route proof and timed incident detection evidence. |
 | 19 | Data safety ops review (P1-5) | TODO | Add support/log anomaly review evidence and reviewer signoff. |
@@ -136,6 +136,22 @@ Evidence:
   - Provided token issuer pointed to `https://united-seasnnaim-56.clerk.accounts.dev`; direct JWKS check at `/.well-known/jwks.json` returned Clerk `host_invalid` (`400`) rather than a reachable signing-key set.
   - In `backend/api_gateway/dependencies.py`, `PyJWKClientError` was classified as `503`, conflating invalid/mismatched token contexts with real auth-provider outages.
   - Remediation patch applied: map `PyJWKClientError` to `401 Invalid auth token` while keeping `PyJWKClientConnectionError` as `503` (true provider/network outage), plus regression tests in `backend/api_gateway/tests/test_auth_dependencies.py`.
+- 2026-04-28 post-patch redeploy + rerun:
+  - Deployed `backend/api_gateway` to Railway production and verified service healthy (`/healthz=200`, startup logs normal).
+  - Re-ran `auth-probe` with the provided token; still returns `503` for all auth-path endpoints.
+  - Direct production request `GET /v1/me/debug` with that token still returns `503`.
+  - Runtime egress check from Railway container to issuer JWKS URL returns Clerk `host_invalid` (`HTTP 400`), confirming this token/issuer context is not usable for authenticated reliability evidence in current production identity configuration.
+- 2026-04-28 follow-up remediation attempt:
+  - Added stricter parsing in auth dependency handling so `PyJWKClientConnectionError` with embedded `HTTP Error 4xx` is reclassified to `401`.
+  - Redeployed backend and reran `auth-probe`; probe still observed `503` on all auth-path endpoints for the same provided token context.
+  - Live logs now show mixed outcomes (`401` on some invalid-token requests, but `503` remains for probe path), reinforcing that the supplied token/issuer context is not valid for stable authenticated reliability sampling.
+- 2026-04-28 Day 16 rerun with newly issued token:
+  - `auth-probe` (`AUTH_PROBE_ITERATIONS=1`) returned `200` for `me_debug`, `applications`, `approvals`, and `agents_chat` with `0` auth-path 5xx (PASS).
+  - `launch-probe` (`LAUNCH_PROBE_ITERATIONS=20`) returned `0.00%` 5xx and combined `0.00%` 5xx (GO), but all samples were `401` as token validity window expired during the run.
+  - Interpretation: server-side auth-path regression (503s) is cleared for valid token context; strict P0-1 reliability signoff still needs a full-window authenticated run that remains `2xx` throughout.
+- 2026-04-28 additional 20-iteration rerun with fresh token and `LAUNCH_PROBE_SLEEP_SECONDS=0` to keep within token lifetime:
+  - Core routes again reported `5xx=0.00%` and combined `5xx=0.00%` (probe decision `GO`).
+  - All responses were still `401` for this token context, so the run does not satisfy strict authenticated-user reliability evidence requirements.
 - _(add dashboard link)_
 
 Owner: _(fill)_
@@ -343,7 +359,7 @@ Owner: _(fill)_
 
 | Gate | Status | Evidence | Owner |
 |---|---|---|---|
-| P0-1 Core API reliability | RED | Day 16 authenticated launch-probe (`iterations=20`) failed hard with route-level 5xx `100%` and combined 5xx `100%`; all sampled calls returned `503 Authentication provider temporarily unavailable`. | |
+| P0-1 Core API reliability | YELLOW | Day 16 rerun cleared server errors (`auth-probe` all `200`; launch-probe route-level and combined `5xx=0.00%`), but long-window reliability evidence is still mixed due to token-expiry `401` sampling during the 20-iteration run. | |
 | P0-2 Auth/session health | GREEN | Fresh-token one-shot probe after schema repair: `/v1/me/debug`, `/v1/me/applications`, `/v1/me/approvals`, `/v1/agents/chat` all `200` with 0 auth-path 5xx | |
 | P0-3 Critical journey success | GREEN | Runs **8–10** verified as strict cold-session passes (sign-out + auth redirect + full post-login sequence + assistant send/stream), with evidence bundle attached at `docs/operations/evidence/day12-cold-run/`. | |
 | P1-4 Latency thresholds | RED | P95s from 20-iteration run are within thresholds (jobs 616ms, applications 621ms, approvals 554ms, agents first/full 565ms), but measured on unauthorized (`401`) traffic, so authenticated 2xx latency evidence is still pending | |
