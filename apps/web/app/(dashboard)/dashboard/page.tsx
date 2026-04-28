@@ -55,6 +55,47 @@ function fitPercent(score?: { fit_score?: number }) {
   return Math.min(100, Math.round((raw / 5) * 100))
 }
 
+type SalaryStats = {
+  field: string
+  jobs: number
+  salaryJobs: number
+  coveragePct: number
+  typicalBand: string
+}
+
+function inferField(title: string): string {
+  const t = title.toLowerCase()
+  if (/(data|ml|machine learning|ai|scientist|analytics)/.test(t)) return 'Data & AI'
+  if (/(backend|frontend|full stack|software|platform|sre|devops|engineer)/.test(t)) return 'Engineering'
+  if (/(product|pm\b|product manager)/.test(t)) return 'Product'
+  if (/(designer|ux|ui|research)/.test(t)) return 'Design'
+  if (/(sales|account executive|business development)/.test(t)) return 'Sales'
+  if (/(marketing|growth|content|brand)/.test(t)) return 'Marketing'
+  return 'General'
+}
+
+function parseSalaryRange(raw?: string | null): { min: number; max: number } | null {
+  if (!raw) return null
+  const text = raw.toLowerCase().replace(/,/g, '')
+  const nums = [...text.matchAll(/(\d+(?:\.\d+)?)\s*([kKmM]?)/g)]
+    .map((m) => {
+      const base = Number(m[1])
+      const suffix = (m[2] || '').toLowerCase()
+      if (!Number.isFinite(base)) return null
+      if (suffix === 'k') return Math.round(base * 1_000)
+      if (suffix === 'm') return Math.round(base * 1_000_000)
+      return Math.round(base)
+    })
+    .filter((n): n is number => n != null)
+  if (nums.length < 2) return null
+  const [a, b] = nums
+  return { min: Math.min(a, b), max: Math.max(a, b) }
+}
+
+function formatUsd(n: number): string {
+  return `$${Math.round(n / 1000)}k`
+}
+
 export default function DashboardOverviewPage() {
   const router = useRouter()
   const { summary, loading: summaryLoading, error: summaryError } = useDashboard()
@@ -63,6 +104,7 @@ export default function DashboardOverviewPage() {
 
   const [period, setPeriod] = useState<'month' | 'all'>('month')
   const [discoverQuery, setDiscoverQuery] = useState('')
+  const [showSalaryInsights, setShowSalaryInsights] = useState(false)
 
   const { data: allApplications, error: appsError, isLoading: appsLoading } = useSWR(
     ready ? 'dashboard-overview-applications' : null,
@@ -97,6 +139,43 @@ export default function DashboardOverviewPage() {
       if (out.length >= 6) break
     }
     return out
+  }, [allApplications])
+
+  const salaryInsights = useMemo(() => {
+    if (!allApplications?.length) return { rows: [] as SalaryStats[], overallCoverage: 0, totalJobs: 0 }
+    const uniqueJobs = new Map<string, Application['job']>()
+    for (const app of allApplications) uniqueJobs.set(app.job.id, app.job)
+    const jobs = [...uniqueJobs.values()]
+    const byField = new Map<string, { jobs: number; salaryJobs: number; mins: number[]; maxes: number[] }>()
+    let salaryCount = 0
+    for (const job of jobs) {
+      const field = inferField(job.title || '')
+      const rec = byField.get(field) ?? { jobs: 0, salaryJobs: 0, mins: [], maxes: [] }
+      rec.jobs += 1
+      const parsed = parseSalaryRange(job.salary_range)
+      if (parsed) {
+        rec.salaryJobs += 1
+        rec.mins.push(parsed.min)
+        rec.maxes.push(parsed.max)
+        salaryCount += 1
+      }
+      byField.set(field, rec)
+    }
+    const rows: SalaryStats[] = [...byField.entries()]
+      .map(([field, rec]) => {
+        const coveragePct = rec.jobs > 0 ? Math.round((rec.salaryJobs / rec.jobs) * 100) : 0
+        const typicalBand =
+          rec.salaryJobs > 0
+            ? `${formatUsd(rec.mins.reduce((a, b) => a + b, 0) / rec.mins.length)} - ${formatUsd(rec.maxes.reduce((a, b) => a + b, 0) / rec.maxes.length)}`
+            : 'No salary data yet'
+        return { field, jobs: rec.jobs, salaryJobs: rec.salaryJobs, coveragePct, typicalBand }
+      })
+      .sort((a, b) => b.salaryJobs - a.salaryJobs || b.jobs - a.jobs)
+    return {
+      rows,
+      overallCoverage: jobs.length > 0 ? Math.round((salaryCount / jobs.length) * 100) : 0,
+      totalJobs: jobs.length,
+    }
   }, [allApplications])
 
   const pipelineCount = summary?.pipeline_count ?? 0
@@ -706,13 +785,37 @@ export default function DashboardOverviewPage() {
                 <span className="font-bold tabular-nums">{summaryLoading ? '…' : highFit}</span>. Remote and hybrid
                 listings refresh often — stay current in Discover.
               </p>
-              <Link
-                href="/discover?q=remote&has_salary=true"
+              <button
+                type="button"
+                onClick={() => setShowSalaryInsights((v) => !v)}
                 className="mt-6 inline-block rounded border-[0.5px] border-white bg-white px-4 py-2 text-[12px] font-semibold shadow-sm transition hover:bg-zinc-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                 style={{ color: tk.insightBlue }}
               >
-                View remote roles
-              </Link>
+                View salary bands
+              </button>
+              {showSalaryInsights ? (
+                <div className="mt-4 rounded border border-white/35 bg-white/10 p-3 text-[12px]">
+                  <p className="font-semibold">
+                    Salary data coverage: {salaryInsights.overallCoverage}% across {salaryInsights.totalJobs} queued roles
+                  </p>
+                  <div className="mt-2 space-y-1.5">
+                    {salaryInsights.rows.slice(0, 4).map((row) => (
+                      <div key={row.field} className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold">{row.field}</p>
+                          <p className="truncate opacity-90">{row.typicalBand}</p>
+                        </div>
+                        <span className="shrink-0 rounded bg-white/20 px-2 py-0.5 text-[11px] font-semibold">
+                          {row.coveragePct}% data
+                        </span>
+                      </div>
+                    ))}
+                    {salaryInsights.rows.length === 0 ? (
+                      <p className="opacity-90">No salary figures available yet for your current queue.</p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
             </div>
             <BarChart3
               className="pointer-events-none absolute -bottom-4 -right-4 z-0 h-32 w-32 opacity-[0.12]"
