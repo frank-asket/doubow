@@ -973,23 +973,29 @@ function DiscoverPageContent() {
               </div>
               <div>
                 <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Mandatory stack
+                  Active criteria
                 </label>
                 <div className="flex flex-wrap gap-1.5">
-                  {['TypeScript', 'React', 'Node.js', 'PostgreSQL', 'Rust'].map((tag) => (
-                    <span
-                      key={tag}
-                      className={cn(
-                        'rounded-sm border border-[0.5px] px-2 py-1 text-[10px] font-semibold',
-                        tag === 'TypeScript' || tag === 'Node.js'
-                          ? 'border-teal-200 bg-teal-50 text-teal-700'
-                          : 'bg-zinc-50 text-zinc-600',
-                      )}
-                      style={{ borderColor: tag === 'TypeScript' || tag === 'Node.js' ? undefined : 'rgba(109,122,119,0.45)' }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
+                  {[
+                    locationFilter.trim() ? `Location: ${locationFilter.trim()}` : null,
+                    minFit > 0 ? `Min fit: ${minFitChip}` : null,
+                    searchText.trim() ? `Query: ${searchText.trim()}` : null,
+                    hasSalaryOnly ? 'Salary only' : null,
+                  ]
+                    .filter((item): item is string => Boolean(item))
+                    .map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-sm border border-teal-200 bg-teal-50 px-2 py-1 text-[10px] font-semibold text-teal-700"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  {!locationFilter.trim() && minFit === 0 && !searchText.trim() && !hasSalaryOnly ? (
+                    <p className="text-[11px] text-zinc-500">
+                      No criteria applied yet. Use filters to refine your matches.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>
