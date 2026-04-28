@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -58,8 +59,10 @@ class JobRecord:
 
     def to_db_dict(self) -> dict:
         payload = asdict(self)
-        # Keep JSON and datetime values as native Python objects so asyncpg can
-        # bind them to JSONB / TIMESTAMPTZ columns without type coercion errors.
+        # Keep datetimes as native objects; encode structured fields for DBs
+        # that still store tags/raw_json in string-like columns.
+        payload["tags"] = json.dumps(payload["tags"])
+        payload["raw_json"] = json.dumps(payload["raw_json"])
         return payload
 
 
@@ -107,8 +110,10 @@ class BaseConnector(ABC):
                         await self._upsert(db_session, record)
                         existing_hashes.add(record.dedup_hash)
                         result.inserted += 1
-                    except Exception:
+                    except Exception as exc:
                         result.errors += 1
+                        if not result.error_detail:
+                            result.error_detail = str(exc)
             result.success = True
         except Exception as exc:
             result.error_detail = str(exc)
