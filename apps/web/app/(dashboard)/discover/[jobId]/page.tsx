@@ -254,7 +254,7 @@ export default function JobDetailPage() {
               {actionState === 'approved' ? (
                 <div className="mx-4 mb-3 flex items-center justify-between gap-2 rounded-sm border border-emerald-200 bg-emerald-50 p-2">
                   <p className="text-xs font-medium text-emerald-700">
-                    Approved and queued for send. Continue in approvals.
+                    Outreach approved and queued. Continue in approvals.
                   </p>
                   {approval ? (
                     <Link
@@ -286,7 +286,7 @@ export default function JobDetailPage() {
                   className={`${dashboardUi.actionButton} bg-teal-600 text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70`}
                 >
                   {approving || loadingDraft ? <Loader2 size={dashboardUi.actionIcon} className="animate-spin" /> : <Send size={dashboardUi.actionIcon} />}
-                  {approving ? 'Queuing...' : 'Approve & send'}
+                  {approving ? 'Queuing...' : 'Approve outreach'}
                 </button>
               </div>
             </article>

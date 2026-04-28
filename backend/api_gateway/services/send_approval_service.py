@@ -165,8 +165,8 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                             approval.provider_thread_id = None
                             approval.provider_confirmed_at = None
                             approval.delivery_error = None
-                            app_row.status = "applied"
-                            app_row.applied_at = now
+                            # Trust semantics: sending outreach/drafts is not the same as
+                            # submitting an application on the employer side.
                             await session.commit()
                             return
                         except Exception:
@@ -227,8 +227,6 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                 provider=approval.send_provider or "smtp",
                 provider_message_id=approval.provider_message_id,
             )
-            app_row.status = "applied"
-            app_row.applied_at = now
         elif approval.channel == "linkedin":
             li_row = (
                 await session.execute(select(LinkedInOAuthCredential).where(LinkedInOAuthCredential.user_id == user_id))
@@ -259,8 +257,6 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
             approval.provider_confirmed_at = None
             approval.sent_at = now
             approval.delivery_error = None
-            app_row.status = "applied"
-            app_row.applied_at = now
         else:
             logger.info(
                 "send_stub: channel=%s has no SMTP integration; recording sent locally only",
@@ -272,8 +268,6 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
             approval.provider_thread_id = None
             approval.provider_confirmed_at = None
             approval.sent_at = now
-            app_row.status = "applied"
-            app_row.applied_at = now
     except Exception:
         logger.exception("send_stub: outbound dispatch failed approval_id=%s", approval_id)
         approval.delivery_status = "failed"

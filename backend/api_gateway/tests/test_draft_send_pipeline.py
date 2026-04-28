@@ -53,8 +53,8 @@ async def test_create_draft_then_approve_then_send_updates_state(db_session):
 
     app_row = await db_session.get(Application, aid)
     assert app_row is not None
-    assert app_row.status == "applied"
-    assert app_row.applied_at is not None
+    assert app_row.status == "pending"
+    assert app_row.applied_at is None
 
 
 @pytest.mark.asyncio
@@ -161,5 +161,5 @@ async def test_linkedin_approve_then_send_emails_handoff_pack(db_session):
 
     app_row = await db_session.get(Application, aid)
     assert app_row is not None
-    assert app_row.status == "applied"
-    assert app_row.applied_at is not None
+    assert app_row.status == "pending"
+    assert app_row.applied_at is None

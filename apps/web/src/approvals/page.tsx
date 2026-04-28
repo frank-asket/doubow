@@ -282,11 +282,11 @@ export default function ApprovalsPage() {
 
   const approveButtonLabel = useMemo(() => {
     if (!current) return 'Approve'
-    if (current.channel === 'linkedin') return 'Approve & email handoff'
+    if (current.channel === 'linkedin') return 'Approve outreach & email handoff'
     if (current.channel === 'email') {
-      if (gmailForApprovals?.loading) return 'Approve & send…'
-      if (gmailForApprovals?.connected) return 'Approve & send via Gmail'
-      return 'Approve & send (email relay)'
+      if (gmailForApprovals?.loading) return 'Approve outreach…'
+      if (gmailForApprovals?.connected) return 'Approve outreach via Gmail'
+      return 'Approve outreach (email relay)'
     }
     return 'Approve'
   }, [current, gmailForApprovals])
