@@ -68,11 +68,16 @@ def get_current_user_claims(authorization: str | None = Header(default=None, ali
         claims = _decode_clerk_token(token)
     except InvalidTokenError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc
-    except (PyJWKClientError, PyJWKClientConnectionError) as exc:
+    except PyJWKClientConnectionError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Authentication provider temporarily unavailable",
         ) from exc
+    except PyJWKClientError as exc:
+        # Most PyJWKClientError cases indicate token/key mismatch (invalid token context),
+        # not a provider outage. Treat those as auth failures (401) to avoid false 5xx spikes.
+        logger.warning("Auth JWKS validation failed: %s", exc)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc
     except Exception as exc:
         # Never leak opaque backend exceptions from auth verification path.
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc

@@ -4,6 +4,7 @@ Operational companion to:
 
 - `docs/operations/launch-go-no-go-checklist.md`
 - `docs/operations/oauth-hardening-reconnect-runbook.md`
+- `docs/operations/week3-execution-plan.md`
 
 Use this file to execute each gate in order and track evidence links + owner signoff.
 
@@ -19,6 +20,22 @@ Use this file to execute each gate in order and track evidence links + owner sig
 ---
 
 ## Step-by-step execution
+
+### Week 3 execution kickoff (post-Day-14 closure)
+
+Scope: Days 15-21 launch-readiness closure.
+
+| Day | Focus | Status | Evidence |
+|---|---|---|---|
+| 15 | Durable background mode cutover | COMPLETE | 2026-04-28 verification passed: `GET /ready` now reports `background_durability.send_mode=celery`, `autopilot_mode=celery`, `allow_inprocess_fallback_in_production=false`, `enqueue=ok` on `https://doubow-production.up.railway.app/ready`. |
+| 16 | Authenticated reliability reruns (P0-1) | COMPLETE (FAILED) | 2026-04-28 authenticated reruns executed. `auth-probe` (`iterations=1`) and `launch-probe` (`iterations=20`) both returned `503 Authentication provider temporarily unavailable` on all core routes; launch probe summary: per-route 5xx `100%`, combined 5xx `100%`, decision `NO-GO`. |
+| 17 | Authenticated latency reruns (P1-4) | TODO | Fill A/B/C latency table from authenticated probes and evaluate thresholds. |
+| 18 | Monitoring drill + alert routing (P1-6) | TODO | Capture alert route proof and timed incident detection evidence. |
+| 19 | Data safety ops review (P1-5) | TODO | Add support/log anomaly review evidence and reviewer signoff. |
+| 20 | OAuth hardening signoff (Step 7) | TODO | Complete reconnect runbook evidence and provider-scope signoff. |
+| 21 | Final gate reconciliation + decision | TODO | Align tracker/checklist owners and finalize GO/NO-GO decision packet. |
+
+---
 
 ### Week 1 execution closure (engineering sprint)
 
@@ -112,6 +129,13 @@ Evidence:
 - 2026-04-26 launch-probe (`iterations=20`) summary: `combined_5xx_rate=0.00%`, route 5xx all `0.00%`; P95 latency: jobs `616.1ms`, applications `621.1ms`, approvals `554.4ms`, agents first/full `564.6ms`; probe decision `GO`.
 - Caveat: that 20-iteration run sampled `401` responses (expired/invalid token window), so reliability/latency numerics are useful baseline but do not by themselves prove authenticated-user success behavior.
 - 2026-04-27 infra incident + fix: production briefly returned `502 Application failed to respond`; Railway logs showed startup crash `sqlalchemy.exc.ArgumentError: Could not parse SQLAlchemy URL` because `DATABASE_URL` was empty. After restoring `DATABASE_URL` and redeploying, `/healthz=200`, `/ready={"status":"ready","postgres":"ok","redis":"ok"}`, `/metrics=200`.
+- 2026-04-28 Day 16 authenticated reruns:
+  - `make -C backend auth-probe` (`AUTH_PROBE_ITERATIONS=1`, provided token) returned `503` for `me_debug`, `applications`, `approvals`, `agents_chat`, each with detail `Authentication provider temporarily unavailable`.
+  - `make -C backend launch-probe` (`LAUNCH_PROBE_ITERATIONS=20`) returned `503` on all sampled requests across `/v1/jobs`, `/v1/me/applications`, `/v1/me/approvals`, `POST /v1/agents/chat`; summary: per-route 5xx `100.00%`, combined 5xx `100.00%`, decision `NO-GO`.
+- 2026-04-28 root-cause analysis:
+  - Provided token issuer pointed to `https://united-seasnnaim-56.clerk.accounts.dev`; direct JWKS check at `/.well-known/jwks.json` returned Clerk `host_invalid` (`400`) rather than a reachable signing-key set.
+  - In `backend/api_gateway/dependencies.py`, `PyJWKClientError` was classified as `503`, conflating invalid/mismatched token contexts with real auth-provider outages.
+  - Remediation patch applied: map `PyJWKClientError` to `401 Invalid auth token` while keeping `PyJWKClientConnectionError` as `503` (true provider/network outage), plus regression tests in `backend/api_gateway/tests/test_auth_dependencies.py`.
 - _(add dashboard link)_
 
 Owner: _(fill)_
@@ -319,7 +343,7 @@ Owner: _(fill)_
 
 | Gate | Status | Evidence | Owner |
 |---|---|---|---|
-| P0-1 Core API reliability | RED | Latest launch-probe (20 iterations) shows 0.00% 5xx and GO, but sample set was unauthorized (`401`) and not yet validated over a full 48-72h authenticated window | |
+| P0-1 Core API reliability | RED | Day 16 authenticated launch-probe (`iterations=20`) failed hard with route-level 5xx `100%` and combined 5xx `100%`; all sampled calls returned `503 Authentication provider temporarily unavailable`. | |
 | P0-2 Auth/session health | GREEN | Fresh-token one-shot probe after schema repair: `/v1/me/debug`, `/v1/me/applications`, `/v1/me/approvals`, `/v1/agents/chat` all `200` with 0 auth-path 5xx | |
 | P0-3 Critical journey success | GREEN | Runs **8–10** verified as strict cold-session passes (sign-out + auth redirect + full post-login sequence + assistant send/stream), with evidence bundle attached at `docs/operations/evidence/day12-cold-run/`. | |
 | P1-4 Latency thresholds | RED | P95s from 20-iteration run are within thresholds (jobs 616ms, applications 621ms, approvals 554ms, agents first/full 565ms), but measured on unauthorized (`401`) traffic, so authenticated 2xx latency evidence is still pending | |
@@ -328,8 +352,8 @@ Owner: _(fill)_
 
 Decision: **NO-GO** (until all P0 green and P1 green)
 
-Background mode release decision: **NO-GO while `/ready` reports `send_mode=inprocess` and `autopilot_mode=inprocess` in production.**  
-Launch GO requires durable mode (`send_mode=celery`, `autopilot_mode=celery`) with `enqueue=ok` and worker health evidence.
+Background mode release decision: public launch requires durable mode (`send_mode=celery`, `autopilot_mode=celery`) with `enqueue=ok` and worker health evidence.  
+2026-04-28 verification check: requirement currently **satisfied** on `/ready`.
 
 ---
 
