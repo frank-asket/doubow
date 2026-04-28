@@ -170,6 +170,7 @@ function makeScore(jobId: string, fit: number): JobScore {
     },
     channel_recommendation: 'email',
     scored_at: isoMinutesAgo(5),
+    provenance: 'template_seeded',
   }
 }
 

@@ -116,6 +116,7 @@ export interface JobScore {
   dimension_scores: DimensionScores
   channel_recommendation: Channel
   scored_at: string
+  provenance: 'computed' | 'template_default' | 'template_seeded' | 'unknown'
 }
 
 export type JobWithScore = Job & { score: JobScore }

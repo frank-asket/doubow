@@ -92,6 +92,20 @@ const SOURCE_LABELS: Record<JobWithScore['source'], string> = {
   catalog: 'Company site',
 }
 
+function scoreProvenanceLabel(provenance: JobWithScore['score']['provenance']): string {
+  if (provenance === 'computed') return 'Computed'
+  if (provenance === 'template_default') return 'Default template'
+  if (provenance === 'template_seeded') return 'Seeded template'
+  return 'Unknown source'
+}
+
+function scoreProvenanceClass(provenance: JobWithScore['score']['provenance']): string {
+  if (provenance === 'computed') return 'bg-emerald-100 text-emerald-800'
+  if (provenance === 'template_default') return 'bg-amber-100 text-amber-900'
+  if (provenance === 'template_seeded') return 'bg-zinc-100 text-zinc-700'
+  return 'bg-rose-100 text-rose-800'
+}
+
 function sourceLabel(source: JobWithScore['source']): string {
   return SOURCE_LABELS[source] ?? 'Source'
 }
@@ -264,6 +278,16 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
         </div>
 
         {/* Actions */}
+        <div className="mt-2">
+          <span
+            className={cn(
+              'inline-flex rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]',
+              scoreProvenanceClass(job.score.provenance),
+            )}
+          >
+            Score source: {scoreProvenanceLabel(job.score.provenance)}
+          </span>
+        </div>
         <div className="mt-3 flex items-center gap-3">
           <MotionLink
             href={`/discover/${job.id}` as Route}

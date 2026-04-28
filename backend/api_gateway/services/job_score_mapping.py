@@ -6,6 +6,17 @@ from models.job_score import JobScore as JobScoreRow
 from schemas.jobs import Channel, DimensionScores, JobScore as JobScoreSchema
 
 
+def _score_provenance(row: JobScoreRow) -> str:
+    reasons = [r.lower() for r in _coerce_str_list(row.fit_reasons)]
+    if any(("semantic similarity signal:" in r) or ("keyword overlap signal:" in r) or ("llm fit signal:" in r) for r in reasons):
+        return "computed"
+    if any("imported via discovery" in r for r in reasons):
+        return "template_default"
+    if any(("catalog:" in r) or ("seed" in r) or ("template" in r) for r in reasons):
+        return "template_seeded"
+    return "unknown"
+
+
 def _clamp_dim(value: object, default: float = 3.0) -> float:
     try:
         x = float(value)  # type: ignore[arg-type]
@@ -64,4 +75,5 @@ def job_score_to_api(job_id: str, row: JobScoreRow | None) -> JobScoreSchema | N
         dimension_scores=_dimension_scores(dims_raw),
         channel_recommendation=_channel(dims_raw),
         scored_at=row.scored_at,
+        provenance=_score_provenance(row),
     )

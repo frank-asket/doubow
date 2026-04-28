@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 JobSource = Literal["ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog", "adzuna"]
 Channel = Literal["email", "linkedin", "company_site"]
+ScoreProvenance = Literal["computed", "template_default", "template_seeded", "unknown"]
 
 
 class DimensionScores(BaseModel):
@@ -23,6 +24,7 @@ class JobScore(BaseModel):
     dimension_scores: DimensionScores
     channel_recommendation: Channel
     scored_at: datetime
+    provenance: ScoreProvenance = "unknown"
 
 
 class Job(BaseModel):

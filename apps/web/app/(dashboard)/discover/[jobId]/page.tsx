@@ -21,6 +21,13 @@ const DIMENSION_LABELS: Record<string, string> = {
 }
 const SURFACE_BORDER = 'rgba(109,122,119,0.45)'
 
+function scoreProvenanceLabel(provenance: JobWithScore['score']['provenance']): string {
+  if (provenance === 'computed') return 'Computed from profile and job data'
+  if (provenance === 'template_default') return 'Default template score'
+  if (provenance === 'template_seeded') return 'Seeded template score'
+  return 'Unknown score source'
+}
+
 async function fetchJobById(jobId: string): Promise<JobWithScore | null> {
   const pagesToScan = [1, 2, 3, 4, 5]
   for (const page of pagesToScan) {
@@ -203,6 +210,9 @@ export default function JobDetailPage() {
           <aside className="space-y-4 lg:col-span-4">
             <article className={dashboardUi.utilityCard} style={{ borderColor: SURFACE_BORDER }}>
               <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:font-bold dark:text-white">Match analytics</h2>
+              <p className="mb-3 text-[11px] text-zinc-500 dark:font-bold dark:text-white">
+                Source: {scoreProvenanceLabel(job.score.provenance)}
+              </p>
               <div className="space-y-3">
                 {Object.entries(job.score.dimension_scores).map(([key, value]) => (
                   <div key={key}>
