@@ -97,15 +97,12 @@ export default function DraftsPage() {
     }
   }
 
-  if (!current) {
-    return (
-      <div className="p-6">
-        <div className="rounded-[2px] border border-[#E2E8F0] bg-white p-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-          No pending drafts available yet.
-        </div>
-      </div>
-    )
-  }
+  const hasCurrent = Boolean(current)
+  const requestLabel = hasCurrent
+    ? `${current.application.job.company} ${current.application.job.title}`
+    : 'Google L5'
+  const snapshotSalary = hasCurrent ? current.application.job.salary_range || 'N/A' : '$185,000'
+  const snapshotChannel = hasCurrent ? current.channel : 'gmail'
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#f0f5f2] dark:bg-slate-950">
@@ -173,7 +170,7 @@ export default function DraftsPage() {
             <p className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">OfferRefine HITL</p>
             <span className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Request Change: {current.application.job.company} {current.application.job.title}
+              Request Change: {requestLabel}
             </p>
           </div>
           <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
@@ -196,7 +193,8 @@ export default function DraftsPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setDraftBody(current.draft_body)}
+                  onClick={() => setDraftBody(current?.draft_body ?? '')}
+                  disabled={!hasCurrent}
                   className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-[#E2E8F0] bg-white px-3 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                 >
                   <History size={12} />
@@ -215,6 +213,12 @@ export default function DraftsPage() {
             <textarea
               value={draftBody}
               onChange={(e) => setDraftBody(e.target.value)}
+              disabled={!hasCurrent}
+              placeholder={
+                hasCurrent
+                  ? ''
+                  : 'No pending drafts available yet. Once a draft is created, the full editor will be enabled here.'
+              }
               className="min-h-[720px] flex-1 resize-none border-none bg-white p-8 text-[14px] leading-[1.55] text-slate-900 focus:outline-none dark:bg-slate-900 dark:text-slate-100"
             />
           </section>
@@ -225,9 +229,9 @@ export default function DraftsPage() {
                 Offer Snapshot
               </h3>
               <div className="space-y-3 text-[13px]">
-                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2 dark:border-slate-700"><span className="text-slate-500">Base Salary</span><span className="font-semibold">{current.application.job.salary_range || 'N/A'}</span></div>
-                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2 dark:border-slate-700"><span className="text-slate-500">Channel</span><span className="font-semibold">{current.channel}</span></div>
-                <div className="flex items-center justify-between pt-1"><span className="font-medium text-slate-800 dark:text-slate-200">Status</span><span className="font-bold text-[#00685f]">Pending</span></div>
+                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2 dark:border-slate-700"><span className="text-slate-500">Base Salary</span><span className="font-semibold">{snapshotSalary}</span></div>
+                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2 dark:border-slate-700"><span className="text-slate-500">Channel</span><span className="font-semibold">{snapshotChannel}</span></div>
+                <div className="flex items-center justify-between pt-1"><span className="font-medium text-slate-800 dark:text-slate-200">Status</span><span className="font-bold text-[#00685f]">{hasCurrent ? 'Pending' : 'Idle'}</span></div>
               </div>
             </div>
             <div className="border border-[#E2E8F0] border-l-2 border-l-amber-600 bg-white p-4 text-[13px] dark:border-slate-700 dark:bg-slate-900">
@@ -252,7 +256,8 @@ export default function DraftsPage() {
         <footer className="sticky bottom-0 flex h-14 items-center justify-between border-t border-[#E2E8F0] bg-white px-6 dark:border-slate-700 dark:bg-slate-900">
           <button
             type="button"
-            onClick={() => setDraftBody(current.draft_body)}
+            onClick={() => setDraftBody(current?.draft_body ?? '')}
+            disabled={!hasCurrent}
             className="inline-flex h-8 items-center rounded-[2px] border border-[#E2E8F0] bg-white px-4 text-[11px] font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             Cancel
@@ -261,7 +266,7 @@ export default function DraftsPage() {
             <button
               type="button"
               onClick={() => void saveDraft()}
-              disabled={busy !== null}
+              disabled={!hasCurrent || busy !== null}
               className="inline-flex h-8 items-center gap-2 rounded-[2px] border border-[#E2E8F0] bg-white px-4 text-[11px] font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               {busy === 'save' ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
@@ -270,7 +275,7 @@ export default function DraftsPage() {
             <button
               type="button"
               onClick={() => void sendDraft()}
-              disabled={busy !== null}
+              disabled={!hasCurrent || busy !== null}
               className="inline-flex h-8 items-center gap-2 rounded-[2px] bg-[#00685f] px-6 text-[11px] font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-60"
             >
               {busy === 'send' ? <Loader2 size={12} className="animate-spin" /> : null}
