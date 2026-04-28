@@ -17,6 +17,7 @@ from routers import (
     approvals,
     auth,
     autopilot,
+    ingestion,
     integrations_google,
     integrations_linkedin,
     jobs,
@@ -107,3 +108,4 @@ app.include_router(prep.router, prefix=API_PREFIX)
 app.include_router(agents.router, prefix=API_PREFIX)
 app.include_router(telemetry.router, prefix=API_PREFIX)
 app.include_router(webhooks.router, prefix=API_PREFIX)
+app.include_router(ingestion.router, prefix=API_PREFIX)

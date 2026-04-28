@@ -254,3 +254,57 @@ async def test_recompute_scores_force_refreshes_existing_rows(db_session, monkey
     item = res.items[0]
     assert item.score.fit_score < 4.0
     assert any("Keyword overlap signal" in r for r in item.score.fit_reasons)
+
+
+@pytest.mark.asyncio
+async def test_list_jobs_llm_matching_applies_only_top_n(db_session, monkeypatch):
+    monkeypatch.setattr(settings, "use_semantic_matching", False)
+    monkeypatch.setattr(settings, "lexical_matching_weight", 0.0)
+    monkeypatch.setattr(settings, "use_llm_job_matching", True)
+    monkeypatch.setattr(settings, "llm_job_matching_weight", 0.5)
+    monkeypatch.setattr(settings, "llm_job_matching_top_n", 2)
+    monkeypatch.setattr(settings, "openrouter_api_key", "test-key")
+
+    uid = "user_jobs_llm_top_n"
+    db_session.add(User(id=uid, email="llm-top-n@example.com"))
+    for idx, fit in enumerate((4.9, 4.5, 4.0), start=1):
+        db_session.add(
+            Job(
+                id=f"jb_cat_llm_{idx}",
+                source="catalog",
+                external_id=f"cat-llm-{idx}",
+                title=f"LLM Role {idx}",
+                company="Acme",
+                location="Remote",
+                salary_range=None,
+                description="Test description",
+                url=f"https://example.com/llm-{idx}",
+                score_template={
+                    **_SCORE_TEMPLATE,
+                    "fit_score": fit,
+                },
+            )
+        )
+    await db_session.commit()
+
+    called_job_ids: list[str] = []
+
+    async def _fake_llm_fit_signal(_profile, job):  # type: ignore[no-untyped-def]
+        called_job_ids.append(job.id)
+        return 5.0, ["strong alignment"]
+
+    monkeypatch.setattr("services.jobs_service.llm_fit_signal", _fake_llm_fit_signal)
+
+    res = await list_jobs(db_session, uid, min_fit=0.0, location=None, page=1, per_page=20)
+    assert res.total == 3
+
+    # Only the top-2 baseline jobs should invoke LLM matching.
+    assert set(called_job_ids) == {"jb_cat_llm_1", "jb_cat_llm_2"}
+    assert len(called_job_ids) == 2
+
+    by_id = {item.id: item for item in res.items}
+    # Top-N got LLM blended upward.
+    assert by_id["jb_cat_llm_1"].score.fit_score == 5.0
+    assert by_id["jb_cat_llm_2"].score.fit_score == 4.8
+    # Outside top-N remains baseline template score.
+    assert by_id["jb_cat_llm_3"].score.fit_score == 4.0

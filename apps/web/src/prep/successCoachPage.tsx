@@ -10,12 +10,14 @@ import {
   PlusCircle,
   Sparkles,
 } from 'lucide-react'
+import type { PrepSession } from '@doubow/shared'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
 import { candidatePageShell } from '../../lib/candidateUi'
 import { cn, relativeTime } from '../../lib/utils'
 import { usePrepSessions } from './usePrepSessions'
 
 const SURFACE_BORDER = '#bcc9c6'
+type StoryConfidence = 'low' | 'medium' | 'high'
 
 function Mi({
   name,
@@ -33,6 +35,22 @@ function questionCategory(idx: number): 'BEHAVIORAL' | 'TECHNICAL' | 'SYSTEM DES
   return 'SYSTEM DESIGN'
 }
 
+function normalizeStoryConfidence(story: unknown): StoryConfidence {
+  const confidence =
+    typeof story === 'object' && story !== null && 'confidence' in story
+      ? (story as { confidence?: unknown }).confidence
+      : undefined
+  const raw = String(confidence ?? '').toLowerCase()
+  if (raw === 'low' || raw === 'medium' || raw === 'high') return raw
+  return 'medium'
+}
+
+function confidenceBadge(confidence: StoryConfidence): { label: string; className: string } {
+  if (confidence === 'high') return { label: 'HIGH', className: 'bg-teal-100 text-teal-800' }
+  if (confidence === 'low') return { label: 'LOW', className: 'bg-amber-100 text-amber-900' }
+  return { label: 'MEDIUM', className: 'bg-slate-100 text-slate-700' }
+}
+
 export default function SuccessCoachPage() {
   const searchParams = useSearchParams()
   const initialAppId = searchParams.get('applicationId') ?? undefined
@@ -46,6 +64,7 @@ export default function SuccessCoachPage() {
   ]
 
   const stories = selectedSession?.star_stories.slice(0, 2) ?? []
+  const lowConfidenceCount = stories.filter((s) => normalizeStoryConfidence(s) === 'low').length
   const requiresAction = !selectedSession || selectedSession.star_stories.length === 0
 
   return (
@@ -123,6 +142,17 @@ export default function SuccessCoachPage() {
                 <h3 className="text-[16px] font-medium tracking-[-0.01em] text-[#171d1c]">Your Success Stories</h3>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {lowConfidenceCount > 0 ? (
+                  <div className="sm:col-span-2 border border-[0.5px] border-amber-300 bg-amber-50 px-3 py-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-800">
+                      Manual Review Recommended
+                    </p>
+                    <p className="mt-1 text-xs text-amber-900">
+                      {lowConfidenceCount} STAR {lowConfidenceCount > 1 ? 'stories are' : 'story is'} low confidence.
+                      Add specific actions and measurable outcomes before interviews.
+                    </p>
+                  </div>
+                ) : null}
                 {(stories.length
                   ? stories
                   : [
@@ -143,7 +173,17 @@ export default function SuccessCoachPage() {
                       <span className="bg-[#316bf3]/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-[#0051d5]">
                         {story.tags?.[0] ?? 'Story'}
                       </span>
-                      <Mi name="edit" className="text-[12px] text-[#3d4947]" />
+                      <div className="inline-flex items-center gap-1.5">
+                        {(() => {
+                          const badge = confidenceBadge(normalizeStoryConfidence(story))
+                          return (
+                            <span className={cn('px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]', badge.className)}>
+                              {badge.label}
+                            </span>
+                          )
+                        })()}
+                        <Mi name="edit" className="text-[12px] text-[#3d4947]" />
+                      </div>
                     </div>
                     <p className="text-xs font-semibold text-[#171d1c]">{story.situation}</p>
                     <p className="mt-1 text-xs text-[#3d4947]">{story.result}</p>
