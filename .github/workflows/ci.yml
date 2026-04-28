@@ -89,12 +89,28 @@ jobs:
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
           python -m pytest -q backend/api_gateway/tests
+      - name: Run durability and ops readiness guardrails
+        env:
+          PYTHONPATH: backend/api_gateway
+          CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
+        run: |
+          python -m pytest -q \
+            backend/api_gateway/tests/test_background_durability_guardrails.py \
+            backend/api_gateway/tests/test_health_readiness.py \
+            backend/api_gateway/tests/test_ingestion_admin_authz.py \
+            backend/api_gateway/tests/test_users_debug_endpoint.py
       - name: Run LangChain resume integration guardrail
         env:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
           python -m pytest -q backend/api_gateway/tests/integration/test_resume_langchain_integration.py
+      - name: Run migrated schema parity guardrail
+        env:
+          PYTHONPATH: backend/api_gateway
+          CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
+        run: |
+          python -m pytest -q backend/api_gateway/tests/integration/test_ci_postgres_schema.py
 
   semantic-eval-nightly:
     if: ${{ github.event_name == 'schedule' }}

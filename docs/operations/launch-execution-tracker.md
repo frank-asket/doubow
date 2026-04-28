@@ -42,6 +42,29 @@ Week 2 progress note:
 
 - Day 10 durability path started: production now defaults critical background work to Celery (`approvals` send + `autopilot` run/resume) with explicit escape hatch `ALLOW_INPROCESS_BACKGROUND_IN_PRODUCTION=false` by default.
 - Day 10.5 ops indicator added: `/ready` now reports `background_durability` (send/autopilot mode + enqueue health), and startup logs print effective durability mode.
+- Day 11 guardrail pack started: added targeted durability/authz/health test suite and explicit CI guardrail step for these files.
+
+On-call quick verification:
+
+```bash
+curl -sS https://doubow-production.up.railway.app/ready | python3 -m json.tool
+```
+
+Expected readiness shape (production durable mode healthy):
+
+```json
+{
+  "status": "ready",
+  "postgres": "ok",
+  "redis": "ok",
+  "background_durability": {
+    "send_mode": "celery",
+    "autopilot_mode": "celery",
+    "allow_inprocess_fallback_in_production": false,
+    "enqueue": "ok"
+  }
+}
+```
 
 ---
 
