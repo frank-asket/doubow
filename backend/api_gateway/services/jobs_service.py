@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 import logging
+import re
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,6 +33,12 @@ logger = logging.getLogger(__name__)
 def _safe_job_source(raw: object) -> str:
     s = str(raw or "").strip().lower()
     return s if s in _ALLOWED_JOB_SOURCES else "manual"
+
+
+def _location_tokens(raw: str | None) -> list[str]:
+    normalized = re.sub(r"[^a-z0-9]+", " ", (raw or "").lower())
+    tokens = [token for token in normalized.split() if len(token) >= 2]
+    return list(dict.fromkeys(tokens))
 
 
 def _row_to_schema(job: Job, score_row: JobScore) -> JobWithScore:
@@ -247,8 +254,8 @@ async def list_jobs(
     await _sync_template_scores_for_user(session, user_id)
 
     filters = [JobScore.user_id == user_id, JobScore.fit_score >= min_fit]
-    if location:
-        filters.append(Job.location.ilike(f"%{location.strip()}%"))
+    for token in _location_tokens(location):
+        filters.append(func.lower(func.coalesce(Job.location, "")).like(f"%{token}%"))
     if has_salary:
         filters.append(func.length(func.trim(func.coalesce(Job.salary_range, ""))) > 0)
 

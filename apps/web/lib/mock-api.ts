@@ -399,6 +399,18 @@ function matchApplication(id: string): Application | undefined {
   return mockApplications.find((a) => a.id === id)
 }
 
+function locationTokens(input: string): string[] {
+  const normalized = input.toLowerCase().replace(/[^a-z0-9]+/g, ' ')
+  return Array.from(
+    new Set(
+      normalized
+        .split(' ')
+        .map((token) => token.trim())
+        .filter((token) => token.length >= 2),
+    ),
+  )
+}
+
 export async function handleMockRequest<T>(
   path: string,
   init: RequestInit = {},
@@ -436,7 +448,11 @@ export async function handleMockRequest<T>(
       filtered = filtered.filter((j) => j.score.fit_score >= minFit)
     }
     if (location) {
-      filtered = filtered.filter((j) => j.location.toLowerCase().includes(location))
+      const tokens = locationTokens(location)
+      filtered = filtered.filter((j) => {
+        const jobLocation = j.location.toLowerCase()
+        return tokens.every((token) => jobLocation.includes(token))
+      })
     }
     const perPage = 20
     const start = (page - 1) * perPage

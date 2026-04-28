@@ -351,3 +351,43 @@ async def test_list_jobs_has_salary_filter_returns_only_salary_rows(db_session):
     assert filtered.total == 1
     assert len(filtered.items) == 1
     assert filtered.items[0].id == "jb_salary_yes"
+
+
+@pytest.mark.asyncio
+async def test_list_jobs_location_filter_matches_normalized_tokens(db_session):
+    uid = "user_jobs_location_filter"
+    db_session.add(User(id=uid, email="location-filter@example.com"))
+    db_session.add(
+        Job(
+            id="jb_loc_accra",
+            source="catalog",
+            external_id="loc-accra",
+            title="Accra Role",
+            company="Acme",
+            location="Accra - Greater Accra Region, Ghana",
+            salary_range=None,
+            description="Location matching test",
+            url="https://example.com/loc-accra",
+            score_template=_SCORE_TEMPLATE,
+        )
+    )
+    db_session.add(
+        Job(
+            id="jb_loc_berlin",
+            source="catalog",
+            external_id="loc-berlin",
+            title="Berlin Role",
+            company="Acme",
+            location="Berlin, Germany",
+            salary_range=None,
+            description="Location matching test",
+            url="https://example.com/loc-berlin",
+            score_template=_SCORE_TEMPLATE,
+        )
+    )
+    await db_session.commit()
+
+    filtered = await list_jobs(db_session, uid, min_fit=0.0, location="Accra, Ghana", page=1, per_page=20)
+    assert filtered.total == 1
+    assert len(filtered.items) == 1
+    assert filtered.items[0].id == "jb_loc_accra"

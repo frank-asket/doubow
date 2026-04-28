@@ -106,6 +106,8 @@ Day 22 post-deploy `/agents` validation matrix (2026-04-28):
 | Contract/UI label alignment (no removed agents shown) | PASS | No UI references to deprecated agent names (`tailor`, `writer`, `apply`, `prep`, `monitor`); displayed labels matched current implemented set. |
 | Reload stability (no blank/chrome-only regression) | PASS | Hard reloads retained full page composition (agent status + assistant surface) without chrome-only or blank-content regressions. |
 
+Day 22 location filter regression check (2026-04-28): **PASS** on `https://doubow.vercel.app/discover` — setting Advanced filters `Precise location = Accra, Ghana` changed results from 20 to 0 with explicit empty-state feedback, and clearing the location filter restored results to 20.
+
 Carry-over blockers (must still be closed for launch GO):
 
 - Day 16: one full-window authenticated `2xx` reliability run.
