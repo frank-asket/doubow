@@ -6,6 +6,7 @@ import useSWR from 'swr'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
 import { candidatePageShell } from '../../lib/candidateUi'
 import { cn } from '../../lib/utils'
+import { motion, useReducedMotion, fadeInUpVariants, staggerContainerVariants, getMicroInteractionMotion } from '../../lib/motion'
 import { autopilotApi, ApiError } from '../../lib/api'
 import { useAgentStream, useOrchestratorChat } from './useAgentStream'
 import { useAgentStore } from './agentStore'
@@ -49,7 +50,7 @@ function AgentCard({ agent }: { agent: AgentState }) {
     color: 'border border-zinc-200 bg-zinc-100 text-zinc-800',
   }
   return (
-    <div className="card p-3.5 flex items-start gap-3">
+    <motion.div variants={fadeInUpVariants} className="card p-3.5 flex items-start gap-3">
       <div className={cn('w-8 h-8 rounded-md flex items-center justify-center text-sm flex-shrink-0', meta.color)}>
         {meta.icon}
       </div>
@@ -75,7 +76,7 @@ function AgentCard({ agent }: { agent: AgentState }) {
       {agent.items_processed !== undefined && (
         <span className="text-2xs tabular-nums text-zinc-500 flex-shrink-0">{agent.items_processed} items</span>
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -110,6 +111,9 @@ export default function AgentsPage() {
   const { messages, streaming, send } = useOrchestratorChat()
   const [input, setInput] = useState('')
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const prefersReducedMotion = useReducedMotion()
+  const motionEnabled = !prefersReducedMotion
+  const microInteractionMotion = getMicroInteractionMotion(motionEnabled)
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -161,7 +165,12 @@ export default function AgentsPage() {
   ]
 
   return (
-    <div className={candidatePageShell}>
+    <motion.div
+      className={candidatePageShell}
+      variants={motionEnabled ? staggerContainerVariants : undefined}
+      initial={motionEnabled ? 'hidden' : false}
+      animate={motionEnabled ? 'visible' : undefined}
+    >
       <DashboardPageHeader
         kicker="Assistant"
         title="Ask Doubow"
@@ -174,16 +183,17 @@ export default function AgentsPage() {
                 {activeCount > 0 ? `${activeCount} task${activeCount === 1 ? '' : 's'} running` : 'Ready'}
               </span>
             </div>
-            <button
+            <motion.button
               type="button"
               onClick={() => {
                 void refreshRunHistory()
               }}
+              {...microInteractionMotion}
               className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#e4e5ec] bg-white dark:bg-slate-900 px-3 py-2 text-[14px] font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
             >
               <RefreshCw size={13} />
               Refresh
-            </button>
+            </motion.button>
           </>
         }
       />
@@ -213,13 +223,14 @@ export default function AgentsPage() {
                   <p className="text-center text-xs text-zinc-500">Ask me anything about your pipeline</p>
                   <div className="grid grid-cols-1 gap-2 w-full">
                     {SUGGESTED_PROMPTS.map((p) => (
-                      <button
+                      <motion.button
                         key={p}
                         onClick={() => send(p)}
+                        {...microInteractionMotion}
                         className="rounded-[10px] border border-[#e7e8ee] bg-white dark:bg-slate-900 px-3 py-2 text-left text-xs text-zinc-700 shadow-sm transition-colors hover:border-teal-200 hover:bg-teal-50"
                       >
                         {p}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -242,16 +253,17 @@ export default function AgentsPage() {
                   className="field text-xs py-2 flex-1"
                   disabled={streaming}
                 />
-                <button
+                <motion.button
                   onClick={handleSend}
                   disabled={!input.trim() || streaming}
+                  {...microInteractionMotion}
                   className="btn btn-primary p-2 aspect-square"
                 >
                   {streaming
                     ? <Loader2 size={13} className="animate-spin" />
                     : <Send size={13} />
                   }
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
@@ -290,11 +302,12 @@ export default function AgentsPage() {
                         </p>
                         {run.status === 'running' && run.resumable !== false ? (
                           <div className="mt-2">
-                            <button
+                            <motion.button
                               type="button"
                               title="Re-enqueue if the worker stopped after saving a checkpoint (e.g. deploy or crash)."
                               onClick={() => void handleResumeRun(run.run_id)}
                               disabled={resumeBusyRunId === run.run_id}
+                              {...microInteractionMotion}
                               className="inline-flex items-center gap-1.5 rounded-[8px] border border-teal-200 bg-teal-50 px-2.5 py-1 text-2xs font-semibold uppercase tracking-wide text-teal-900 shadow-sm transition-colors hover:bg-teal-100 disabled:opacity-50"
                             >
                               {resumeBusyRunId === run.run_id ? (
@@ -303,7 +316,7 @@ export default function AgentsPage() {
                                 <RotateCcw size={12} aria-hidden />
                               )}
                               Resume run
-                            </button>
+                            </motion.button>
                           </div>
                         ) : null}
                       </div>
@@ -378,6 +391,6 @@ export default function AgentsPage() {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

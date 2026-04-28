@@ -14,6 +14,7 @@ import type { PrepSession } from '@doubow/shared'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
 import { candidatePageShell } from '../../lib/candidateUi'
 import { cn, relativeTime } from '../../lib/utils'
+import { motion, useReducedMotion, fadeInUpVariants, staggerContainerVariants, getMicroInteractionMotion } from '../../lib/motion'
 import { usePrepSessions } from './usePrepSessions'
 
 const SURFACE_BORDER = '#bcc9c6'
@@ -66,9 +67,17 @@ export default function SuccessCoachPage() {
   const stories = selectedSession?.star_stories.slice(0, 2) ?? []
   const lowConfidenceCount = stories.filter((s) => normalizeStoryConfidence(s) === 'low').length
   const requiresAction = !selectedSession || selectedSession.star_stories.length === 0
+  const prefersReducedMotion = useReducedMotion()
+  const motionEnabled = !prefersReducedMotion
+  const microInteractionMotion = getMicroInteractionMotion(motionEnabled)
 
   return (
-    <div className={candidatePageShell}>
+    <motion.div
+      className={candidatePageShell}
+      variants={motionEnabled ? staggerContainerVariants : undefined}
+      initial={motionEnabled ? 'hidden' : false}
+      animate={motionEnabled ? 'visible' : undefined}
+    >
       <DashboardPageHeader
         kicker="INTERVIEW PREP"
         title="Your Interview Coach"
@@ -78,7 +87,7 @@ export default function SuccessCoachPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <section className="space-y-4 lg:col-span-8">
-          <article className="border border-[0.5px] bg-white dark:bg-slate-900 p-3 md:p-3" style={{ borderColor: SURFACE_BORDER }}>
+          <motion.article variants={motionEnabled ? fadeInUpVariants : undefined} className="border border-[0.5px] bg-white dark:bg-slate-900 p-3 md:p-3" style={{ borderColor: SURFACE_BORDER }}>
             <div className="mb-3 flex items-center justify-between">
               <div className="inline-flex items-center gap-2">
                 <Mi name="quiz" className="text-[14px] text-[#00685f]" />
@@ -102,17 +111,17 @@ export default function SuccessCoachPage() {
                         : 'Provide a concrete architecture, trade-offs, and operating metrics.'}
                   </p>
                   <div className="mt-3 flex gap-2">
-                    <button className="inline-flex h-8 items-center border border-[0.5px] border-[#00685f] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-white">
+                    <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center border border-[0.5px] border-[#00685f] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-white">
                       Draft Answer
-                    </button>
-                    <button className="inline-flex h-8 items-center border border-[0.5px] bg-white dark:bg-slate-900 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
+                    </motion.button>
+                    <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center border border-[0.5px] bg-white dark:bg-slate-900 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
                       View Tips
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               ))}
             </div>
-          </article>
+          </motion.article>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
             <article className="space-y-3 border border-[0.5px] bg-white dark:bg-slate-900 p-3 md:col-span-5" style={{ borderColor: SURFACE_BORDER }}>
@@ -238,23 +247,24 @@ export default function SuccessCoachPage() {
                 </div>
               </div>
             </div>
-            <button className="mt-4 inline-flex h-9 w-full items-center justify-center border border-[0.5px] border-[#00685f] bg-[#00685f] text-[11px] font-semibold uppercase tracking-[0.12em] text-white">
+            <motion.button {...microInteractionMotion} className="mt-4 inline-flex h-9 w-full items-center justify-center border border-[0.5px] border-[#00685f] bg-[#00685f] text-[11px] font-semibold uppercase tracking-[0.12em] text-white">
               Start practice interview
-            </button>
+            </motion.button>
             {selectedSession ? (
               <p className="mt-2 text-[10px] uppercase tracking-[0.12em] text-[#3d4947]">
                 Active session updated {relativeTime(selectedSession.created_at)}
               </p>
             ) : null}
-            <button
+            <motion.button
               onClick={() => void generateForSelected()}
               disabled={generating}
+              {...microInteractionMotion}
               className="mt-2 inline-flex h-8 w-full items-center justify-center gap-1 border border-[0.5px] text-[11px] font-semibold uppercase tracking-[0.1em] text-[#00685f] hover:bg-teal-50 disabled:opacity-70"
               style={{ borderColor: SURFACE_BORDER }}
             >
               {generating ? <Loader2 size={12} className="animate-spin" /> : null}
               Refresh Session
-            </button>
+            </motion.button>
             {loading ? <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#3d4947]">Loading session...</p> : null}
           </article>
           <Link
@@ -267,6 +277,6 @@ export default function SuccessCoachPage() {
           </Link>
         </aside>
       </div>
-    </div>
+    </motion.div>
   )
 }

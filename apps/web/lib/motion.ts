@@ -3,6 +3,7 @@ import {
   MotionConfig,
   motion,
   useReducedMotion,
+  type MotionProps,
   type Variants,
 } from 'framer-motion'
 
@@ -51,4 +52,12 @@ export const staggerContainerVariants: Variants = {
       staggerDirection: -1,
     },
   },
+}
+
+export function getMicroInteractionMotion(motionEnabled: boolean): Pick<MotionProps, 'whileHover' | 'whileTap'> {
+  if (!motionEnabled) return {}
+  return {
+    whileHover: { y: -1, scale: 1.01 },
+    whileTap: { scale: 0.99 },
+  }
 }

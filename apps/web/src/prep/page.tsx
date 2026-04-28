@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { cn } from '../../lib/utils'
+import { motion, useReducedMotion, fadeInUpVariants, staggerContainerVariants, getMicroInteractionMotion } from '../../lib/motion'
 import type { PrepSession } from '@doubow/shared'
 import { usePrepSessions } from './usePrepSessions'
 
@@ -67,9 +68,17 @@ export default function PrepPage() {
   const briefExcerpt =
     selectedSession?.company_brief?.trim().slice(0, 220) ??
     (selectedSession?.questions[0]?.trim().slice(0, 220) ?? '')
+  const prefersReducedMotion = useReducedMotion()
+  const motionEnabled = !prefersReducedMotion
+  const microInteractionMotion = getMicroInteractionMotion(motionEnabled)
 
   return (
-    <div className="mx-auto max-w-[1140px] space-y-3 px-3 py-3 sm:px-4">
+    <motion.div
+      className="mx-auto max-w-[1140px] space-y-3 px-3 py-3 sm:px-4"
+      variants={motionEnabled ? staggerContainerVariants : undefined}
+      initial={motionEnabled ? 'hidden' : false}
+      animate={motionEnabled ? 'visible' : undefined}
+    >
       <section className="border-b border-[0.5px] pb-2" style={{ borderColor: SURFACE_BORDER }}>
         <div className="mb-1 text-[10px] uppercase tracking-[0.08em] text-[#6c7774]">WORKSPACES / STAR-R BUILDER</div>
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -78,20 +87,20 @@ export default function PrepPage() {
             <p className="mt-1 text-[13px] text-[#3d4947]">Structured behavioral answer construction and technical briefing tool.</p>
           </div>
           <div className="inline-flex items-center gap-2">
-            <button className="inline-flex h-8 items-center border border-[0.5px] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
+            <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center border border-[0.5px] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
               EXPORT BRIEF
-            </button>
-            <button className="inline-flex h-8 items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
+            </motion.button>
+            <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
               <Mi name="add" className="text-[12px]" />
               NEW STORY
-            </button>
+            </motion.button>
           </div>
         </div>
       </section>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
         <section className="space-y-4 lg:col-span-8">
-          <article className="border border-[0.5px] bg-white dark:bg-slate-900" style={{ borderColor: SURFACE_BORDER }}>
+          <motion.article variants={motionEnabled ? fadeInUpVariants : undefined} className="border border-[0.5px] bg-white dark:bg-slate-900" style={{ borderColor: SURFACE_BORDER }}>
             <header className="flex items-center justify-between border-b border-[0.5px] bg-[#eaefed] px-3 py-1.5" style={{ borderColor: SURFACE_BORDER }}>
               <p className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3d4947]">
                 {selectedSession
@@ -134,10 +143,10 @@ export default function PrepPage() {
                 </section>
               ))}
             </div>
-          </article>
+          </motion.article>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <article className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
+            <motion.article variants={motionEnabled ? fadeInUpVariants : undefined} className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">KEY COMPETENCIES</p>
               <div className="mt-2 flex flex-wrap gap-1">
                 {competencyTags.length ? (
@@ -154,8 +163,8 @@ export default function PrepPage() {
                   <p className="text-[11px] text-[#6d7a77]">Fit reasons appear here when the job has a score from Discover.</p>
                 )}
               </div>
-            </article>
-            <article className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
+            </motion.article>
+            <motion.article variants={motionEnabled ? fadeInUpVariants : undefined} className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">TARGET INTERVIEW</p>
               <div className="mt-2 inline-flex items-center gap-2 text-sm text-[#171d1c]">
                 <Mi name="business_center" className="text-[13px] text-[#3d4947]" />
@@ -168,8 +177,8 @@ export default function PrepPage() {
                   </p>
                 </div>
               </div>
-            </article>
-            <article className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
+            </motion.article>
+            <motion.article variants={motionEnabled ? fadeInUpVariants : undefined} className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">PREPARATION SCORE</p>
               <p className="mt-2 text-[30px] font-semibold leading-none text-[#00685f]">
                 {readiness != null ? (
@@ -186,7 +195,7 @@ export default function PrepPage() {
               {readiness == null ? (
                 <p className="mt-1 text-[10px] text-[#6d7a77]">Scores from prep content length, not employer data.</p>
               ) : null}
-            </article>
+            </motion.article>
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
@@ -214,7 +223,7 @@ export default function PrepPage() {
                 </div>
               </div>
             </article>
-            <article className="border border-[0.5px] bg-[#1550cc] p-3 text-white md:col-span-4" style={{ borderColor: '#1550cc' }}>
+            <motion.article variants={motionEnabled ? fadeInUpVariants : undefined} className="border border-[0.5px] bg-[#1550cc] p-3 text-white md:col-span-4" style={{ borderColor: '#1550cc' }}>
               <div className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.08em]">
                 <Mi name="description" className="text-[12px]" />
                 LINKED TECH BRIEF
@@ -225,10 +234,10 @@ export default function PrepPage() {
               <p className="mt-2 text-[13px] leading-[1.35] text-blue-100">
                 {briefExcerpt || 'Company and role context from prep will display here when available.'}
               </p>
-              <button className="mt-4 inline-flex h-8 w-full items-center justify-center border border-white/40 bg-white dark:bg-slate-900 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1550cc]">
+              <motion.button {...microInteractionMotion} className="mt-4 inline-flex h-8 w-full items-center justify-center border border-white/40 bg-white dark:bg-slate-900 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1550cc]">
                 OPEN BRIEF WORKSPACE
-              </button>
-            </article>
+              </motion.button>
+            </motion.article>
           </div>
         </section>
 
@@ -306,14 +315,14 @@ export default function PrepPage() {
               <Mi name="mic" className="text-[15px] text-[#00685f]" />
             </div>
             <p className="text-xs text-[#3d4947]">Practice this story with AI Voice Coach.</p>
-            <button className="mt-3 inline-flex h-8 w-full items-center justify-center gap-1 border border-[0.5px] bg-white dark:bg-slate-900 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
+            <motion.button {...microInteractionMotion} className="mt-3 inline-flex h-8 w-full items-center justify-center gap-1 border border-[0.5px] bg-white dark:bg-slate-900 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
               <Mi name="play_circle" className="text-[13px]" />
               START DRILL
-            </button>
+            </motion.button>
           </article>
         </aside>
       </div>
 
-    </div>
+    </motion.div>
   )
 }

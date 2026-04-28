@@ -147,8 +147,8 @@ async def _record_run(db_session, summary: IngestionSummary) -> None:
         ),
         {
             "run_id": summary.run_id,
-            "started_at": summary.started_at.isoformat(),
-            "completed_at": summary.completed_at.isoformat() if summary.completed_at else None,
+            "started_at": summary.started_at,
+            "completed_at": summary.completed_at,
             "total_fetched": summary.total_fetched,
             "total_inserted": summary.total_inserted,
             "total_dupes": summary.total_dupes,

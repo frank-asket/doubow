@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import json
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -59,11 +58,8 @@ class JobRecord:
 
     def to_db_dict(self) -> dict:
         payload = asdict(self)
-        payload["tags"] = json.dumps(payload["tags"])
-        payload["raw_json"] = json.dumps(payload["raw_json"])
-        if payload["posted_at"]:
-            payload["posted_at"] = payload["posted_at"].isoformat()
-        payload["discovered_at"] = payload["discovered_at"].isoformat()
+        # Keep JSON and datetime values as native Python objects so asyncpg can
+        # bind them to JSONB / TIMESTAMPTZ columns without type coercion errors.
         return payload
 
 

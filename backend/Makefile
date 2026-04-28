@@ -4,7 +4,7 @@ PYTHON ?= python3
 ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
 
-.PHONY: db-migrate db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe jobs-cache-preview jobs-cache-invalidate
+.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe jobs-cache-preview jobs-cache-invalidate
 
 # libpq/psql does not accept SQLAlchemy async URLs (postgresql+asyncpg://). Strip the driver for psql targets.
 define PSQL_CMD
@@ -17,6 +17,17 @@ db-migrate:
 	@cd "$(API_PY_PATH)" && PYTHONPATH=. \
 		DATABASE_URL="$${DATABASE_URL}" \
 		ALEMBIC_DATABASE_URL="$${DATABASE_URL}" \
+		uv run --with-requirements requirements.txt python -m alembic -c alembic.ini upgrade head
+
+# Alembic-safe migration helper:
+# - strips async driver suffixes for sync psycopg2 migration path
+# - rewrites ?ssl=... to psycopg2-compatible ?sslmode=...
+db-migrate-safe:
+	@if [ -z "$$DATABASE_URL" ]; then echo "DATABASE_URL is required"; exit 1; fi
+	@SAFE_DB_URL=$$($(PYTHON) -c "from urllib.parse import urlparse,parse_qsl,urlencode,urlunparse; import os; raw=os.environ['DATABASE_URL'].strip(); u=urlparse(raw); scheme=u.scheme.replace('postgresql+asyncpg','postgresql').replace('postgres+asyncpg','postgresql'); params=[('sslmode', 'require' if (v or '').lower() in {'1','true','yes','require'} else 'disable') if k=='ssl' else (k,v) for k,v in parse_qsl(u.query, keep_blank_values=True)]; print(urlunparse((scheme,u.netloc,u.path,u.params,urlencode(params),u.fragment)))"); \
+	cd "$(API_PY_PATH)" && PYTHONPATH=. \
+		DATABASE_URL="$$SAFE_DB_URL" \
+		ALEMBIC_DATABASE_URL="$$SAFE_DB_URL" \
 		uv run --with-requirements requirements.txt python -m alembic -c alembic.ini upgrade head
 
 db-seed:

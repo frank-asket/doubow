@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import type { Approval } from '@doubow/shared'
 import { ApiError, approvalsApi, googleIntegrationsApi, linkedinIntegrationsApi } from '../../lib/api'
 import { dashboardUi } from '../../lib/dashboardUi'
+import { motion, useReducedMotion, fadeInUpVariants, staggerContainerVariants, getMicroInteractionMotion } from '../../lib/motion'
 import { useApprovalStore } from './approvalStore'
 import { useApprovals } from './useApprovals'
 
@@ -290,6 +291,9 @@ export default function ApprovalsPage() {
     }
     return 'Approve'
   }, [current, gmailForApprovals])
+  const prefersReducedMotion = useReducedMotion()
+  const motionEnabled = !prefersReducedMotion
+  const microInteractionMotion = getMicroInteractionMotion(motionEnabled)
 
   useEffect(() => {
     if (!current) {
@@ -550,14 +554,19 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <div className="approvals-surface min-h-screen bg-[#f5faf8] text-[#171d1c] dark:bg-slate-950 dark:text-slate-100">
+    <motion.div
+      className="approvals-surface min-h-screen bg-[#f5faf8] text-[#171d1c] dark:bg-slate-950 dark:text-slate-100"
+      variants={motionEnabled ? staggerContainerVariants : undefined}
+      initial={motionEnabled ? 'hidden' : false}
+      animate={motionEnabled ? 'visible' : undefined}
+    >
       {showSavedToast ? (
         <div className="fixed left-1/2 top-[17px] z-[120] flex -translate-x-1/2 items-center gap-2 rounded-md border border-white/20 bg-[#0d9488] px-4 py-3 text-sm font-medium leading-none text-white shadow-md">
           <CheckCircle2 size={17} />
           Scenario saved successfully
-          <button type="button" onClick={() => setSaveToastOpen(false)} className="ml-1 inline-flex items-center opacity-80 hover:opacity-100">
+          <motion.button type="button" onClick={() => setSaveToastOpen(false)} {...microInteractionMotion} className="ml-1 inline-flex items-center opacity-80 hover:opacity-100">
             <X size={14} />
-          </button>
+          </motion.button>
         </div>
       ) : null}
       {actionToast ? (
@@ -756,11 +765,12 @@ export default function ApprovalsPage() {
                 {pending.map((item) => {
                   const selected = current?.id === item.id
                   return (
-                    <button
+                    <motion.button
                       key={item.id}
                       data-approval-id={item.id}
                       type="button"
                       onClick={() => setSelectedApprovalId(item.id)}
+                      {...microInteractionMotion}
                       className={`w-full rounded-[2px] border px-3 py-2.5 text-left transition-all ${
                         selected
                           ? 'border-[#0d9488] bg-[#ecfdfb] shadow-sm dark:border-teal-500/60 dark:bg-teal-500/10'
@@ -775,7 +785,7 @@ export default function ApprovalsPage() {
                         </span>
                         <span className="font-medium text-[#00685f] dark:text-teal-300">Pending</span>
                       </div>
-                    </button>
+                    </motion.button>
                   )
                 })}
               </div>
@@ -828,15 +838,16 @@ export default function ApprovalsPage() {
                     <button type="button" className="rounded-[2px] p-1.5 hover:bg-slate-100"><Link2 size={12} strokeWidth={1.6} /></button>
                   </div>
                   <div className="flex items-center gap-1.5">
-                  <button
+                  <motion.button
                     type="button"
                     onClick={() => setDraftBody(current.draft_body)}
+                    {...microInteractionMotion}
                     className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-[#E2E8F0] bg-white px-3 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                   >
                     <CircleHelp size={12} strokeWidth={1.7} />
                     Revert to Original
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     type="button"
                     onClick={() => {
                       setDraftBody((prev) => `${prev}\n\nI can also share specific Cloud Infrastructure outcomes to support this request.`)
@@ -844,11 +855,12 @@ export default function ApprovalsPage() {
                         setFlowVariant((prev) => (prev === 'base-1' ? 'base-2' : prev))
                       }
                     }}
+                    {...microInteractionMotion}
                     className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-[#44cfc0] bg-[#6bd8cb] px-2.5 text-[11px] font-semibold text-[#005049]"
                   >
                     <CheckCircle2 size={12} strokeWidth={1.7} />
                     AI Refine
-                  </button>
+                  </motion.button>
                 </div>
                 </div>
                 <textarea
@@ -862,7 +874,7 @@ export default function ApprovalsPage() {
                     Cancel
                   </button>
                   <div className="flex items-center gap-3">
-                    <button
+                    <motion.button
                       type="button"
                       onClick={() => {
                         if (!isDraftVariant(urlVariant)) setFlowVariant('whatif-1')
@@ -871,18 +883,19 @@ export default function ApprovalsPage() {
                         setLastSavedAt(Date.now())
                         setActionToast({ kind: 'success', message: 'Draft progress saved.' })
                       }}
+                      {...microInteractionMotion}
                       className="inline-flex h-7 items-center rounded-[2px] border border-[#E2E8F0] bg-white px-4 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                     >
                       Save as Draft
-                    </button>
-                    <button type="button" onClick={() => void submitApproval()} disabled={!current || submitting !== null} className="inline-flex h-7 items-center gap-2 rounded-[2px] bg-[#00685f] px-6 text-[11px] font-semibold text-white disabled:opacity-60">
+                    </motion.button>
+                    <motion.button type="button" onClick={() => void submitApproval()} disabled={!current || submitting !== null} {...microInteractionMotion} className="inline-flex h-7 items-center gap-2 rounded-[2px] bg-[#00685f] px-6 text-[11px] font-semibold text-white disabled:opacity-60">
                       {submitting === 'approve' ? <Loader2 size={12} className="animate-spin" /> : null}
                       {approveButtonLabel}
-                    </button>
-                    <button type="button" onClick={() => void rejectApproval()} disabled={!current || submitting !== null} className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-[#d9e1dd] bg-white px-2.5 text-[11px] font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 disabled:opacity-60">
+                    </motion.button>
+                    <motion.button type="button" onClick={() => void rejectApproval()} disabled={!current || submitting !== null} {...microInteractionMotion} className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-[#d9e1dd] bg-white px-2.5 text-[11px] font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 disabled:opacity-60">
                       {submitting === 'reject' ? <Loader2 size={12} className="animate-spin" /> : <X size={12} />}
                       Reject
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>
@@ -900,7 +913,7 @@ export default function ApprovalsPage() {
               </div>
 
               {showWhatIf ? (
-                <div className={`${dashboardUi.utilityCard} !rounded-[2px] border-[#d9e1dd] p-3 dark:border-slate-700`}>
+                <motion.div variants={motionEnabled ? fadeInUpVariants : undefined} className={`${dashboardUi.utilityCard} !rounded-[2px] border-[#d9e1dd] p-3 dark:border-slate-700`}>
                   <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">What-If Calculator</h3>
                   <div className="space-y-4">
                     <div>
@@ -1019,7 +1032,7 @@ export default function ApprovalsPage() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ) : null}
 
               <div className={`${dashboardUi.utilityCard} !rounded-[2px] border-[#d9e1dd] p-3 dark:border-slate-700 border-l-2 border-l-amber-600`}>
@@ -1080,6 +1093,6 @@ export default function ApprovalsPage() {
           </ApprovalsWorkspaceBoundary>
         )}
       </main>
-    </div>
+    </motion.div>
   )
 }

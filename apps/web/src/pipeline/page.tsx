@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
+import type { Route } from 'next'
 import { AlertTriangle, RefreshCw, Loader2, FileEdit } from 'lucide-react'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
 import { cn, statusBadgeClass, channelBadgeClass, channelLabel, shortDate, fitClass } from '../../lib/utils'
@@ -13,6 +14,7 @@ import type { Application, ApplicationStatus, IntegrityChange } from '@doubow/sh
 import { INTEGRITY_CHANGE_LABELS, PIPELINE_STATUS_TABS, PIPELINE_TABLE_HEADERS } from './constants'
 import { hasPipelineIntegrityIssues } from './helpers'
 import { candidatePageShell, candidateTokens } from '../../lib/candidateUi'
+import { motion, useReducedMotion, fadeInUpVariants, staggerContainerVariants, getMicroInteractionMotion } from '../../lib/motion'
 
 function ChangeRow({
   change,
@@ -58,6 +60,9 @@ export default function PipelinePage() {
   const [draftingId, setDraftingId] = useState<string | null>(null)
   const [draftError, setDraftError] = useState<string | null>(null)
   const [draftSuccess, setDraftSuccess] = useState<string | null>(null)
+  const prefersReducedMotion = useReducedMotion()
+  const motionEnabled = !prefersReducedMotion
+  const microInteractionMotion = getMicroInteractionMotion(motionEnabled)
 
   async function generateDraft(app: Application) {
     setDraftError(null)
@@ -122,7 +127,12 @@ export default function PipelinePage() {
   }, [])
 
   return (
-    <div className={candidatePageShell}>
+    <motion.div
+      className={candidatePageShell}
+      variants={motionEnabled ? staggerContainerVariants : undefined}
+      initial={motionEnabled ? 'hidden' : false}
+      animate={motionEnabled ? 'visible' : undefined}
+    >
       {draftSuccess && (
         <div className="pointer-events-none fixed right-4 top-20 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-900 shadow-sm">
           {draftSuccess}
@@ -133,15 +143,16 @@ export default function PipelinePage() {
         title="My applications"
         description="Manage your active recruitment pipelines and match scores."
         actions={
-          <button
+          <motion.button
             type="button"
             onClick={() => refresh()}
+            {...microInteractionMotion}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-3 py-2 text-[14px] font-medium shadow-sm hover:bg-[#f0f5f2]"
             style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
           >
             <RefreshCw size={13} />
             Refresh
-          </button>
+          </motion.button>
         }
       />
 
@@ -153,10 +164,10 @@ export default function PipelinePage() {
           Application Pipeline
         </p>
         <div className="inline-flex items-center overflow-hidden rounded-sm border border-[0.5px]" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
-          <button className="bg-teal-50 px-3 py-1.5 text-2xs font-semibold text-teal-800">List</button>
-          <button className="border-l border-[0.5px] px-3 py-1.5 text-2xs font-semibold text-zinc-500" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
+            <motion.button {...microInteractionMotion} className="bg-teal-50 px-3 py-1.5 text-2xs font-semibold text-teal-800">List</motion.button>
+          <motion.button {...microInteractionMotion} className="border-l border-[0.5px] px-3 py-1.5 text-2xs font-semibold text-zinc-500" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
             Kanban
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -186,15 +197,16 @@ export default function PipelinePage() {
             <p className="mt-0.5 text-xs text-amber-800">Possible duplicates and stale entries found</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <motion.button
               type="button"
               onClick={() => runIntegrity('dry_run')}
               disabled={integrityLoading}
+              {...microInteractionMotion}
               className="inline-flex items-center gap-1 rounded-[10px] border border-amber-300 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-amber-950 shadow-sm hover:bg-amber-100 disabled:opacity-50"
             >
               {integrityLoading ? <Loader2 size={12} className="animate-spin" /> : null}
               Preview cleanup
-            </button>
+            </motion.button>
           </div>
         </div>
       )}
@@ -248,10 +260,11 @@ export default function PipelinePage() {
             ? applications.length
             : applications.filter((a) => a.status === tab.value).length
           return (
-            <button
+            <motion.button
               key={tab.value}
               type="button"
               onClick={() => setActiveTab(tab.value)}
+              {...microInteractionMotion}
               className={cn(
                 'rounded-md border-[0.5px] px-3 py-1.5 text-xs font-medium transition-all duration-150',
                 activeTab === tab.value
@@ -263,21 +276,23 @@ export default function PipelinePage() {
               {count > 0 && (
                 <span className="ml-1.5 text-2xs tabular-nums text-zinc-400">{count}</span>
               )}
-            </button>
+            </motion.button>
           )
         })}
       </div>
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <article
+        <motion.article
+          variants={motionEnabled ? fadeInUpVariants : undefined}
           className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-3 shadow-sm"
           style={{ borderColor: 'rgba(109,122,119,0.45)' }}
         >
           <p className="text-2xs uppercase tracking-wider text-zinc-500">In interview stage</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">{interviewCount}</p>
           <p className="mt-0.5 text-2xs text-zinc-500">Focus these first in prep</p>
-        </article>
-        <article
+        </motion.article>
+        <motion.article
+          variants={motionEnabled ? fadeInUpVariants : undefined}
           className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-3 shadow-sm"
           style={{ borderColor: 'rgba(109,122,119,0.45)' }}
         >
@@ -286,15 +301,16 @@ export default function PipelinePage() {
             {avgFit != null ? avgFit.toFixed(1) : '—'}
           </p>
           <p className="mt-0.5 text-2xs text-zinc-500">Across visible applications</p>
-        </article>
-        <article
+        </motion.article>
+        <motion.article
+          variants={motionEnabled ? fadeInUpVariants : undefined}
           className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-3 shadow-sm"
           style={{ borderColor: 'rgba(109,122,119,0.45)' }}
         >
           <p className="text-2xs uppercase tracking-wider text-zinc-500">Needs cleanup</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">{staleCount}</p>
           <p className="mt-0.5 text-2xs text-zinc-500">Stale records flagged</p>
-        </article>
+        </motion.article>
       </section>
 
       {/* Table */}
@@ -367,11 +383,12 @@ export default function PipelinePage() {
                   </td>
                   <td className="py-3 px-4 text-right">
                     <div className="inline-flex items-center gap-1.5">
-                      <button
+                      <motion.button
                         type="button"
                         onClick={() => generateDraft(app)}
                         disabled={draftingId === app.id}
                         title="Generate outreach draft (opens in Approvals)"
+                        {...microInteractionMotion}
                         className="inline-flex items-center gap-1 rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-teal-300 hover:bg-teal-50 hover:text-teal-900 disabled:opacity-50"
                         style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
                       >
@@ -381,14 +398,16 @@ export default function PipelinePage() {
                           <FileEdit size={12} />
                         )}
                         Draft
-                      </button>
-                      <Link
-                        href={`/prep?applicationId=${encodeURIComponent(app.id)}`}
+                      </motion.button>
+                      <motion.div {...microInteractionMotion}>
+                        <Link
+                        href={`/prep?applicationId=${encodeURIComponent(app.id)}` as Route}
                         className="inline-flex items-center rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-teal-300 hover:bg-teal-50 hover:text-teal-900"
                         style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
                       >
                         Prep
                       </Link>
+                      </motion.div>
                     </div>
                   </td>
                 </tr>
@@ -397,6 +416,6 @@ export default function PipelinePage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </motion.div>
   )
 }

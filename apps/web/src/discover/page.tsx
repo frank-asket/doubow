@@ -34,6 +34,7 @@ import { candidatePageShell, candidateTokens } from '../../lib/candidateUi'
 import {
   AnimatePresence,
   fadeInUpVariants,
+  getMicroInteractionMotion,
   motion,
   staggerContainerVariants,
   useReducedMotion,
@@ -534,12 +535,7 @@ function DiscoverPageContent() {
   )
   const prefersReducedMotion = useReducedMotion()
   const motionEnabled = !prefersReducedMotion
-  const microInteractionMotion = motionEnabled
-    ? {
-        whileHover: { y: -1, scale: 1.01 },
-        whileTap: { scale: 0.99 },
-      }
-    : {}
+  const microInteractionMotion = getMicroInteractionMotion(motionEnabled)
   const iconTapMotion = motionEnabled
     ? {
         whileTap: { scale: 0.9 },

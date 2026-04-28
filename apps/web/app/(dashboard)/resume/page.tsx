@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { Upload, CheckCircle, Loader2, Sparkles, X, AlertCircle, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { motion, useReducedMotion, fadeInUpVariants, staggerContainerVariants, getMicroInteractionMotion } from '@/lib/motion'
 import { useResumeUpload } from '@/hooks/useResumeUpload'
 import { isE2EAuthBypass } from '@/lib/e2e'
 import { ApiError, resumeApi } from '@/lib/api'
@@ -170,9 +171,17 @@ export default function ResumePage() {
   const parsedArchetypes = resumeProfile?.parsed_profile?.archetypes ?? []
   const parsedGaps = resumeProfile?.parsed_profile?.gaps ?? []
   const parsedSkillCount = resumeProfile?.parsed_profile?.skills?.length ?? 0
+  const prefersReducedMotion = useReducedMotion()
+  const motionEnabled = !prefersReducedMotion
+  const microInteractionMotion = getMicroInteractionMotion(motionEnabled)
 
   return (
-    <div className="resume-lab mx-auto max-w-7xl space-y-3 bg-[#f5faf8] dark:bg-transparent px-4 pb-4 pt-2 sm:px-6 sm:pt-3 md:space-y-4">
+    <motion.div
+      className="resume-lab mx-auto max-w-7xl space-y-3 bg-[#f5faf8] dark:bg-transparent px-4 pb-4 pt-2 sm:px-6 sm:pt-3 md:space-y-4"
+      variants={motionEnabled ? staggerContainerVariants : undefined}
+      initial={motionEnabled ? 'hidden' : false}
+      animate={motionEnabled ? 'visible' : undefined}
+    >
       {isMockApiEnabled() ? (
         <div
           role="status"
@@ -192,20 +201,22 @@ export default function ResumePage() {
           <p className="text-[13px] text-[#6d7a77] dark:text-slate-400">Manage iterations, extract technical metadata, and align with market sectors.</p>
         </div>
         <div className="flex gap-2">
-          <button
+          <motion.button
             className="h-[31px] border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 px-4 text-[12px] font-medium uppercase tracking-[0.05em] text-[#171d1c] dark:text-slate-100"
             onClick={() => fileRef.current?.click()}
+            {...microInteractionMotion}
           >
             Replace Resume
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             className="inline-flex h-[31px] items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-4 text-[12px] font-medium uppercase tracking-[0.05em] text-white disabled:opacity-70"
             onClick={() => analyzeWithAI()}
             disabled={analyzing || loadingProfile || !resumeExists}
+            {...microInteractionMotion}
           >
             {analyzing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
             Analyze Core
-          </button>
+          </motion.button>
         </div>
       </section>
 
@@ -239,7 +250,8 @@ export default function ResumePage() {
             </button>
           </article>
 
-          <article
+          <motion.article
+            variants={motionEnabled ? fadeInUpVariants : undefined}
             className={cn(
               'relative cursor-pointer border border-[0.5px] bg-white dark:bg-slate-900 p-4 transition-colors',
               (dragOver || uploaded) && 'bg-teal-50/40',
@@ -321,7 +333,7 @@ export default function ResumePage() {
                 <X size={11} /> Replace file
               </button>
             ) : null}
-          </article>
+          </motion.article>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <article className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5">
@@ -527,24 +539,26 @@ export default function ResumePage() {
           </div>
         )}
         <div className="mt-3 flex gap-2 border-t border-[0.5px] border-[#bcc9c6] dark:border-slate-700 pt-3">
-          <button
+          <motion.button
             onClick={() => savePreferences()}
             disabled={savingPrefs || loadingProfile || !resumeExists}
+            {...microInteractionMotion}
             className="inline-flex h-8 items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-white disabled:opacity-70"
           >
             {savingPrefs ? <Loader2 size={12} className="animate-spin" /> : null}
             {savingPrefs ? 'Saving...' : 'Save Preferences'}
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => {
               hydrateFromPrefs(savedPrefs)
               setPrefsStatus(null)
             }}
             disabled={savingPrefs || loadingProfile}
+            {...microInteractionMotion}
             className="inline-flex h-8 items-center border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#171d1c] dark:text-slate-100"
           >
             Reset
-          </button>
+          </motion.button>
         </div>
         <div className="mt-3 min-h-[90px] border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-[#f0f5f2] p-3 text-xs leading-relaxed text-[#171d1c] dark:text-slate-100 whitespace-pre-wrap">
           {analysis || 'Run Analyze Core to generate AI extraction insights and role alignment recommendations.'}
@@ -560,8 +574,9 @@ export default function ResumePage() {
             { icon: 'query_stats', label: 'Market', active: false },
             { icon: 'person', label: 'Profile', active: false },
           ].map(({ icon, label, active }) => (
-            <button
+            <motion.button
               key={label}
+              {...microInteractionMotion}
               className={cn(
                 'flex h-14 flex-col items-center justify-center gap-0.5 border-t-2 text-[10px] font-medium uppercase tracking-[0.08em]',
                 active ? 'border-t-[#00685f] text-[#00685f]' : 'border-t-transparent text-[#6d7a77] dark:text-slate-400',
@@ -569,7 +584,7 @@ export default function ResumePage() {
             >
               <span className="material-symbols-outlined text-[18px]">{icon}</span>
               {label}
-            </button>
+            </motion.button>
           ))}
         </div>
       </nav>
@@ -581,6 +596,6 @@ export default function ResumePage() {
           vertical-align: middle;
         }
       `}</style>
-    </div>
+    </motion.div>
   )
 }
