@@ -156,7 +156,7 @@ async def test_linkedin_approve_then_send_emails_handoff_pack(db_session):
 
     row = (await db_session.execute(select(ApprovalRow).where(ApprovalRow.id == approval_schema.id))).scalar_one()
     assert row.sent_at is not None
-    assert row.delivery_status == "provider_accepted"
+    assert row.delivery_status == "provider_confirmed"
     assert row.send_provider == "linkedin_email_handoff"
 
     app_row = await db_session.get(Application, aid)
