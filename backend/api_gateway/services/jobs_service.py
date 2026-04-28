@@ -67,6 +67,13 @@ def _score_spec_from_template(raw: dict | None) -> dict | None:
     return raw
 
 
+def _template_provenance(fit_reasons: list[str]) -> str:
+    low = [r.lower() for r in fit_reasons]
+    if any("imported via discovery" in r for r in low):
+        return "template_default"
+    return "template_seeded"
+
+
 async def _sync_template_scores_for_user(
     session: AsyncSession,
     user_id: str,
@@ -142,6 +149,7 @@ async def _sync_template_scores_for_user(
         fit_reasons = [str(x) for x in fit_reasons_raw] if isinstance(fit_reasons_raw, list) else []
         risk_flags_raw = spec.get("risk_flags")
         risk_flags = [str(x) for x in risk_flags_raw] if isinstance(risk_flags_raw, list) else []
+        provenance = _template_provenance(fit_reasons)
         dims_raw = spec.get("dimension_scores") if isinstance(spec.get("dimension_scores"), dict) else {}
         if semantic_enabled:
             try:
@@ -151,17 +159,20 @@ async def _sync_template_scores_for_user(
             if semantic_score is not None:
                 fit_score = round(((1.0 - semantic_weight) * fit_score) + (semantic_weight * semantic_score), 1)
                 fit_reasons = [*fit_reasons, f"Semantic similarity signal: {semantic_score:.1f}/5.0"]
+                provenance = "computed"
         elif lexical_weight > 0.0:
             lexical_score = keyword_fit_score(parsed_profile, job)
             if lexical_score is not None:
                 fit_score = round(((1.0 - lexical_weight) * fit_score) + (lexical_weight * lexical_score), 1)
                 fit_reasons = [*fit_reasons, f"Keyword overlap signal: {lexical_score:.1f}/5.0"]
+                provenance = "computed"
         pending_rows.append(
             {
                 "job": job,
                 "fit_score": fit_score,
                 "fit_reasons": fit_reasons,
                 "risk_flags": risk_flags,
+                "provenance": provenance,
                 "dims_raw": dims_raw,
             }
         )
@@ -177,6 +188,7 @@ async def _sync_template_scores_for_user(
             if llm_score is not None:
                 blended = round(((1.0 - llm_weight) * float(row["fit_score"])) + (llm_weight * llm_score), 1)
                 row["fit_score"] = blended
+                row["provenance"] = "computed"
                 if llm_reasons:
                     row["fit_reasons"] = [
                         *row["fit_reasons"],
@@ -195,6 +207,7 @@ async def _sync_template_scores_for_user(
                 fit_reasons=list(row["fit_reasons"]),
                 risk_flags=list(row["risk_flags"]),
                 dimension_scores=row["dims_raw"],
+                provenance=str(row["provenance"]),
                 scored_at=now,
             )
         )

@@ -126,7 +126,7 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- ─── Job scores (explicit scores for seeded users; skips if already present) ─
-INSERT INTO job_scores (id, user_id, job_id, fit_score, fit_reasons, risk_flags, dimension_scores)
+INSERT INTO job_scores (id, user_id, job_id, fit_score, fit_reasons, risk_flags, dimension_scores, provenance)
 VALUES
   (
     'js_demo_001',
@@ -135,7 +135,8 @@ VALUES
     4.6,
     '["Strong product + AI overlap"]'::json,
     '[]'::json,
-    '{"tech":4.8,"culture":4.5,"seniority":4.6,"comp":4.4,"location":4.7,"channel_recommendation":"email"}'::json
+    '{"tech":4.8,"culture":4.5,"seniority":4.6,"comp":4.4,"location":4.7,"channel_recommendation":"email"}'::json,
+    'template_seeded'
   ),
   (
     'js_demo_seed_cat1',
@@ -144,7 +145,8 @@ VALUES
     4.8,
     '["Catalog: strong JD fit from seed"]'::json,
     '[]'::json,
-    '{"tech":4.9,"culture":4.7,"seniority":4.8,"comp":4.6,"location":4.9,"channel_recommendation":"email"}'::json
+    '{"tech":4.9,"culture":4.7,"seniority":4.8,"comp":4.6,"location":4.9,"channel_recommendation":"email"}'::json,
+    'template_seeded'
   ),
   (
     'js_demo_seed_cat2',
@@ -153,7 +155,8 @@ VALUES
     4.5,
     '["Platform overlap"]'::json,
     '["On-call load possible"]'::json,
-    '{"tech":4.6,"culture":4.4,"seniority":4.5,"comp":4.5,"location":4.6,"channel_recommendation":"linkedin"}'::json
+    '{"tech":4.6,"culture":4.4,"seniority":4.5,"comp":4.5,"location":4.6,"channel_recommendation":"linkedin"}'::json,
+    'template_seeded'
   ),
   (
     'js_demo_seed_u2',
@@ -162,6 +165,7 @@ VALUES
     3.9,
     '["Backend + regulated domain fit"]'::json,
     '[]'::json,
-    '{"tech":3.9,"culture":3.8,"seniority":4.0,"comp":4.1,"location":4.2,"channel_recommendation":"company_site"}'::json
+    '{"tech":3.9,"culture":3.8,"seniority":4.0,"comp":4.1,"location":4.2,"channel_recommendation":"company_site"}'::json,
+    'template_seeded'
   )
 ON CONFLICT ON CONSTRAINT uq_job_scores_user_job DO NOTHING;

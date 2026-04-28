@@ -19,6 +19,7 @@ class JobScore(Base):
     risk_flags: Mapped[list[str]] = mapped_column(JSON, default=list)
     dimension_scores: Mapped[dict] = mapped_column(JSON, default=dict)
     scored_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    provenance: Mapped[str] = mapped_column(String(32), nullable=False, default="unknown", server_default="unknown")
 
     user = relationship("User", back_populates="job_scores")
     job = relationship("Job", back_populates="scores")

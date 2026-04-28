@@ -7,6 +7,9 @@ from schemas.jobs import Channel, DimensionScores, JobScore as JobScoreSchema
 
 
 def _score_provenance(row: JobScoreRow) -> str:
+    raw = str(getattr(row, "provenance", "") or "").strip().lower()
+    if raw in {"computed", "template_default", "template_seeded", "unknown"}:
+        return raw
     reasons = [r.lower() for r in _coerce_str_list(row.fit_reasons)]
     if any(("semantic similarity signal:" in r) or ("keyword overlap signal:" in r) or ("llm fit signal:" in r) for r in reasons):
         return "computed"
