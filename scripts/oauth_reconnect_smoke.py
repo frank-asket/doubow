@@ -9,6 +9,9 @@ PASS criteria (point-in-time):
 - No 5xx/network failures
 - /authorize returns JSON with non-empty authorization_url
 - No obvious misconfiguration detail messages
+
+Optional diagnostics mode:
+- On failure, call /v1/me/debug/oauth-config and print missing required keys.
 """
 
 from __future__ import annotations
@@ -31,6 +34,23 @@ class CheckResult:
     status: int
     ok: bool
     note: str = ""
+
+
+def _extract_http_error_detail(raw: str) -> str | None:
+    if not raw.strip():
+        return None
+    try:
+        parsed = json.loads(raw)
+    except Exception:
+        return raw[:240]
+    if isinstance(parsed, dict):
+        detail = parsed.get("detail")
+        if isinstance(detail, str):
+            return detail
+        message = parsed.get("message")
+        if isinstance(message, str):
+            return message
+    return None
 
 
 def _request_json(
@@ -63,16 +83,7 @@ def _request_json(
             return int(resp.status), payload, None
     except urllib.error.HTTPError as exc:
         raw = exc.read().decode("utf-8", errors="replace")
-        detail: str | None = None
-        if raw.strip():
-            try:
-                parsed = json.loads(raw)
-                if isinstance(parsed, dict):
-                    d = parsed.get("detail")
-                    if isinstance(d, str):
-                        detail = d
-            except Exception:
-                detail = raw[:240]
+        detail = _extract_http_error_detail(raw)
         return int(exc.code), None, detail
     except urllib.error.URLError as exc:
         reason = getattr(exc, "reason", exc)
@@ -130,6 +141,43 @@ def _authorize_check(provider: str, status: int, payload: dict[str, Any] | None,
     return CheckResult(provider, endpoint, status, True, "authorization_url ok")
 
 
+def _print_oauth_diagnostics(*, base_url: str, token: str, failed: list[CheckResult]) -> None:
+    has_linkedin_authorize_failure = any(
+        r.provider == "linkedin" and r.endpoint == "authorize" and not r.ok for r in failed
+    )
+    if not has_linkedin_authorize_failure:
+        return
+
+    status, payload, detail = _request_json(base_url=base_url, token=token, path="/v1/me/debug/oauth-config")
+    print("\n== Diagnostic mode ==")
+    if status != 200 or payload is None:
+        print(
+            "diagnostic endpoint unavailable:"
+            f" code={status} reason={detail or 'unknown'}"
+        )
+        return
+
+    linkedin = payload.get("linkedin")
+    if not isinstance(linkedin, dict):
+        print("diagnostic payload missing linkedin config section")
+        return
+
+    missing = linkedin.get("missing_required_keys")
+    configured = linkedin.get("configured")
+    if not isinstance(missing, list):
+        print("diagnostic payload missing linkedin.missing_required_keys")
+        return
+
+    if missing:
+        joined = ", ".join(str(x) for x in missing)
+        print(f"linkedin configured={configured} missing_required_keys=[{joined}]")
+    else:
+        print(
+            "linkedin configured appears complete in debug endpoint."
+            " Re-check provider console redirect URI/client credentials."
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="OAuth reconnect preflight smoke check for Step 7.")
     parser.add_argument("--base-url", required=True, help="API base URL, e.g. https://doubow-production.up.railway.app")
@@ -138,6 +186,11 @@ def main() -> int:
         "--token-env",
         default="DOUBOW_LAUNCH_PROBE_TOKEN",
         help="Env var to read bearer token from when --token is omitted",
+    )
+    parser.add_argument(
+        "--diagnose",
+        action="store_true",
+        help="On failure, call /v1/me/debug/oauth-config and print missing key diagnostics",
     )
     args = parser.parse_args()
 
@@ -186,6 +239,8 @@ def main() -> int:
     print("FAIL: One or more OAuth preflight checks failed:")
     for r in failed:
         print(f"- {r.provider}.{r.endpoint}: code={r.status} reason={r.note or 'unknown'}")
+    if args.diagnose:
+        _print_oauth_diagnostics(base_url=args.base_url, token=token, failed=failed)
     return 2
 
 

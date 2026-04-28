@@ -81,3 +81,44 @@ async def test_ai_config_debug_endpoint_returns_safe_model_resolution(db_session
     assert payload["resolved_models"]["drafts"] == "anthropic/claude-sonnet-4.6"
     assert "openrouter_api_key" not in payload
     assert "secret_should_not_leak" not in str(payload)
+
+
+@pytest.mark.asyncio
+async def test_oauth_config_debug_endpoint_reports_missing_keys(db_session: AsyncSession, monkeypatch):
+    user = User(id="user_oauth_cfg", email="oauth@example.com")
+    db_session.add(user)
+    await db_session.commit()
+
+    monkeypatch.setattr(settings, "google_oauth_client_id", "gid")
+    monkeypatch.setattr(settings, "google_oauth_client_secret", None)
+    monkeypatch.setattr(settings, "google_oauth_redirect_uri", "https://api.example.com/v1/integrations/google/callback")
+    monkeypatch.setattr(settings, "google_oauth_state_secret", "gstate")
+    monkeypatch.setattr(settings, "google_oauth_token_fernet_key", None)
+
+    monkeypatch.setattr(settings, "linkedin_oauth_client_id", "lid")
+    monkeypatch.setattr(settings, "linkedin_oauth_client_secret", None)
+    monkeypatch.setattr(settings, "linkedin_oauth_redirect_uri", "https://api.example.com/v1/integrations/linkedin/callback")
+    monkeypatch.setattr(settings, "linkedin_oauth_state_secret", "lstate")
+
+    app = FastAPI()
+    app.include_router(users.router, prefix="/v1")
+
+    async def _override_session() -> AsyncGenerator[AsyncSession, None]:
+        yield db_session
+
+    async def _override_user() -> User:
+        return user
+
+    app.dependency_overrides[get_session] = _override_session
+    app.dependency_overrides[get_authenticated_user] = _override_user
+
+    with TestClient(app) as client:
+        res = client.get("/v1/me/debug/oauth-config")
+    assert res.status_code == 200
+    payload = res.json()
+    assert payload["google"]["configured"] is False
+    assert "GOOGLE_OAUTH_CLIENT_SECRET" in payload["google"]["missing_required_keys"]
+    assert "GOOGLE_OAUTH_TOKEN_FERNET_KEY" in payload["google"]["missing_required_keys"]
+    assert payload["linkedin"]["configured"] is False
+    assert "LINKEDIN_OAUTH_CLIENT_SECRET" in payload["linkedin"]["missing_required_keys"]
+    assert "GOOGLE_OAUTH_TOKEN_FERNET_KEY" in payload["linkedin"]["missing_required_keys"]

@@ -32,3 +32,14 @@ class MeAiConfigDebugResponse(BaseModel):
     openrouter_api_url: str
     openrouter_http_referer: str | None = None
     resolved_models: dict[str, str]
+
+
+class OAuthProviderConfigDebug(BaseModel):
+    configured: bool
+    required_keys_present: dict[str, bool]
+    missing_required_keys: list[str]
+
+
+class MeOauthConfigDebugResponse(BaseModel):
+    google: OAuthProviderConfigDebug
+    linkedin: OAuthProviderConfigDebug

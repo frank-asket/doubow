@@ -13,7 +13,9 @@ from schemas.users import (
     MeAiConfigDebugResponse,
     MeDebugResponse,
     MeEmailIdentityDebugResponse,
+    MeOauthConfigDebugResponse,
     MeResponse,
+    OAuthProviderConfigDebug,
 )
 from services.dashboard_service import get_dashboard_summary as load_dashboard_summary
 from services.resume_service import update_preferences_for_user
@@ -89,6 +91,43 @@ async def get_me_debug_ai_config(
             "prep": settings.resolve_openrouter_model("prep"),
             "resume": settings.resolve_openrouter_model("resume"),
         },
+    )
+
+
+@router.get("/debug/oauth-config", response_model=MeOauthConfigDebugResponse)
+async def get_me_debug_oauth_config(
+    user: User = Depends(get_authenticated_user),
+) -> MeOauthConfigDebugResponse:
+    """Safe OAuth config diagnostics (presence-only, no secret values)."""
+    _ = user  # ensures endpoint is authenticated
+
+    google_required = {
+        "GOOGLE_OAUTH_CLIENT_ID": bool(settings.google_oauth_client_id),
+        "GOOGLE_OAUTH_CLIENT_SECRET": bool(settings.google_oauth_client_secret),
+        "GOOGLE_OAUTH_REDIRECT_URI": bool(settings.google_oauth_redirect_uri),
+        "GOOGLE_OAUTH_STATE_SECRET": bool(settings.google_oauth_state_secret),
+        "GOOGLE_OAUTH_TOKEN_FERNET_KEY": bool(settings.google_oauth_token_fernet_key),
+    }
+    linkedin_required = {
+        "LINKEDIN_OAUTH_CLIENT_ID": bool(settings.linkedin_oauth_client_id),
+        "LINKEDIN_OAUTH_CLIENT_SECRET": bool(settings.linkedin_oauth_client_secret),
+        "LINKEDIN_OAUTH_REDIRECT_URI": bool(settings.linkedin_oauth_redirect_uri),
+        "LINKEDIN_OAUTH_STATE_SECRET": bool(settings.linkedin_oauth_state_secret),
+        # Current LinkedIn config gate also depends on this shared key.
+        "GOOGLE_OAUTH_TOKEN_FERNET_KEY": bool(settings.google_oauth_token_fernet_key),
+    }
+
+    def summarize(required: dict[str, bool], configured: bool) -> OAuthProviderConfigDebug:
+        missing = [k for k, present in required.items() if not present]
+        return OAuthProviderConfigDebug(
+            configured=configured,
+            required_keys_present=required,
+            missing_required_keys=missing,
+        )
+
+    return MeOauthConfigDebugResponse(
+        google=summarize(google_required, settings.google_oauth_is_configured()),
+        linkedin=summarize(linkedin_required, settings.linkedin_oauth_is_configured()),
     )
 
 
