@@ -6,6 +6,7 @@ import ClerkApiAuthBridge from '@/components/auth/ClerkApiAuthBridge'
 import ClerkDevOriginGuard from '@/components/auth/ClerkDevOriginGuard'
 import PostHogProvider from '@/components/analytics/PostHogProvider'
 import StubApiRuntimeFlag from '@/components/dev/StubApiRuntimeFlag'
+import MotionProvider from '@/components/motion/MotionProvider'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import './globals.css'
 
@@ -57,17 +58,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             afterSignOutUrl="/"
           >
             <ThemeProvider>
-              <ClerkDevOriginGuard />
-              <ClerkApiAuthBridge />
-              <PostHogBoundary />
-              {children}
+              <MotionProvider>
+                <ClerkDevOriginGuard />
+                <ClerkApiAuthBridge />
+                <PostHogBoundary />
+                {children}
+              </MotionProvider>
             </ThemeProvider>
           </ClerkProvider>
         ) : (
           <ThemeProvider>
-            <ClerkDevOriginGuard />
-            <PostHogBoundary />
-            {children}
+            <MotionProvider>
+              <ClerkDevOriginGuard />
+              <PostHogBoundary />
+              {children}
+            </MotionProvider>
           </ThemeProvider>
         )}
       </body>

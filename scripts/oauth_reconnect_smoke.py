@@ -192,6 +192,11 @@ def main() -> int:
         action="store_true",
         help="On failure, call /v1/me/debug/oauth-config and print missing key diagnostics",
     )
+    parser.add_argument(
+        "--providers",
+        default="google,linkedin",
+        help="Comma-separated providers to check (google,linkedin). Example: --providers google",
+    )
     args = parser.parse_args()
 
     token = args.token or os.getenv(args.token_env)
@@ -199,7 +204,16 @@ def main() -> int:
         print(f"FAIL: missing bearer token. Pass --token or set {args.token_env}.")
         return 2
 
-    providers = ("google", "linkedin")
+    parsed_providers = [p.strip().lower() for p in args.providers.split(",") if p.strip()]
+    allowed = {"google", "linkedin"}
+    invalid = [p for p in parsed_providers if p not in allowed]
+    if invalid:
+        print(f"FAIL: invalid provider(s): {', '.join(invalid)}. Allowed: google,linkedin")
+        return 2
+    providers = tuple(parsed_providers)
+    if not providers:
+        print("FAIL: no providers selected. Use --providers google or --providers google,linkedin")
+        return 2
     results: list[CheckResult] = []
 
     print("== OAuth reconnect smoke ==")

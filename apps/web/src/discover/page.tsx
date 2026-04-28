@@ -30,8 +30,17 @@ import { applicationsApi, resumeApi, telemetryApi } from '../../lib/api'
 import { resolveJobListingUrl } from './jobListingUrl'
 import { clearActivationStart, getActivationStartAt, trackEvent } from '../../lib/telemetry'
 import { candidatePageShell, candidateTokens } from '../../lib/candidateUi'
+import {
+  AnimatePresence,
+  fadeInUpVariants,
+  motion,
+  staggerContainerVariants,
+  useReducedMotion,
+} from '../../lib/motion'
 import { useDashboard } from '../../hooks/useDashboard'
 import type { JobWithScore } from '@doubow/shared'
+
+const MotionLink = motion(Link)
 
 const DIMENSION_LABELS: Record<string, string> = {
   tech: 'Tech match', culture: 'Culture', seniority: 'Seniority', comp: 'Compensation', location: 'Location',
@@ -117,7 +126,7 @@ function CompanyLogo({
   )
 }
 
-function JobCard({ job }: { job: JobWithScore }) {
+function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boolean }) {
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
@@ -145,9 +154,22 @@ function JobCard({ job }: { job: JobWithScore }) {
 
   const dims = Object.entries(job.score.dimension_scores) as [string, number][]
   const hasGap = job.score.risk_flags.length > 0
+  const ctaMotion = motionEnabled
+    ? {
+        whileHover: { y: -1, scale: 1.01 },
+        whileTap: { scale: 0.99 },
+      }
+    : {}
 
   return (
-    <div className={cn('card animate-fade-in transition-all', queued && 'opacity-60 pointer-events-none')}>
+    <motion.div
+      layout={motionEnabled}
+      variants={motionEnabled ? fadeInUpVariants : undefined}
+      initial={motionEnabled ? 'hidden' : false}
+      animate={motionEnabled ? 'visible' : undefined}
+      exit={motionEnabled ? 'exit' : undefined}
+      className={cn('card animate-fade-in transition-all', queued && 'opacity-60 pointer-events-none')}
+    >
       <div className="p-4">
         {/* Top row */}
         <div className="mb-2 flex items-start justify-between gap-3">
@@ -214,8 +236,9 @@ function JobCard({ job }: { job: JobWithScore }) {
 
         {/* Actions */}
         <div className="mt-3 flex items-center gap-3">
-          <Link
+          <MotionLink
             href={`/discover/${job.id}`}
+            {...ctaMotion}
             className={cn(
               'inline-flex h-9 flex-1 items-center justify-center gap-1 border border-[0.5px] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors',
               hasGap
@@ -225,13 +248,14 @@ function JobCard({ job }: { job: JobWithScore }) {
           >
             <BookOpen size={12} />
             {hasGap ? 'Review Gaps' : 'Details & Analysis'}
-          </Link>
+          </MotionLink>
           {queued ? (
             <span className="text-xs font-medium text-emerald-700">✓ Added to queue</span>
           ) : (
-            <button
+            <motion.button
               onClick={handleQueue}
               disabled={queuing}
+              {...ctaMotion}
               className={cn(
                 'inline-flex h-9 flex-1 items-center justify-center gap-1 border border-[0.5px] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors',
                 hasGap
@@ -241,15 +265,15 @@ function JobCard({ job }: { job: JobWithScore }) {
             >
               {queuing ? 'Preparing…' : hasGap ? 'Bypass & Apply' : 'Initiate Application'}
               {!queuing && <ArrowRight size={12} />}
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
-function CatalogFeaturedMatch({ job }: { job: JobWithScore }) {
+function CatalogFeaturedMatch({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boolean }) {
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
   const queueKey = useMemo(() => crypto.randomUUID(), [])
@@ -270,6 +294,12 @@ function CatalogFeaturedMatch({ job }: { job: JobWithScore }) {
   }
 
   const dims = Object.entries(job.score.dimension_scores) as [string, number][]
+  const ctaMotion = motionEnabled
+    ? {
+        whileHover: { y: -1, scale: 1.01 },
+        whileTap: { scale: 0.99 },
+      }
+    : {}
 
   return (
     <article
@@ -343,31 +373,33 @@ function CatalogFeaturedMatch({ job }: { job: JobWithScore }) {
         {queued ? (
           <span className="text-sm font-medium text-emerald-700">Added to your pipeline</span>
         ) : (
-          <button
+          <motion.button
             type="button"
             onClick={() => void handleQueue()}
             disabled={queuing}
+            {...ctaMotion}
             className="btn btn-primary text-xs inline-flex items-center gap-1.5"
           >
             {queuing ? 'Queueing…' : 'Prepare application'}
             {!queuing ? <ArrowRight size={12} /> : null}
-          </button>
+          </motion.button>
         )}
-        <Link href="/prep" className="btn text-xs inline-flex items-center gap-1.5">
+        <MotionLink href="/prep" {...ctaMotion} className="btn text-xs inline-flex items-center gap-1.5">
           <BookOpen size={12} />
           Interview prep
-        </Link>
-        <Link href={`/discover/${job.id}`} className="btn text-xs inline-flex items-center gap-1.5">
+        </MotionLink>
+        <MotionLink href={`/discover/${job.id}`} {...ctaMotion} className="btn text-xs inline-flex items-center gap-1.5">
           View details
-        </Link>
-        <a
+        </MotionLink>
+        <motion.a
           href={resolveJobListingUrl(job)}
           target="_blank"
           rel="noopener noreferrer"
+          {...ctaMotion}
           className="btn btn-ghost text-xs ml-auto"
         >
           View listing ↗
-        </a>
+        </motion.a>
       </div>
     </article>
   )
@@ -447,6 +479,20 @@ function DiscoverPageContent() {
   const [sortBy, setSortBy] = useState<DiscoverSort>(
     () => (searchParams.get('sort') as DiscoverSort) || 'fit',
   )
+  const prefersReducedMotion = useReducedMotion()
+  const motionEnabled = !prefersReducedMotion
+  const microInteractionMotion = motionEnabled
+    ? {
+        whileHover: { y: -1, scale: 1.01 },
+        whileTap: { scale: 0.99 },
+      }
+    : {}
+  const iconTapMotion = motionEnabled
+    ? {
+        whileTap: { scale: 0.9 },
+        transition: { duration: 0.14, ease: 'easeOut' as const },
+      }
+    : {}
   const emptyTracked = useRef(false)
   const scoringTracked = useRef(false)
   const etaTracked = useRef(false)
@@ -648,9 +694,10 @@ function DiscoverPageContent() {
               <Sparkles size={13} aria-hidden />
               Assistant
             </Link>
-            <button
+            <motion.button
               type="button"
               onClick={() => setFilterOpen((x) => !x)}
+              {...microInteractionMotion}
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[14px] font-medium shadow-sm transition-colors',
                 filterOpen
@@ -658,17 +705,22 @@ function DiscoverPageContent() {
                   : 'border-[#e4e5ec] bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
               )}
             >
-              <SlidersHorizontal size={13} />
+              <motion.span {...iconTapMotion} className="inline-flex">
+                <SlidersHorizontal size={13} />
+              </motion.span>
               Filters
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               onClick={() => void handleRefresh()}
+              {...microInteractionMotion}
               className="inline-flex items-center gap-1.5 rounded-sm border border-[#e4e5ec] bg-white dark:bg-slate-900 px-3 py-2 text-[14px] font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
             >
-              <RefreshCw size={13} className={cn((loading || dashLoading) && 'animate-spin-slow')} />
+              <motion.span {...iconTapMotion} className="inline-flex">
+                <RefreshCw size={13} className={cn((loading || dashLoading) && 'animate-spin-slow')} />
+              </motion.span>
               Refresh
-            </button>
+            </motion.button>
           </>
         }
       />
@@ -699,9 +751,10 @@ function DiscoverPageContent() {
             </select>
           </label>
           {searchText.trim() ? (
-            <button
+            <motion.button
               type="button"
               className="text-xs font-medium text-zinc-500 hover:text-zinc-800"
+              {...microInteractionMotion}
               onClick={() => {
                 setSearchText('')
                 const p = new URLSearchParams(searchParams.toString())
@@ -711,7 +764,7 @@ function DiscoverPageContent() {
               }}
             >
               Clear search
-            </button>
+            </motion.button>
           ) : null}
         </div>
       </div>
@@ -732,34 +785,45 @@ function DiscoverPageContent() {
           >
             Min score: {minFitChip}
           </span>
-          <button
+          <motion.button
             type="button"
             onClick={() => setFilterOpen((x) => !x)}
+            {...microInteractionMotion}
             className={cn(
               'inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 text-2xs font-semibold transition-colors',
               filterOpen ? 'border-teal-300 bg-teal-50 text-teal-900' : 'border-[#e4e5ec] bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
             )}
           >
-            <Filter size={12} aria-hidden />
+            <motion.span {...iconTapMotion} className="inline-flex">
+              <Filter size={12} aria-hidden />
+            </motion.span>
             Refine parameters
-          </button>
+          </motion.button>
           {locationFilter.trim() ? (
-            <button
+            <motion.button
               type="button"
               onClick={() => setLocationFilter('')}
+              {...microInteractionMotion}
               className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2 py-1 text-2xs font-semibold text-teal-900"
             >
-              Location: {locationFilter.trim()} <X size={11} />
-            </button>
+              Location: {locationFilter.trim()}
+              <motion.span {...iconTapMotion} className="inline-flex">
+                <X size={11} />
+              </motion.span>
+            </motion.button>
           ) : null}
           {sortBy !== 'fit' ? (
-            <button
+            <motion.button
               type="button"
               onClick={() => setSortBy('fit')}
+              {...microInteractionMotion}
               className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-2xs font-semibold text-zinc-700"
             >
-              Sort: {sortBy === 'recent' ? 'Most recent' : 'Company A-Z'} <X size={11} />
-            </button>
+              Sort: {sortBy === 'recent' ? 'Most recent' : 'Company A-Z'}
+              <motion.span {...iconTapMotion} className="inline-flex">
+                <X size={11} />
+              </motion.span>
+            </motion.button>
           ) : null}
         </div>
       </div>
@@ -769,9 +833,10 @@ function DiscoverPageContent() {
         style={{ borderColor: 'rgba(109,122,119,0.45)' }}
       >
         <span className="px-2 text-2xs font-semibold uppercase tracking-wider text-zinc-500">Filters</span>
-        <button
+        <motion.button
           type="button"
           onClick={() => setLocationFilter(locationFilter.trim() ? '' : 'Remote')}
+          {...microInteractionMotion}
           className={cn(
             'rounded-sm border border-[0.5px] px-3 py-1 text-xs transition-colors',
             locationFilter.trim() ? 'bg-teal-50 text-teal-800' : 'bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
@@ -779,10 +844,11 @@ function DiscoverPageContent() {
           style={{ borderColor: 'rgba(109,122,119,0.45)' }}
         >
           Remote roles
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           type="button"
           onClick={() => setMinFit(minFit < 4 ? 4 : 0)}
+          {...microInteractionMotion}
           className={cn(
             'rounded-sm border border-[0.5px] px-3 py-1 text-xs transition-colors',
             minFit >= 4 ? 'bg-teal-50 text-teal-800' : 'bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
@@ -790,16 +856,17 @@ function DiscoverPageContent() {
           style={{ borderColor: 'rgba(109,122,119,0.45)' }}
         >
           High fit (4.0+)
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           type="button"
           onClick={() => setSearchText((s) => (s.trim() ? '' : 'full-time'))}
+          {...microInteractionMotion}
           className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 px-3 py-1 text-xs text-zinc-700 transition-colors hover:bg-zinc-50"
           style={{ borderColor: 'rgba(109,122,119,0.45)' }}
         >
           Full-time
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           type="button"
           onClick={() => {
             setSearchText('')
@@ -807,10 +874,11 @@ function DiscoverPageContent() {
             setLocationFilter('')
             setSortBy('fit')
           }}
+          {...microInteractionMotion}
           className="ml-auto rounded bg-[#00685f] px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-95"
         >
           Clear all
-        </button>
+        </motion.button>
       </section>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
@@ -909,7 +977,7 @@ function DiscoverPageContent() {
         </div>
       </section>
 
-      {showFeaturedCard && topMatch ? <CatalogFeaturedMatch job={topMatch} /> : null}
+      {showFeaturedCard && topMatch ? <CatalogFeaturedMatch job={topMatch} motionEnabled={motionEnabled} /> : null}
 
       {/* Job list */}
       <div className="mb-3 flex items-center justify-between">
@@ -920,11 +988,27 @@ function DiscoverPageContent() {
       </div>
 
       <div className="space-y-3">
-        {loading
-          ? Array.from({ length: 4 }).map((_, i) => <JobSkeleton key={i} />)
-          : filteredJobs.length === 0 && onboarding?.state === 'no_resume'
-          ? (
-            <div className="card p-4 sm:p-4 text-zinc-600">
+        <AnimatePresence initial={false} mode="popLayout">
+          {loading ? (
+            <motion.div
+              key="loading"
+              variants={motionEnabled ? fadeInUpVariants : undefined}
+              initial={motionEnabled ? 'hidden' : false}
+              animate={motionEnabled ? 'visible' : undefined}
+              exit={motionEnabled ? 'exit' : undefined}
+              className="space-y-3"
+            >
+              {Array.from({ length: 4 }).map((_, i) => <JobSkeleton key={i} />)}
+            </motion.div>
+          ) : filteredJobs.length === 0 && onboarding?.state === 'no_resume' ? (
+            <motion.div
+              key="empty-no-resume"
+              variants={motionEnabled ? fadeInUpVariants : undefined}
+              initial={motionEnabled ? 'hidden' : false}
+              animate={motionEnabled ? 'visible' : undefined}
+              exit={motionEnabled ? 'exit' : undefined}
+              className="card p-4 sm:p-4 text-zinc-600"
+            >
               <div className="mx-auto max-w-2xl text-center">
                 <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-2xs font-medium text-amber-900">
                   No resume connected
@@ -938,11 +1022,16 @@ function DiscoverPageContent() {
                   <Link href="/resume" className="btn text-xs">How matching works</Link>
                 </div>
               </div>
-            </div>
-          )
-          : filteredJobs.length === 0 && onboarding?.state === 'scoring_in_progress'
-          ? (
-            <div className="card p-4 sm:p-4">
+            </motion.div>
+          ) : filteredJobs.length === 0 && onboarding?.state === 'scoring_in_progress' ? (
+            <motion.div
+              key="empty-scoring"
+              variants={motionEnabled ? fadeInUpVariants : undefined}
+              initial={motionEnabled ? 'hidden' : false}
+              animate={motionEnabled ? 'visible' : undefined}
+              exit={motionEnabled ? 'exit' : undefined}
+              className="card p-4 sm:p-4"
+            >
               <div className="mx-auto max-w-2xl">
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-2xs font-medium text-teal-900">
@@ -982,11 +1071,16 @@ function DiscoverPageContent() {
                   You can leave this page. We keep processing in the background.
                 </div>
               </div>
-            </div>
-          )
-          : filteredJobs.length === 0 && jobs.length > 0
-          ? (
-            <div className="card p-4 sm:p-4 text-center text-zinc-600">
+            </motion.div>
+          ) : filteredJobs.length === 0 && jobs.length > 0 ? (
+            <motion.div
+              key="empty-filtered"
+              variants={motionEnabled ? fadeInUpVariants : undefined}
+              initial={motionEnabled ? 'hidden' : false}
+              animate={motionEnabled ? 'visible' : undefined}
+              exit={motionEnabled ? 'exit' : undefined}
+              className="card p-4 sm:p-4 text-center text-zinc-600"
+            >
               <Globe size={28} className="mx-auto mb-3 text-zinc-300" />
               <p className="text-sm font-medium text-zinc-800">Nothing matches right now</p>
               <p className="mt-1 text-xs text-zinc-500">
@@ -1009,18 +1103,37 @@ function DiscoverPageContent() {
                   Reset search & filters
                 </button>
               </div>
-            </div>
-          )
-          : filteredJobs.length === 0
-          ? (
-            <div className="py-16 text-center text-zinc-500">
+            </motion.div>
+          ) : filteredJobs.length === 0 ? (
+            <motion.div
+              key="empty-default"
+              variants={motionEnabled ? fadeInUpVariants : undefined}
+              initial={motionEnabled ? 'hidden' : false}
+              animate={motionEnabled ? 'visible' : undefined}
+              exit={motionEnabled ? 'exit' : undefined}
+              className="py-16 text-center text-zinc-500"
+            >
               <Globe size={28} className="mx-auto mb-3 text-zinc-300" />
               <p className="text-sm font-medium text-zinc-800">No matches yet</p>
               <p className="mt-1 text-xs text-zinc-500">Upload your resume and click Refresh to discover roles</p>
-            </div>
-          )
-          : jobsForList.map((job) => <JobCard key={job.id} job={job} />)
-        }
+            </motion.div>
+          ) : (
+            <motion.div
+              key="job-list"
+              variants={motionEnabled ? staggerContainerVariants : undefined}
+              initial={motionEnabled ? 'hidden' : false}
+              animate={motionEnabled ? 'visible' : undefined}
+              exit={motionEnabled ? 'exit' : undefined}
+              className="space-y-3"
+            >
+              <AnimatePresence initial={false} mode="popLayout">
+                {jobsForList.map((job) => (
+                  <JobCard key={job.id} job={job} motionEnabled={motionEnabled} />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )
