@@ -732,11 +732,11 @@ function DiscoverPageContent() {
   return (
     <div className={candidatePageShell}>
       <DashboardPageHeader
-        kicker={precisionMode ? 'DiscoveryAgent' : 'Global discovery'}
-        title={precisionMode ? 'Precision job catalog' : 'Job catalog'}
+        kicker={precisionMode ? 'Focused search' : 'Job discovery'}
+        title={precisionMode ? 'Refined job matches' : 'Job catalog'}
         description={
           precisionMode
-            ? 'Refined search state with precision parameters and weighted scoring.'
+            ? 'Narrowed results based on your filters and fit scoring.'
             : 'AI-scored roles from your resume — filter, queue, and prep in one workspace.'
         }
         actions={
@@ -942,7 +942,7 @@ function DiscoverPageContent() {
             style={{ borderColor: 'rgba(109,122,119,0.45)' }}
           >
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              {precisionMode ? 'DiscoveryAgent params' : 'Advanced filters'}
+              {precisionMode ? 'Refined filters' : 'Advanced filters'}
             </p>
             <div className="space-y-3">
               <div>
@@ -1000,7 +1000,7 @@ function DiscoverPageContent() {
             style={{ borderColor: 'rgba(109,122,119,0.45)' }}
           >
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              {precisionMode ? 'Global FitScore' : 'Your Fit Index'}
+              {precisionMode ? 'Overall match score' : 'Your match score'}
             </p>
             <p className="text-2xl font-bold text-teal-700">
               <AnimatedMetricValue
@@ -1009,8 +1009,8 @@ function DiscoverPageContent() {
             </p>
             <p className="text-[10px] text-zinc-500">
               {precisionMode
-                ? 'Aggregated precision analytical score'
-                : 'Based on 5-dimension analytical match'}
+                ? 'Combined fit score for your current filtered view'
+                : 'Based on role, skills, compensation, location, and seniority'}
             </p>
           </article>
         </aside>
@@ -1023,7 +1023,7 @@ function DiscoverPageContent() {
                 className="min-w-[1ch]"
                 value={String(filteredJobs.length)}
               />
-              {precisionMode ? ' precision matches via DiscoveryAgent' : ' active opportunities found'}
+              {precisionMode ? ' refined matches based on your filters' : ' active opportunities found'}
             </p>
             <p className="text-xs text-zinc-600">
               Sort:{' '}
@@ -1118,7 +1118,7 @@ function DiscoverPageContent() {
                 </div>
                 <p className="text-lg font-medium text-zinc-900">Great — your resume is uploaded.</p>
                 <p className="mt-1 text-sm text-zinc-500">
-                  We are scoring your first set of jobs now. This usually takes about 1-2 minutes.
+                  We are scoring your first set of jobs now. This usually takes about 1 to 2 minutes.
                 </p>
                 <div className="mt-5 space-y-2">
                   {onboardingSteps.map((step) => {
