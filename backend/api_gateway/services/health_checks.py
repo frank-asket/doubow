@@ -56,6 +56,24 @@ async def check_redis() -> tuple[bool, str | None]:
             pass
 
 
+async def check_celery_enqueue_health() -> tuple[bool, str | None]:
+    """Return (ok, detail) for durable background enqueue path."""
+    use_send = settings.use_celery_for_send_effective()
+    use_autopilot = settings.use_celery_for_autopilot_effective()
+    if not use_send and not use_autopilot:
+        return True, "not_required"
+
+    try:
+        from tasks.send_tasks import health_ping_task
+
+        # Lightweight broker check: enqueue a tiny task and return.
+        health_ping_task.delay()
+        return True, None
+    except Exception as exc:
+        logger.debug("health: celery enqueue check failed", exc_info=True)
+        return False, str(exc)
+
+
 async def gather_readiness() -> tuple[dict[str, object], int]:
     """Build JSON body and HTTP status for ``GET /ready``.
 
@@ -63,8 +81,17 @@ async def gather_readiness() -> tuple[dict[str, object], int]:
     """
     pg_ok, pg_err = await check_postgres()
     redis_ok, redis_err = await check_redis()
+    celery_ok, celery_err = await check_celery_enqueue_health()
 
     redis_label = "ok" if redis_ok else "degraded"
+    background = {
+        "send_mode": "celery" if settings.use_celery_for_send_effective() else "inprocess",
+        "autopilot_mode": "celery" if settings.use_celery_for_autopilot_effective() else "inprocess",
+        "allow_inprocess_fallback_in_production": settings.allow_inprocess_background_in_production,
+        "enqueue": "ok" if celery_ok else "error",
+    }
+    if celery_err and celery_err != "not_required":
+        background["enqueue_detail"] = celery_err
 
     if not pg_ok:
         return (
@@ -73,6 +100,7 @@ async def gather_readiness() -> tuple[dict[str, object], int]:
                 "postgres": "error",
                 "postgres_detail": pg_err,
                 "redis": redis_label,
+                "background_durability": background,
                 **({"redis_detail": redis_err} if not redis_ok and redis_err else {}),
             },
             503,
@@ -82,6 +110,7 @@ async def gather_readiness() -> tuple[dict[str, object], int]:
         "status": "ready",
         "postgres": "ok",
         "redis": redis_label,
+        "background_durability": background,
     }
     if not redis_ok and redis_err:
         body["redis_detail"] = redis_err

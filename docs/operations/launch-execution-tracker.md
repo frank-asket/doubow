@@ -41,6 +41,7 @@ Additional review note:
 Week 2 progress note:
 
 - Day 10 durability path started: production now defaults critical background work to Celery (`approvals` send + `autopilot` run/resume) with explicit escape hatch `ALLOW_INPROCESS_BACKGROUND_IN_PRODUCTION=false` by default.
+- Day 10.5 ops indicator added: `/ready` now reports `background_durability` (send/autopilot mode + enqueue health), and startup logs print effective durability mode.
 
 ---
 

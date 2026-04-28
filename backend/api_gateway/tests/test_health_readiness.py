@@ -78,3 +78,30 @@ def test_ready_redis_degraded_still_200(main_app, monkeypatch):
     assert body["postgres"] == "ok"
     assert body["redis"] == "degraded"
     assert body.get("redis_detail") == "redis down"
+
+
+def test_ready_includes_background_durability(main_app, monkeypatch):
+    import services.health_checks as hc
+
+    async def ok_pg() -> tuple[bool, str | None]:
+        return True, None
+
+    async def ok_redis() -> tuple[bool, str | None]:
+        return True, None
+
+    async def ok_celery() -> tuple[bool, str | None]:
+        return True, None
+
+    monkeypatch.setattr(hc, "check_postgres", ok_pg)
+    monkeypatch.setattr(hc, "check_redis", ok_redis)
+    monkeypatch.setattr(hc, "check_celery_enqueue_health", ok_celery)
+
+    with TestClient(main_app) as client:
+        res = client.get("/ready")
+    assert res.status_code == 200
+    body = res.json()
+    assert "background_durability" in body
+    bg = body["background_durability"]
+    assert bg["send_mode"] in {"celery", "inprocess"}
+    assert bg["autopilot_mode"] in {"celery", "inprocess"}
+    assert bg["enqueue"] in {"ok", "error"}

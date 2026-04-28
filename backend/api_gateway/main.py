@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,12 +32,19 @@ from services.observability import setup_observability
 from services.metrics import metrics_middleware, metrics_response
 
 setup_observability()
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     # Startup/shutdown hooks live here once DB + Redis are wired.
     await init_models()
+    logger.info(
+        "background durability modes: send=%s autopilot=%s inprocess_fallback_prod=%s",
+        "celery" if settings.use_celery_for_send_effective() else "inprocess",
+        "celery" if settings.use_celery_for_autopilot_effective() else "inprocess",
+        settings.allow_inprocess_background_in_production,
+    )
     yield
 
 
