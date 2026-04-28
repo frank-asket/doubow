@@ -27,7 +27,7 @@ from services.agent_chat_service import (
     recent_thread_transcript,
 )
 from services.agents_service import build_orchestrator_user_context, list_agent_status
-from services.agent_action_executor import execute_action, infer_action_from_message
+from services.agent_action_executor import AgentActionPolicyError, execute_action, infer_action_from_message
 from services.llm_prompts import ORCHESTRATOR_SYSTEM, normalize_orchestrator_response_with_meta
 from services.metrics import observe_llm_output_quality
 from services.openrouter import stream_chat_completion_chunks
@@ -123,13 +123,14 @@ async def orchestrator_chat(
             meta = json.dumps({"meta": {"thread_id": thread.id}})
             yield f"data: {meta}\n\n"
             if action_call is not None:
+                tool_args = {k: v for k, v in action_call.model_dump().items() if k != "action" and v is not None}
                 tool_call_payload = {
                     "kind": "tool_call",
                     "name": action_call.action,
-                    "arguments": {"limit": action_call.limit},
+                    "arguments": tool_args,
                 }
                 tool_call_evt = json.dumps(
-                    {"tool_call": {"name": action_call.action, "arguments": {"limit": action_call.limit}}}
+                    {"tool_call": {"name": action_call.action, "arguments": tool_args}}
                 )
                 yield f"data: {tool_call_evt}\n\n"
                 row = await session.get(ChatThread, thread.id)
@@ -140,34 +141,67 @@ async def orchestrator_chat(
                         role="tool",
                         content=json.dumps(tool_call_payload),
                     )
-                action_result = await execute_action(session=session, user_id=user.id, call=action_call)
-                observe_llm_output_quality(use_case="chat", outcome=f"action_{action_result.action}")
-                tool_result_payload = {
-                    "kind": "tool_result",
-                    "name": action_result.action,
-                    "ok": True,
-                    "summary": "Action executed successfully.",
-                }
-                tool_result_evt = json.dumps(
-                    {
-                        "tool_result": {
-                            "name": action_result.action,
-                            "ok": True,
-                            "summary": "Action executed successfully.",
-                        }
+                try:
+                    action_result = await execute_action(session=session, user_id=user.id, call=action_call)
+                    observe_llm_output_quality(use_case="chat", outcome=f"action_{action_result.action}")
+                    tool_result_payload = {
+                        "kind": "tool_result",
+                        "name": action_result.action,
+                        "ok": True,
+                        "summary": "Action executed successfully.",
                     }
-                )
-                yield f"data: {tool_result_evt}\n\n"
-                row = await session.get(ChatThread, thread.id)
-                if row is not None and row.user_id == user.id:
-                    await append_chat_message(
-                        session=session,
-                        thread=row,
-                        role="tool",
-                        content=json.dumps(tool_result_payload),
+                    tool_result_evt = json.dumps(
+                        {
+                            "tool_result": {
+                                "name": action_result.action,
+                                "ok": True,
+                                "summary": "Action executed successfully.",
+                            }
+                        }
                     )
-                chunk = json.dumps({"delta": {"text": action_result.response_text}})
-                yield f"data: {chunk}\n\n"
+                    yield f"data: {tool_result_evt}\n\n"
+                    row = await session.get(ChatThread, thread.id)
+                    if row is not None and row.user_id == user.id:
+                        await append_chat_message(
+                            session=session,
+                            thread=row,
+                            role="tool",
+                            content=json.dumps(tool_result_payload),
+                        )
+                    chunk = json.dumps({"delta": {"text": action_result.response_text}})
+                    yield f"data: {chunk}\n\n"
+                except AgentActionPolicyError as exc:
+                    observe_llm_output_quality(use_case="chat", outcome=f"action_policy_{exc.code}")
+                    tool_result_payload = {
+                        "kind": "tool_result",
+                        "name": exc.action,
+                        "ok": False,
+                        "summary": exc.detail,
+                    }
+                    tool_result_evt = json.dumps(
+                        {
+                            "tool_result": {
+                                "name": exc.action,
+                                "ok": False,
+                                "summary": exc.detail,
+                            }
+                        }
+                    )
+                    yield f"data: {tool_result_evt}\n\n"
+                    row = await session.get(ChatThread, thread.id)
+                    if row is not None and row.user_id == user.id:
+                        await append_chat_message(
+                            session=session,
+                            thread=row,
+                            role="tool",
+                            content=json.dumps(tool_result_payload),
+                        )
+                        await append_chat_message(session=session, thread=row, role="assistant", content=exc.detail)
+                        await session.commit()
+                    chunk = json.dumps({"delta": {"text": exc.detail}})
+                    yield f"data: {chunk}\n\n"
+                    yield "data: [DONE]\n\n"
+                    return
                 row = await session.get(ChatThread, thread.id)
                 if row is not None and row.user_id == user.id:
                     await append_chat_message(

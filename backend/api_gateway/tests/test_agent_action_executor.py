@@ -20,6 +20,41 @@ def test_infer_pending_approvals_with_limit() -> None:
     assert action.limit == 7
 
 
+def test_infer_job_matches_with_limit() -> None:
+    action = infer_action_from_message("show top 4 job matches")
+    assert action is not None
+    assert action.action == "get_job_matches"
+    assert action.limit == 4
+
+
+def test_infer_application_detail_from_id() -> None:
+    action = infer_action_from_message("show application detail for app_123abc")
+    assert action is not None
+    assert action.action == "get_application_detail"
+    assert action.application_id == "app_123abc"
+
+
+def test_infer_application_detail_latest_without_id() -> None:
+    action = infer_action_from_message("/application latest status")
+    assert action is not None
+    assert action.action == "get_application_detail"
+    assert action.application_id is None
+
+
+def test_infer_create_draft_with_application_id() -> None:
+    action = infer_action_from_message("create draft for app_abc123")
+    assert action is not None
+    assert action.action == "create_draft_for_application"
+    assert action.application_id == "app_abc123"
+
+
+def test_infer_create_draft_without_application_id() -> None:
+    action = infer_action_from_message("/draft please create one")
+    assert action is not None
+    assert action.action == "create_draft_for_application"
+    assert action.application_id is None
+
+
 def test_infer_returns_none_for_generic_message() -> None:
     action = infer_action_from_message("How should I position my resume for staff roles?")
     assert action is None

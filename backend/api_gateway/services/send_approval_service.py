@@ -142,6 +142,13 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
     confirmation_sender_email: str | None = None
     confirmation_token: str | None = None
 
+    def _annotate_application_progress(note: str) -> None:
+        # Trust semantics: outbound dispatch/handoff is not an employer application submission.
+        # Keep status unchanged, but record operational progression and touch last_updated.
+        app_row.last_updated = now
+        prior = (app_row.notes or "").strip()
+        app_row.notes = f"{prior}\n{note}".strip() if prior else note
+
     try:
         if approval.channel == "email":
             gmail_row = (
@@ -172,6 +179,7 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                             approval.provider_confirmed_at = None
                             approval.delivery_error = None
                             # Draft created successfully; still send user confirmation copy.
+                            _annotate_application_progress("outreach:draft_created:gmail")
                             confirmation_pending = True
                             confirmation_sender_email = gmail_sender_email
                             confirmation_token = gmail_token
@@ -194,6 +202,7 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                             approval.provider_thread_id = send_res.get("threadId") or None
                             approval.provider_confirmed_at = now
                             approval.sent_at = now
+                            _annotate_application_progress("outreach:provider_confirmed:gmail")
                             confirmation_pending = True
                             confirmation_sender_email = gmail_sender_email
                             confirmation_token = gmail_token
@@ -212,6 +221,7 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                         approval.provider_thread_id = send_res.get("threadId") or None
                         approval.provider_confirmed_at = now
                         approval.sent_at = now
+                        _annotate_application_progress("outreach:provider_confirmed:gmail")
                         confirmation_pending = True
                         confirmation_sender_email = gmail_sender_email
                         confirmation_token = gmail_token
@@ -230,6 +240,7 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                 approval.provider_thread_id = None
                 approval.provider_confirmed_at = None
                 approval.sent_at = now
+                _annotate_application_progress("outreach:provider_accepted:smtp")
                 confirmation_pending = True
                 confirmation_sender_email = None
                 confirmation_token = None
@@ -257,12 +268,13 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
                 await session.commit()
                 return
             approval.send_provider = "linkedin_email_handoff"
-            approval.delivery_status = "provider_accepted"
+            approval.delivery_status = "provider_confirmed"
             approval.provider_message_id = None
             approval.provider_thread_id = None
-            approval.provider_confirmed_at = None
+            approval.provider_confirmed_at = now
             approval.sent_at = now
             approval.delivery_error = None
+            _annotate_application_progress("outreach:provider_confirmed:linkedin_email_handoff")
         else:
             logger.info(
                 "send_stub: channel=%s has no SMTP integration; recording sent locally only",
@@ -274,10 +286,12 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
             approval.provider_thread_id = None
             approval.provider_confirmed_at = None
             approval.sent_at = now
+            _annotate_application_progress("outreach:provider_accepted:internal")
     except Exception:
         logger.exception("send_stub: outbound dispatch failed approval_id=%s", approval_id)
         approval.delivery_status = "failed"
         approval.delivery_error = "dispatch_failed"
+        _annotate_application_progress("outreach:failed:dispatch_failed")
         await session.commit()
         return
 

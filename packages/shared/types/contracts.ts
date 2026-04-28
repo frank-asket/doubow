@@ -279,7 +279,7 @@ export interface PrepSession {
 
 // ─── Agents ────────────────────────────────────────────────────────────────
 
-export type AgentName = 'discovery' | 'scorer' | 'tailor' | 'writer' | 'apply' | 'prep' | 'monitor' | 'orchestrator'
+export type AgentName = 'discovery' | 'scorer' | 'orchestrator'
 
 export type AgentStatus = 'active' | 'running' | 'idle' | 'error'
 

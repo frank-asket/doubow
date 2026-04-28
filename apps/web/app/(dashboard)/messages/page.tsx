@@ -12,6 +12,7 @@ import {
   approvalsApi,
   applicationsApi,
   authApi,
+  streamAgentStatus,
   type ChatThreadSummary,
   streamOrchestratorChat,
 } from '@/lib/api'
@@ -195,6 +196,7 @@ export default function MessagesPage() {
   const [hasMoreChat, setHasMoreChat] = useState(false)
   const [loadingOlder, setLoadingOlder] = useState(false)
   const [toolActivity, setToolActivity] = useState<ToolActivity[]>([])
+  const [liveAgentStates, setLiveAgentStates] = useState<Record<string, AgentState>>({})
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
 
@@ -228,7 +230,13 @@ export default function MessagesPage() {
     { shouldRetryOnError: false, revalidateOnFocus: false },
   )
 
-  const agentTasks = useMemo(() => (agentStates ?? []).map(mapAgentState), [agentStates])
+  const mergedAgentStates = useMemo(() => {
+    const base = agentStates ?? []
+    if (!Object.keys(liveAgentStates).length) return base
+    return base.map((item) => liveAgentStates[item.name] ?? item)
+  }, [agentStates, liveAgentStates])
+
+  const agentTasks = useMemo(() => mergedAgentStates.map(mapAgentState), [mergedAgentStates])
 
   const pendingApprovalItems = useMemo(
     () => (approvals ?? []).filter((a) => a.status === 'pending'),
@@ -250,6 +258,15 @@ export default function MessagesPage() {
   useEffect(() => {
     setThreadListOffset(0)
     setThreadSidebar([])
+    setLiveAgentStates({})
+  }, [meDebug?.user_id])
+
+  useEffect(() => {
+    if (!meDebug?.user_id) return
+    const stop = streamAgentStatus((event) => {
+      setLiveAgentStates((current) => ({ ...current, [event.name]: event }))
+    })
+    return stop
   }, [meDebug?.user_id])
 
   useEffect(() => {

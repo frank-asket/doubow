@@ -283,14 +283,9 @@ function buildAgentStates(): AgentState[] {
   const defs: { name: AgentName; label: string; description: string }[] = [
     { name: 'discovery', label: 'Discovery', description: 'Surface new roles that fit your profile' },
     { name: 'scorer', label: 'Scoring', description: 'Rank postings for fit and risk' },
-    { name: 'tailor', label: 'Tailor', description: 'Align bullets and summaries to each posting' },
-    { name: 'writer', label: 'Writer', description: 'Draft outreach with approval gates' },
-    { name: 'apply', label: 'Apply', description: 'Hand off to email or ATS flows' },
-    { name: 'prep', label: 'Prep', description: 'Interview prep from job context' },
-    { name: 'monitor', label: 'Monitor', description: 'Track replies and stage changes' },
     { name: 'orchestrator', label: 'Orchestrator', description: 'Coordinate the workflow' },
   ]
-  const statuses: AgentStatus[] = ['idle', 'idle', 'running', 'idle', 'idle', 'idle', 'active', 'idle']
+  const statuses: AgentStatus[] = ['idle', 'running', 'active']
   return defs.map((d, i) => ({
     ...d,
     status: statuses[i] ?? 'idle',

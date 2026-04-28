@@ -53,6 +53,18 @@ async def list_agent_status(session: AsyncSession, user_id: str) -> list[AgentSt
     active_runs = list(active_run_rows)
     active_run_count = len(active_runs)
 
+    latest_run = (
+        await session.execute(
+            select(AutopilotRun)
+            .where(AutopilotRun.user_id == user_id)
+            .order_by(AutopilotRun.started_at.desc().nulls_last(), AutopilotRun.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    latest_run_iso = None
+    if latest_run is not None and latest_run.started_at is not None:
+        latest_run_iso = latest_run.started_at.isoformat()
+
     scorer_progress: float | None = None
     if active_run_count > 0:
         scorer_progress = _autopilot_run_progress(active_runs)
@@ -60,6 +72,18 @@ async def list_agent_status(session: AsyncSession, user_id: str) -> list[AgentSt
     orch_progress: float | None = None
     if total_approvals > 0:
         orch_progress = (total_approvals - pending_approvals) / total_approvals
+
+    scorer_status = "running" if active_run_count > 0 else "idle"
+    scorer_message = "Scoring active pipeline" if active_run_count > 0 else "Waiting for new runs"
+    if latest_run is not None and latest_run.status == "failed":
+        scorer_status = "error"
+        scorer_message = latest_run.failure_detail or "Latest scoring run failed"
+
+    orchestrator_status = "running" if pending_approvals > 0 else "idle"
+    orchestrator_message = f"{pending_approvals} approvals awaiting action"
+    if latest_run is not None and latest_run.status == "failed" and pending_approvals == 0:
+        orchestrator_status = "error"
+        orchestrator_message = latest_run.failure_detail or "Latest orchestration run failed"
 
     return [
         AgentStatusResponse(
@@ -69,24 +93,27 @@ async def list_agent_status(session: AsyncSession, user_id: str) -> list[AgentSt
             status="active" if total_jobs > 0 else "idle",
             message=f"{total_jobs} indexed jobs",
             items_processed=int(total_jobs),
+            last_run=latest_run_iso,
         ),
         AgentStatusResponse(
             name="scorer",
             label="Match scorer",
             description="Computes fit scores by dimension",
-            status="running" if active_run_count > 0 else "idle",
+            status=scorer_status,
             progress=scorer_progress if active_run_count > 0 else None,
-            message="Scoring active pipeline" if active_run_count > 0 else "Waiting for new runs",
+            message=scorer_message,
             items_processed=active_run_count,
+            last_run=latest_run_iso,
         ),
         AgentStatusResponse(
             name="orchestrator",
             label="Orchestrator",
             description="Routes tasks and enforces approval gate",
-            status="running" if pending_approvals > 0 else "idle",
+            status=orchestrator_status,
             progress=orch_progress if pending_approvals > 0 and total_approvals > 0 else None,
-            message=f"{pending_approvals} approvals awaiting action",
+            message=orchestrator_message,
             items_processed=int(pending_approvals),
+            last_run=latest_run_iso,
         ),
     ]
 
