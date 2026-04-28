@@ -69,6 +69,12 @@ def get_current_user_claims(authorization: str | None = Header(default=None, ali
     except InvalidTokenError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc
     except PyJWKClientConnectionError as exc:
+        # PyJWT raises connection errors for both transport failures and HTTP errors from JWKS endpoints.
+        # Treat 4xx responses as invalid token context (401), not provider outage (503).
+        text = str(exc)
+        if "HTTP Error 4" in text:
+            logger.warning("Auth JWKS fetch returned 4xx: %s", exc)
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth token") from exc
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Authentication provider temporarily unavailable",
