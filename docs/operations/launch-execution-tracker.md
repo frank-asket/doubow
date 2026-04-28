@@ -43,7 +43,7 @@ Scope: Days 22+ execution can proceed in parallel, while Day 16/17 authenticated
 
 | Day | Focus | Status | Evidence |
 |---|---|---|---|
-| 22 | Launch readiness hardening kickoff (parallel stream) | IN_PROGRESS | Week 4 kickoff artifacts created: `docs/operations/week4-execution-plan.md` and `docs/operations/day21-launch-decision-packet-draft.md`; Week 3 blockers retained as carry-over prerequisites for final GO. |
+| 22 | Launch readiness hardening kickoff (parallel stream) | IN_PROGRESS | **Day 22 validation summary (2026-04-28):** post-deploy pass/fail matrices for `/messages`, `/approvals`, and `/agents` — **all PASS** (full matrices in sections below). Week 4 kickoff artifacts: `docs/operations/week4-execution-plan.md`, `docs/operations/day21-launch-decision-packet-draft.md`; Week 3 blockers remain carry-over prerequisites for final GO. |
 
 Day 22 scope (concrete kickoff):
 
@@ -72,6 +72,39 @@ Day 22 definition of done:
 - Day 16/17 rerun command path is ready and documented as immediate-execute on token availability.
 - Day 18/19 evidence files are fully wired with only external signoff fields remaining.
 - A pre-finalized launch decision packet draft exists with clearly marked remaining blockers (no ambiguity on GO prerequisites).
+
+Day 22 post-deploy `/messages` validation matrix (2026-04-28):
+
+| Check | Result | Evidence |
+|---|---|---|
+| `/pipeline` message shows typed tool activity | PASS | Tool Activity displayed `get_pipeline_snapshot {"limit":5}` with successful result, and assistant returned a pipeline summary response. |
+| `show top 5 job matches` typed action flow | PASS | Tool Activity displayed `get_job_matches {"limit":5}` with successful result, and assistant returned ranked matches. |
+| `show application detail` typed action flow | PASS | Tool Activity displayed `get_application_detail` with successful result and assistant returned full application detail payload. |
+| `create draft for <application_id>` mutating typed action flow | PASS | Tool Activity displayed `create_draft_for_application` success result and a new approval entry appeared in UI state. |
+| Tool activity persists across page/thread reload | PASS | After reload, prior tool timeline entries remained visible with completed status (no loss of history). |
+| `Clear completed` control behavior | PASS | Clicking `Clear completed` removed completed tool entries while preserving main assistant transcript and leaving no running-entry regression. |
+
+Day 22 post-deploy `/approvals` validation matrix (2026-04-28):
+
+| Check | Result | Evidence |
+|---|---|---|
+| Route load + primary approvals content render | PASS | `Draft Approvals` rendered correctly and showed explicit `No pending drafts` empty state after queue transitioned to zero. |
+| Counters/badges consistency | PASS | Sidebar approvals badge and page counters stayed coherent with queue state transition (pending count moved from 1 to 0 without contradiction). |
+| Approval detail panel rendering | PASS | Opening an approval displayed draft content + structured context fields (feedback, offer snapshot, guardrails) without UI errors. |
+| Approve action state transition | PASS | `Approve outreach` action executed with visible in-flight disable state, then moved item from pending queue to recent delivery with success/status feedback. |
+| Safety control visibility (non-approve path) | PASS | `Reject` control was visibly present next to approve controls for operator safety fallback. |
+| Reload consistency (no blank/chrome-only regression) | PASS | Hard reload preserved correct approvals state (`Pending 0` + empty-state render) with no chrome-only blank-content failure. |
+
+Day 22 post-deploy `/agents` validation matrix (2026-04-28):
+
+| Check | Result | Evidence |
+|---|---|---|
+| Route render + implemented-agent set only | PASS | `https://doubow.vercel.app/agents` resolved to agent-status surface on `/messages`; UI showed only implemented agents (`discovery`, `scorer`, `orchestrator`) with no stale labels. |
+| Runtime status semantics visible and coherent | PASS | Agent rows/cards showed live operational status text with no placeholder drift or broken status chips. |
+| Refresh/reload reconciliation (no ghost agents) | PASS | Multiple reloads preserved exactly the same three-agent set with stable status rendering and no duplicate/ghost entries. |
+| Cross-surface consistency (`/agents` path vs `/messages` status strip) | PASS | Agent-status semantics were aligned because `/agents` resolves to the `/messages` agent-status experience (single source of truth). |
+| Contract/UI label alignment (no removed agents shown) | PASS | No UI references to deprecated agent names (`tailor`, `writer`, `apply`, `prep`, `monitor`); displayed labels matched current implemented set. |
+| Reload stability (no blank/chrome-only regression) | PASS | Hard reloads retained full page composition (agent status + assistant surface) without chrome-only or blank-content regressions. |
 
 Carry-over blockers (must still be closed for launch GO):
 
