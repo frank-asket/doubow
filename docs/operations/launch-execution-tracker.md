@@ -29,7 +29,7 @@ Scope: Days 15-21 launch-readiness closure.
 |---|---|---|---|
 | 15 | Durable background mode cutover | COMPLETE | 2026-04-28 verification passed: `GET /ready` now reports `background_durability.send_mode=celery`, `autopilot_mode=celery`, `allow_inprocess_fallback_in_production=false`, `enqueue=ok` on `https://doubow-production.up.railway.app/ready`. |
 | 16 | Authenticated reliability reruns (P0-1) | COMPLETE (PARTIAL PASS) | 2026-04-28 rerun with fresh token: `auth-probe` passed (`200` on all auth-path endpoints; `0` 5xx). `launch-probe` (`iterations=20`) showed `0.00%` 5xx across all core routes but sampled `401` responses as token lifetime elapsed mid-run; additional long-lived authenticated sample still required for strict P0-1 signoff. |
-| 17 | Authenticated latency reruns (P1-4) | TODO | Fill A/B/C latency table from authenticated probes and evaluate thresholds. |
+| 17 | Authenticated latency reruns (P1-4) | COMPLETE (FAILED) | 2026-04-28 ran A/B/C probe samples (`iterations=10` each). All three runs had `5xx=0.00%`, but all responses were `401`, so measurements are unauthorized and not valid for authenticated latency signoff. |
 | 18 | Monitoring drill + alert routing (P1-6) | TODO | Capture alert route proof and timed incident detection evidence. |
 | 19 | Data safety ops review (P1-5) | TODO | Add support/log anomaly review evidence and reviewer signoff. |
 | 20 | OAuth hardening signoff (Step 7) | TODO | Complete reconnect runbook evidence and provider-scope signoff. |
@@ -288,9 +288,9 @@ Evidence table (fill after each authenticated run):
 
 | Run | Token valid at start | jobs p95 | applications p95 | approvals p95 | agents first p95 | agents full p95 | Combined 5xx | Result |
 |---|---|---:|---:|---:|---:|---:|---:|---|
-| A |  |  |  |  |  |  |  |  |
-| B |  |  |  |  |  |  |  |  |
-| C |  |  |  |  |  |  |  |  |
+| A | yes | 556.8 | 514.9 | 525.1 | 529.0 | 529.0 | 0.00% | INVALID (401 sampled) |
+| B | yes | 537.7 | 486.0 | 515.7 | 587.5 | 587.5 | 0.00% | INVALID (401 sampled) |
+| C | yes | 518.0 | 886.7 | 491.1 | 514.2 | 514.2 | 0.00% | INVALID (401 sampled) |
 
 Acceptance:
 
@@ -301,6 +301,7 @@ Evidence:
 
 - Current latency numbers were measured mostly under `401` or failing `500` responses; not valid for launch signoff.
 - Re-run latency gate only after Step 1/2 produce stable authenticated `2xx` responses.
+- 2026-04-28 Day 17 A/B/C reruns completed with fresh token at run start, but each sampled `401` responses across endpoints. Reported p95 values remain below thresholds numerically, yet are unauthorized-path measurements and therefore invalid for P1-4 acceptance.
 
 Owner: _(fill)_
 

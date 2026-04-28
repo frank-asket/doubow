@@ -19,22 +19,31 @@ export function usePrepSessions(initialApplicationId?: string) {
       const appRes = await applicationsApi.list()
       const userApps = appRes.items
       setApps(userApps)
-      setSelectedAppId((prev) => prev || initialApplicationId || userApps[0]?.id || '')
+      const targetAppId = selectedAppId || initialApplicationId || userApps[0]?.id || ''
+      setSelectedAppId(targetAppId)
 
-      const prepResults = await Promise.allSettled(
-        userApps.slice(0, 12).map((a) => prepApi.getForApplication(a.id)),
-      )
-      const liveSessions = prepResults
-        .filter((r): r is PromiseFulfilledResult<PrepSession> => r.status === 'fulfilled')
-        .map((r) => r.value)
-        .sort((a, b) => b.created_at.localeCompare(a.created_at))
-      setSessions(liveSessions)
+      if (!targetAppId) {
+        setSessions([])
+        return
+      }
+
+      try {
+        const session = await prepApi.getForApplication(targetAppId)
+        setSessions([session])
+      } catch (e) {
+        // 404 means prep has not been generated for this application yet.
+        if (e instanceof ApiError && e.status === 404) {
+          setSessions([])
+          return
+        }
+        throw e
+      }
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : 'Could not load prep sessions.')
     } finally {
       setLoading(false)
     }
-  }, [initialApplicationId])
+  }, [initialApplicationId, selectedAppId])
 
   useEffect(() => {
     void load()
