@@ -331,11 +331,11 @@ export default function MessagesPage() {
     if (backendThreadDetail.thread.id !== threadId) return
     if (hydratedChatThreadId === threadId) return
     const all = backendThreadDetail.messages ?? []
-    const visible = all
+    const visible: ChatMessage[] = all
       .filter((m) => m.role !== 'tool')
       .map((m) => ({
         id: m.id,
-        role: m.role === 'assistant' ? 'assistant' : 'user',
+        role: (m.role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
         text: m.content,
       }))
     const persistedTool = all
