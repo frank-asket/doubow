@@ -2,12 +2,14 @@
 
 import { useCallback, useState } from 'react'
 import { ApiError, googleIntegrationsApi, linkedinIntegrationsApi } from '@/lib/api'
+import { trackEvent } from '@/lib/telemetry'
 
 export default function SettingsPage() {
   const [reconnectBusy, setReconnectBusy] = useState<'google' | 'linkedin' | null>(null)
   const [reconnectError, setReconnectError] = useState<string | null>(null)
 
   const startReconnect = useCallback(async (provider: 'google' | 'linkedin') => {
+    trackEvent('settings_reconnect_clicked', { provider })
     setReconnectError(null)
     setReconnectBusy(provider)
     try {
@@ -93,6 +95,7 @@ export default function SettingsPage() {
         </p>
         <a
           href="mailto:support@doubow.com?subject=Account%20request"
+          onClick={() => trackEvent('settings_contact_support_clicked', { source: 'settings_account_actions' })}
           className="mt-3 inline-flex h-8 items-center justify-center border border-[0.5px] border-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#00685f] dark:border-teal-500 dark:text-teal-300"
         >
           Contact support

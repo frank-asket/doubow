@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { Check } from "lucide-react";
 import { useState } from "react";
+import { trackEvent } from "@/lib/telemetry";
 
 const tiers = [
   {
@@ -61,6 +62,11 @@ const tiers = [
 export function Pricing() {
   const [yearly, setYearly] = useState(false);
 
+  const onIntervalToggle = (next: boolean) => {
+    setYearly(next);
+    trackEvent("pricing_interval_toggled", { interval: next ? "yearly" : "monthly" });
+  };
+
   return (
     <section id="pricing" className="py-[80px] bg-[#f7f9fb] border-b border-[#c6c6cd]/40">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -84,7 +90,7 @@ export function Pricing() {
             />
             <button
               type="button"
-              onClick={() => setYearly(false)}
+              onClick={() => onIntervalToggle(false)}
               className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2 ${
                 !yearly ? "text-white" : "text-[#45464d]"
               }`}
@@ -93,7 +99,7 @@ export function Pricing() {
             </button>
             <button
               type="button"
-              onClick={() => setYearly(true)}
+              onClick={() => onIntervalToggle(true)}
               className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2 ${
                 yearly ? "text-white" : "text-[#45464d]"
               }`}
@@ -110,6 +116,7 @@ export function Pricing() {
           Ready to upgrade? Create your account, then open{" "}
           <Link
             href={"/auth/sign-up" as Route}
+            onClick={() => trackEvent("pricing_billing_link_clicked", { source: "pricing_section_text_link" })}
             className="rounded font-semibold text-[#006a61] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2"
           >
             Doubow plans &amp; billing
@@ -142,6 +149,13 @@ export function Pricing() {
               <p className="mt-3 text-sm text-[#45464d]">{tier.blurb}</p>
               <a
                 href={"/auth/sign-up"}
+                onClick={() =>
+                  trackEvent("pricing_cta_clicked", {
+                    tier: tier.name.toLowerCase(),
+                    billing_interval: yearly ? "yearly" : "monthly",
+                    cta_label: tier.name === "Free" ? "Create account" : "Create account to upgrade",
+                  })
+                }
                 className={`mt-8 inline-flex h-11 justify-center rounded-full px-5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                   tier.featured
                     ? "border border-[#006a61] bg-[#006a61] text-white shadow-sm hover:bg-[#005049] focus-visible:ring-[#006a61]/30"

@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import type { Route } from 'next'
+import { trackEvent } from '@/lib/telemetry'
 
 const steps = [
   {
@@ -43,6 +46,13 @@ export default function OnboardingPage() {
               <p className="mt-2 text-sm leading-relaxed text-[#3d4947]">{step.body}</p>
               <Link
                 href={step.href}
+                onClick={() =>
+                  trackEvent('onboarding_step_clicked', {
+                    step: idx + 1,
+                    title: step.title,
+                    destination: step.href,
+                  })
+                }
                 className="mt-4 inline-flex h-9 items-center rounded-md border border-[#00685f] bg-[#00685f] px-4 text-sm font-medium text-white hover:bg-[#005049]"
               >
                 {step.cta}
@@ -54,6 +64,7 @@ export default function OnboardingPage() {
         <footer className="pt-2">
           <Link
             href={'/dashboard' as Route}
+            onClick={() => trackEvent('onboarding_skip_clicked', { destination: '/dashboard' })}
             className="inline-flex h-9 items-center rounded-md border border-[#c6c6cd] bg-white px-4 text-sm font-medium text-[#171d1c] hover:bg-[#f2f4f6]"
           >
             Skip to dashboard

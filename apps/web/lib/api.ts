@@ -249,6 +249,13 @@ type TelemetryEventName =
   | 'match_scoring_started'
   | 'match_scoring_eta_shown'
   | 'first_matches_ready'
+  | 'pricing_interval_toggled'
+  | 'pricing_cta_clicked'
+  | 'pricing_billing_link_clicked'
+  | 'onboarding_step_clicked'
+  | 'onboarding_skip_clicked'
+  | 'settings_reconnect_clicked'
+  | 'settings_contact_support_clicked'
 
 export const telemetryApi = {
   track: (event_name: TelemetryEventName, properties: Record<string, unknown> = {}, occurred_at?: string) =>
