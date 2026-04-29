@@ -69,3 +69,20 @@ Primary source code: `apps/web/lib/telemetry.ts`, `apps/web/lib/api.ts`, `backen
 - Never include secrets, tokens, or PII in event properties.
 - If an event contract changes, update this document in the same PR.
 
+---
+
+## Clerk checkout return URL helper (tiny snippet)
+
+If you are using Clerk Billing (or a Clerk-hosted checkout flow), set your return URLs so billing outcomes come back to Doubow with the expected contract:
+
+- Success URL: `https://doubow.vercel.app/billing?checkout=success`
+- Cancel URL: `https://doubow.vercel.app/billing?checkout=cancel`
+
+Where to paste in Clerk dashboard:
+
+1. Open Clerk Dashboard -> Billing / Plans (or checkout configuration for your plan).
+2. In the checkout session return/redirect settings, set:
+   - `success_url` = `https://doubow.vercel.app/billing?checkout=success`
+   - `cancel_url` = `https://doubow.vercel.app/billing?checkout=cancel`
+3. Save and run one test checkout + one canceled checkout to verify `billing_checkout_returned` events appear.
+
