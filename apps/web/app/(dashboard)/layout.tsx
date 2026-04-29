@@ -10,6 +10,7 @@ import {
   FileText, Bell, Settings, LogOut, Menu, Search, ChevronRight,   HelpCircle, Sun, Moon, FileEdit,
   Sparkles,
 } from 'lucide-react'
+import posthog from 'posthog-js'
 import { useClerk, useUser } from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
 import { useDashboard } from '@/hooks/useDashboard'
@@ -521,7 +522,16 @@ function DashboardLayoutWithClerk({ children }: { children: React.ReactNode }) {
       initials={initials}
       userLoaded={userLoaded}
       planLabel={planLabel}
-      onSignOut={() => signOut({ redirectUrl: '/' })}
+      onSignOut={() => {
+        if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+          try {
+            posthog.reset()
+          } catch {
+            /* ignore */
+          }
+        }
+        void signOut({ redirectUrl: '/' })
+      }}
       onboardingUserId={onboardingUserId}
     >
       {children}

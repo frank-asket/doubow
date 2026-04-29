@@ -1,6 +1,21 @@
+'use client'
+
+import posthog from 'posthog-js'
 import { telemetryApi } from '@/lib/api'
 
 const ACTIVATION_START_KEY = 'daubo_activation_resume_upload_succeeded_at'
+
+function capturePostHogMirror(
+  eventName: string,
+  properties: Record<string, unknown>,
+): void {
+  if (!process.env.NEXT_PUBLIC_POSTHOG_KEY || typeof window === 'undefined') return
+  try {
+    posthog.capture(eventName, properties)
+  } catch {
+    /* non-fatal: backend track remains source of truth */
+  }
+}
 
 export function trackEvent(
   eventName:
@@ -21,6 +36,7 @@ export function trackEvent(
   properties: Record<string, unknown> = {},
 ): void {
   void telemetryApi.track(eventName, properties, new Date().toISOString()).catch(() => {})
+  capturePostHogMirror(eventName, properties)
 }
 
 export function setActivationStartNow(): void {
