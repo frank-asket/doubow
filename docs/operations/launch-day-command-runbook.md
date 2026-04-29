@@ -7,6 +7,8 @@ Related docs:
 - `docs/operations/launch-go-no-go-checklist.md`
 - `docs/operations/funnel-event-map.md`
 - `docs/operations/oauth-hardening-reconnect-runbook.md`
+- `docs/operations/checkout-e2e-20min.md`
+- `docs/operations/launch-day-execution-checklist.md` (checkbox-only)
 
 ---
 

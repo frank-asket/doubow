@@ -59,6 +59,7 @@ Definition of done:
 - Hold launch review with owner signoff and explicit GO/NO-GO decision.
 - Execute launch-day command checklist:
   - `docs/operations/launch-day-command-runbook.md`
+  - `docs/operations/launch-day-execution-checklist.md` (checkbox-only)
 
 Definition of done:
 
