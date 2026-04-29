@@ -18,6 +18,7 @@ TelemetryEventName = Literal[
     "onboarding_skip_clicked",
     "settings_reconnect_clicked",
     "settings_contact_support_clicked",
+    "billing_checkout_returned",
 ]
 
 

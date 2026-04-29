@@ -26,6 +26,7 @@ Primary source code: `apps/web/lib/telemetry.ts`, `apps/web/lib/api.ts`, `backen
 | `onboarding_skip_clicked` | “Skip to dashboard” clicked in onboarding | `destination` | Skip rate and onboarding bypass impact |
 | `settings_reconnect_clicked` | Gmail/LinkedIn reconnect button clicked in settings | `provider` (`google` \| `linkedin`) | Integration friction and reconnect demand |
 | `settings_contact_support_clicked` | “Contact support” clicked in settings account actions | `source` (currently `settings_account_actions`) | Support-demand proxy for account/settings friction |
+| `billing_checkout_returned` | Billing page loaded with `checkout=success` or `checkout=cancel` query param | `status` (`success` \| `cancel`), `intent`, `interval` | Checkout completion/cancel outcome for monetization funnel |
 | `resume_upload_started` | Resume upload starts (`apps/web/hooks/useResumeUpload.ts`) | `file_name`, `file_size` | Activation funnel: upload attempt volume |
 | `resume_upload_succeeded` | Resume upload succeeds (`apps/web/hooks/useResumeUpload.ts`) | `file_name`, `file_size`, `source` | Activation funnel: successful profile creation |
 | `discover_empty_viewed` | Discover empty state viewed (`apps/web/src/discover/page.tsx`) | _none_ | Match supply/quality risk indicator |
@@ -41,17 +42,21 @@ Primary source code: `apps/web/lib/telemetry.ts`, `apps/web/lib/api.ts`, `backen
    - `pricing_cta_clicked` -> sign-up started/completed (external auth or product analytics join) -> `resume_upload_succeeded`
    - Breakdown: `tier`, `billing_interval`
 
-2. **Onboarding completion funnel**
+2. **Checkout outcome funnel**
+   - pricing intent events -> billing page -> `billing_checkout_returned`
+   - Track `success` vs `cancel` ratio by `intent` and `interval`
+
+3. **Onboarding completion funnel**
    - `onboarding_step_clicked` by `step`
    - `onboarding_skip_clicked` rate
    - Correlate with subsequent `resume_upload_succeeded` and `first_matches_ready`
 
-3. **Integration friction monitor**
+4. **Integration friction monitor**
    - `settings_reconnect_clicked` by `provider`
    - `settings_contact_support_clicked`
    - Pair with OAuth status/support ticket volume where available
 
-4. **Activation latency panel**
+5. **Activation latency panel**
    - `resume_upload_succeeded` -> `first_matches_ready`
    - Reconcile with `/v1/me/telemetry/activation-kpi`
 

@@ -2,7 +2,7 @@
 
 /** Visual layout aligned with `docs/mockup/subscription_billing/code.html` (Doubow branding + dashboard shell). */
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Sparkles,
@@ -21,6 +21,7 @@ import {
   type ClerkPlanPublicMetadata,
 } from '@/lib/clerkPlan'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/telemetry'
 
 const INVOICE_ROWS = [
   { date: 'Oct 12, 2023', id: 'INV-88219', amount: '$0.00', status: 'Paid' as const },
@@ -88,6 +89,15 @@ export default function BillingPage() {
     [searchParams],
   )
 
+  const checkoutStatus = useMemo(() => {
+    const raw = (searchParams.get('checkout') || '').trim().toLowerCase()
+    if (raw === 'success') return 'success'
+    if (raw === 'cancel') return 'cancel'
+    return null
+  }, [searchParams])
+
+  const trackedCheckoutReturn = useRef(false)
+
   const checkoutUrlWithIntent = useMemo(() => {
     if (!checkoutUrl) return ''
     const isAbsolute = /^https?:\/\//i.test(checkoutUrl)
@@ -99,6 +109,16 @@ export default function BillingPage() {
     return `${target.pathname}${target.search}${target.hash}`
   }, [checkoutUrl, requestedInterval, requestedPlan])
 
+  useEffect(() => {
+    if (!checkoutStatus || trackedCheckoutReturn.current) return
+    trackedCheckoutReturn.current = true
+    trackEvent('billing_checkout_returned', {
+      status: checkoutStatus,
+      intent: requestedPlan.toLowerCase(),
+      interval: requestedInterval,
+    })
+  }, [checkoutStatus, requestedInterval, requestedPlan])
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <header className="mb-8">
@@ -109,6 +129,17 @@ export default function BillingPage() {
           Manage your precision career tools and billing preferences.
         </p>
       </header>
+
+      {checkoutStatus === 'success' ? (
+        <div className="mb-4 border border-[0.5px] border-teal-200 bg-teal-50 px-4 py-3 text-[13px] text-teal-900 dark:border-teal-500/40 dark:bg-teal-950/30 dark:text-teal-200">
+          Checkout complete. Your billing setup was submitted successfully.
+        </div>
+      ) : null}
+      {checkoutStatus === 'cancel' ? (
+        <div className="mb-4 border border-[0.5px] border-amber-300/60 bg-amber-50 px-4 py-3 text-[13px] text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-amber-200">
+          Checkout was canceled. You can restart anytime from this page.
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-4">
         {/* Left column */}

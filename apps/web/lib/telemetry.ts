@@ -16,7 +16,8 @@ export function trackEvent(
     | 'onboarding_step_clicked'
     | 'onboarding_skip_clicked'
     | 'settings_reconnect_clicked'
-    | 'settings_contact_support_clicked',
+    | 'settings_contact_support_clicked'
+    | 'billing_checkout_returned',
   properties: Record<string, unknown> = {},
 ): void {
   void telemetryApi.track(eventName, properties, new Date().toISOString()).catch(() => {})

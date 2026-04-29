@@ -256,6 +256,7 @@ type TelemetryEventName =
   | 'onboarding_skip_clicked'
   | 'settings_reconnect_clicked'
   | 'settings_contact_support_clicked'
+  | 'billing_checkout_returned'
 
 export const telemetryApi = {
   track: (event_name: TelemetryEventName, properties: Record<string, unknown> = {}, occurred_at?: string) =>
