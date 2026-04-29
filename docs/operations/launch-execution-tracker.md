@@ -5,6 +5,7 @@ Operational companion to:
 - `docs/operations/launch-go-no-go-checklist.md`
 - `docs/operations/oauth-hardening-reconnect-runbook.md`
 - `docs/operations/week3-execution-plan.md`
+- `docs/operations/funnel-event-map.md`
 
 Use this file to execute each gate in order and track evidence links + owner signoff.
 
@@ -16,6 +17,24 @@ Use this file to execute each gate in order and track evidence links + owner sig
 - Launch mode: **NO-GO** (active blocking incidents)
 - Incident owner: _(fill)_
 - Next review checkpoint: **Immediately after next Railway backend deploy + fresh-token probe rerun**
+
+---
+
+## Daily KPI review checklist (launch week)
+
+Run this once per day during launch week and attach evidence links.
+
+- [ ] **Funnel intent volume:** review `pricing_cta_clicked` + `pricing_billing_link_clicked` trends vs previous day.
+- [ ] **Onboarding progression:** review `onboarding_step_clicked` by step and `onboarding_skip_clicked` rate.
+- [ ] **Activation throughput:** review `resume_upload_started` -> `resume_upload_succeeded` -> `first_matches_ready`.
+- [ ] **Activation latency:** check `/v1/me/telemetry/activation-kpi` (latest + average time-to-first-matches) and note deltas.
+- [ ] **Integration friction:** review `settings_reconnect_clicked` by provider and `settings_contact_support_clicked`.
+- [ ] **Core stability:** check P0/P1 guardrails (5xx, auth-path errors, latency thresholds) against launch checklist limits.
+- [ ] **Decision log:** record GO/WATCH/NO-GO posture for the day with top 1-3 reasons and owner actions.
+
+Evidence pointers:
+- `docs/operations/funnel-event-map.md`
+- `docs/operations/launch-go-no-go-checklist.md`
 
 ---
 

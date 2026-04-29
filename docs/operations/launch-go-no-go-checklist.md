@@ -2,6 +2,9 @@
 
 Use this as the final gate before any paid acquisition or broad user onboarding.
 
+Telemetry reference for launch funnel instrumentation:
+- `docs/operations/funnel-event-map.md`
+
 ---
 
 ## Decision rule

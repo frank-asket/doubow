@@ -57,6 +57,8 @@ Definition of done:
 
 - Reconcile tracker + go/no-go checklist + decision packet.
 - Hold launch review with owner signoff and explicit GO/NO-GO decision.
+- Execute launch-day command checklist:
+  - `docs/operations/launch-day-command-runbook.md`
 
 Definition of done:
 

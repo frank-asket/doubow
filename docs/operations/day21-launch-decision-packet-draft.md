@@ -53,11 +53,15 @@ Prepared: 2026-04-28
 - **Signoff participants:** _fill_
 - **Notes:** _fill_
 
+Quick execution reference for final checks:
+- `docs/operations/launch-day-command-runbook.md`
+
 ---
 
 ## References
 
 - `docs/operations/launch-execution-tracker.md`
 - `docs/operations/launch-go-no-go-checklist.md`
+- `docs/operations/launch-day-command-runbook.md`
 - `docs/operations/day14-release-gate-handoff.md`
 - `docs/operations/week4-execution-plan.md`
