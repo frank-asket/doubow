@@ -67,6 +67,19 @@ export function Pricing() {
     trackEvent("pricing_interval_toggled", { interval: next ? "yearly" : "monthly" });
   };
 
+  const signUpHrefForTier = (tierName: string): string => {
+    const plan = tierName.toLowerCase();
+    const redirectTarget =
+      plan === "free"
+        ? "/dashboard?source=pricing_card"
+        : `/billing?intent=${encodeURIComponent(plan)}&interval=${yearly ? "yearly" : "monthly"}&source=pricing_card`;
+    return `/auth/sign-up?redirect_url=${encodeURIComponent(redirectTarget)}`;
+  };
+
+  const billingFromPricingHref = `/auth/sign-up?redirect_url=${encodeURIComponent(
+    `/billing?intent=pro&interval=${yearly ? "yearly" : "monthly"}&source=pricing_section_text_link`,
+  )}`;
+
   return (
     <section id="pricing" className="py-[80px] bg-[#f7f9fb] border-b border-[#c6c6cd]/40">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -115,7 +128,7 @@ export function Pricing() {
         <p className="mt-8 text-center text-sm text-[#45464d]">
           Ready to upgrade? Create your account, then open{" "}
           <Link
-            href={"/auth/sign-up" as Route}
+            href={billingFromPricingHref as Route}
             onClick={() => trackEvent("pricing_billing_link_clicked", { source: "pricing_section_text_link" })}
             className="rounded font-semibold text-[#006a61] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2"
           >
@@ -148,7 +161,7 @@ export function Pricing() {
               </div>
               <p className="mt-3 text-sm text-[#45464d]">{tier.blurb}</p>
               <a
-                href={"/auth/sign-up"}
+                href={signUpHrefForTier(tier.name)}
                 onClick={() =>
                   trackEvent("pricing_cta_clicked", {
                     tier: tier.name.toLowerCase(),

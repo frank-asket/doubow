@@ -1,11 +1,25 @@
 import { SignUp } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import type { Route } from "next";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 
-export default async function AuthSignUpPage() {
+function safeRedirectPath(value: string | string[] | undefined): string | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
+
+export default async function AuthSignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const redirectTarget = safeRedirectPath(params.redirect_url);
   const { userId } = await auth();
-  if (userId) redirect("/dashboard");
+  if (userId) redirect((redirectTarget || "/dashboard") as Route);
 
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -33,7 +47,7 @@ export default async function AuthSignUpPage() {
       path="/auth/sign-up"
       routing="path"
       signInUrl="/auth/sign-in"
-      fallbackRedirectUrl="/dashboard"
+      fallbackRedirectUrl={redirectTarget || "/dashboard"}
     />
   );
 }

@@ -3,6 +3,7 @@
 /** Visual layout aligned with `docs/mockup/subscription_billing/code.html` (Doubow branding + dashboard shell). */
 
 import { useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   Sparkles,
   LineChart,
@@ -50,6 +51,7 @@ const FEATURES = [
 ] as const
 
 export default function BillingPage() {
+  const searchParams = useSearchParams()
   const { user, isLoaded } = useUser()
   const meta = user?.publicMetadata as ClerkPlanPublicMetadata | undefined
 
@@ -73,6 +75,29 @@ export default function BillingPage() {
     typeof process.env.NEXT_PUBLIC_BILLING_PORTAL_URL === 'string'
       ? process.env.NEXT_PUBLIC_BILLING_PORTAL_URL.trim()
       : ''
+
+  const requestedPlan = useMemo(() => {
+    const raw = (searchParams.get('intent') || '').trim().toLowerCase()
+    if (raw === 'business') return 'Business'
+    if (raw === 'pro') return 'Pro'
+    return 'Pro'
+  }, [searchParams])
+
+  const requestedInterval = useMemo(
+    () => ((searchParams.get('interval') || '').trim().toLowerCase() === 'yearly' ? 'yearly' : 'monthly'),
+    [searchParams],
+  )
+
+  const checkoutUrlWithIntent = useMemo(() => {
+    if (!checkoutUrl) return ''
+    const isAbsolute = /^https?:\/\//i.test(checkoutUrl)
+    const target = isAbsolute ? new URL(checkoutUrl) : new URL(checkoutUrl, 'http://localhost')
+    target.searchParams.set('plan', requestedPlan.toLowerCase())
+    target.searchParams.set('interval', requestedInterval)
+    target.searchParams.set('source', 'billing_page')
+    if (isAbsolute) return target.toString()
+    return `${target.pathname}${target.search}${target.hash}`
+  }, [checkoutUrl, requestedInterval, requestedPlan])
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
@@ -133,9 +158,9 @@ export default function BillingPage() {
                     No primary payment method detected. Add a card when you upgrade to prevent service
                     interruption.
                   </p>
-                  {checkoutUrl ? (
+                  {checkoutUrlWithIntent ? (
                     <a
-                      href={checkoutUrl}
+                      href={checkoutUrlWithIntent}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-3 inline-block text-[11px] font-bold uppercase tracking-wider text-teal-600 hover:underline dark:text-teal-400"
@@ -184,13 +209,13 @@ export default function BillingPage() {
                   <div className="mb-1 flex items-center gap-2">
                     <Sparkles className="h-6 w-6 text-teal-600 dark:text-teal-400" aria-hidden />
                     <h2 className="text-xl font-medium leading-tight tracking-[-0.01em] text-[#171d1c] dark:text-white">
-                      {isPaid ? 'Doubow Pro' : 'Upgrade to Pro'}
+                      {isPaid ? `Doubow ${planLabel}` : `Upgrade to ${requestedPlan}`}
                     </h2>
                   </div>
                   <p className="text-[14px] leading-relaxed text-[#3d4947] dark:text-slate-300">
                     {isPaid
                       ? 'Your subscription is active — here is what you have access to.'
-                      : 'Unlock the full analytical suite for high-performance job seeking.'}
+                      : `Unlock the full analytical suite for high-performance job seeking (${requestedInterval} billing selected).`}
                   </p>
                 </div>
                 {!isPaid ? (
@@ -222,14 +247,14 @@ export default function BillingPage() {
               {!isPaid ? (
                 <>
                   <div className="flex flex-col items-center gap-4 border-t border-[0.5px] border-slate-100 pt-6 dark:border-slate-700 sm:flex-row">
-                    {checkoutUrl ? (
+                    {checkoutUrlWithIntent ? (
                       <a
-                        href={checkoutUrl}
+                        href={checkoutUrlWithIntent}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full border border-[0.5px] border-teal-700 bg-teal-600 px-8 py-3 text-center text-[14px] font-semibold text-white transition-colors hover:bg-teal-700 sm:w-auto"
                       >
-                        Start Free Trial
+                        {requestedPlan === 'Business' ? 'Start Business Checkout' : 'Start Free Trial'}
                       </a>
                     ) : (
                       <button
@@ -245,7 +270,7 @@ export default function BillingPage() {
                       No credit card required for first 7 days. Cancel anytime.
                     </p>
                   </div>
-                  {!checkoutUrl ? (
+                  {!checkoutUrlWithIntent ? (
                     <p className="mt-4 text-[11px] text-amber-800 dark:text-amber-200/90">
                       Developer: set{' '}
                       <code className="rounded bg-amber-100 px-1 dark:bg-amber-950/80">NEXT_PUBLIC_BILLING_CHECKOUT_URL</code>{' '}
