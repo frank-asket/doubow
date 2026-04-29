@@ -196,7 +196,7 @@ export default function BillingPage() {
                 {!isPaid ? (
                   <div className="text-right md:pl-4">
                     <div className="text-[28px] font-bold text-slate-900 dark:text-white">
-                      $19<span className="text-sm font-normal text-slate-500 dark:text-slate-300">/month</span>
+                      €12<span className="text-sm font-normal text-slate-500 dark:text-slate-300">/month</span>
                     </div>
                     <div className="text-[11px] font-medium uppercase tracking-wider text-teal-600 dark:text-teal-400">
                       Billed Monthly

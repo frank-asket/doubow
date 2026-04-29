@@ -24,10 +24,27 @@ const fraunces = Fraunces({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://doubow.vercel.app'),
   title: 'Doubow — The platform for your next job or venture',
   description:
     "Doubow builds your professional profile and automates tailored drafts, pipeline tracking, and interview prep—whether you're chasing a dream job or starting something of your own. You review and submit on official channels; nothing goes out without you.",
   icons: { icon: '/favicon.svg' },
+  openGraph: {
+    title: 'Doubow — The platform for your next job or venture',
+    description:
+      "Doubow builds your professional profile and automates tailored drafts, pipeline tracking, and interview prep. You review and submit on official channels.",
+    url: '/',
+    siteName: 'Doubow',
+    type: 'website',
+    images: [{ url: '/favicon.svg', alt: 'Doubow logo' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Doubow — The platform for your next job or venture',
+    description:
+      "Doubow builds your professional profile and automates tailored drafts, pipeline tracking, and interview prep. You stay in control of every send.",
+    images: ['/favicon.svg'],
+  },
 }
 
 function PostHogBoundary() {

@@ -33,9 +33,9 @@ import LandingGateRedirect from '@/components/landing/LandingGateRedirect'
 import { Pricing as LegacyPricing } from '@/components/landing/Pricing'
 
 const metrics = [
-  [Clock3, '85%', 'Less Time on Repetitive Tasks', 'Stop rewriting resumes and re-entering the same details for every role.'],
-  [Target, '3.4x', 'More Qualified Interviews', 'Apply only to high-fit roles with tailored, role-specific materials.'],
-  [BadgeCheck, '50k+', 'Professionals Using Doubow', 'From ambitious operators to executives running focused job searches.'],
+  [Clock3, 'Workflow', 'Less Time on Repetitive Tasks', 'Stop rewriting resumes and re-entering the same details for every role.'],
+  [Target, 'Focus', 'Higher-Intent Applications', 'Apply to high-fit roles with tailored, role-specific materials.'],
+  [BadgeCheck, 'Control', 'Human Approval on Outbound Actions', 'You stay in control: nothing is sent without your explicit review and approval.'],
 ] as const
 
 const heroSignals = [
@@ -55,8 +55,8 @@ const capabilityCards = [
 ] as const
 
 const faqs = [
-  ['How does DouBow keep my data secure?', 'We use encrypted storage and strict access controls. Your profile and drafts stay private in your workspace.'],
-  ['Will recruiters know I use AI?', 'You review and approve all final outputs. DouBow assists, but you stay in control of every submission.'],
+  ['How does Doubow keep my data secure?', 'We use encrypted storage and strict access controls. Your profile and drafts stay private in your workspace.'],
+  ['Will recruiters know I use AI?', 'You review and approve all final outputs. Doubow assists, but you stay in control of every submission.'],
   ['What is Human-in-the-Loop?', 'AI handles repetitive prep while you own the final decisions: apply, edit, approve, and send.'],
   ['Can I cancel anytime?', 'Yes. You can change or cancel your plan from account settings without long-term lock-in.'],
 ] as const
@@ -65,8 +65,10 @@ const workflowSteps = [
   { id: 'profile-sync', icon: Settings2, title: 'Profile Sync', body: 'Import your history and define your career non-negotiables once.' },
   { id: 'ai-drafts', icon: Bot, title: 'AI Drafts', body: 'Doubow surfaces roles and drafts tailored assets in the background.' },
   { id: 'human-control', icon: ShieldCheck, title: 'Human Control', body: 'You review, refine, and approve every outreach attempt.' },
-  { id: 'execution', icon: CheckCircle2, title: 'Execution', body: 'DouBow tracks progress and surfaces winning opportunities.' },
+  { id: 'execution', icon: CheckCircle2, title: 'Execution', body: 'Doubow tracks progress and surfaces winning opportunities.' },
 ] as const
+
+const currentYear = new Date().getFullYear()
 
 const audienceSegments = [
   {
@@ -109,7 +111,7 @@ export default function RootPage() {
       <header className="fixed top-0 z-50 w-full border-b border-[#c6c6cd] bg-white/80 backdrop-blur-md">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
-            <span className="font-display text-[1.35rem] font-bold tracking-[-0.03em] text-[#191c1e]">DouBow</span>
+            <span className="font-display text-[1.35rem] font-bold tracking-[-0.03em] text-[#191c1e]">Doubow</span>
             <div className="hidden items-center gap-6 md:flex">
               <a className="border-b-2 border-[#006a61] pb-1 text-sm font-semibold text-[#006a61]" href="#solutions">Solutions</a>
               <a className="text-sm font-medium text-[#45464d] transition-colors hover:text-[#006a61]" href="#how-it-works">How it Works</a>
@@ -378,9 +380,9 @@ export default function RootPage() {
                   <h3 className="text-[24px] font-semibold leading-[1.3] text-[#000000]">Get Weekly Career Insights</h3>
                   <p className="mt-3 text-[#45464d]">Get practical job-search playbooks, hiring trend breakdowns, and proven tactics you can use immediately.</p>
                 </div>
-                <form className="w-full max-w-sm space-y-3">
+                <form className="w-full max-w-sm space-y-3" action="mailto:hello@doubow.com" method="post">
                   <input type="email" placeholder="Enter your email" className="w-full rounded-lg border border-[#c6c6cd] px-4 py-3 text-sm outline-none transition focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20" />
-                  <button type="button" className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[#006a61] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#005049]">Subscribe <ArrowRight className="h-4 w-4" /></button>
+                  <button type="submit" className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[#006a61] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#005049]">Subscribe <ArrowRight className="h-4 w-4" /></button>
                 </form>
               </div>
             </div>
@@ -389,14 +391,18 @@ export default function RootPage() {
 
         <section className="border-b border-[#c6c6cd] py-[80px]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <p className="mb-10 text-center text-[12px] font-semibold uppercase tracking-[0.05em] text-[#45464d]">Trusted by talent from leading companies</p>
-            <div className="flex flex-wrap justify-center gap-10 text-2xl font-semibold tracking-wide text-[#45464d]/60">
-              <span>GOOGLE</span><span>STRIPE</span><span>META</span><span>AIRBNB</span><span>ADOBE</span>
+            <p className="mb-10 text-center text-[12px] font-semibold uppercase tracking-[0.05em] text-[#45464d]">Built for modern job seekers</p>
+            <div className="flex flex-wrap justify-center gap-3 text-sm font-semibold tracking-wide text-[#45464d]/80">
+              <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Career changers</span>
+              <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Operators</span>
+              <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Product builders</span>
+              <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Engineering leaders</span>
+              <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Executive candidates</span>
             </div>
             <div className="mx-auto mt-20 max-w-4xl rounded-2xl bg-[#eceef0] p-10 md:p-12">
               <Quote className="h-10 w-10 text-[#006a61]/35" />
-              <p className="mt-5 text-[24px] italic leading-[1.35] text-[#191c1e]">&quot;DouBow transformed my job search into a precise operation. I landed a Senior Director role in three weeks while spending only 30 minutes a day.&quot;</p>
-              <p className="mt-5 text-sm font-semibold text-[#191c1e]">Marcus Chen · Senior Director of Engineering</p>
+              <p className="mt-5 text-[24px] italic leading-[1.35] text-[#191c1e]">&quot;Early users tell us the biggest win is clarity: less time juggling tools, more time making strong application decisions.&quot;</p>
+              <p className="mt-5 text-sm font-semibold text-[#191c1e]">Doubow product research, 2026</p>
             </div>
           </div>
         </section>
@@ -410,7 +416,7 @@ export default function RootPage() {
               <p className="relative z-10 mx-auto mt-5 max-w-2xl text-[18px] leading-[1.6] text-[#7c839b]">Create your profile, get your first high-fit matches, and review AI-tailored drafts in minutes.</p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link href={"/auth/sign-up" as Route} className="relative z-10 inline-flex h-14 items-center justify-center rounded-[8px] bg-[#006a61] px-10 text-[15px] font-semibold text-white transition-colors hover:bg-[#005049]">Get Started for Free</Link>
-                <button className="relative z-10 inline-flex h-14 items-center justify-center rounded-[8px] border border-white/20 px-10 text-[15px] font-semibold text-white transition-colors hover:bg-white/10">Contact sales</button>
+                <a href="mailto:sales@doubow.com" className="relative z-10 inline-flex h-14 items-center justify-center rounded-[8px] border border-white/20 px-10 text-[15px] font-semibold text-white transition-colors hover:bg-white/10">Contact sales</a>
               </div>
             </div>
           </div>
@@ -419,19 +425,19 @@ export default function RootPage() {
         <footer className="border-t border-[#c6c6cd] bg-slate-50 pb-8 pt-16 dark:border-slate-800 dark:bg-slate-900">
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 sm:px-6 md:grid-cols-4 lg:grid-cols-5 lg:px-8">
             <div className="col-span-2 lg:col-span-1">
-              <span className="mb-4 block text-lg font-bold text-slate-900 dark:text-white">DouBow</span>
+              <span className="mb-4 block text-lg font-bold text-slate-900 dark:text-white">Doubow</span>
               <p className="text-sm text-slate-500 dark:text-slate-400">Precision in Career Growth. One Assistant that works with you across discovery, applications, and prep—without the noise of generic chat.</p>
               <div className="mt-4 flex gap-3 text-slate-400 dark:text-slate-500">
                 <Globe className="h-4 w-4" />
                 <AtSign className="h-4 w-4" />
               </div>
             </div>
-            <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Product</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Features</li><li className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Pricing</li><li className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Resume AI</li></ul></div>
-            <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Company</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">About</li><li className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Careers</li><li className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Contact</li></ul></div>
-            <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Legal</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li><Link href={"/privacy" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Privacy Policy</Link></li><li><Link href={"/terms" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Terms of Service</Link></li><li className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Security</li></ul></div>
+            <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Product</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li><a href="#solutions" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Features</a></li><li><a href="#pricing" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Pricing</a></li><li><Link href={"/resume" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Resume AI</Link></li></ul></div>
+            <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Company</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li><a href="#how-it-works" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">About</a></li><li><a href="mailto:careers@doubow.com" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Careers</a></li><li><a href="mailto:support@doubow.com" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Contact</a></li></ul></div>
+            <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Legal</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li><Link href={"/privacy" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Privacy Policy</Link></li><li><Link href={"/terms" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Terms of Service</Link></li><li><Link href={"/privacy" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Security</Link></li></ul></div>
           </div>
           <div className="mx-auto mt-14 max-w-7xl border-t border-slate-200 px-4 pt-8 sm:px-6 lg:px-8 dark:border-slate-800">
-            <p className="text-center text-sm text-slate-500 dark:text-slate-400">© 2024 DouBow AI. Precision in Career Growth.</p>
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400">© {currentYear} Doubow AI. Precision in Career Growth.</p>
           </div>
         </footer>
       </main>

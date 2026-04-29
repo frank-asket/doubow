@@ -107,14 +107,14 @@ export function Pricing() {
         </div>
 
         <p className="mt-8 text-center text-sm text-[#45464d]">
-          Ready to subscribe? Open{" "}
+          Ready to upgrade? Create your account, then open{" "}
           <Link
             href={"/auth/sign-up" as Route}
             className="rounded font-semibold text-[#006a61] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2"
           >
             Doubow plans &amp; billing
           </Link>{" "}
-          and finish checkout from your account.
+          to finish checkout from your dashboard.
         </p>
 
         <div className="mt-10 grid gap-2.5 lg:grid-cols-3">
@@ -141,14 +141,14 @@ export function Pricing() {
               </div>
               <p className="mt-3 text-sm text-[#45464d]">{tier.blurb}</p>
               <a
-                href={tier.name === "Free" ? "/auth/sign-up" : "/discover"}
+                href={"/auth/sign-up"}
                 className={`mt-8 inline-flex h-11 justify-center rounded-full px-5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                   tier.featured
                     ? "border border-[#006a61] bg-[#006a61] text-white shadow-sm hover:bg-[#005049] focus-visible:ring-[#006a61]/30"
                     : "border border-[#c6c6cd] bg-white text-[#191c1e] shadow-sm hover:bg-[#f2f4f6] focus-visible:ring-[#006a61]/20"
                 }`}
               >
-                {tier.name === "Free" ? "Create account" : "Subscribe"}
+                {tier.name === "Free" ? "Create account" : "Create account to upgrade"}
               </a>
 
               <div className="relative my-6">

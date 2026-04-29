@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'How Doubow collects, uses, and protects personal information.',
 }
 
-const lastUpdated = 'April 27, 2026'
+const lastUpdated = 'April 29, 2026'
 
 export default function PrivacyPolicyPage() {
   return (

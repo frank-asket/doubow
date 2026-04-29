@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Terms that govern your use of Doubow services.',
 }
 
-const lastUpdated = 'April 27, 2026'
+const lastUpdated = 'April 29, 2026'
 
 export default function TermsOfServicePage() {
   return (
