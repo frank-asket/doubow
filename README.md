@@ -21,92 +21,83 @@ Doubow combines a modern Next.js web app with a FastAPI backend to help users di
 
 ## 🏗️ High-Level Architecture
 
+The runtime diagram below matches **`docs/architecture/doubow-high-level-flow.md`** line-for-line; that doc adds Assistant/ingestion detail, **Boundaries**, observability tables, and local deployment prose. **LLM** is reached via domain services and the Assistant, not as `API → LLM`. Semantic match and offline eval are scoring-layer concerns—see **At a glance** and **Local Validation**.
+
 ```mermaid
 flowchart LR
-  U[User Browser]
-  FE[Web App Next.js App Router]
-  CL[Clerk Auth]
-  API[API Gateway FastAPI CORS guard rate limit]
-  LLM[OpenRouter LLM Models chat drafts prep resume]
-  DB[(Supabase Postgres)]
-  RD[(Redis)]
-  PH[(PostHog)]
-  SENTRY[(Sentry)]
-  METRICS["Prometheus /metrics<br/>requests, LLM, assistant routing/actions"]
-  AG[Agent Services Discover Scoring Writing Apply Prep Monitor]
-  ASST["Unified Assistant<br/>SSE chat, keyword or LLM tool routing"]
-  INGEST["Catalog ingestion<br/>Adzuna, Greenhouse, dedupe"]
-  OAUTH[Channel Integrations Google OAuth LinkedIn OAuth]
-  SEM[Semantic Match Service feature flagged]
-  EVAL[Offline Evaluator baseline versus semantic precision]
-  LG[LangGraph autopilot parity graph optional]
-  AUTO[Autopilot runs idempotency history resume API]
+  U[User]
+  FE["Web<br/>Next.js App Router"]
+  CL["Clerk<br/>auth"]
+  API["API gateway<br/>FastAPI"]
+  AG["Domain services<br/>discover • score • write • apply • prep • monitor"]
+  ASST["Unified Assistant<br/>SSE • tools • capabilities"]
+  INGEST["Job catalog ingestion<br/>Adzuna • Greenhouse • dedupe"]
+  DB[("Postgres")]
+  RD[("Redis")]
+  LLM["OpenRouter<br/>tiered models"]
+  OAUTH["Channels<br/>Google • LinkedIn OAuth"]
+  AUTO["Autopilot<br/>runs • resume API"]
+  LG["LangGraph<br/>optional parity runtime"]
+  PH[("PostHog")]
+  SE[("Sentry")]
+  METRICS["GET /metrics<br/>Prometheus"]
 
   U --> FE
-  FE -->|JWT / session| CL
-  FE -->|Bearer Clerk JWT| API
-  API -->|Validate claims + ensure user| CL
-  API --> DB
-  API --> RD
+  FE -->|session| CL
+  FE -->|Bearer JWT| API
+  API -->|verify JWT| CL
   API --> AG
   API --> ASST
   API --> INGEST
-  API --> LLM
   API --> OAUTH
-  API --> METRICS
-  API --> SENTRY
   API --> AUTO
-  AUTO --> LG
+  API --> DB
+  API --> RD
+  API --> METRICS
+  API --> SE
   AG --> DB
   AG --> RD
   AG --> LLM
-  AG --> SEM
   ASST --> LLM
   ASST --> DB
   INGEST --> DB
+  AUTO --> LG
   AUTO --> DB
   AUTO --> RD
   LG --> DB
-  EVAL --> DB
-  EVAL --> SEM
   FE --> PH
   API --> PH
 ```
 
-**Request path (typical):**
-- User interacts with dashboard routes in `apps/web/` (including **Messages / Assistant** at `/messages`).
-- Frontend sends authenticated requests to `backend/api_gateway`.
-- FastAPI validates Clerk identity, applies localhost-safe CORS policy, scopes every read/write to `user_id`, and orchestrates domain services.
-- **Unified Assistant**: SSE chat (`POST /v1/agents/chat`) resolves structured actions via slash/keyword routing and optional LLM tool classification (`ORCHESTRATOR_LLM_TOOL_ROUTING`); **`GET /v1/agents/capabilities`** exposes the tool catalog. Metrics: `doubow_assistant_tool_routing_total`, `doubow_assistant_action_total` on **`GET /metrics`**.
-- OpenRouter **tiered** LLM calls power assistant chat (premium chat model), drafts, prep/reasoning models, orchestrator tool planner (typically drafts-tier), resume analysis, etc.
-- **Catalog ingestion** (Adzuna + Greenhouse, cron-friendly presets and scripts) upserts shared **`jobs`** rows with dedupe and ingestion audit tables.
-- Services persist state in Postgres, use Redis for transient/queue-friendly workflows, and emit telemetry to PostHog.
-- Semantic matching is feature-flagged and blended into scoring when enabled; offline evaluator scripts compare baseline vs semantic precision.
-- Approval handoff is channel-aware (email + LinkedIn) with explicit user approval before outbound actions.
-- **Autopilot** runs as background work with idempotent keys and run history; when `USE_LANGGRAPH_AUTOPILOT` is enabled it executes through a **LangGraph** parity graph (`mark_running` → `resolve_targets` → `process_items` → `persist_*`) inside the API gateway/worker process. Optional **`USE_LANGGRAPH_AUTOPILOT_CHECKPOINT`** persists **`graph_checkpoint`** JSON in Postgres after each node so a replacement worker can resume; the UI/agents surface can call **`POST /v1/me/autopilot/runs/{run_id}/resume`** for stuck **`running`** runs when a checkpoint exists. On LangGraph failure the runner falls back to the legacy executor.
-- Structured resume parsing can use optional **LangChain** boundaries when `USE_LANGCHAIN` is enabled (see `.env.example`).
-- API exposes **`/metrics`** for Prometheus scraping (HTTP latency, LLM calls, **assistant routing/actions**, Sentry hooks for errors).
+**At a glance**
+
+- **Auth & API** — Dashboard in `apps/web/` calls `backend/api_gateway` with Clerk JWT; requests are scoped by `user_id` with CORS tuned for local dev.
+- **Assistant** — `/messages`: `POST /v1/agents/chat` (SSE), optional `ORCHESTRATOR_LLM_TOOL_ROUTING`, `GET /v1/agents/capabilities`; assistant counters on **`GET /metrics`**.
+- **Data & LLM** — Postgres is durable; Redis for coordination/caches; OpenRouter tiered models for chat, drafts, prep, resume parsing, optional tool planner.
+- **Ingestion** — Adzuna + Greenhouse → shared **`jobs`** (dedupe, audit tables); scripts under `backend/scripts/`.
+- **Scoring extras** — Semantic match when feature-flagged; offline eval scripts vs baseline (see **Local Validation** below).
+- **Outbound** — Approvals are channel-aware (email, LinkedIn); user approval before send.
+- **Autopilot** — Background runs; optional LangGraph + checkpoints + resume API; **`backend/README.md`** for flags.
+- **Observability** — PostHog (product), Sentry (errors), Prometheus **`/metrics`**; optional **LangChain** for structured resume parsing (`USE_LANGCHAIN` in `.env.example`).
 
 ### Deployment View (Local)
 
 ```mermaid
 flowchart TB
-  FE[Web App Dev Server localhost 3000]
-  API[api gateway container localhost 8000 to 8080]
-  LLM[OpenRouter HTTPS API]
-  PG[(postgres container 5432)]
-  R[(redis container 6379)]
-  W[worker/model containers]
+  FE["Web<br/>localhost:3000"]
+  API["api_gateway<br/>localhost:8000"]
+  PG[("Postgres")]
+  R[("Redis")]
+  W["Workers<br/>optional"]
 
   FE --> API
   API --> PG
   API --> R
-  API --> LLM
   W --> PG
   W --> R
 ```
 
-Workers share Postgres, Redis, and LLM access with the gateway; **autopilot** (including optional **LangGraph** parity execution and checkpoint persistence) runs in these processes when enabled—see **`backend/README.md`** (Autopilot scopes / LangGraph flags).
+Matches the local section in **`docs/architecture/doubow-high-level-flow.md`** (no OpenRouter box—traffic is HTTPS from the API/workers). Assistant, ingestion, and autopilot usually share the **same API process** in dev unless workers are split. Autopilot and LangGraph flags: **`backend/README.md`**.
 
 ## 🧱 Frontend + Backend Stack
 
@@ -259,9 +250,8 @@ Behavior:
 
 ## 📚 Documentation
 
-- **High-level architecture (current implementation):** `docs/architecture/doubow-high-level-flow.md`
 - Capstone rubric + readiness (eval notes, deployment checklist, demo script, risk register): `docs/capstone-scoring-sheet.md`, `docs/capstone-readiness.md`
-- Architecture: `docs/architecture/` (including `docs/architecture/resilience.md` — health probes, rate limits, OpenRouter circuit behavior)
+- Architecture: high-level flow `docs/architecture/doubow-high-level-flow.md`; resilience (health probes, rate limits, OpenRouter circuit): `docs/architecture/resilience.md`
 - Backend detail (LLM tiers, ingestion, autopilot/LangGraph): `backend/README.md`
 - Design system: `docs/architecture/daubo-design-system.md`
 - Product panel behavior: `docs/product-panels.md`

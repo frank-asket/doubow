@@ -1,31 +1,32 @@
-# Doubow High-Level Flow
+# Doubow — high-level architecture
 
-This diagram is the capstone-facing architecture view for the current implementation.
-It reflects what is actually running in the repository today.
+Capstone-facing view of what runs in this repo today. For stack commands and env, see the root **`README.md`** and **`backend/README.md`**.
+
+## Runtime diagram
 
 ```mermaid
 flowchart LR
-  U[User Web App]
-  FE[Frontend\nNext.js App Router]
-  CL[Clerk\nAuth + Session]
-  API[API Gateway\nFastAPI]
-  AG[Domain/Agent Services\nDiscover • Scoring • Writing • Apply • Prep • Monitor]
-  ASST[Unified Assistant\nSSE chat • tools • capabilities API]
-  INGEST[Job catalog ingestion\nAdzuna • Greenhouse • dedupe]
-  DB[(Supabase Postgres)]
-  RD[(Redis)]
-  LLM[LLM Provider\nOpenRouter tiered models]
-  OAUTH[Channel Integrations\nGoogle OAuth • LinkedIn OAuth]
-  AUTO[Autopilot Runs\nIdempotency • Run History • Resume API]
-  LG[LangGraph Autopilot\nParity Graph (Optional)]
-  PH[(PostHog)]
-  SENTRY[(Sentry)]
-  METRICS[/Prometheus /metrics\nrequests • LLM • assistant routing/actions/]
+  U[User]
+  FE["Web<br/>Next.js App Router"]
+  CL["Clerk<br/>auth"]
+  API["API gateway<br/>FastAPI"]
+  AG["Domain services<br/>discover • score • write • apply • prep • monitor"]
+  ASST["Unified Assistant<br/>SSE • tools • capabilities"]
+  INGEST["Job catalog ingestion<br/>Adzuna • Greenhouse • dedupe"]
+  DB[("Postgres")]
+  RD[("Redis")]
+  LLM["OpenRouter<br/>tiered models"]
+  OAUTH["Channels<br/>Google • LinkedIn OAuth"]
+  AUTO["Autopilot<br/>runs • resume API"]
+  LG["LangGraph<br/>optional parity runtime"]
+  PH[("PostHog")]
+  SE[("Sentry")]
+  METRICS["GET /metrics<br/>Prometheus"]
 
   U --> FE
-  FE -->|Sign-in / session| CL
+  FE -->|session| CL
   FE -->|Bearer JWT| API
-  API -->|JWT verify| CL
+  API -->|verify JWT| CL
   API --> AG
   API --> ASST
   API --> INGEST
@@ -34,7 +35,7 @@ flowchart LR
   API --> DB
   API --> RD
   API --> METRICS
-  API --> SENTRY
+  API --> SE
   AG --> DB
   AG --> RD
   AG --> LLM
@@ -49,62 +50,65 @@ flowchart LR
   API --> PH
 ```
 
-## Unified Assistant (agent-native parity)
+**Boundaries:** The browser talks only to Clerk and the API. **Postgres** is the durable source of truth; **Redis** backs caches and coordination. **LLM** calls go through OpenRouter from domain services and the Assistant, not as a separate network hop from the diagram’s perspective.
 
-The **Messages / Assistant** surface (`/messages`; `/agents` redirects here) streams **`POST /v1/agents/chat`** (SSE). The backend resolves user intent to **structured account actions** aligned with the product UI:
+---
 
-- **Keyword / slash routing** — fast path for commands like `/pipeline`, `/queue`, `/dismiss`, `/approve`, `/reject` (`services/agent_action_executor.py`).
-- **Optional LLM tool planner** — when keywords miss and `ORCHESTRATOR_LLM_TOOL_ROUTING` is on, a small JSON classification chooses a tool or `none` (`services/agent_tool_router.py`).
-- **Capability discovery** — `GET /v1/agents/capabilities` lists tool names and descriptions for clients and onboarding copy (`services/agent_tools_catalog.py`).
+## Unified Assistant
 
-Successful tool runs invoke the same domain services as REST routes (e.g. `create_application`, `dismiss_job_for_user`, `approve_approval`). **Prometheus** exposes `doubow_assistant_tool_routing_total` and `doubow_assistant_action_total` on **`GET /metrics`** for routing and execution visibility.
+Primary UI: **`/messages`** (`/agents` redirects). **`POST /v1/agents/chat`** streams SSE; intent becomes **structured actions** that call the same services as REST.
 
-## Job catalog ingestion (multi-provider)
+| Concern | Implementation |
+|--------|----------------|
+| Fast path | Slash / keyword routing (`services/agent_action_executor.py`) |
+| Optional planner | `ORCHESTRATOR_LLM_TOOL_ROUTING` → JSON tool choice (`services/agent_tool_router.py`) |
+| Discovery | `GET /v1/agents/capabilities` (`services/agent_tools_catalog.py`) |
+| Metrics | `doubow_assistant_tool_routing_total`, `doubow_assistant_action_total` on **`GET /metrics`** |
 
-Scheduled and authenticated routes ingest third-party job feeds into the shared **`jobs`** catalog (with **`job_source_records`** / **`job_ingestion_runs`** audit): **Adzuna**, **Greenhouse** boards, preset endpoints (`hourly`/`daily`), and a combined catalog preset. Cross-provider **deduplication** runs before upsert (`services/job_provider_ingestion_service.py`). CLI runners live under `backend/scripts/` (e.g. `adzuna_ingestion_runner.py`, `greenhouse_ingestion_runner.py`). See **`backend/README.md`** for env vars and curls.
+---
 
-## LangGraph Autopilot Status
+## Job catalog ingestion
 
-LangGraph is now included as an optional **autopilot parity runtime** behind feature flags.
+Providers (**Adzuna**, **Greenhouse**) upsert into shared **`jobs`** with dedupe and audit (`job_source_records`, `job_ingestion_runs`). Orchestration: `services/job_provider_ingestion_service.py`; CLI runners under **`backend/scripts/`**. Env and curls: **`backend/README.md`**.
 
-- Default execution remains service/router driven in FastAPI.
-- When `USE_LANGGRAPH_AUTOPILOT` is enabled, autopilot runs through a LangGraph parity flow.
-- When `USE_LANGGRAPH_AUTOPILOT_CHECKPOINT` is enabled, graph node progress/checkpoint state is persisted to Postgres for resumability.
-- On LangGraph failure, execution can fall back to the legacy autopilot executor.
+---
 
-## Multi-step workflows without a graph runtime
+## Product pipeline and autopilot
 
-The product flow **discover -> score -> draft -> approve -> send/prep** is represented as **explicit domain services plus durable state**, with optional LangGraph parity for autopilot execution:
+End-to-end flow is **domain services + Postgres state**, not a separate workflow database:
 
-- **Discover / score**: jobs and `job_scores` rows in Postgres; applications move to the **score** pipeline stage until a score exists for that user + job.
-- **Draft / approve**: `approvals` rows hold draft text and human gate states (`pending` → `approved` / `edited`); branching (reject / discard) is normal application logic.
-- **Send / prep**: approval timestamps and application status feed the **send_prep** stage; queues or workers can drive outbound actions without a separate workflow DB.
-- **Autopilot parity path (optional)**: run lifecycle can be driven by LangGraph nodes with checkpoint/resume semantics while keeping Postgres as the durable source of truth.
+- **Discover → score → draft → approve → send/prep** — `job_scores`, `approvals`, application status; API exposes derived **`pipeline_stage`** (`backend/api_gateway/workflow/pipeline.py`).
+- **Retries** — bounded backoff for unstable HTTP (`backend/api_gateway/workflow/retry.py`, used from OpenRouter client code paths).
 
-Each `Application` returned by the API includes a derived **`pipeline_stage`** field (`score` | `draft` | `approve` | `send_prep`) computed from those tables—see `backend/api_gateway/workflow/pipeline.py`.
+**Autopilot** adds background runs with idempotency and history. Optional **LangGraph** (`USE_LANGGRAPH_AUTOPILOT`) runs a parity graph inside the API/worker process; **`USE_LANGGRAPH_AUTOPILOT_CHECKPOINT`** persists checkpoints to Postgres; **`POST /v1/me/autopilot/runs/{run_id}/resume`** recovers stuck runs. On graph failure, execution can fall back to the legacy executor.
 
-**Retries** for unstable outbound calls (e.g. OpenRouter HTTP) use bounded exponential backoff in `backend/api_gateway/workflow/retry.py`, wired through `services/openrouter.py`.
+---
 
-**Durable state** for runs and user-scoped entities remains **Postgres** (and **Redis** for caches/sessions/worker coordination where configured); no additional workflow database is required for the current scope.
+## Observability (why three tools)
 
-## Local Deployment View
+| Tool | Role |
+|------|------|
+| **PostHog** | Product telemetry and (when configured) activation KPI sourcing |
+| **Sentry** | Exception grouping, alerts, optional tracing (`SENTRY_DSN`) |
+| **Prometheus** | `GET /metrics` — HTTP, LLM usage, assistant routing/actions |
+
+---
+
+## Local deployment
 
 ```mermaid
 flowchart TB
-  FE[Frontend Dev\nlocalhost:3000]
-  API[api_gateway\nlocalhost:8000]
-  PG[(Postgres)]
-  R[(Redis)]
-  W[Worker/Model Services]
-  LG[LangGraph parity path\n(optional)]
+  FE["Web<br/>localhost:3000"]
+  API["api_gateway<br/>localhost:8000"]
+  PG[("Postgres")]
+  R[("Redis")]
+  W["Workers<br/>optional"]
 
   FE --> API
   API --> PG
   API --> R
   W --> PG
   W --> R
-  API --> LG
-  W --> LG
 ```
 
-Assistant chat and catalog ingestion use the same API process as local dev unless workers are split for Celery/autopilot.
+Assistant, ingestion, and autopilot normally share the **same API process** in local dev unless you split workers (e.g. Celery). OpenRouter is reached over HTTPS from the API/workers.
