@@ -13,7 +13,7 @@ flowchart LR
   AG["Domain services<br/>discover • score • write • apply • prep • monitor"]
   ASST["Unified Assistant<br/>SSE • tools • capabilities"]
   INGEST["Job catalog ingestion<br/>Adzuna • Greenhouse • dedupe"]
-  DB[("Postgres")]
+  DB[("Supabase<br/>Postgres")]
   RD[("Redis")]
   LLM["OpenRouter<br/>tiered models"]
   OAUTH["Channels<br/>Google • LinkedIn OAuth"]
@@ -50,7 +50,7 @@ flowchart LR
   API --> PH
 ```
 
-**Boundaries:** The browser talks only to Clerk and the API. **Postgres** is the durable source of truth; **Redis** backs caches and coordination. **LLM** calls go through OpenRouter from domain services and the Assistant, not as a separate network hop from the diagram’s perspective.
+**Boundaries:** The browser talks only to Clerk and the API. **Supabase Postgres** is the durable source of truth; **Redis** backs caches and coordination. **LLM** calls go through OpenRouter from domain services and the Assistant, not as a separate network hop from the diagram’s perspective.
 
 ---
 
@@ -75,12 +75,12 @@ Providers (**Adzuna**, **Greenhouse**) upsert into shared **`jobs`** with dedupe
 
 ## Product pipeline and autopilot
 
-End-to-end flow is **domain services + Postgres state**, not a separate workflow database:
+End-to-end flow is **domain services + Supabase Postgres state**, not a separate workflow database:
 
 - **Discover → score → draft → approve → send/prep** — `job_scores`, `approvals`, application status; API exposes derived **`pipeline_stage`** (`backend/api_gateway/workflow/pipeline.py`).
 - **Retries** — bounded backoff for unstable HTTP (`backend/api_gateway/workflow/retry.py`, used from OpenRouter client code paths).
 
-**Autopilot** adds background runs with idempotency and history. Optional **LangGraph** (`USE_LANGGRAPH_AUTOPILOT`) runs a parity graph inside the API/worker process; **`USE_LANGGRAPH_AUTOPILOT_CHECKPOINT`** persists checkpoints to Postgres; **`POST /v1/me/autopilot/runs/{run_id}/resume`** recovers stuck runs. On graph failure, execution can fall back to the legacy executor.
+**Autopilot** adds background runs with idempotency and history. Optional **LangGraph** (`USE_LANGGRAPH_AUTOPILOT`) runs a parity graph inside the API/worker process; **`USE_LANGGRAPH_AUTOPILOT_CHECKPOINT`** persists checkpoints to Supabase Postgres; **`POST /v1/me/autopilot/runs/{run_id}/resume`** recovers stuck runs. On graph failure, execution can fall back to the legacy executor.
 
 ---
 
@@ -100,7 +100,7 @@ End-to-end flow is **domain services + Postgres state**, not a separate workflow
 flowchart TB
   FE["Web<br/>localhost:3000"]
   API["api_gateway<br/>localhost:8000"]
-  PG[("Postgres")]
+  PG[("Supabase<br/>Postgres")]
   R[("Redis")]
   W["Workers<br/>optional"]
 

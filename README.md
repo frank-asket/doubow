@@ -32,7 +32,7 @@ flowchart LR
   AG["Domain services<br/>discover • score • write • apply • prep • monitor"]
   ASST["Unified Assistant<br/>SSE • tools • capabilities"]
   INGEST["Job catalog ingestion<br/>Adzuna • Greenhouse • dedupe"]
-  DB[("Postgres")]
+  DB[("Supabase<br/>Postgres")]
   RD[("Redis")]
   LLM["OpenRouter<br/>tiered models"]
   OAUTH["Channels<br/>Google • LinkedIn OAuth"]
@@ -73,7 +73,7 @@ flowchart LR
 
 - **Auth & API** — Dashboard in `apps/web/` calls `backend/api_gateway` with Clerk JWT; requests are scoped by `user_id` with CORS tuned for local dev.
 - **Assistant** — `/messages`: `POST /v1/agents/chat` (SSE), optional `ORCHESTRATOR_LLM_TOOL_ROUTING`, `GET /v1/agents/capabilities`; assistant counters on **`GET /metrics`**.
-- **Data & LLM** — Postgres is durable; Redis for coordination/caches; OpenRouter tiered models for chat, drafts, prep, resume parsing, optional tool planner.
+- **Data & LLM** — Supabase Postgres is durable; Redis for coordination/caches; OpenRouter tiered models for chat, drafts, prep, resume parsing, optional tool planner.
 - **Ingestion** — Adzuna + Greenhouse → shared **`jobs`** (dedupe, audit tables); scripts under `backend/scripts/`.
 - **Scoring extras** — Semantic match when feature-flagged; offline eval scripts vs baseline (see **Local Validation** below).
 - **Outbound** — Approvals are channel-aware (email, LinkedIn); user approval before send.
@@ -86,7 +86,7 @@ flowchart LR
 flowchart TB
   FE["Web<br/>localhost:3000"]
   API["api_gateway<br/>localhost:8000"]
-  PG[("Postgres")]
+  PG[("Supabase<br/>Postgres")]
   R[("Redis")]
   W["Workers<br/>optional"]
 
