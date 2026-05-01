@@ -17,12 +17,13 @@ from schemas.jobs import (
     DiscoverJobsResponse,
     GreenhouseIngestRequest,
     GreenhouseIngestResponse,
+    GreenhousePresetIngestResponse,
     JobsListResponse,
     JobScoresRecomputeResponse,
     ProviderIngestSummary,
 )
 from services.adzuna_adapter import AdzunaAdapter, resolve_adzuna_scheduled_ingest_params
-from services.greenhouse_adapter import GreenhouseAdapter
+from services.greenhouse_adapter import GreenhouseAdapter, resolve_greenhouse_scheduled_ingest_params
 from services.job_discovery_service import discover_upsert_jobs
 from services.job_provider_ingestion_service import ingest_provider_jobs_paginated
 from services.provider_adapter import ProviderFetchParams
@@ -35,9 +36,15 @@ from services.jobs_service import (
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
-class AdzunaPreset(str, Enum):
+class IngestSchedulePreset(str, Enum):
+    """Shared hourly/daily buckets for Adzuna, Greenhouse, and multi-provider catalog ingestion."""
+
     hourly = "hourly"
     daily = "daily"
+
+
+# Backwards-compatible alias (same values).
+AdzunaPreset = IngestSchedulePreset
 
 
 @router.post("/discover", response_model=DiscoverJobsResponse)
@@ -98,9 +105,66 @@ async def ingest_greenhouse_jobs_route(
     return GreenhouseIngestResponse(**result)
 
 
+@router.post("/providers/greenhouse/ingest/preset", response_model=GreenhousePresetIngestResponse)
+async def ingest_greenhouse_preset_route(
+    preset: IngestSchedulePreset,
+    keywords: str | None = Query(default=None, max_length=255),
+    location: str | None = Query(default=None, max_length=255),
+    start_page: int = Query(default=1, ge=1),
+    boards: str | None = Query(
+        default=None,
+        max_length=512,
+        description="Optional comma-separated Greenhouse board tokens (overrides GREENHOUSE_BOARD_TOKENS for this run).",
+    ),
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(get_authenticated_user),
+) -> GreenhousePresetIngestResponse:
+    """Cron-friendly Greenhouse ingestion: hourly/daily page depth from config; catalog system user actor."""
+    try:
+        pages, base_params = resolve_greenhouse_scheduled_ingest_params(
+            settings,
+            preset=preset.value,
+            keywords=keywords,
+            location=location,
+            start_page=start_page,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+
+    actor = settings.job_catalog_ingestion_user_id.strip()
+    if not actor:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="JOB_CATALOG_INGESTION_USER_ID is not configured",
+        )
+
+    tokens = settings.greenhouse_board_tokens_list()
+    if boards and boards.strip():
+        tokens = [p.strip() for p in boards.split(",") if p.strip()]
+    if not tokens:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="GREENHOUSE_BOARD_TOKENS is empty (set env or pass boards=token1,token2)",
+        )
+
+    adapter = GreenhouseAdapter(board_tokens=tokens)
+    result = await ingest_provider_jobs_paginated(
+        session,
+        user_id=actor,
+        adapter=adapter,
+        base_params=base_params,
+        pages=pages,
+    )
+    return GreenhousePresetIngestResponse(
+        **result,
+        preset=preset.value,  # type: ignore[arg-type]
+        catalog_actor_user_id=actor,
+    )
+
+
 @router.post("/providers/adzuna/ingest/preset", response_model=AdzunaPresetIngestResponse)
 async def ingest_adzuna_preset_route(
-    preset: AdzunaPreset,
+    preset: IngestSchedulePreset,
     keywords: str | None = Query(default=None, max_length=255),
     location: str | None = Query(default=None, max_length=255),
     country: str | None = Query(default=None, max_length=8),
@@ -145,7 +209,7 @@ async def ingest_adzuna_preset_route(
 
 @router.post("/providers/catalog/ingest/preset", response_model=CatalogPresetIngestResponse)
 async def ingest_catalog_multi_provider_preset_route(
-    preset: AdzunaPreset,
+    preset: IngestSchedulePreset,
     keywords: str | None = Query(default=None, max_length=255),
     location: str | None = Query(default=None, max_length=255),
     country: str | None = Query(default=None, max_length=8),

@@ -116,6 +116,13 @@ class Settings(BaseSettings):
     greenhouse_api_url: str = "https://boards-api.greenhouse.io/v1/boards"
     # Comma-separated board tokens, e.g. "openai,notion,figma".
     greenhouse_board_tokens: str | None = None
+    # Pagination depth for Greenhouse preset cron-style ingestion (hourly vs daily).
+    greenhouse_ingest_hourly_pages: int = 2
+    greenhouse_ingest_daily_pages: int = 5
+    greenhouse_results_per_page: int = 50
+    # Optional defaults when preset endpoint / runner calls without keyword/location overrides.
+    greenhouse_ingest_default_keywords: str | None = None
+    greenhouse_ingest_default_location: str | None = None
     # System user id used by scheduled catalog ingestion wrappers.
     job_catalog_ingestion_user_id: str = "catalog_ingestion_system"
 

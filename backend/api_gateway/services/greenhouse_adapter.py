@@ -7,7 +7,12 @@ from urllib.parse import urlparse
 
 import httpx
 
+from typing import TYPE_CHECKING
+
 from config import settings
+
+if TYPE_CHECKING:
+    from config import Settings
 from schemas.jobs import DiscoverJobItem
 from services.job_ingestion_sanitizer import normalize_optional_http_url
 from services.provider_adapter import ProviderAdapter, ProviderFetchParams, ProviderFetchResult
@@ -67,7 +72,7 @@ class GreenhouseAdapter(ProviderAdapter):
             raise RuntimeError("Greenhouse is not configured (set GREENHOUSE_BOARD_TOKENS)")
 
         page = max(1, int(params.page or 1))
-        per_page = max(1, min(100, int(params.per_page or 50)))
+        per_page = max(1, min(100, int(params.per_page or settings.greenhouse_results_per_page or 50)))
         kw = (params.keywords or "").strip().lower()
         loc_filter = (params.location or "").strip().lower()
 
@@ -148,3 +153,45 @@ class GreenhouseAdapter(ProviderAdapter):
                 "count_normalized": len(jobs),
             },
         )
+
+
+def resolve_greenhouse_scheduled_ingest_params(
+    cfg: "Settings",
+    *,
+    preset: str,
+    keywords: str | None = None,
+    location: str | None = None,
+    start_page: int = 1,
+) -> tuple[int, ProviderFetchParams]:
+    """Resolve page depth and fetch params for hourly/daily Greenhouse cron-style ingestion."""
+    key = (preset or "").strip().lower()
+    if key == "hourly":
+        pages = max(1, int(cfg.greenhouse_ingest_hourly_pages))
+    elif key == "daily":
+        pages = max(1, int(cfg.greenhouse_ingest_daily_pages))
+    else:
+        raise ValueError(f"invalid greenhouse preset {preset!r}; expected hourly or daily")
+
+    def _clean(v: str | None) -> str | None:
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s or None
+
+    kw = _clean(keywords)
+    if kw is None:
+        kw = _clean(cfg.greenhouse_ingest_default_keywords)
+    loc = _clean(location)
+    if loc is None:
+        loc = _clean(cfg.greenhouse_ingest_default_location)
+
+    per_page = max(1, min(100, int(cfg.greenhouse_results_per_page)))
+    page = max(1, int(start_page))
+
+    return pages, ProviderFetchParams(
+        keywords=kw,
+        location=loc,
+        country=None,
+        page=page,
+        per_page=per_page,
+    )

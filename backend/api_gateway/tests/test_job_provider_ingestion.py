@@ -12,6 +12,7 @@ from dependencies import get_authenticated_user
 from routers.jobs import router as jobs_router
 from schemas.jobs import DiscoverJobItem
 from services.adzuna_adapter import resolve_adzuna_scheduled_ingest_params
+from services.greenhouse_adapter import resolve_greenhouse_scheduled_ingest_params
 from services.job_provider_ingestion_service import ingest_provider_jobs_paginated
 from services.provider_adapter import ProviderAdapter, ProviderFetchParams, ProviderFetchResult
 
@@ -127,6 +128,96 @@ def test_resolve_adzuna_scheduled_ingest_params(monkeypatch):
     assert p_d.keywords == "pm"
     assert p_d.location == "Berlin"
     assert p_d.page == 2
+
+
+def test_resolve_greenhouse_scheduled_ingest_params(monkeypatch):
+    monkeypatch.setattr(settings, "greenhouse_ingest_hourly_pages", 3)
+    monkeypatch.setattr(settings, "greenhouse_ingest_daily_pages", 8)
+    monkeypatch.setattr(settings, "greenhouse_results_per_page", 40)
+    monkeypatch.setattr(settings, "greenhouse_ingest_default_keywords", "designer")
+    monkeypatch.setattr(settings, "greenhouse_ingest_default_location", None)
+
+    pages_h, p_h = resolve_greenhouse_scheduled_ingest_params(settings, preset="hourly")
+    assert pages_h == 3
+    assert p_h.keywords == "designer"
+    assert p_h.country is None
+    assert p_h.per_page == 40
+
+    pages_d, p_d = resolve_greenhouse_scheduled_ingest_params(
+        settings,
+        preset="daily",
+        keywords="pm",
+        location="London",
+        start_page=2,
+    )
+    assert pages_d == 8
+    assert p_d.keywords == "pm"
+    assert p_d.location == "London"
+    assert p_d.page == 2
+
+
+def test_greenhouse_preset_returns_503_when_no_boards(monkeypatch):
+    monkeypatch.setattr(settings, "job_catalog_ingestion_user_id", "catalog_ingestion_system")
+    monkeypatch.setattr(settings, "greenhouse_board_tokens", "")
+
+    from fastapi import FastAPI
+
+    app = FastAPI()
+    app.include_router(jobs_router, prefix="/v1")
+
+    async def _override_session():  # type: ignore[no-untyped-def]
+        yield object()
+
+    async def _override_authenticated_user() -> User:
+        return User(id="user_test_123", email="test@example.com", name="Test User", plan="free")
+
+    app.dependency_overrides[get_session] = _override_session
+    app.dependency_overrides[get_authenticated_user] = _override_authenticated_user
+
+    client = TestClient(app)
+    res = client.post("/v1/jobs/providers/greenhouse/ingest/preset?preset=hourly")
+    assert res.status_code == 503
+
+
+def test_greenhouse_preset_runs_when_boards_configured(monkeypatch):
+    monkeypatch.setattr(settings, "job_catalog_ingestion_user_id", "catalog_ingestion_system")
+    monkeypatch.setattr(settings, "greenhouse_board_tokens", "notion")
+    from routers import jobs as jobs_router_module
+
+    async def _fake_ingest_provider_jobs_paginated(session, *, user_id, adapter, base_params, pages):  # type: ignore[no-untyped-def]
+        return {
+            "provider": "greenhouse",
+            "pages": pages,
+            "created": 1,
+            "updated": 0,
+            "job_ids": ["j1"],
+            "run_ids": ["r1"],
+            "deduped": 0,
+        }
+
+    monkeypatch.setattr(jobs_router_module, "ingest_provider_jobs_paginated", _fake_ingest_provider_jobs_paginated)
+
+    from fastapi import FastAPI
+
+    app = FastAPI()
+    app.include_router(jobs_router, prefix="/v1")
+
+    async def _override_session():  # type: ignore[no-untyped-def]
+        yield object()
+
+    async def _override_authenticated_user() -> User:
+        return User(id="user_test_123", email="test@example.com", name="Test User", plan="free")
+
+    app.dependency_overrides[get_session] = _override_session
+    app.dependency_overrides[get_authenticated_user] = _override_authenticated_user
+
+    client = TestClient(app)
+    res = client.post("/v1/jobs/providers/greenhouse/ingest/preset?preset=daily")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["preset"] == "daily"
+    assert body["catalog_actor_user_id"] == "catalog_ingestion_system"
+    assert body["created"] == 1
 
 
 def test_catalog_ingest_preset_returns_partial_when_one_provider_fails(monkeypatch):

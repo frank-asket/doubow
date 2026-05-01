@@ -193,31 +193,39 @@ Protected Greenhouse endpoint:
 }
 ```
 
-Cron-friendly preset endpoint (authenticated; catalog writes use `JOB_CATALOG_INGESTION_USER_ID`, not the caller):
+Cron-friendly preset endpoints (authenticated; catalog writes use `JOB_CATALOG_INGESTION_USER_ID`, not the caller):
 
-- `POST /v1/jobs/providers/adzuna/ingest/preset?preset=hourly` or `preset=daily`
-- Optional query overrides: `keywords`, `location`, `country`, `start_page`
+- **Adzuna:** `POST /v1/jobs/providers/adzuna/ingest/preset?preset=hourly` or `preset=daily`
+  - Optional query overrides: `keywords`, `location`, `country`, `start_page`
+- **Greenhouse:** `POST /v1/jobs/providers/greenhouse/ingest/preset?preset=hourly` or `preset=daily`
+  - Optional query overrides: `keywords`, `location`, `start_page`
+  - Optional `boards=token1,token2` to override `GREENHOUSE_BOARD_TOKENS` for that run
+- **Both providers in one call:** `POST /v1/jobs/providers/catalog/ingest/preset?preset=hourly|daily` (existing multi-source route)
 
-Example:
+Examples:
 
 ```bash
 curl -sS -X POST "$API_URL/v1/jobs/providers/adzuna/ingest/preset?preset=hourly" \
   -H "Authorization: Bearer $CRON_JWT"
+
+curl -sS -X POST "$API_URL/v1/jobs/providers/greenhouse/ingest/preset?preset=hourly" \
+  -H "Authorization: Bearer $CRON_JWT"
 ```
 
-This endpoint normalizes Adzuna results, snapshots raw source payloads, and upserts jobs into the shared catalog.
-It records each page fetch in `job_ingestion_runs` and raw provider rows in `job_source_records`.
-Greenhouse ingestion uses the same storage path and supports simple cross-provider dedupe skeleton before upsert.
+Preset routes normalize provider results, snapshot raw source payloads, and upserts jobs into the shared catalog.
+Each page fetch is recorded in `job_ingestion_runs` and raw provider rows in `job_source_records`.
+Greenhouse uses the same storage path and cross-provider dedupe skeleton before upsert.
 
 One-shot score refresh endpoint (after resume/profile updates):
 - `POST /v1/jobs/recompute-scores` (authenticated user only)
 - Rebuilds existing template-backed `job_scores` for the caller using current resume/profile signals.
 
-Lightweight scheduler wrapper:
-- `python backend/scripts/adzuna_ingestion_runner.py --mode once --pages 2`
-- `python backend/scripts/adzuna_ingestion_runner.py --mode hourly --pages 3 --keywords "backend engineer"`
-- `python backend/scripts/adzuna_ingestion_runner.py --mode daily --country us --per-page 50`
-- `python backend/scripts/recompute_job_scores.py --user-id <USER_ID>`
+Lightweight scheduler wrappers:
+- Adzuna: `python backend/scripts/adzuna_ingestion_runner.py --mode once --pages 2`
+- Adzuna: `python backend/scripts/adzuna_ingestion_runner.py --mode hourly --pages 3 --keywords "backend engineer"`
+- Greenhouse: `python backend/scripts/greenhouse_ingestion_runner.py --mode once --pages 2`
+- Greenhouse: `python backend/scripts/greenhouse_ingestion_runner.py --mode hourly --boards "notion,openai" --pages 2`
+- Scores: `python backend/scripts/recompute_job_scores.py --user-id <USER_ID>`
 
 Required env vars:
 - `ADZUNA_APP_ID`
@@ -229,6 +237,9 @@ Optional env vars:
 - `ADZUNA_INGEST_HOURLY_PAGES` / `ADZUNA_INGEST_DAILY_PAGES` (preset endpoint page depth)
 - `ADZUNA_INGEST_DEFAULT_KEYWORDS` / `ADZUNA_INGEST_DEFAULT_LOCATION` (defaults when preset query omits overrides)
 - `GREENHOUSE_BOARD_TOKENS` (comma-separated board slugs, e.g. `notion,openai,figma`)
+- `GREENHOUSE_INGEST_HOURLY_PAGES` / `GREENHOUSE_INGEST_DAILY_PAGES` (Greenhouse preset endpoint page depth)
+- `GREENHOUSE_RESULTS_PER_PAGE` (default `50`, max `100`)
+- `GREENHOUSE_INGEST_DEFAULT_KEYWORDS` / `GREENHOUSE_INGEST_DEFAULT_LOCATION` (defaults when Greenhouse preset query omits overrides)
 - `JOB_CATALOG_INGESTION_USER_ID` (default `catalog_ingestion_system`, used by scheduler script and preset endpoint)
 
 ### Troubleshooting “404” on `/v1/agents/chat`
