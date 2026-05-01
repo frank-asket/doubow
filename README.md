@@ -198,19 +198,29 @@ docker compose -f backend/docker-compose.yml --env-file backend/.env down
 
 ## 🗄️ Database Workflow (Supabase/Postgres)
 
-Set `DATABASE_URL`, then run:
+Set `DATABASE_URL` in `backend/.env`, then run:
+
+**Supabase** (connection strings with `?ssl=...` — required for Alembic/psycopg2):
+
+```bash
+make -C backend db-sync-safe
+```
+
+**Local Docker Postgres** (typical `localhost:5433` URL without `ssl=` query issues):
 
 ```bash
 make -C backend db-sync
 ```
 
-Explicit steps:
+Explicit steps — **local:**
 
 ```bash
 make -C backend db-migrate
 make -C backend db-seed
 make -C backend db-verify
 ```
+
+**Supabase / `?ssl=`** — swap the first line for `make -C backend db-migrate-safe` (or use `db-sync-safe` above).
 
 Reset demo fixtures only:
 

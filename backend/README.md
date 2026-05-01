@@ -31,7 +31,7 @@ docker compose -f backend/infra/docker-compose.yml up -d
 docker compose -f infra/docker-compose.yml up -d
 ```
 
-Then run migrations from repo root: `make -C backend db-migrate` (or `alembic upgrade head` from `backend/api_gateway` with `DATABASE_URL` set).
+Then run migrations from repo root: `make -C backend db-migrate` (or `alembic upgrade head` from `backend/api_gateway` with `DATABASE_URL` set). **Supabase and other hosted URLs** often use `?ssl=...` in the connection string; the app’s async driver accepts that, but **Alembic uses psycopg2**, which rejects `ssl=` as a query option. For those databases use **`make -C backend db-migrate-safe`** instead—it rewrites the URL to `sslmode=` (see `Makefile` target `db-migrate-safe`).
 
 From repo root:
 
@@ -72,18 +72,39 @@ docker compose -f infra/docker-compose.yml down
 
 ## Database workflow
 
-From repo root:
+Set **`DATABASE_URL`** in `backend/.env` (or export it in your shell).
+
+**Migrations**
+
+- Local Postgres (e.g. Docker on `localhost:5433`, typical URL without `ssl=` query issues):
 
 ```bash
 make -C backend db-migrate
+```
+
+- **Supabase / managed Postgres** where `DATABASE_URL` includes `?ssl=...` — use the Alembic-safe target:
+
+```bash
+make -C backend db-migrate-safe
+```
+
+Seed and verify (same for both):
+
+```bash
 make -C backend db-seed
 make -C backend db-verify
 ```
 
-One-command sync:
+One-command sync (`db-migrate` + seed + verify):
 
 ```bash
 make -C backend db-sync
+```
+
+For **Supabase / `?ssl=`** URLs, use the safe migration path end-to-end:
+
+```bash
+make -C backend db-sync-safe
 ```
 
 ## API gateway tests

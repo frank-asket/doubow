@@ -4,7 +4,7 @@ PYTHON ?= python3
 ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
 
-.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe monitoring-drill-report jobs-cache-preview jobs-cache-invalidate
+.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-sync-safe db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe monitoring-drill-report jobs-cache-preview jobs-cache-invalidate
 
 # libpq/psql does not accept SQLAlchemy async URLs (postgresql+asyncpg://). Strip the driver for psql targets.
 define PSQL_CMD
@@ -45,6 +45,10 @@ db-reset-demo:
 	@$(MAKE) db-seed
 
 db-sync: db-migrate db-seed db-verify
+	@echo "Doubow DB sync complete."
+
+# Same as db-sync but uses db-migrate-safe (Supabase / URLs with ?ssl=... for Alembic/psycopg2).
+db-sync-safe: db-migrate-safe db-seed db-verify
 	@echo "Doubow DB sync complete."
 
 # Focused autopilot parity test (legacy runner vs LangGraph nodes produce identical item_results).
