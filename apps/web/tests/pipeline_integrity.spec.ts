@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { ONBOARDING_COMPLETED_INIT } from './e2e-onboarding'
+
 test.describe('pipeline integrity', () => {
   test('integrity preview jump scrolls to application row', async ({ page }) => {
     const now = new Date().toISOString()
@@ -86,9 +88,7 @@ test.describe('pipeline integrity', () => {
       })
     })
 
-    await page.addInitScript(() => {
-      localStorage.setItem('doubow.dashboard.onboarding.v2:anon', '1')
-    })
+    await page.addInitScript(ONBOARDING_COMPLETED_INIT)
 
     await page.goto('/pipeline')
     await expect(page.getByRole('heading', { name: 'My applications' })).toBeVisible()

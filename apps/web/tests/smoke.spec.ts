@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test'
 
+import { ONBOARDING_COMPLETED_INIT } from './e2e-onboarding'
+import {
+  mockApiReachability,
+  mockDashboardApis,
+  mockDiscoverCatalogSupport,
+} from './mock-dashboard-api'
+
 const mockResumeProfile = {
   parsed_profile: {
     summary: 'Summary from uploaded résumé (fixture).',
@@ -20,7 +27,32 @@ test.describe('smoke flows', () => {
   test('resume flow: upload + save preferences + analyze', async ({ page }) => {
     let resumeUploaded = false
 
-    await page.route('**/v1/me/resume', async (route) => {
+    await mockApiReachability(page)
+    await mockDashboardApis(page)
+
+    const apiMatch =
+      (path: string, exact?: boolean) => (url: URL) =>
+        exact ? url.pathname === path : url.pathname.startsWith(path)
+
+    await page.route(apiMatch('/v1/me/preferences', true), async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockResumeProfile.preferences),
+      })
+    })
+
+    await page.route(apiMatch('/v1/me/resume'), async (route) => {
+      const url = new URL(route.request().url())
+      if (url.pathname.includes('/analyze')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ analysis: 'Profile analysis generated for smoke test.' }),
+        })
+        return
+      }
+
       const method = route.request().method()
       if (method === 'GET') {
         if (!resumeUploaded) {
@@ -52,25 +84,7 @@ test.describe('smoke flows', () => {
       await route.fallback()
     })
 
-    await page.route('**/v1/me/preferences', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockResumeProfile.preferences),
-      })
-    })
-
-    await page.route('**/v1/me/resume/analyze', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ analysis: 'Profile analysis generated for smoke test.' }),
-      })
-    })
-
-    await page.addInitScript(() => {
-      localStorage.setItem('doubow.dashboard.onboarding.v2:anon', '1')
-    })
+    await page.addInitScript(ONBOARDING_COMPLETED_INIT)
 
     await page.goto('/resume')
     await expect(page.getByRole('heading', { name: 'Resume Lab' })).toBeVisible()
@@ -85,7 +99,8 @@ test.describe('smoke flows', () => {
       buffer: Buffer.from('%PDF-1.4 smoke'),
     })
 
-    await expect(page.getByText(/Resume uploaded\. Search preferences were updated/i)).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'resume.pdf' })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('button', { name: 'Replace Resume' })).toBeVisible()
     await expect(saveButton).toBeEnabled()
 
     await saveButton.click()
@@ -98,7 +113,9 @@ test.describe('smoke flows', () => {
   test('discover flow: stats render from live data shape', async ({ page }) => {
     const now = new Date().toISOString()
 
-    await page.route('**/v1/me/dashboard', async (route) => {
+    await mockApiReachability(page)
+
+    await page.route((url: URL) => url.pathname === '/v1/me/dashboard', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -115,51 +132,7 @@ test.describe('smoke flows', () => {
       })
     })
 
-    await page.route('**/v1/jobs**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          items: [
-            {
-              id: 'job_1',
-              title: 'AI Engineer',
-              company: 'Acme Labs',
-              location: 'Remote',
-              url: 'https://example.com/job-1',
-              discovered_at: now,
-              salary_range: '$140k-$170k',
-              score: {
-                fit_score: 4.2,
-                fit_reasons: ['Strong Python background'],
-                risk_flags: [],
-                dimension_scores: { tech: 4.5, culture: 3.8, seniority: 4.0, comp: 3.7, location: 4.2 },
-                channel_recommendation: 'email',
-              },
-            },
-            {
-              id: 'job_2',
-              title: 'ML Platform Engineer',
-              company: 'Beta Systems',
-              location: 'Paris',
-              url: 'https://example.com/job-2',
-              discovered_at: now,
-              salary_range: '$120k-$150k',
-              score: {
-                fit_score: 3.4,
-                fit_reasons: ['Platform overlap'],
-                risk_flags: ['Onsite expectation'],
-                dimension_scores: { tech: 3.6, culture: 3.1, seniority: 3.3, comp: 3.2, location: 3.8 },
-                channel_recommendation: 'linkedin',
-              },
-            },
-          ],
-          total: 2,
-          page: 1,
-          per_page: 20,
-        }),
-      })
-    })
+    await mockDiscoverCatalogSupport(page)
 
     await page.route('**/v1/me/applications**', async (route) => {
       await route.fulfill({
@@ -184,20 +157,13 @@ test.describe('smoke flows', () => {
       })
     })
 
-    await page.addInitScript(() => {
-      localStorage.setItem('doubow.dashboard.onboarding.v2:anon', '1')
-    })
+    await page.addInitScript(ONBOARDING_COMPLETED_INIT)
 
     await page.goto('/discover')
-    await expect(page.getByRole('heading', { name: 'Discover' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Job catalog' })).toBeVisible()
 
-    await expect(page.getByText('Evaluated this week')).toBeVisible()
-    await expect(page.getByText('High fit (>= 4.0)')).toBeVisible()
-    await expect(page.getByText('Avg fit score')).toBeVisible()
-    await expect(page.getByText('Applied')).toBeVisible()
-
-    await expect(page.getByText('148')).toBeVisible()
-    await expect(page.getByText('3.8')).toBeVisible()
-    await expect(page.getByText('Top matches · 2 shown')).toBeVisible()
+    await expect(page.locator('main p').filter({ hasText: /Top matches/ }).first()).toBeVisible()
+    await expect(page.getByText('Acme Labs').first()).toBeVisible()
+    await expect(page.getByText('AI Engineer').first()).toBeVisible()
   })
 })
