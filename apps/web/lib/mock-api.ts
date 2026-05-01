@@ -786,6 +786,16 @@ export async function handleMockRequest<T>(
   }
 
   // ——— Agents ———
+  if (pathname === '/v1/agents/capabilities' && method === 'GET') {
+    return {
+      tools: [
+        { name: 'get_pipeline_snapshot', description: 'Pipeline summary' },
+        { name: 'get_job_matches', description: 'Top matches' },
+        { name: 'recompute_job_scores', description: 'Refresh fit scores' },
+      ],
+    } as T
+  }
+
   if (pathname === '/v1/agents/status' && method === 'GET') {
     return buildAgentStates() as T
   }

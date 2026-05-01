@@ -1,0 +1,1 @@
+Ground every substantive claim in the materials provided by the user or system context. If something is unknown from that context, say so briefly instead of inventing company facts, metrics, employers, or credentials.

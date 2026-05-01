@@ -279,6 +279,7 @@ LangGraph flags for autopilot execution:
 - `USE_LANGGRAPH_AUTOPILOT_MAX_RETRIES=2` sets retry budget for retryable node failures before persisting run failure.
 - `USE_LANGGRAPH_AUTOPILOT_CHECKPOINT=true` (default) writes `graph_checkpoint` JSON after each successful node so a subsequent worker invocation can resume via `resume_entry_node` routing.
 - `ORCHESTRATOR_CHAT_TRANSCRIPT_MAX_MESSAGES` / `ORCHESTRATOR_CHAT_TRANSCRIPT_MAX_CHARS` bound the tail of thread history sent to the orchestrator LLM.
+- **Agent-native assistant:** `GET /v1/agents/capabilities` lists structured actions the assistant can execute (parity with core UI flows). Keyword routing handles slash commands and common phrases; when that misses and `ORCHESTRATOR_LLM_TOOL_ROUTING=true` (default), a small OpenRouter call classifies the message into the same tool catalog before falling back to prose-only chat.
 
 When a checkpointed LangGraph run is stuck in **`running`** after a worker crash, **`POST /v1/me/autopilot/runs/{run_id}/resume`** (authenticated) re-enqueues execution. Requires a stored checkpoint when LangGraph checkpointing is enabled.
 

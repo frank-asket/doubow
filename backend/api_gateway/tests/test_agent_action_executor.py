@@ -58,3 +58,21 @@ def test_infer_create_draft_without_application_id() -> None:
 def test_infer_returns_none_for_generic_message() -> None:
     action = infer_action_from_message("How should I position my resume for staff roles?")
     assert action is None
+
+
+def test_infer_recompute_keyword() -> None:
+    action = infer_action_from_message("Please rescore my matches after my edits")
+    assert action is not None
+    assert action.action == "recompute_job_scores"
+
+
+def test_infer_prep_generate_before_summary() -> None:
+    action = infer_action_from_message("generate prep for app_xyz789")
+    assert action is not None
+    assert action.action == "generate_prep_for_application"
+
+
+def test_infer_autopilot_runs() -> None:
+    action = infer_action_from_message("show recent autopilot run status")
+    assert action is not None
+    assert action.action == "list_recent_autopilot_runs"

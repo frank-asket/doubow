@@ -89,6 +89,8 @@ class Settings(BaseSettings):
     # Orchestrator chat: recent transcript bounds (tail of thread for LLM context).
     orchestrator_chat_transcript_max_messages: int = 24
     orchestrator_chat_transcript_max_chars: int = 12000
+    # When True and OpenRouter is configured, classify uncaught NL into structured agent tools (agent-native routing).
+    orchestrator_llm_tool_routing: bool = True
     # Blend weight for semantic score in final fit score. 0.0 disables impact.
     semantic_matching_weight: float = 0.25
     # Blend weight for LLM fit signal in final fit score. 0.0 disables impact.

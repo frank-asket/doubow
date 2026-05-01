@@ -45,3 +45,14 @@ class ChatThreadDetailResponse(BaseModel):
 class ChatThreadListResponse(BaseModel):
     threads: list[ChatThreadSummaryResponse]
     has_more: bool = False
+
+
+class AgentToolCapability(BaseModel):
+    name: str
+    description: str
+
+
+class AgentCapabilitiesResponse(BaseModel):
+    """Discoverable agent actions (parity with product UI)."""
+
+    tools: list[AgentToolCapability]

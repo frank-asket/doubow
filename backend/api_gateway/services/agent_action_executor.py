@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from typing import Literal
 
@@ -9,9 +10,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.approval import Approval
 from models.application import Application
+from models.autopilot_run import AutopilotRun
 from models.job import Job
 from models.job_score import JobScore
+from models.prep_session import PrepSession
+from models.resume import Resume
 from services.draft_service import ApplicationNotFoundError, create_draft_approval_for_application
+from services.jobs_service import recompute_job_scores_for_user
+from services.prep_service import (
+    PrepApplicationNotFoundError,
+    generate_prep_for_application,
+    get_prep_detail_for_user,
+    prep_row_to_detail,
+)
 
 AgentActionName = Literal[
     "get_pipeline_snapshot",
@@ -19,6 +30,11 @@ AgentActionName = Literal[
     "get_job_matches",
     "get_application_detail",
     "create_draft_for_application",
+    "recompute_job_scores",
+    "get_resume_profile_snapshot",
+    "get_prep_session_summary",
+    "generate_prep_for_application",
+    "list_recent_autopilot_runs",
 ]
 
 _PIPELINE_HINTS = (
@@ -37,6 +53,39 @@ _APPROVAL_HINTS = (
 _MATCH_HINTS = ("job matches", "top matches", "best matches", "fit matches", "match summary")
 _APPLICATION_HINTS = ("application detail", "application status", "show application", "latest application")
 _DRAFT_HINTS = ("create draft", "draft approval", "generate draft", "make draft", "new draft")
+_RECOMPUTE_HINTS = (
+    "recompute",
+    "rescore",
+    "refresh match",
+    "refresh scores",
+    "refresh job scores",
+    "update match scores",
+)
+_RESUME_HINTS = (
+    "resume summary",
+    "parsed resume",
+    "what's on my resume",
+    "whats on my resume",
+    "my resume profile",
+    "profile snapshot",
+    "resume on file",
+)
+_PREP_SUMMARY_HINTS = (
+    "prep summary",
+    "my prep session",
+    "show prep",
+    "interview prep summary",
+    "star stories",
+    "company brief",
+)
+_PREP_GENERATE_HINTS = (
+    "generate prep",
+    "regenerate prep",
+    "build prep",
+    "run prep generation",
+    "create interview prep",
+)
+_AUTOPILOT_HINTS = ("autopilot run", "batch run", "scoring run", "recent autopilot", "background run")
 
 
 class AgentActionCall(BaseModel):
@@ -79,6 +128,21 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
     if lower.startswith("/draft") or any(hint in lower for hint in _DRAFT_HINTS):
         return AgentActionCall(action="create_draft_for_application", application_id=_extract_application_id(text))
 
+    if lower.startswith("/rescore") or lower.startswith("/recompute") or any(hint in lower for hint in _RECOMPUTE_HINTS):
+        return AgentActionCall(action="recompute_job_scores")
+
+    if lower.startswith("/resume") or any(hint in lower for hint in _RESUME_HINTS):
+        return AgentActionCall(action="get_resume_profile_snapshot")
+
+    if any(hint in lower for hint in _PREP_GENERATE_HINTS):
+        return AgentActionCall(action="generate_prep_for_application", application_id=_extract_application_id(text))
+
+    if lower.startswith("/prep") or any(hint in lower for hint in _PREP_SUMMARY_HINTS):
+        return AgentActionCall(action="get_prep_session_summary", application_id=_extract_application_id(text))
+
+    if any(hint in lower for hint in _AUTOPILOT_HINTS):
+        return AgentActionCall(action="list_recent_autopilot_runs", limit=_extract_limit(lower))
+
     return None
 
 
@@ -111,6 +175,18 @@ async def execute_action(
         return await _application_detail(session=session, user_id=user_id, application_id=call.application_id)
     if call.action == "create_draft_for_application":
         return await _create_draft_for_application(session=session, user_id=user_id, application_id=call.application_id)
+    if call.action == "recompute_job_scores":
+        return await _recompute_job_scores(session=session, user_id=user_id)
+    if call.action == "get_resume_profile_snapshot":
+        return await _resume_profile_snapshot(session=session, user_id=user_id)
+    if call.action == "get_prep_session_summary":
+        return await _prep_session_summary(
+            session=session, user_id=user_id, application_id=call.application_id
+        )
+    if call.action == "generate_prep_for_application":
+        return await _generate_prep_for_application(session=session, user_id=user_id, application_id=call.application_id)
+    if call.action == "list_recent_autopilot_runs":
+        return await _recent_autopilot_runs(session=session, user_id=user_id, limit=call.limit)
     raise ValueError(f"Unknown action: {call.action}")
 
 
@@ -433,3 +509,242 @@ async def _create_draft_for_application(
         "- Open the new approval and approve or edit it now."
     )
     return AgentActionResult(action="create_draft_for_application", response_text=body)
+
+
+async def _recompute_job_scores(*, session: AsyncSession, user_id: str) -> AgentActionResult:
+    n = await recompute_job_scores_for_user(session, user_id)
+    body = (
+        "Summary:\n"
+        f"- Refreshed job fit scores for {n} job row(s) tied to your profile.\n"
+        "Recommended Actions:\n"
+        "- Open Discover and verify top matches reflect your latest resume.\n"
+        "- Queue high-fit roles while scores are fresh.\n"
+        "Why:\n"
+        "- Scores blend lexical and (when enabled) semantic signals against your stored profile.\n"
+        "Next Step:\n"
+        "- Review your top 5 matches in Discover now."
+    )
+    return AgentActionResult(action="recompute_job_scores", response_text=body)
+
+
+async def _resume_profile_snapshot(*, session: AsyncSession, user_id: str) -> AgentActionResult:
+    row = (
+        await session.execute(
+            select(Resume)
+            .where(Resume.user_id == user_id)
+            .order_by(Resume.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if row is None:
+        body = (
+            "Summary:\n"
+            "- No resume file is stored yet.\n"
+            "Recommended Actions:\n"
+            "- Upload a resume from the Resume screen.\n"
+            "Why:\n"
+            "- Parsing profile data drives matching and drafts.\n"
+            "Next Step:\n"
+            "- Upload your resume (PDF or DOCX)."
+        )
+        return AgentActionResult(action="get_resume_profile_snapshot", response_text=body)
+
+    profile_excerpt = ""
+    if isinstance(row.parsed_profile, dict) and row.parsed_profile:
+        raw = json.dumps(row.parsed_profile, ensure_ascii=False)
+        profile_excerpt = raw[:2400] + ("…" if len(raw) > 2400 else "")
+    pref_excerpt = ""
+    if isinstance(row.preferences, dict) and row.preferences:
+        rawp = json.dumps(row.preferences, ensure_ascii=False)
+        pref_excerpt = rawp[:1200] + ("…" if len(rawp) > 1200 else "")
+
+    body = (
+        "Summary:\n"
+        f"- Latest resume on file: `{row.file_name}` (version {row.version}).\n"
+        + (
+            f"- Parsed profile (excerpt):\n{profile_excerpt}\n"
+            if profile_excerpt
+            else "- Parsed profile is empty — consider re-uploading a clearer file.\n"
+        )
+        + (
+            f"- Stated preferences:\n{pref_excerpt}\n"
+            if pref_excerpt
+            else ""
+        )
+        + "Recommended Actions:\n"
+        "- Align preferences with target roles and locations.\n"
+        "- Trigger a score refresh after substantive edits.\n"
+        "Why:\n"
+        "- Drafts and matching ground on this snapshot.\n"
+        "Next Step:\n"
+        "- Say “refresh my matches” after any preference change."
+    )
+    return AgentActionResult(action="get_resume_profile_snapshot", response_text=body)
+
+
+async def _prep_session_summary(
+    *,
+    session: AsyncSession,
+    user_id: str,
+    application_id: str | None,
+) -> AgentActionResult:
+    target_app = application_id
+    if not target_app:
+        prep_row = (
+            await session.execute(
+                select(PrepSession)
+                .join(Application, Application.id == PrepSession.application_id)
+                .where(Application.user_id == user_id)
+                .order_by(PrepSession.created_at.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        if prep_row is None:
+            body = (
+                "Summary:\n"
+                "- No interview prep sessions found yet.\n"
+                "Recommended Actions:\n"
+                "- Open Prep from an application and generate prep.\n"
+                "Why:\n"
+                "- Prep is generated per application.\n"
+                "Next Step:\n"
+                "- Queue an application, then ask to generate interview prep for it."
+            )
+            return AgentActionResult(action="get_prep_session_summary", response_text=body)
+        detail = await prep_row_to_detail(session, user_id, prep_row)
+    else:
+        detail = await get_prep_detail_for_user(session, user_id, target_app)
+        if detail is None:
+            body = (
+                "Summary:\n"
+                f"- No prep session for application `{target_app}`.\n"
+                "Recommended Actions:\n"
+                "- Generate prep for that application first.\n"
+                "Why:\n"
+                "- Prep rows are created when you run Prep > Generate.\n"
+                "Next Step:\n"
+                "- Ask to generate interview prep for that application."
+            )
+            return AgentActionResult(action="get_prep_session_summary", response_text=body)
+
+    n_q = len(detail.questions or [])
+    n_star = len(detail.star_stories or [])
+    brief = (detail.company_brief or "").strip()
+    brief_snip = brief[:900] + ("…" if len(brief) > 900 else "")
+    title_line = f"{detail.application.job.title} @ {detail.application.job.company}"
+    body = (
+        "Summary:\n"
+        f"- Prep for `{title_line}` (application `{detail.application.id}`).\n"
+        f"- Questions: {n_q}; STAR stories: {n_star}.\n"
+        f"- Company brief (excerpt):\n{brief_snip if brief_snip else '(empty)'}\n"
+        "Recommended Actions:\n"
+        "- Rehearse STAR stories aloud with timers.\n"
+        "- Cross-check claims against your resume facts.\n"
+        "Why:\n"
+        "- Grounded prep improves signal in interviews.\n"
+        "Next Step:\n"
+        "- Drill one STAR story end-to-end."
+    )
+    return AgentActionResult(action="get_prep_session_summary", response_text=body)
+
+
+async def _latest_application_id(session: AsyncSession, user_id: str) -> str | None:
+    row = (
+        await session.execute(
+            select(Application.id)
+            .where(Application.user_id == user_id)
+            .order_by(Application.last_updated.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    return str(row) if row else None
+
+
+async def _generate_prep_for_application(
+    *,
+    session: AsyncSession,
+    user_id: str,
+    application_id: str | None,
+) -> AgentActionResult:
+    app_id = application_id or await _latest_application_id(session, user_id)
+    if not app_id:
+        raise AgentActionPolicyError(
+            action="generate_prep_for_application",
+            code="application_id_required",
+            detail="Policy blocked: specify an application id (app_*) or add at least one application to your pipeline.",
+        )
+    try:
+        detail = await generate_prep_for_application(session, user_id, app_id)
+    except PrepApplicationNotFoundError:
+        raise AgentActionPolicyError(
+            action="generate_prep_for_application",
+            code="application_not_found",
+            detail=f"Policy blocked: application `{app_id}` was not found in your pipeline.",
+        ) from None
+
+    n_q = len(detail.questions or [])
+    n_star = len(detail.star_stories or [])
+    body = (
+        "Summary:\n"
+        f"- Generated fresh interview prep for application `{app_id}` (prep id `{detail.id}`).\n"
+        f"- Questions: {n_q}; STAR stories: {n_star}.\n"
+        "Recommended Actions:\n"
+        "- Open the Prep tab for this application to review full content.\n"
+        "- Regenerate only if the job description changed materially.\n"
+        "Why:\n"
+        "- Prep consumes LLM quota and overwrites the latest session for that application.\n"
+        "Next Step:\n"
+        "- Rehearse the first STAR story aloud."
+    )
+    return AgentActionResult(action="generate_prep_for_application", response_text=body)
+
+
+async def _recent_autopilot_runs(
+    *,
+    session: AsyncSession,
+    user_id: str,
+    limit: int,
+) -> AgentActionResult:
+    limit = max(1, min(20, limit))
+    rows = (
+        await session.execute(
+            select(AutopilotRun)
+            .where(AutopilotRun.user_id == user_id)
+            .order_by(AutopilotRun.started_at.desc().nulls_last(), AutopilotRun.created_at.desc())
+            .limit(limit)
+        )
+    ).scalars().all()
+    if not rows:
+        body = (
+            "Summary:\n"
+            "- No autopilot runs recorded yet.\n"
+            "Recommended Actions:\n"
+            "- Start autopilot from the product when you have queued applications.\n"
+            "Why:\n"
+            "- Batch drafting and scoring show up here.\n"
+            "Next Step:\n"
+            "- Queue applications, then run autopilot."
+        )
+        return AgentActionResult(action="list_recent_autopilot_runs", response_text=body)
+
+    lines = []
+    for r in rows:
+        detail = (r.failure_detail or "")[:120]
+        lines.append(
+            f"- run `{r.id}` status={r.status} scope={r.scope} "
+            f"started={r.started_at.isoformat() if r.started_at else 'n/a'} "
+            f"fail={detail or 'none'}"
+        )
+    body = (
+        "Summary:\n"
+        f"- Showing {len(rows)} recent autopilot run(s).\n"
+        "Recommended Actions:\n"
+        "- If a run is stuck `running` with a checkpoint, use Resume from the Assistant/API.\n"
+        "- Retry failed runs after fixing upstream issues.\n"
+        "Why:\n"
+        "- Background runs can fail when LLM or mail prerequisites are missing.\n"
+        "Next Step:\n"
+        "- Open Approvals if the last run produced drafts.\n\n"
+        + "\n".join(lines)
+    )
+    return AgentActionResult(action="list_recent_autopilot_runs", response_text=body)

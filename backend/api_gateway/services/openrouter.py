@@ -100,6 +100,7 @@ async def chat_completion(
     system_message: str,
     use_case: str | None = None,
     model_override: str | None = None,
+    max_tokens: int | None = None,
 ) -> str:
     key = settings.openrouter_api_key
     if not key:
@@ -136,6 +137,8 @@ async def chat_completion(
         ],
     }
     payload.update(_USE_CASE_DEFAULTS.get(use_case_key, {}))
+    if max_tokens is not None:
+        payload["max_tokens"] = int(max_tokens)
 
     logger.debug(
         "openrouter.chat use_case=%s model=%s payload_keys=%s",

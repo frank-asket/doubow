@@ -7,6 +7,7 @@ from models.autopilot_run import AutopilotRun
 from models.job import Job
 from models.job_score import JobScore
 from schemas.agents import AgentStatusResponse
+from services.agent_tools_catalog import format_agent_tools_for_user_context
 
 
 def _autopilot_run_progress(runs: list[AutopilotRun]) -> float | None:
@@ -146,7 +147,7 @@ async def build_orchestrator_user_context(session: AsyncSession, user_id: str) -
     ).scalar_one()
 
     if not rows:
-        return "No applications in pipeline yet."
+        return "No applications in pipeline yet.\n\n" + format_agent_tools_for_user_context()
 
     recent_lines = []
     for app, job in rows[:5]:
@@ -158,5 +159,8 @@ async def build_orchestrator_user_context(session: AsyncSession, user_id: str) -
     return (
         f"Applications: {len(rows)} recent shown; status mix [{status_text}]. "
         f"Pending approvals: {int(pending_approvals)}.\n"
-        f"Recent pipeline items:\n" + "\n".join(recent_lines)
+        f"Recent pipeline items:\n"
+        + "\n".join(recent_lines)
+        + "\n\n"
+        + format_agent_tools_for_user_context()
     )

@@ -13,10 +13,11 @@ from models.chat_thread import ChatThread
 from models.user import User
 from config import settings
 from schemas.agents import (
+    AgentCapabilitiesResponse,
+    AgentToolCapability,
     AgentStatusResponse,
     ChatThreadDetailResponse,
     ChatThreadListResponse,
-    ChatThreadSummaryResponse,
     OrchestratorChatRequest,
 )
 from services.agent_chat_service import (
@@ -28,6 +29,8 @@ from services.agent_chat_service import (
 )
 from services.agents_service import build_orchestrator_user_context, list_agent_status
 from services.agent_action_executor import AgentActionPolicyError, execute_action, infer_action_from_message
+from services.agent_tool_router import plan_agent_action_from_llm
+from services.agent_tools_catalog import AGENT_TOOLS
 from services.llm_prompts import ORCHESTRATOR_SYSTEM, normalize_orchestrator_response_with_meta
 from services.metrics import observe_llm_output_quality
 from services.openrouter import stream_chat_completion_chunks
@@ -35,6 +38,15 @@ from services.openrouter import stream_chat_completion_chunks
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agents", tags=["agents"])
+
+
+@router.get("/capabilities", response_model=AgentCapabilitiesResponse)
+async def agent_capabilities(
+    user: User = Depends(get_authenticated_user),
+) -> AgentCapabilitiesResponse:
+    """List structured actions the assistant can run (agent-native capability discovery)."""
+    tools = [AgentToolCapability(name=t.name, description=t.summary) for t in AGENT_TOOLS]
+    return AgentCapabilitiesResponse(tools=tools)
 
 
 @router.get("/status", response_model=list[AgentStatusResponse])
@@ -116,6 +128,8 @@ async def orchestrator_chat(
         user_message = payload.message
 
     action_call = infer_action_from_message(payload.message)
+    if action_call is None:
+        action_call = await plan_agent_action_from_llm(payload.message)
 
     async def reply_stream():
         acc = ""

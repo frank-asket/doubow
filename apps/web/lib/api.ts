@@ -304,8 +304,12 @@ export const linkedinIntegrationsApi = {
 
 // ─── Agents ────────────────────────────────────────────────────────────────
 
+export type AgentToolCapability = { name: string; description: string }
+
 export const agentsApi = {
   status: () => request<AgentState[]>('/v1/agents/status'),
+  /** Structured assistant actions (parity with UI); use for capability discovery / agent-native UX. */
+  capabilities: () => request<{ tools: AgentToolCapability[] }>('/v1/agents/capabilities'),
 }
 
 export type ChatThreadSummary = {
