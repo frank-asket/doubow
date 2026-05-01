@@ -32,7 +32,7 @@ from services.agent_action_executor import AgentActionPolicyError, execute_actio
 from services.agent_tool_router import plan_agent_action_from_llm
 from services.agent_tools_catalog import AGENT_TOOLS
 from services.llm_prompts import ORCHESTRATOR_SYSTEM, normalize_orchestrator_response_with_meta
-from services.metrics import observe_llm_output_quality
+from services.metrics import observe_assistant_action, observe_assistant_tool_routing, observe_llm_output_quality
 from services.openrouter import stream_chat_completion_chunks
 
 logger = logging.getLogger(__name__)
@@ -127,7 +127,10 @@ async def orchestrator_chat(
     else:
         user_message = payload.message
 
-    action_call = infer_action_from_message(payload.message)
+    kw_action = infer_action_from_message(payload.message)
+    if kw_action is not None:
+        observe_assistant_tool_routing(phase="keyword_match")
+    action_call = kw_action
     if action_call is None:
         action_call = await plan_agent_action_from_llm(payload.message)
 
@@ -157,6 +160,7 @@ async def orchestrator_chat(
                     )
                 try:
                     action_result = await execute_action(session=session, user_id=user.id, call=action_call)
+                    observe_assistant_action(action=action_result.action, result="success")
                     observe_llm_output_quality(use_case="chat", outcome=f"action_{action_result.action}")
                     tool_result_payload = {
                         "kind": "tool_result",
@@ -185,6 +189,7 @@ async def orchestrator_chat(
                     chunk = json.dumps({"delta": {"text": action_result.response_text}})
                     yield f"data: {chunk}\n\n"
                 except AgentActionPolicyError as exc:
+                    observe_assistant_action(action=exc.action, result="policy_error")
                     observe_llm_output_quality(use_case="chat", outcome=f"action_policy_{exc.code}")
                     tool_result_payload = {
                         "kind": "tool_result",
@@ -213,6 +218,38 @@ async def orchestrator_chat(
                         await append_chat_message(session=session, thread=row, role="assistant", content=exc.detail)
                         await session.commit()
                     chunk = json.dumps({"delta": {"text": exc.detail}})
+                    yield f"data: {chunk}\n\n"
+                    yield "data: [DONE]\n\n"
+                    return
+                except Exception as action_exc:
+                    observe_assistant_action(action=action_call.action, result="error")
+                    logger.exception(
+                        "orchestrator_chat action execution failed action=%s user=%s",
+                        action_call.action,
+                        user.id,
+                    )
+                    err_msg = (
+                        str(action_exc)
+                        if str(action_exc).strip() and len(str(action_exc)) < 300
+                        else "Action could not be completed."
+                    )
+                    tool_result_payload = {
+                        "kind": "tool_result",
+                        "name": action_call.action,
+                        "ok": False,
+                        "summary": err_msg,
+                    }
+                    tool_result_evt = json.dumps(
+                        {
+                            "tool_result": {
+                                "name": action_call.action,
+                                "ok": False,
+                                "summary": err_msg,
+                            }
+                        }
+                    )
+                    yield f"data: {tool_result_evt}\n\n"
+                    chunk = json.dumps({"delta": {"text": f"(Error) {err_msg}"}})
                     yield f"data: {chunk}\n\n"
                     yield "data: [DONE]\n\n"
                     return

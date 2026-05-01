@@ -79,6 +79,18 @@ const SUGGESTIONS = [
   'Update my resume',
 ] as const
 
+/** Shipped shortcuts — mirrors backend slash routing (`services/agent_action_executor.py`). */
+const ASSISTANT_SLASH_HINTS: readonly { cmd: string; hint: string }[] = [
+  { cmd: '/pipeline', hint: 'Pipeline summary & pending approvals count' },
+  { cmd: '/matches', hint: 'Top scored job matches' },
+  { cmd: '/queue jb_* email|linkedin', hint: 'Queue a job into your pipeline' },
+  { cmd: '/dismiss jb_*', hint: 'Hide a job from Discover' },
+  { cmd: '/approve <uuid>', hint: 'Approve an outbound draft (same as Approvals UI)' },
+  { cmd: '/reject <uuid>', hint: 'Discard a pending approval' },
+  { cmd: '/approvals', hint: 'List pending approvals' },
+  { cmd: '/rescore', hint: 'Refresh job fit scores' },
+]
+
 const LOCAL_STORAGE_NS = 'doubow.messages.history.v1'
 
 function mapAgentState(state: AgentState): AgentTask {
@@ -218,6 +230,12 @@ export default function MessagesPage() {
     shouldRetryOnError: false,
     revalidateOnFocus: false,
   })
+
+  const { data: agentCapabilities, isLoading: capabilitiesLoading } = useSWR(
+    meDebug?.user_id ? 'messages-agent-capabilities' : null,
+    () => agentsApi.capabilities(),
+    { shouldRetryOnError: false, revalidateOnFocus: false },
+  )
 
   const { data: approvals } = useSWR(meDebug?.user_id ? 'messages-approvals' : null, () => approvalsApi.list(), {
     shouldRetryOnError: false,
@@ -608,6 +626,50 @@ export default function MessagesPage() {
                   </div>
                 </div>
               ) : null}
+
+              <details className="ml-11 rounded-lg border border-teal-200/80 bg-teal-50/50 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/30">
+                <summary className="cursor-pointer list-none text-[13px] font-bold text-teal-900 dark:text-teal-100 [&::-webkit-details-marker]:hidden">
+                  <span className="inline-flex items-center gap-2">
+                    <Sparkles size={14} className="text-teal-700 dark:text-teal-300" />
+                    Assistant shortcuts — slash commands & account actions
+                  </span>
+                </summary>
+                <div className="mt-3 space-y-3 border-t border-teal-200/60 pt-3 dark:border-teal-900/40">
+                  <p className="text-[12px] font-semibold leading-snug text-zinc-700 dark:text-slate-200">
+                    Try commands starting with{' '}
+                    <kbd className="rounded bg-white px-1.5 py-0.5 font-mono text-[11px] dark:bg-slate-800">/</kbd> — same
+                    outcomes as Discover, Pipeline, and Approvals.
+                  </p>
+                  <ul className="space-y-1.5 text-[12px] text-zinc-800 dark:text-slate-100">
+                    {ASSISTANT_SLASH_HINTS.map((row) => (
+                      <li key={row.cmd} className="flex flex-wrap gap-x-2 gap-y-0.5">
+                        <code className="shrink-0 rounded bg-white px-1.5 py-0.5 font-mono text-[11px] text-teal-900 dark:bg-slate-900 dark:text-teal-200">
+                          {row.cmd}
+                        </code>
+                        <span className="font-medium text-zinc-600 dark:text-slate-300">— {row.hint}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {agentCapabilities?.tools?.length ? (
+                    <div>
+                      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-zinc-500 dark:text-slate-400">
+                        Full tool list ({agentCapabilities.tools.length}) — from{' '}
+                        <code className="rounded bg-white px-1 font-mono text-[10px] dark:bg-slate-900">GET /v1/agents/capabilities</code>
+                      </p>
+                      <ul className="max-h-36 space-y-1 overflow-y-auto rounded border border-zinc-200 bg-white p-2 text-[11px] dark:border-slate-700 dark:bg-slate-900">
+                        {agentCapabilities.tools.map((t) => (
+                          <li key={t.name} className="leading-snug">
+                            <span className="font-bold text-zinc-900 dark:text-white">{t.name}</span>
+                            <span className="text-zinc-600 dark:text-slate-400"> — {t.description}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : capabilitiesLoading && meDebug?.user_id ? (
+                    <p className="text-[11px] font-semibold text-zinc-500 dark:text-slate-400">Loading capabilities…</p>
+                  ) : null}
+                </div>
+              </details>
 
               <div className="ml-11 flex flex-wrap gap-2">
                 {SUGGESTIONS.map((item) => (

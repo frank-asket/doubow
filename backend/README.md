@@ -161,6 +161,8 @@ Runtime mapping:
 Safe diagnostics endpoint:
 - `GET /v1/me/debug/ai-config` returns model resolution and OpenRouter config health (never returns API keys).
 
+Prometheus (`GET /metrics`): assistant chat emits `doubow_assistant_tool_routing_total{phase=...}` (e.g. `keyword_match`, `llm_plan_hit`, `llm_plan_none`, `llm_skipped_no_key`) and `doubow_assistant_action_total{action=...,result=...}` (`success`, `policy_error`, `error`) for structured tool parity visibility.
+
 ## Provider ingestion (Adzuna + Greenhouse)
 
 Protected endpoint:

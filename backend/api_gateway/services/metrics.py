@@ -38,6 +38,16 @@ LLM_OUTPUT_QUALITY_COUNT = Counter(
     "Post-processing quality signals for LLM outputs by use-case/outcome",
     ["use_case", "outcome"],
 )
+ASSISTANT_TOOL_ROUTING_TOTAL = Counter(
+    "doubow_assistant_tool_routing_total",
+    "Assistant chat: how tool intent was resolved before execution",
+    ["phase"],
+)
+ASSISTANT_ACTION_TOTAL = Counter(
+    "doubow_assistant_action_total",
+    "Assistant structured tool executions",
+    ["action", "result"],
+)
 API_ERRORS_TOTAL = Counter(
     "doubow_api_errors_total",
     "Unhandled API exceptions by method/path/error_type",
@@ -117,3 +127,16 @@ def observe_llm_call(
 def observe_llm_output_quality(*, use_case: str, outcome: str) -> None:
     """Record post-processing quality outcomes for generated model outputs."""
     LLM_OUTPUT_QUALITY_COUNT.labels((use_case or "default").strip() or "default", (outcome or "unknown").strip()).inc()
+
+
+def observe_assistant_tool_routing(*, phase: str) -> None:
+    """Record assistant chat tool-resolution path (keyword vs LLM planner vs skipped)."""
+    ASSISTANT_TOOL_ROUTING_TOTAL.labels((phase or "unknown").strip() or "unknown").inc()
+
+
+def observe_assistant_action(*, action: str, result: str) -> None:
+    """Record assistant structured action outcomes (bounded action names from executor)."""
+    ASSISTANT_ACTION_TOTAL.labels(
+        (action or "unknown").strip() or "unknown",
+        (result or "unknown").strip() or "unknown",
+    ).inc()

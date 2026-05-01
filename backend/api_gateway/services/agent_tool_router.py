@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from config import settings
 from services.agent_action_executor import AgentActionCall, AgentActionName, AgentChannel
 from services.agent_tools_catalog import AGENT_TOOLS
+from services.metrics import observe_assistant_tool_routing
 from services.openrouter import chat_completion
 
 logger = logging.getLogger(__name__)
@@ -50,8 +51,10 @@ def _extract_json_object(text: str) -> str | None:
 async def plan_agent_action_from_llm(user_message: str) -> AgentActionCall | None:
     """When keyword routing misses, ask a small model which tool applies (or none)."""
     if not settings.openrouter_api_key:
+        observe_assistant_tool_routing(phase="llm_skipped_no_key")
         return None
     if not settings.orchestrator_llm_tool_routing:
+        observe_assistant_tool_routing(phase="llm_skipped_flag")
         return None
 
     catalog = "\n".join(f"- {t.name}: {t.summary}" for t in AGENT_TOOLS)
@@ -77,33 +80,41 @@ async def plan_agent_action_from_llm(user_message: str) -> AgentActionCall | Non
         )
     except Exception:
         logger.exception("agent_tool_router: OpenRouter call failed")
+        observe_assistant_tool_routing(phase="llm_plan_error")
         return None
 
     blob = _extract_json_object(raw)
     if not blob:
+        observe_assistant_tool_routing(phase="llm_plan_none")
         return None
     try:
         data = json.loads(blob)
     except json.JSONDecodeError:
         logger.debug("agent_tool_router: invalid json raw=%s", raw[:200])
+        observe_assistant_tool_routing(phase="llm_plan_none")
         return None
 
     try:
         plan = _ToolPlanRaw.model_validate(data)
     except Exception:
+        observe_assistant_tool_routing(phase="llm_plan_none")
         return None
 
     act = (plan.action or "").strip()
     if act.lower() == "none" or not act:
+        observe_assistant_tool_routing(phase="llm_plan_none")
         return None
     if act not in _VALID_NAMES:
         logger.debug("agent_tool_router: unknown action=%s", act)
+        observe_assistant_tool_routing(phase="llm_plan_none")
         return None
 
     ch_norm = (plan.channel or "").strip().lower()
     channel_valid: str | None = None
     if ch_norm in {"email", "linkedin", "company_site"}:
         channel_valid = ch_norm
+
+    observe_assistant_tool_routing(phase="llm_plan_hit")
 
     return AgentActionCall(
         action=cast(AgentActionName, act),

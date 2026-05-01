@@ -790,6 +790,9 @@ export async function handleMockRequest<T>(
     return {
       tools: [
         { name: 'get_pipeline_snapshot', description: 'Pipeline summary' },
+        { name: 'queue_job_to_pipeline', description: 'Queue a job into your pipeline' },
+        { name: 'dismiss_job_from_discover', description: 'Hide a job from Discover' },
+        { name: 'approve_outbound_draft', description: 'Approve pending outbound' },
         { name: 'get_job_matches', description: 'Top matches' },
         { name: 'recompute_job_scores', description: 'Refresh fit scores' },
       ],
