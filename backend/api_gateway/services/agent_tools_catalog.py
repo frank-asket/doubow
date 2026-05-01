@@ -53,6 +53,22 @@ AGENT_TOOLS: tuple[AgentToolSpec, ...] = (
         "list_recent_autopilot_runs",
         "List recent autopilot / batch runs (status, scope, failure hints).",
     ),
+    AgentToolSpec(
+        "queue_job_to_pipeline",
+        "Queue a catalog job into your pipeline (Discover → Application); requires job_id and channel (email/linkedin/company_site).",
+    ),
+    AgentToolSpec(
+        "dismiss_job_from_discover",
+        "Dismiss/hide a job from your Discover matches (same as swipe dismiss).",
+    ),
+    AgentToolSpec(
+        "approve_outbound_draft",
+        "Approve a pending outbound draft (approval UUID); triggers the same send pipeline as the Approvals UI.",
+    ),
+    AgentToolSpec(
+        "reject_outbound_draft",
+        "Reject/delete a pending approval draft without sending.",
+    ),
 )
 
 

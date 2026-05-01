@@ -11,7 +11,7 @@ from typing import cast
 from pydantic import BaseModel, Field
 
 from config import settings
-from services.agent_action_executor import AgentActionCall, AgentActionName
+from services.agent_action_executor import AgentActionCall, AgentActionName, AgentChannel
 from services.agent_tools_catalog import AGENT_TOOLS
 from services.openrouter import chat_completion
 
@@ -26,6 +26,12 @@ class _ToolPlanRaw(BaseModel):
     )
     limit: int = Field(default=5, ge=1, le=20)
     application_id: str | None = None
+    job_id: str | None = None
+    approval_id: str | None = None
+    channel: str | None = Field(
+        default=None,
+        description="email, linkedin, or company_site — only for queue_job_to_pipeline.",
+    )
 
 
 def _extract_json_object(text: str) -> str | None:
@@ -55,6 +61,9 @@ async def plan_agent_action_from_llm(user_message: str) -> AgentActionCall | Non
         '- action: string — must be one tool name from the list below, or the literal word "none".\n'
         "- limit: integer 1–20 — only for tools that list rows (default 5).\n"
         '- application_id: string or null — app_* id or UUID when the tool needs a specific application.\n'
+        "- job_id: string or null — jb_* id or job UUID for queue/dismiss actions.\n"
+        "- approval_id: string or null — approval UUID for approve/reject actions.\n"
+        '- channel: string or null — "email", "linkedin", or "company_site" when queueing a job.\n'
         "Choose `none` when the user is asking for advice, explanation, or editing prose — not an account action.\n\n"
         "Tools:\n"
         f"{catalog}"
@@ -91,8 +100,16 @@ async def plan_agent_action_from_llm(user_message: str) -> AgentActionCall | Non
         logger.debug("agent_tool_router: unknown action=%s", act)
         return None
 
+    ch_norm = (plan.channel or "").strip().lower()
+    channel_valid: str | None = None
+    if ch_norm in {"email", "linkedin", "company_site"}:
+        channel_valid = ch_norm
+
     return AgentActionCall(
         action=cast(AgentActionName, act),
         limit=plan.limit,
         application_id=plan.application_id,
+        job_id=plan.job_id,
+        approval_id=plan.approval_id,
+        channel=cast(AgentChannel | None, channel_valid),
     )

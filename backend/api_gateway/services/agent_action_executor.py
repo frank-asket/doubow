@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from typing import Literal
+from uuid import uuid4
 
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
@@ -15,14 +16,28 @@ from models.job import Job
 from models.job_score import JobScore
 from models.prep_session import PrepSession
 from models.resume import Resume
+from schemas.applications import Channel, CreateApplicationRequest
+from services.applications_service import (
+    ApplicationIdempotencyConflictError,
+    ApplicationJobNotFoundError,
+    create_application,
+)
+from services.approvals_service import (
+    ApprovalIdempotencyConflictError,
+    approve_approval as approve_approval_service,
+    reject_approval as reject_approval_service,
+)
 from services.draft_service import ApplicationNotFoundError, create_draft_approval_for_application
-from services.jobs_service import recompute_job_scores_for_user
+from services.jobs_service import dismiss_job_for_user, recompute_job_scores_for_user
+from services.send_approval_service import schedule_post_approve_dispatch
 from services.prep_service import (
     PrepApplicationNotFoundError,
     generate_prep_for_application,
     get_prep_detail_for_user,
     prep_row_to_detail,
 )
+
+AgentChannel = Literal["email", "linkedin", "company_site"]
 
 AgentActionName = Literal[
     "get_pipeline_snapshot",
@@ -35,6 +50,10 @@ AgentActionName = Literal[
     "get_prep_session_summary",
     "generate_prep_for_application",
     "list_recent_autopilot_runs",
+    "queue_job_to_pipeline",
+    "dismiss_job_from_discover",
+    "approve_outbound_draft",
+    "reject_outbound_draft",
 ]
 
 _PIPELINE_HINTS = (
@@ -92,6 +111,9 @@ class AgentActionCall(BaseModel):
     action: AgentActionName
     limit: int = Field(default=5, ge=1, le=20)
     application_id: str | None = None
+    job_id: str | None = None
+    approval_id: str | None = None
+    channel: AgentChannel | None = None
 
 
 class AgentActionResult(BaseModel):
@@ -112,6 +134,22 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
     lower = text.lower()
     if not lower:
         return None
+
+    if lower.startswith("/queue"):
+        return AgentActionCall(
+            action="queue_job_to_pipeline",
+            job_id=_extract_job_id(text),
+            channel=_infer_channel(lower),
+        )
+
+    if lower.startswith("/dismiss"):
+        return AgentActionCall(action="dismiss_job_from_discover", job_id=_extract_job_id(text))
+
+    if lower.startswith("/approve"):
+        return AgentActionCall(action="approve_outbound_draft", approval_id=_extract_approval_id_only(text))
+
+    if lower.startswith("/reject"):
+        return AgentActionCall(action="reject_outbound_draft", approval_id=_extract_approval_id_only(text))
 
     if lower.startswith("/pipeline") or any(hint in lower for hint in _PIPELINE_HINTS):
         return AgentActionCall(action="get_pipeline_snapshot")
@@ -142,6 +180,23 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
 
     if any(hint in lower for hint in _AUTOPILOT_HINTS):
         return AgentActionCall(action="list_recent_autopilot_runs", limit=_extract_limit(lower))
+
+    jid = _extract_job_id(text)
+    if jid:
+        if any(p in lower for p in ("add to pipeline", "queue this job", "save to pipeline")):
+            return AgentActionCall(
+                action="queue_job_to_pipeline",
+                job_id=jid,
+                channel=_infer_channel(lower),
+            )
+        if any(p in lower for p in ("dismiss this job", "hide this job", "not interested in this job")):
+            return AgentActionCall(action="dismiss_job_from_discover", job_id=jid)
+
+    aid = _extract_approval_id_only(text)
+    if aid and any(p in lower for p in ("approve this draft", "approve the draft", "approve outbound draft")):
+        return AgentActionCall(action="approve_outbound_draft", approval_id=aid)
+    if aid and any(p in lower for p in ("reject this draft", "reject the draft", "discard this draft")):
+        return AgentActionCall(action="reject_outbound_draft", approval_id=aid)
 
     return None
 
@@ -187,6 +242,14 @@ async def execute_action(
         return await _generate_prep_for_application(session=session, user_id=user_id, application_id=call.application_id)
     if call.action == "list_recent_autopilot_runs":
         return await _recent_autopilot_runs(session=session, user_id=user_id, limit=call.limit)
+    if call.action == "queue_job_to_pipeline":
+        return await _queue_job_to_pipeline(session=session, user_id=user_id, call=call)
+    if call.action == "dismiss_job_from_discover":
+        return await _dismiss_job_from_discover(session=session, user_id=user_id, call=call)
+    if call.action == "approve_outbound_draft":
+        return await _approve_outbound_draft(session=session, user_id=user_id, call=call)
+    if call.action == "reject_outbound_draft":
+        return await _reject_outbound_draft(session=session, user_id=user_id, call=call)
     raise ValueError(f"Unknown action: {call.action}")
 
 
@@ -198,6 +261,194 @@ def _extract_application_id(text: str) -> str | None:
     if m:
         return m.group(1)
     return None
+
+
+def _extract_job_id(text: str) -> str | None:
+    m = re.search(r"\b(jb_[a-zA-Z0-9_]+)\b", text)
+    if m:
+        return m.group(1)
+    m = re.search(r"\b([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b", text)
+    return m.group(1) if m else None
+
+
+def _extract_approval_id_only(text: str) -> str | None:
+    """Approval rows use UUID primary keys."""
+    m = re.search(r"\b([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b", text)
+    return m.group(1) if m else None
+
+
+def _infer_channel(lower_text: str) -> AgentChannel | None:
+    if "linkedin" in lower_text:
+        return "linkedin"
+    if "company site" in lower_text or "company_site" in lower_text or "company-site" in lower_text:
+        return "company_site"
+    if "email" in lower_text:
+        return "email"
+    return None
+
+
+def _normalize_channel(ch: AgentChannel | None) -> Channel:
+    return ch if ch is not None else "email"
+
+
+async def _queue_job_to_pipeline(
+    *, session: AsyncSession, user_id: str, call: AgentActionCall
+) -> AgentActionResult:
+    if not call.job_id:
+        raise AgentActionPolicyError(
+            action="queue_job_to_pipeline",
+            code="job_id_required",
+            detail="Include a job id (jb_* or UUID), e.g. `/queue jb_cat_001 email`.",
+        )
+    channel = _normalize_channel(call.channel)
+    try:
+        created = await create_application(
+            session,
+            user_id,
+            CreateApplicationRequest(job_id=call.job_id, channel=channel),
+        )
+    except ApplicationJobNotFoundError:
+        raise AgentActionPolicyError(
+            action="queue_job_to_pipeline",
+            code="job_not_found",
+            detail=f"Job `{call.job_id}` was not found in the catalog.",
+        ) from None
+    except ApplicationIdempotencyConflictError as exc:
+        raise AgentActionPolicyError(
+            action="queue_job_to_pipeline",
+            code="idempotency_conflict",
+            detail=f"Idempotency conflict with existing application `{exc.prior_application_id}`.",
+        ) from exc
+
+    body = (
+        "Summary:\n"
+        f"- Queued job into your pipeline: application `{created.id}` (channel={channel}).\n"
+        f"- Role: {created.job.title} @ {created.job.company}.\n"
+        "Recommended Actions:\n"
+        "- Open Pipeline to track status.\n"
+        "- Generate a draft when you are ready to reach out.\n"
+        "Why:\n"
+        "- Queuing records intent and enables drafting and prep.\n"
+        "Next Step:\n"
+        "- Open Pipeline or ask for a draft for this application."
+    )
+    return AgentActionResult(action="queue_job_to_pipeline", response_text=body)
+
+
+async def _dismiss_job_from_discover(
+    *, session: AsyncSession, user_id: str, call: AgentActionCall
+) -> AgentActionResult:
+    if not call.job_id:
+        raise AgentActionPolicyError(
+            action="dismiss_job_from_discover",
+            code="job_id_required",
+            detail="Include a job id to dismiss, e.g. `/dismiss jb_cat_001`.",
+        )
+    try:
+        await dismiss_job_for_user(session, user_id, call.job_id)
+    except LookupError:
+        raise AgentActionPolicyError(
+            action="dismiss_job_from_discover",
+            code="job_not_found",
+            detail=f"Job `{call.job_id}` was not found.",
+        ) from None
+
+    body = (
+        "Summary:\n"
+        f"- Dismissed job `{call.job_id}` from your Discover matches.\n"
+        "Recommended Actions:\n"
+        "- Refresh Discover to continue reviewing remaining roles.\n"
+        "Why:\n"
+        "- Dismissals hide roles from your feed without deleting catalog data.\n"
+        "Next Step:\n"
+        "- Review your next highest-fit match."
+    )
+    return AgentActionResult(action="dismiss_job_from_discover", response_text=body)
+
+
+async def _approve_outbound_draft(
+    *, session: AsyncSession, user_id: str, call: AgentActionCall
+) -> AgentActionResult:
+    if not call.approval_id:
+        raise AgentActionPolicyError(
+            action="approve_outbound_draft",
+            code="approval_id_required",
+            detail="Include an approval id (UUID), e.g. `/approve <uuid>`.",
+        )
+    try:
+        resp = await approve_approval_service(
+            session,
+            user_id,
+            call.approval_id,
+            edited_body=None,
+            idempotency_key=f"agent-approve-{uuid4().hex}",
+        )
+        schedule_post_approve_dispatch(
+            approval_id=call.approval_id,
+            user_id=user_id,
+            queued_send=bool(resp.queued_send and resp.send_task_id),
+            send_task_id=resp.send_task_id,
+        )
+    except ApprovalIdempotencyConflictError as exc:
+        raise AgentActionPolicyError(
+            action="approve_outbound_draft",
+            code="idempotency_conflict",
+            detail=f"Approval idempotency conflict with `{exc.prior_approval_id}`.",
+        ) from exc
+    except ValueError:
+        raise AgentActionPolicyError(
+            action="approve_outbound_draft",
+            code="approval_not_found",
+            detail=f"Approval `{call.approval_id}` was not found.",
+        ) from None
+
+    body = (
+        "Summary:\n"
+        f"- Approved outbound draft `{call.approval_id}` (status={resp.status}).\n"
+        + (
+            "- Outbound send has been queued.\n"
+            if resp.queued_send
+            else "- No new send was queued (already processed or duplicate approval token).\n"
+        )
+        + "Recommended Actions:\n"
+        "- Track delivery from Approvals / Pipeline.\n"
+        "Why:\n"
+        "- Approval authorizes the same outbound path as the product UI.\n"
+        "Next Step:\n"
+        "- Confirm delivery or retry from Approvals if needed."
+    )
+    return AgentActionResult(action="approve_outbound_draft", response_text=body)
+
+
+async def _reject_outbound_draft(
+    *, session: AsyncSession, user_id: str, call: AgentActionCall
+) -> AgentActionResult:
+    if not call.approval_id:
+        raise AgentActionPolicyError(
+            action="reject_outbound_draft",
+            code="approval_id_required",
+            detail="Include an approval id (UUID), e.g. `/reject <uuid>`.",
+        )
+    try:
+        await reject_approval_service(session, user_id, call.approval_id)
+    except ValueError:
+        raise AgentActionPolicyError(
+            action="reject_outbound_draft",
+            code="approval_not_found",
+            detail=f"Approval `{call.approval_id}` was not found.",
+        ) from None
+
+    body = (
+        "Summary:\n"
+        f"- Rejected and removed pending approval `{call.approval_id}`.\n"
+        "Recommended Actions:\n"
+        "- Generate a new draft from Pipeline if you still want to reach out.\n"
+        "Why:\n"
+        "- Reject removes the draft without sending.\n"
+        "Next Step:\n"
+        "- Continue reviewing remaining approvals."
+    )
+    return AgentActionResult(action="reject_outbound_draft", response_text=body)
 
 
 async def _pipeline_snapshot(*, session: AsyncSession, user_id: str) -> AgentActionResult:

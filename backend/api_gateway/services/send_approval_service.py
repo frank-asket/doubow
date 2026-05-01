@@ -317,6 +317,50 @@ async def execute_approval_send_stub(session: AsyncSession, approval_id: str, us
     await session.commit()
 
 
+def schedule_post_approve_dispatch(
+    *,
+    approval_id: str,
+    user_id: str,
+    queued_send: bool,
+    send_task_id: str | None,
+) -> None:
+    """Enqueue outbound send after approval (assistant / parity callers).
+
+    Matches Celery vs in-process preference used by ``POST /me/approvals/{id}/approve``,
+    but on Celery enqueue failure it logs and falls back to ``run_send_stub_in_background``
+    so chat-assistant approvals still attempt delivery.
+    """
+    if not queued_send or not send_task_id:
+        return
+    import asyncio
+
+    if settings.use_celery_for_send_effective():
+        try:
+            from tasks.send_tasks import send_approval_stub_task
+
+            send_approval_stub_task.delay(approval_id, user_id)
+            return
+        except Exception:
+            logger.exception(
+                "schedule_post_approve_dispatch: celery enqueue failed approval_id=%s user_id=%s",
+                approval_id,
+                user_id,
+            )
+            if settings.environment.lower() == "production" and not settings.allow_inprocess_background_in_production:
+                logger.warning(
+                    "schedule_post_approve_dispatch: falling back to in-process send (assistant/API parity)"
+                )
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        logger.warning(
+            "schedule_post_approve_dispatch: no running event loop; outbound send skipped approval_id=%s",
+            approval_id,
+        )
+        return
+    loop.create_task(run_send_stub_in_background(approval_id, user_id))
+
+
 async def run_send_stub_in_background(approval_id: str, user_id: str) -> None:
     """Open an isolated session with RLS context for background execution."""
     token = bind_request_user_for_rls(user_id)

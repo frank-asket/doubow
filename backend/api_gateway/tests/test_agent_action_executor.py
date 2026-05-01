@@ -76,3 +76,30 @@ def test_infer_autopilot_runs() -> None:
     action = infer_action_from_message("show recent autopilot run status")
     assert action is not None
     assert action.action == "list_recent_autopilot_runs"
+
+
+def test_infer_queue_slash_command() -> None:
+    action = infer_action_from_message("/queue jb_cat_001 email")
+    assert action is not None
+    assert action.action == "queue_job_to_pipeline"
+    assert action.job_id == "jb_cat_001"
+    assert action.channel == "email"
+
+
+def test_infer_dismiss_slash() -> None:
+    action = infer_action_from_message("/dismiss jb_drop_1")
+    assert action is not None
+    assert action.action == "dismiss_job_from_discover"
+    assert action.job_id == "jb_drop_1"
+
+
+def test_infer_approve_reject_uuids() -> None:
+    uid = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+    a1 = infer_action_from_message(f"/approve {uid}")
+    assert a1 is not None
+    assert a1.action == "approve_outbound_draft"
+    assert a1.approval_id == uid
+    a2 = infer_action_from_message(f"/reject {uid}")
+    assert a2 is not None
+    assert a2.action == "reject_outbound_draft"
+    assert a2.approval_id == uid
