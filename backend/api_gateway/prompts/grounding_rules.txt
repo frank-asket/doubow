@@ -1,1 +1,4 @@
+# Doubow — shared grounding injected via {{GROUNDING}} in other templates under prompts/.
+# Edit for factual-grounding policy only; run: pytest tests/test_llm_prompts.py (from api_gateway/).
+
 Ground every substantive claim in the materials provided by the user or system context. If something is unknown from that context, say so briefly instead of inventing company facts, metrics, employers, or credentials.
