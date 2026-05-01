@@ -31,7 +31,7 @@ docker compose -f backend/infra/docker-compose.yml up -d
 docker compose -f infra/docker-compose.yml up -d
 ```
 
-Then run migrations from repo root: `make -C backend db-migrate` (or `alembic upgrade head` from `backend/api_gateway` with `DATABASE_URL` set). **Supabase and other hosted URLs** often use `?ssl=...` in the connection string; the app’s async driver accepts that, but **Alembic uses psycopg2**, which rejects `ssl=` as a query option. For those databases use **`make -C backend db-migrate-safe`** instead—it rewrites the URL to `sslmode=` (see `Makefile` target `db-migrate-safe`).
+Then run migrations from repo root: `make -C backend db-migrate` (or `alembic upgrade head` from `backend/api_gateway` with `DATABASE_URL` set). **`DATABASE_URL` is normalized** for Alembic (psycopg2) and for `psql` seed/verify via `scripts/normalize_database_url.py`: asyncpg scheme + `?ssl=...` → libpq-friendly `sslmode=`. Supabase-style URLs work with the same **`db-migrate`** / **`db-sync`** as local Docker.
 
 From repo root:
 
@@ -74,38 +74,21 @@ docker compose -f infra/docker-compose.yml down
 
 Set **`DATABASE_URL`** in `backend/.env` (or export it in your shell).
 
-**Migrations**
-
-- Local Postgres (e.g. Docker on `localhost:5433`, typical URL without `ssl=` query issues):
-
-```bash
-make -C backend db-migrate
-```
-
-- **Supabase / managed Postgres** where `DATABASE_URL` includes `?ssl=...` — use the Alembic-safe target:
-
-```bash
-make -C backend db-migrate-safe
-```
-
-Seed and verify (same for both):
-
-```bash
-make -C backend db-seed
-make -C backend db-verify
-```
-
-One-command sync (`db-migrate` + seed + verify):
+Migrate, seed, verify (local Docker **or** Supabase — URLs are normalized automatically):
 
 ```bash
 make -C backend db-sync
 ```
 
-For **Supabase / `?ssl=`** URLs, use the safe migration path end-to-end:
+Individual steps:
 
 ```bash
-make -C backend db-sync-safe
+make -C backend db-migrate
+make -C backend db-seed
+make -C backend db-verify
 ```
+
+**Aliases** (same recipes): `db-migrate-safe` → `db-migrate`, `db-sync-safe` → `db-sync`.
 
 ## API gateway tests
 

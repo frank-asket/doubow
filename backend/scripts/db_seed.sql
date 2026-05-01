@@ -1,7 +1,6 @@
 -- Doubow: richer multi-user seed for Supabase/Postgres (idempotent).
 -- Depends on migrations: catalog jobs jb_cat_001–jb_cat_004 (source=catalog).
--- Usage:
---   psql "$(echo "$DATABASE_URL" | sed 's|postgresql+asyncpg://|postgresql://|')" … -f backend/scripts/db_seed.sql
+-- Run via: make -C backend db-seed (uses scripts/normalize_database_url.py for psql).
 
 -- ─── Users ─────────────────────────────────────────────────────────────────
 INSERT INTO users (id, email, name, plan)
@@ -61,7 +60,7 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ─── Approvals (pending drafts for Approvals UI) ──────────────────────────────
-INSERT INTO approvals (id, user_id, application_id, type, channel, subject, draft_body, status)
+INSERT INTO approvals (id, user_id, application_id, type, channel, subject, draft_body, status, delivery_status)
 VALUES
   (
     'ap_demo_001',
@@ -71,7 +70,8 @@ VALUES
     'email',
     'Application — AI Product Engineer · Demo',
     'Dear hiring team,\n\nI bring 6+ years shipping production ML and RAG systems. Attached is my background aligned to your stack.\n\nBest,\nDemo User',
-    'pending'
+    'pending',
+    'not_sent'
   ),
   (
     'ap_demo_002',
@@ -81,7 +81,8 @@ VALUES
     'email',
     'Application — Senior AI Product Engineer',
     'Hi — I am excited about the charter described in your posting. I led evaluation harnesses and agent deployments at scale.\n\nBest,\nDemo User',
-    'pending'
+    'pending',
+    'not_sent'
   ),
   (
     'ap_demo_003',
@@ -91,7 +92,8 @@ VALUES
     'linkedin',
     NULL,
     'Hi — I applied for the ML role and would love to share a concise note on retrieval pipelines we shipped to prod.',
-    'pending'
+    'pending',
+    'not_sent'
   )
 ON CONFLICT (id) DO NOTHING;
 

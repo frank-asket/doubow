@@ -3,32 +3,26 @@ SHELL := /bin/bash
 PYTHON ?= python3
 ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
+NORMALIZE_DB_URL := $(PYTHON) scripts/normalize_database_url.py
 
 .PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-sync-safe db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe monitoring-drill-report jobs-cache-preview jobs-cache-invalidate
 
-# libpq/psql does not accept SQLAlchemy async URLs (postgresql+asyncpg://). Strip the driver for psql targets.
+# libpq/psql: normalize URL (asyncpg scheme + ssl= → sslmode=). See scripts/normalize_database_url.py.
 define PSQL_CMD
-bash -ec 'PU=$$(echo "$$DATABASE_URL" | sed -e "s|^postgresql+asyncpg://|postgresql://|" -e "s|^postgres+asyncpg://|postgresql://|"); psql "$$PU" -v ON_ERROR_STOP=1 $(1)'
+bash -ec 'PU=$$($(NORMALIZE_DB_URL)); psql "$$PU" -v ON_ERROR_STOP=1 $(1)'
 endef
 
-# Uses `uv` + api_gateway deps so Alembic does not need a global install (see backend/api_gateway).
+# Uses `uv` + api_gateway deps. URL is normalized for psycopg2 (asyncpg scheme + ssl= query).
 db-migrate:
 	@if [ -z "$$DATABASE_URL" ]; then echo "DATABASE_URL is required"; exit 1; fi
-	@cd "$(API_PY_PATH)" && PYTHONPATH=. \
-		DATABASE_URL="$${DATABASE_URL}" \
-		ALEMBIC_DATABASE_URL="$${DATABASE_URL}" \
-		uv run --with-requirements requirements.txt python -m alembic -c alembic.ini upgrade head
-
-# Alembic-safe migration helper:
-# - strips async driver suffixes for sync psycopg2 migration path
-# - rewrites ?ssl=... to psycopg2-compatible ?sslmode=...
-db-migrate-safe:
-	@if [ -z "$$DATABASE_URL" ]; then echo "DATABASE_URL is required"; exit 1; fi
-	@SAFE_DB_URL=$$($(PYTHON) -c "from urllib.parse import urlparse,parse_qsl,urlencode,urlunparse; import os; raw=os.environ['DATABASE_URL'].strip(); u=urlparse(raw); scheme=u.scheme.replace('postgresql+asyncpg','postgresql').replace('postgres+asyncpg','postgresql'); params=[('sslmode', 'require' if (v or '').lower() in {'1','true','yes','require'} else 'disable') if k=='ssl' else (k,v) for k,v in parse_qsl(u.query, keep_blank_values=True)]; print(urlunparse((scheme,u.netloc,u.path,u.params,urlencode(params),u.fragment)))"); \
+	@SAFE_DB_URL=$$($(NORMALIZE_DB_URL)); \
 	cd "$(API_PY_PATH)" && PYTHONPATH=. \
 		DATABASE_URL="$$SAFE_DB_URL" \
 		ALEMBIC_DATABASE_URL="$$SAFE_DB_URL" \
 		uv run --with-requirements requirements.txt python -m alembic -c alembic.ini upgrade head
+
+# Alias: same as db-migrate (kept for scripts/docs that mention db-migrate-safe).
+db-migrate-safe: db-migrate
 
 db-seed:
 	@if [ -z "$$DATABASE_URL" ]; then echo "DATABASE_URL is required"; exit 1; fi
@@ -47,9 +41,8 @@ db-reset-demo:
 db-sync: db-migrate db-seed db-verify
 	@echo "Doubow DB sync complete."
 
-# Same as db-sync but uses db-migrate-safe (Supabase / URLs with ?ssl=... for Alembic/psycopg2).
-db-sync-safe: db-migrate-safe db-seed db-verify
-	@echo "Doubow DB sync complete."
+# Alias: same as db-sync (migrate + seed + verify all use normalized URLs).
+db-sync-safe: db-sync
 
 # Focused autopilot parity test (legacy runner vs LangGraph nodes produce identical item_results).
 api-test-autopilot-parity:
