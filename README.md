@@ -15,7 +15,9 @@ Doubow combines a modern Next.js web app with a FastAPI backend to help users di
 - ✅ Approve/reject drafts with HITL safety
 - 🎯 Generate interview prep
 - 📄 Parse resume into structured profile
-- 🤖 Monitor all agent activity
+- 💬 **Unified Assistant** (Messages) — chat + **slash commands** and **structured tools** with the same outcomes as Discover, Pipeline, and Approvals (`/v1/agents/chat`, `/v1/agents/capabilities`)
+- 🌐 **Job catalog ingestion** — Adzuna + Greenhouse (preset + scheduled runners) into a shared job catalog
+- 🤖 Monitor background agent status; optional **LangGraph** autopilot when enabled
 
 ## 🏗️ High-Level Architecture
 
@@ -30,8 +32,10 @@ flowchart LR
   RD[(Redis)]
   PH[(PostHog)]
   SENTRY[(Sentry)]
-  METRICS[Prometheus metrics endpoint]
+  METRICS["Prometheus /metrics<br/>requests, LLM, assistant routing/actions"]
   AG[Agent Services Discover Scoring Writing Apply Prep Monitor]
+  ASST["Unified Assistant<br/>SSE chat, keyword or LLM tool routing"]
+  INGEST["Catalog ingestion<br/>Adzuna, Greenhouse, dedupe"]
   OAUTH[Channel Integrations Google OAuth LinkedIn OAuth]
   SEM[Semantic Match Service feature flagged]
   EVAL[Offline Evaluator baseline versus semantic precision]
@@ -45,6 +49,8 @@ flowchart LR
   API --> DB
   API --> RD
   API --> AG
+  API --> ASST
+  API --> INGEST
   API --> LLM
   API --> OAUTH
   API --> METRICS
@@ -55,6 +61,9 @@ flowchart LR
   AG --> RD
   AG --> LLM
   AG --> SEM
+  ASST --> LLM
+  ASST --> DB
+  INGEST --> DB
   AUTO --> DB
   AUTO --> RD
   LG --> DB
@@ -65,16 +74,18 @@ flowchart LR
 ```
 
 **Request path (typical):**
-- User interacts with dashboard routes in `apps/web/`.
+- User interacts with dashboard routes in `apps/web/` (including **Messages / Assistant** at `/messages`).
 - Frontend sends authenticated requests to `backend/api_gateway`.
 - FastAPI validates Clerk identity, applies localhost-safe CORS policy, scopes every read/write to `user_id`, and orchestrates domain services.
-- OpenRouter LLM calls power orchestrator chat, draft generation, resume analysis, and interview-prep generation.
+- **Unified Assistant**: SSE chat (`POST /v1/agents/chat`) resolves structured actions via slash/keyword routing and optional LLM tool classification (`ORCHESTRATOR_LLM_TOOL_ROUTING`); **`GET /v1/agents/capabilities`** exposes the tool catalog. Metrics: `doubow_assistant_tool_routing_total`, `doubow_assistant_action_total` on **`GET /metrics`**.
+- OpenRouter **tiered** LLM calls power assistant chat (premium chat model), drafts, prep/reasoning models, orchestrator tool planner (typically drafts-tier), resume analysis, etc.
+- **Catalog ingestion** (Adzuna + Greenhouse, cron-friendly presets and scripts) upserts shared **`jobs`** rows with dedupe and ingestion audit tables.
 - Services persist state in Postgres, use Redis for transient/queue-friendly workflows, and emit telemetry to PostHog.
 - Semantic matching is feature-flagged and blended into scoring when enabled; offline evaluator scripts compare baseline vs semantic precision.
 - Approval handoff is channel-aware (email + LinkedIn) with explicit user approval before outbound actions.
 - **Autopilot** runs as background work with idempotent keys and run history; when `USE_LANGGRAPH_AUTOPILOT` is enabled it executes through a **LangGraph** parity graph (`mark_running` → `resolve_targets` → `process_items` → `persist_*`) inside the API gateway/worker process. Optional **`USE_LANGGRAPH_AUTOPILOT_CHECKPOINT`** persists **`graph_checkpoint`** JSON in Postgres after each node so a replacement worker can resume; the UI/agents surface can call **`POST /v1/me/autopilot/runs/{run_id}/resume`** for stuck **`running`** runs when a checkpoint exists. On LangGraph failure the runner falls back to the legacy executor.
 - Structured resume parsing can use optional **LangChain** boundaries when `USE_LANGCHAIN` is enabled (see `.env.example`).
-- API exposes `/metrics` for Prometheus scraping and Sentry hooks for error observability.
+- API exposes **`/metrics`** for Prometheus scraping (HTTP latency, LLM calls, **assistant routing/actions**, Sentry hooks for errors).
 
 ### Deployment View (Local)
 
@@ -112,6 +123,8 @@ Workers share Postgres, Redis, and LLM access with the gateway; **autopilot** (i
 - SQLAlchemy + Alembic migrations
 - Postgres + Redis-friendly architecture
 - Agent/service modules for discovery, scoring, writing, apply, prep, monitor
+- **Unified Assistant**: orchestrator chat, tool executor parity with UI, optional LLM tool router
+- **Job providers**: Adzuna + Greenhouse adapters, preset ingestion, `backend/scripts/*_ingestion_runner.py`
 - Optional **LangGraph** autopilot runner (feature flags): parity graph nodes, **`graph_checkpoint`** on `autopilot_runs`, resume API for stuck runs
 - Optional **LangChain** (`langchain-core`) for structured resume analysis when `USE_LANGCHAIN` is on
 - PostHog-backed activation KPI endpoint
@@ -240,13 +253,16 @@ Behavior:
 - `/approvals` — human approval gate for outbound actions
 - `/prep` — role-specific interview preparation
 - `/resume` — resume upload, parse, preferences
-- `/agents` — Assistant (chat + background activity); primary nav uses jobs-first IA with this under **Assistant** in the sidebar
+- `/messages` — **Unified Assistant** (streaming chat, slash commands, structured account actions; capabilities from API)
+- `/agents` — redirects to `/messages` (bookmark compatibility)
 - `/billing` — subscription & billing (layout from `docs/mockup/subscription_billing`)
 
 ## 📚 Documentation
 
+- **High-level architecture (current implementation):** `docs/architecture/doubow-high-level-flow.md`
 - Capstone rubric + readiness (eval notes, deployment checklist, demo script, risk register): `docs/capstone-scoring-sheet.md`, `docs/capstone-readiness.md`
 - Architecture: `docs/architecture/` (including `docs/architecture/resilience.md` — health probes, rate limits, OpenRouter circuit behavior)
+- Backend detail (LLM tiers, ingestion, autopilot/LangGraph): `backend/README.md`
 - Design system: `docs/architecture/daubo-design-system.md`
 - Product panel behavior: `docs/product-panels.md`
 - Onboarding notes: `docs/onboarding.md`

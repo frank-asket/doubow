@@ -10,21 +10,25 @@ flowchart LR
   CL[Clerk\nAuth + Session]
   API[API Gateway\nFastAPI]
   AG[Domain/Agent Services\nDiscover • Scoring • Writing • Apply • Prep • Monitor]
+  ASST[Unified Assistant\nSSE chat • tools • capabilities API]
+  INGEST[Job catalog ingestion\nAdzuna • Greenhouse • dedupe]
   DB[(Supabase Postgres)]
   RD[(Redis)]
-  LLM[LLM Provider\nOpenRouter/Anthropic]
+  LLM[LLM Provider\nOpenRouter tiered models]
   OAUTH[Channel Integrations\nGoogle OAuth • LinkedIn OAuth]
   AUTO[Autopilot Runs\nIdempotency • Run History • Resume API]
   LG[LangGraph Autopilot\nParity Graph (Optional)]
   PH[(PostHog)]
   SENTRY[(Sentry)]
-  METRICS[/Metrics Endpoint/]
+  METRICS[/Prometheus /metrics\nrequests • LLM • assistant routing/actions/]
 
   U --> FE
   FE -->|Sign-in / session| CL
   FE -->|Bearer JWT| API
   API -->|JWT verify| CL
   API --> AG
+  API --> ASST
+  API --> INGEST
   API --> OAUTH
   API --> AUTO
   API --> DB
@@ -34,6 +38,9 @@ flowchart LR
   AG --> DB
   AG --> RD
   AG --> LLM
+  ASST --> LLM
+  ASST --> DB
+  INGEST --> DB
   AUTO --> LG
   AUTO --> DB
   AUTO --> RD
@@ -41,6 +48,20 @@ flowchart LR
   FE --> PH
   API --> PH
 ```
+
+## Unified Assistant (agent-native parity)
+
+The **Messages / Assistant** surface (`/messages`; `/agents` redirects here) streams **`POST /v1/agents/chat`** (SSE). The backend resolves user intent to **structured account actions** aligned with the product UI:
+
+- **Keyword / slash routing** — fast path for commands like `/pipeline`, `/queue`, `/dismiss`, `/approve`, `/reject` (`services/agent_action_executor.py`).
+- **Optional LLM tool planner** — when keywords miss and `ORCHESTRATOR_LLM_TOOL_ROUTING` is on, a small JSON classification chooses a tool or `none` (`services/agent_tool_router.py`).
+- **Capability discovery** — `GET /v1/agents/capabilities` lists tool names and descriptions for clients and onboarding copy (`services/agent_tools_catalog.py`).
+
+Successful tool runs invoke the same domain services as REST routes (e.g. `create_application`, `dismiss_job_for_user`, `approve_approval`). **Prometheus** exposes `doubow_assistant_tool_routing_total` and `doubow_assistant_action_total` on **`GET /metrics`** for routing and execution visibility.
+
+## Job catalog ingestion (multi-provider)
+
+Scheduled and authenticated routes ingest third-party job feeds into the shared **`jobs`** catalog (with **`job_source_records`** / **`job_ingestion_runs`** audit): **Adzuna**, **Greenhouse** boards, preset endpoints (`hourly`/`daily`), and a combined catalog preset. Cross-provider **deduplication** runs before upsert (`services/job_provider_ingestion_service.py`). CLI runners live under `backend/scripts/` (e.g. `adzuna_ingestion_runner.py`, `greenhouse_ingestion_runner.py`). See **`backend/README.md`** for env vars and curls.
 
 ## LangGraph Autopilot Status
 
@@ -85,3 +106,5 @@ flowchart TB
   API --> LG
   W --> LG
 ```
+
+Assistant chat and catalog ingestion use the same API process as local dev unless workers are split for Celery/autopilot.
