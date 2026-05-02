@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import re
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -12,6 +13,8 @@ from typing import AsyncIterator
 
 import httpx
 from sqlalchemy import text
+
+from services.provider_adapter import ProviderFetchParams
 
 
 @dataclass
@@ -91,6 +94,35 @@ class BaseConnector(ABC):
         self._run_id = str(uuid.uuid4())
         self._client: httpx.AsyncClient | None = None
         self._last_req = 0.0
+        self._fetch_context: ProviderFetchParams | None = None
+
+    def set_fetch_context(self, ctx: ProviderFetchParams | None) -> None:
+        """When set (e.g. resume-aligned catalog ingest), filter normalized rows by keywords/location."""
+        self._fetch_context = ctx
+
+    def _matches_resume_query(self, record: JobRecord) -> bool:
+        ctx = self._fetch_context
+        if ctx is None:
+            return True
+        kw = (ctx.keywords or "").strip().lower()
+        loc = (ctx.location or "").strip().lower()
+        haystack = f"{record.title} {record.company} {record.description} {record.location}".lower()
+        if kw:
+            tokens = [t for t in re.split(r"[\s,;/]+", kw) if len(t) >= 3][:16]
+            if tokens and not any(t in haystack for t in tokens):
+                return False
+        if loc:
+            loc_parts = [p.strip().lower() for p in re.split(r"[,;/]", loc) if len(p.strip()) >= 3]
+            if not loc_parts:
+                loc_parts = [loc]
+            location_blob = f"{record.location or ''} {(record.description or '')[:1200]}".lower()
+            if not any(p in location_blob for p in loc_parts):
+                if "remote" in loc and (
+                    "remote" in location_blob or "anywhere" in location_blob or "work from home" in location_blob
+                ):
+                    return True
+                return False
+        return True
 
     async def run(self, db_session, existing_hashes: set[str]) -> ConnectorResult:
         result = ConnectorResult(source=self.source_name, run_id=self._run_id, success=False)
@@ -105,6 +137,9 @@ class BaseConnector(ABC):
                         result.skipped_dupe += 1
                         continue
                     if not self._passes_quality_filter(record):
+                        result.skipped_filter += 1
+                        continue
+                    if not self._matches_resume_query(record):
                         result.skipped_filter += 1
                         continue
                     try:

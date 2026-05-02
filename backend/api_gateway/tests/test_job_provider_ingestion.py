@@ -221,10 +221,11 @@ def test_greenhouse_preset_runs_when_boards_configured(monkeypatch):
 
 
 def test_catalog_ingest_preset_returns_partial_when_one_provider_fails(monkeypatch):
-    from routers import jobs as jobs_router_module
+    import services.catalog_ingest_orchestrator as orch_module
 
     monkeypatch.setattr(settings, "job_catalog_ingestion_user_id", "catalog_ingestion_system")
     monkeypatch.setattr(settings, "greenhouse_board_tokens", "openai,notion")
+    monkeypatch.setattr(settings, "serpapi_api_key", None)
 
     async def _fake_ingest_provider_jobs_paginated(session, *, user_id, adapter, base_params, pages):  # type: ignore[no-untyped-def]
         if adapter.provider_name == "adzuna":
@@ -239,7 +240,7 @@ def test_catalog_ingest_preset_returns_partial_when_one_provider_fails(monkeypat
             }
         raise RuntimeError("greenhouse upstream timeout")
 
-    monkeypatch.setattr(jobs_router_module, "ingest_provider_jobs_paginated", _fake_ingest_provider_jobs_paginated)
+    monkeypatch.setattr(orch_module, "ingest_provider_jobs_paginated", _fake_ingest_provider_jobs_paginated)
 
     # Build a minimal FastAPI app to serve the router with auth/session overrides.
     from fastapi import FastAPI
@@ -270,15 +271,16 @@ def test_catalog_ingest_preset_returns_partial_when_one_provider_fails(monkeypat
 
 
 def test_catalog_ingest_preset_returns_failed_when_all_providers_fail(monkeypatch):
-    from routers import jobs as jobs_router_module
+    import services.catalog_ingest_orchestrator as orch_module
 
     monkeypatch.setattr(settings, "job_catalog_ingestion_user_id", "catalog_ingestion_system")
     monkeypatch.setattr(settings, "greenhouse_board_tokens", "openai,notion")
+    monkeypatch.setattr(settings, "serpapi_api_key", None)
 
     async def _all_fail_ingest_provider_jobs_paginated(session, *, user_id, adapter, base_params, pages):  # type: ignore[no-untyped-def]
         raise RuntimeError(f"{adapter.provider_name} unavailable")
 
-    monkeypatch.setattr(jobs_router_module, "ingest_provider_jobs_paginated", _all_fail_ingest_provider_jobs_paginated)
+    monkeypatch.setattr(orch_module, "ingest_provider_jobs_paginated", _all_fail_ingest_provider_jobs_paginated)
 
     from fastapi import FastAPI
 

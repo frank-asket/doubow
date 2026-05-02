@@ -31,7 +31,8 @@ class DiscoveryAgent:
             plan = ["adzuna", "greenhouse", "google_jobs", "manual", "catalog"]
         return {
             "jobs": [],
-            "hint": "Catalog ingest: POST /v1/jobs/providers/catalog/ingest/preset (optional resume_aligned=1). "
-            "Google Jobs requires SERPAPI_API_KEY (third-party; plan limits apply).",
+            "hint": "Catalog ingest: POST /v1/jobs/providers/catalog/ingest/preset "
+            "(resume_aligned=1, include_legacy_connectors=1 for full stack). "
+            "Google Jobs needs SERPAPI_API_KEY. Legacy connectors respect the same query context when enabled.",
             "connector_plan": plan,
         }

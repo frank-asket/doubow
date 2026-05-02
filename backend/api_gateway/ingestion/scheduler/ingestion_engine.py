@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy import text
 
+from services.provider_adapter import ProviderFetchParams
+
 from ingestion.connectors import (
     AshbyConnector,
     GreenhouseConnector,
@@ -83,7 +85,12 @@ class IngestionSummary:
         }
 
 
-async def run_ingestion(db_session, connector_names: list[str] | None = None) -> IngestionSummary:
+async def run_ingestion(
+    db_session,
+    connector_names: list[str] | None = None,
+    *,
+    fetch_context: ProviderFetchParams | None = None,
+) -> IngestionSummary:
     started = datetime.now(timezone.utc)
     summary = IngestionSummary(run_id=str(uuid.uuid4()), started_at=started)
     t0 = time.perf_counter()
@@ -96,6 +103,7 @@ async def run_ingestion(db_session, connector_names: list[str] | None = None) ->
         if connector_cls is None:
             continue
         connector = connector_cls()
+        connector.set_fetch_context(fetch_context)
         tasks.append(_run_connector_safe(connector, db_session, existing_hashes))
 
     for result in await asyncio.gather(*tasks, return_exceptions=True):

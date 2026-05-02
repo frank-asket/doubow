@@ -16,6 +16,11 @@ from services.jobs_service import _sync_template_scores_for_user
 
 
 def _default_score_template() -> dict:
+    return default_catalog_job_score_template()
+
+
+def default_catalog_job_score_template() -> dict:
+    """Default JSON stored on ``jobs.score_template`` so Discover can bootstrap ``job_scores``."""
     return {
         "fit_score": 3.5,
         "fit_reasons": ["Imported via discovery — refine after you review the fit"],
