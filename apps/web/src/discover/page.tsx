@@ -5,6 +5,7 @@ import type { Route } from 'next'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
+import { MatchPipelineUpdateCard } from '../../components/dashboard/MatchPipelineUpdateCard'
 import useSWR from 'swr'
 import {
   RefreshCw,
@@ -779,6 +780,12 @@ function DiscoverPageContent() {
             </motion.button>
           </>
         }
+      />
+
+      <MatchPipelineUpdateCard
+        onAfterRun={async () => {
+          await handleRefresh()
+        }}
       />
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

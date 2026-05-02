@@ -10,8 +10,7 @@ Usage:
 
 Optional:
 
-  --production-contract   Require GET/DELETE /v1/me/preferences/feedback-learning → 404
-                            (use for production; disable for staging where env != production)
+  --staging               Skip GET /v1/me/preferences/feedback-learning (e.g. narrow smoke runs)
 
 Exit codes: 0 = all checks passed, 1 = failure, 2 = misconfiguration.
 """
@@ -63,17 +62,16 @@ def main() -> int:
         default=os.environ.get("DOUBOW_API_TOKEN", "").strip(),
         help="Clerk Bearer JWT (or set DOUBOW_API_TOKEN)",
     )
-    env_prod = os.environ.get("DOUBOW_PRODUCTION_CONTRACT", "").lower() in ("1", "true", "yes")
     parser.add_argument(
         "--production-contract",
         action="store_true",
-        default=env_prod,
-        help="Expect feedback-learning debug routes to return 404 (set DOUBOW_PRODUCTION_CONTRACT=1 or pass this flag)",
+        default=os.environ.get("DOUBOW_PRODUCTION_CONTRACT", "").lower() in ("1", "true", "yes"),
+        help="Unused for prefs routes (kept for backward compatibility with DOUBOW_PRODUCTION_CONTRACT).",
     )
     parser.add_argument(
         "--staging",
         action="store_true",
-        help="Do not require feedback-learning routes to 404 (for non-production env)",
+        help="Skip authenticated GET /v1/me/preferences/feedback-learning",
     )
     parser.add_argument(
         "--skip-health",
@@ -111,12 +109,12 @@ def main() -> int:
         except json.JSONDecodeError:
             failures.append("capabilities response is not JSON")
 
-    production_contract = args.production_contract and not args.staging
-    if production_contract:
-        for method, path in (("GET", "/v1/me/preferences/feedback-learning"), ("DELETE", "/v1/me/preferences/feedback-learning")):
-            code, _ = _request(method, base, path, token)
-            if code != 404:
-                failures.append(f"{method} {path} expected 404 in production contract, got {code}")
+    if not args.staging:
+        code, _ = _request("GET", base, "/v1/me/preferences/feedback-learning", token)
+        if code not in (200, 404):
+            failures.append(
+                f"GET /v1/me/preferences/feedback-learning expected 200 or 404, got {code}",
+            )
 
     code, body = _request("GET", base, "/metrics", None)
     if code != 200:

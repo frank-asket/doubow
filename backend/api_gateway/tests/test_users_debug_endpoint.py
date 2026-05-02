@@ -125,7 +125,8 @@ async def test_oauth_config_debug_endpoint_reports_missing_keys(db_session: Asyn
 
 
 @pytest.mark.asyncio
-async def test_feedback_learning_prefs_hidden_in_production(db_session: AsyncSession, monkeypatch):
+async def test_feedback_learning_prefs_require_resume(db_session: AsyncSession, monkeypatch):
+    """Without a résumé row, read/clear return 404 in all environments (including production)."""
     monkeypatch.setattr(settings, "environment", "production")
     user = User(id="user_fl_prod", email="fl-prod@example.com")
     db_session.add(user)
@@ -147,4 +148,6 @@ async def test_feedback_learning_prefs_hidden_in_production(db_session: AsyncSes
         res_get = client.get("/v1/me/preferences/feedback-learning")
         res_del = client.delete("/v1/me/preferences/feedback-learning")
     assert res_get.status_code == 404
+    assert "resume" in res_get.json()["detail"].lower()
     assert res_del.status_code == 404
+    assert "resume" in res_del.json()["detail"].lower()

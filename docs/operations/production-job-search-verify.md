@@ -10,7 +10,7 @@ From repo root:
 make -C backend api-test-job-search-contracts
 ```
 
-This runs `tests/test_production_job_search_contracts.py`: capabilities list, assistant keyword routing, Prometheus label registration, and **feedback-learning debug routes return 404 when `environment=production`**.
+This runs `tests/test_production_job_search_contracts.py`: capabilities list, assistant keyword routing, Prometheus label registration, and **feedback-learning preference routes return 200 in production when a résumé exists** (404 only if no résumé).
 
 ## 2. Live API smoke (staging / production)
 
@@ -19,21 +19,19 @@ Requires a valid **Clerk JWT** for a real user.
 ```bash
 export DOUBOW_API_BASE="https://<your-api-host>"
 export DOUBOW_API_TOKEN="<paste JWT>"
-# Production only — assert debug prefs routes are hidden:
-export DOUBOW_PRODUCTION_CONTRACT=1
 
 python3 scripts/job_search_production_smoke.py
-# Staging: use --staging instead of DOUBOW_PRODUCTION_CONTRACT to skip the 404 assertions.
+# Optional: --staging skips GET /v1/me/preferences/feedback-learning
 ```
 
 | Check | Expect |
 |-------|--------|
 | `GET /healthz` | 200 |
 | `GET /v1/agents/capabilities` | Includes **`run_job_search_pipeline`** |
-| `GET/DELETE /v1/me/preferences/feedback-learning` | **404** when `--production-contract` / `DOUBOW_PRODUCTION_CONTRACT=1` |
+| `GET /v1/me/preferences/feedback-learning` | **200** (has résumé) or **404** (no résumé) — not 5xx |
 | `GET /metrics` | Contains **`doubow_matching_blend_score_sync_total`** |
 
-For **staging** (non-production `environment`), use **`--staging`** so the feedback-learning checks are skipped (those routes may return 200 when a résumé exists). Omit **`DOUBOW_PRODUCTION_CONTRACT`** and do not pass **`--production-contract`** unless you expect production-like routing.
+Use **`--staging`** on the smoke script only if you need to skip the feedback-learning GET (e.g. token without a user résumé on that host).
 
 ## 3. Assistant manual smoke
 

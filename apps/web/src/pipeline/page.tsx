@@ -6,6 +6,7 @@ import { useCallback, useState } from 'react'
 import type { Route } from 'next'
 import { AlertTriangle, RefreshCw, Loader2, FileEdit } from 'lucide-react'
 import { DashboardPageHeader } from '../../components/dashboard/DashboardPageHeader'
+import { MatchPipelineUpdateCard } from '../../components/dashboard/MatchPipelineUpdateCard'
 import { cn, statusBadgeClass, channelBadgeClass, channelLabel, shortDate, fitClass } from '../../lib/utils'
 import { usePipeline } from './usePipeline'
 import { usePipelineStore } from './pipelineStore'
@@ -155,6 +156,8 @@ export default function PipelinePage() {
           </motion.button>
         }
       />
+
+      <MatchPipelineUpdateCard onAfterRun={() => void refresh()} />
 
       <div
         className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 px-3 py-2"

@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import settings
 from db.session import get_session
 from dependencies import get_authenticated_user
+from models.resume import Resume
 from models.user import User
 from routers import users
 from services.agent_action_executor import infer_action_from_message
@@ -58,12 +59,28 @@ def test_contract_matching_blend_metric_exposed_after_observe() -> None:
 
 
 @pytest.mark.asyncio
-async def test_contract_feedback_learning_debug_not_exposed_in_production(
+async def test_contract_feedback_learning_prefs_with_resume_in_production(
     db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """Customer-facing preference routes work when environment=production and a résumé exists."""
     monkeypatch.setattr(settings, "environment", "production")
-    user = User(id="user_contract_prod", email="contract@example.com")
+    uid = "user_contract_prod"
+    user = User(id=uid, email="contract@example.com")
     db_session.add(user)
+    db_session.add(
+        Resume(
+            user_id=uid,
+            file_name="cv.pdf",
+            storage_path="/tmp/cv.pdf",
+            version=1,
+            parsed_profile={"headline": "Engineer"},
+            preferences={
+                "feedback_learning": {
+                    "matching_blend_hints": {"lexical_matching_delta": 0.02},
+                }
+            },
+        )
+    )
     await db_session.commit()
 
     app = FastAPI()
@@ -79,5 +96,15 @@ async def test_contract_feedback_learning_debug_not_exposed_in_production(
     app.dependency_overrides[get_authenticated_user] = _override_user
 
     with TestClient(app) as client:
-        assert client.get("/v1/me/preferences/feedback-learning").status_code == 404
-        assert client.delete("/v1/me/preferences/feedback-learning").status_code == 404
+        res_get = client.get("/v1/me/preferences/feedback-learning")
+        assert res_get.status_code == 200
+        body = res_get.json()
+        assert body["feedback_learning"] is not None
+        assert "effective_matching_weights" in body
+
+        res_del = client.delete("/v1/me/preferences/feedback-learning")
+        assert res_del.status_code == 204
+
+        cleared = client.get("/v1/me/preferences/feedback-learning")
+        assert cleared.status_code == 200
+        assert cleared.json().get("feedback_learning") is None

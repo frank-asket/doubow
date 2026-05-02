@@ -86,7 +86,7 @@ Orchestration: `services/job_provider_ingestion_service.py`, **`catalog_ingest_o
 | Feedback snapshot | `services/job_search_feedback.py` — rates, insights, **`matching_blend_hints`** (advisory deltas) |
 | Scoring | `services/jobs_service.py` — global semantic / lexical / LLM weights ± stored hints; metric **`doubow_matching_blend_score_sync_total`** |
 | Preferences | `resume.preferences.feedback_learning` (optional persist from pipeline `persist_feedback_learning`) |
-| Debug API | **`GET` / `DELETE` `/v1/me/preferences/feedback-learning`** — disabled in **production** (404); non-prod for inspection/clear |
+| Preferences API | **`GET` / `DELETE` `/v1/me/preferences/feedback-learning`** — read/clear outcome-based match tuning (requires a résumé); used by the product UI |
 
 Figures (PNG for embedding): **`docs/architecture/job-search-pipeline/pipeline-stages.png`**, **`scoring-and-feedback-loop.png`** (sources: `*.svg`).
 

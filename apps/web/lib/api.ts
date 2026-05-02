@@ -312,6 +312,61 @@ export const agentsApi = {
   capabilities: () => request<{ tools: AgentToolCapability[] }>('/v1/agents/capabilities'),
 }
 
+// ─── Job search pipeline (profile → match → applications → learn) ─────────
+
+export type JobSearchPipelineStageId =
+  | 'data_collection'
+  | 'resume_profile'
+  | 'job_matching'
+  | 'outbound_application'
+  | 'feedback'
+
+export type JobSearchPipelineRunRequest = {
+  stages?: JobSearchPipelineStageId[]
+  trigger_catalog_refresh?: boolean
+  catalog_preset?: 'hourly' | 'daily'
+  include_legacy_connectors?: boolean
+  resume_aligned_catalog?: boolean
+  persist_feedback_learning?: boolean
+}
+
+export type PipelineStageOutcome = {
+  stage: JobSearchPipelineStageId
+  ok: boolean
+  summary: string
+  detail: Record<string, unknown>
+  error?: string | null
+}
+
+export type JobSearchPipelineRunResponse = {
+  trace_id: string
+  user_id: string
+  stages: PipelineStageOutcome[]
+}
+
+export const jobSearchPipelineApi = {
+  run: (body?: JobSearchPipelineRunRequest) =>
+    request<JobSearchPipelineRunResponse>('/v1/agents/job-search-pipeline/run', {
+      method: 'POST',
+      body: JSON.stringify(body ?? {}),
+    }),
+}
+
+// ─── Outcome-based match tuning (preferences on latest résumé) ─────────────
+
+export type FeedbackLearningPreferenceResponse = {
+  feedback_learning: Record<string, unknown> | null
+  base_matching_weights: Record<string, number>
+  effective_matching_weights: Record<string, number>
+}
+
+export const mePreferencesApi = {
+  feedbackLearning: () =>
+    request<FeedbackLearningPreferenceResponse>('/v1/me/preferences/feedback-learning'),
+  clearFeedbackLearning: () =>
+    request<void>('/v1/me/preferences/feedback-learning', { method: 'DELETE' }),
+}
+
 export type ChatThreadSummary = {
   id: string
   title: string

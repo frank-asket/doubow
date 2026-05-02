@@ -84,7 +84,8 @@ const ASSISTANT_SLASH_HINTS: readonly { cmd: string; hint: string }[] = [
   { cmd: '/pipeline', hint: 'Pipeline summary & pending approvals count' },
   {
     cmd: '/pipeline-run',
-    hint: 'Full job-search pipeline (same as POST /v1/agents/job-search-pipeline/run); add --refresh or --persist-feedback',
+    hint:
+      'Full match update (profile, scoring, pipeline — same as Discover & Pipeline). Flags: --refresh (catalog), --persist-feedback (save tuning)',
   },
   { cmd: '/matches', hint: 'Top scored job matches' },
   { cmd: '/queue jb_* email|linkedin', hint: 'Queue a job into your pipeline' },

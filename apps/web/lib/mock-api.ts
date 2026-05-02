@@ -831,6 +831,33 @@ export async function handleMockRequest<T>(
     return detail as T
   }
 
+  if (pathname === '/v1/agents/job-search-pipeline/run' && method === 'POST') {
+    const stages = [
+      { stage: 'data_collection', ok: true, summary: 'ok', detail: {}, error: null },
+      { stage: 'resume_profile', ok: true, summary: 'ok', detail: {}, error: null },
+      { stage: 'job_matching', ok: true, summary: 'ok', detail: {}, error: null },
+      { stage: 'outbound_application', ok: true, summary: 'ok', detail: {}, error: null },
+      { stage: 'feedback', ok: true, summary: 'ok', detail: {}, error: null },
+    ] as const
+    return {
+      trace_id: `mock-${randomIdSegment()}`,
+      user_id: MOCK_USER_ID,
+      stages: [...stages],
+    } as T
+  }
+
+  if (pathname === '/v1/me/preferences/feedback-learning' && method === 'GET') {
+    return {
+      feedback_learning: null,
+      base_matching_weights: { semantic: 0.5, lexical: 0.3, llm: 0.2 },
+      effective_matching_weights: { semantic: 0.5, lexical: 0.3, llm: 0.2 },
+    } as T
+  }
+
+  if (pathname === '/v1/me/preferences/feedback-learning' && method === 'DELETE') {
+    return undefined as T
+  }
+
   throw new MockHttpError(404, `Stub API: no handler for ${method} ${pathname}`)
 }
 
