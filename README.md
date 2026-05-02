@@ -16,7 +16,7 @@ Doubow combines a modern Next.js web app with a FastAPI backend to help users di
 - 🎯 Generate interview prep
 - 📄 Parse resume into structured profile
 - 💬 **Unified Assistant** (Messages) — chat + **slash commands** and **structured tools** with the same outcomes as Discover, Pipeline, and Approvals (`/v1/agents/chat`, `/v1/agents/capabilities`)
-- 🌐 **Job catalog ingestion** — Adzuna + Greenhouse (preset + scheduled runners) into a shared job catalog
+- 🌐 **Job catalog ingestion** — Adzuna + Greenhouse + optional **Google Jobs** (SerpAPI), resume-aligned preset ingest, shared **`jobs`** catalog
 - 🤖 Monitor background agent status; optional **LangGraph** autopilot when enabled
 
 ## 🏗️ High-Level Architecture
@@ -29,9 +29,9 @@ flowchart LR
   FE["Web<br/>Next.js App Router"]
   CL["Clerk<br/>auth"]
   API["API gateway<br/>FastAPI"]
-  AG["Domain services<br/>discover • score • write • apply • prep • monitor"]
+  AG["Domain services<br/>discover • score • write • apply • prep • monitor<br/>job-search pipeline"]
   ASST["Unified Assistant<br/>SSE • tools • capabilities"]
-  INGEST["Job catalog ingestion<br/>Adzuna • Greenhouse • dedupe"]
+  INGEST["Job catalog ingestion<br/>Adzuna • Greenhouse • Google Jobs • resume-aligned • dedupe"]
   DB[("Supabase<br/>Postgres")]
   RD[("Redis")]
   LLM["OpenRouter<br/>tiered models"]
@@ -72,13 +72,14 @@ flowchart LR
 **At a glance**
 
 - **Auth & API** — Dashboard in `apps/web/` calls `backend/api_gateway` with Clerk JWT; requests are scoped by `user_id` with CORS tuned for local dev.
-- **Assistant** — `/messages`: `POST /v1/agents/chat` (SSE), optional `ORCHESTRATOR_LLM_TOOL_ROUTING`, `GET /v1/agents/capabilities`; assistant counters on **`GET /metrics`**.
+- **Assistant** — `/messages`: `POST /v1/agents/chat` (SSE), optional `ORCHESTRATOR_LLM_TOOL_ROUTING`, `GET /v1/agents/capabilities`; tool **`run_job_search_pipeline`** matches **`POST /v1/agents/job-search-pipeline/run`**; assistant counters on **`GET /metrics`**.
 - **Data & LLM** — Supabase Postgres is durable; Redis for coordination/caches; OpenRouter tiered models for chat, drafts, prep, resume parsing, optional tool planner.
-- **Ingestion** — Adzuna + Greenhouse → shared **`jobs`** (dedupe, audit tables); scripts under `backend/scripts/`.
-- **Scoring extras** — Semantic match when feature-flagged; offline eval scripts vs baseline (see **Local Validation** below).
+- **Ingestion** — Adzuna, Greenhouse, optional **Google Jobs** (SerpAPI), **resume-aligned** catalog runs via `catalog_ingest_orchestrator` → shared **`jobs`** (dedupe, audit tables); scripts under `backend/scripts/`.
+- **Scoring & outcomes** — Template + semantic / lexical / LLM blend; optional per-user **`matching_blend_hints`** from stored **`feedback_learning`**; metric **`doubow_matching_blend_score_sync_total`**. Semantic match when feature-flagged; offline eval under **Local Validation**.
+- **Job-search pipeline** — `JobSearchPipelineCoordinator` runs default stages (ingest plan → profile → rescore → outbound snapshot → feedback); see [Job search pipeline](#-job-search-pipeline) and **`docs/architecture/doubow-high-level-flow.md`**.
 - **Outbound** — Approvals are channel-aware (email, LinkedIn); user approval before send.
 - **Autopilot** — Background runs; optional LangGraph + checkpoints + resume API; **`backend/README.md`** for flags.
-- **Observability** — PostHog (product), Sentry (errors), Prometheus **`/metrics`**; optional **LangChain** for structured resume parsing (`USE_LANGCHAIN` in `.env.example`).
+- **Observability** — PostHog (product), Sentry (errors), Prometheus **`/metrics`** (HTTP, LLM, assistant routing/actions, **matching-blend** signals); optional **LangChain** for structured resume parsing (`USE_LANGCHAIN` in `.env.example`).
 
 ### Deployment View (Local)
 
