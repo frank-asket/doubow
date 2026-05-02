@@ -116,6 +116,24 @@ make -C backend api-test-job-search-contracts
 
 Live API smoke and operator checklist: **`docs/operations/production-job-search-verify.md`**, `scripts/job_search_production_smoke.py`.
 
+## API Docker image (Railway / monorepo root)
+
+The **repository root** `Dockerfile` builds the same FastAPI app as `api_gateway/Dockerfile`, with `COPY` paths that work when the build context is the **whole repo** (typical for Railway). `railway.json` points Railway at that Dockerfile. The container listens on **`$PORT`** (default **8080**), which matches Railway and Fly.
+
+Build and confirm `POST /v1/agents/job-search-pipeline/run` is registered (catches stale deploys that still return 404):
+
+```bash
+make -C backend docker-api-gateway-verify
+```
+
+Build only:
+
+```bash
+make -C backend docker-api-gateway-image
+```
+
+**Railway:** redeploy the API service after pushing so it picks up this Dockerfile and current code. Optionally set service root to the repo root if Railway builds from a subdirectory.
+
 ## OpenRouter model matrix
 
 AI features are routed through OpenRouter with per-surface model settings. Configure in `backend/.env` (or repo-root `.env` when running uvicorn directly).

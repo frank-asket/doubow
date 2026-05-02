@@ -5,7 +5,10 @@ ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
 NORMALIZE_DB_URL := $(PYTHON) scripts/normalize_database_url.py
 
-.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-sync-safe db-reset-demo api-test-autopilot-parity api-test-autopilot api-test-job-search-contracts launch-probe auth-probe monitoring-drill-report jobs-cache-preview jobs-cache-invalidate
+REPO_ROOT := $(abspath ..)
+
+.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-sync-safe db-reset-demo api-test-autopilot-parity api-test-autopilot api-test-job-search-contracts launch-probe auth-probe monitoring-drill-report jobs-cache-preview jobs-cache-invalidate docker-api-gateway-image docker-api-gateway-verify
+
 
 # libpq/psql: normalize URL (asyncpg scheme + ssl= → sslmode=). See scripts/normalize_database_url.py.
 define PSQL_CMD
@@ -122,3 +125,10 @@ jobs-cache-invalidate:
 			$${JOBS_CACHE_USER_ID:+--user-id "$${JOBS_CACHE_USER_ID}"} \
 			--max-keys "$${JOBS_CACHE_MAX_KEYS:-5000}" \
 			--execute
+
+# Repo-root Dockerfile (../Dockerfile): same image Railway should build from monorepo root.
+docker-api-gateway-image:
+	@docker build -t doubow-api-gateway:local -f "$(REPO_ROOT)/Dockerfile" "$(REPO_ROOT)"
+
+docker-api-gateway-verify:
+	@bash scripts/verify_api_gateway_docker.sh
