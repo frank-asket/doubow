@@ -167,7 +167,7 @@ export default function DraftsPage() {
       <main className="ml-[260px] flex min-h-[calc(100vh-56px)] flex-col">
         <header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-[#E2E8F0] bg-white px-6 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-center gap-4">
-            <p className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">OfferRefine HITL</p>
+            <p className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Offer refinement</p>
             <span className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
               Request Change: {requestLabel}

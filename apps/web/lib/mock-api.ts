@@ -293,9 +293,9 @@ function seedApprovals(apps: Application[]): Approval[] {
 
 function buildAgentStates(): AgentState[] {
   const defs: { name: AgentName; label: string; description: string }[] = [
-    { name: 'discovery', label: 'Discovery', description: 'Surface new roles that fit your profile' },
-    { name: 'scorer', label: 'Scoring', description: 'Rank postings for fit and risk' },
-    { name: 'orchestrator', label: 'Orchestrator', description: 'Coordinate the workflow' },
+    { name: 'discovery', label: 'Job discovery', description: 'Finds roles that fit your profile' },
+    { name: 'scorer', label: 'Role matching', description: 'Scores how well each role fits you' },
+    { name: 'orchestrator', label: 'Coordinator', description: 'Keeps tasks in order and waits for your approval' },
   ]
   const statuses: AgentStatus[] = ['idle', 'running', 'active']
   return defs.map((d, i) => ({

@@ -149,9 +149,9 @@ export default function AgentsPage() {
 
   // Fallback agents for display if SSE not yet connected
   const displayAgents: AgentState[] = agents.length > 0 ? agents : [
-    { name: 'discovery', label: 'Discovery agent', description: 'Scans 45+ portals — Ashby, Greenhouse, Lever, Wellfound', status: 'active' },
-    { name: 'scorer', label: 'Match scorer', description: 'Runs fit scoring (1–5) against your resume profile', status: 'running', progress: 0.6, message: 'Scoring 14 new jobs…' },
-    { name: 'orchestrator', label: 'Orchestrator', description: 'Routes tasks, enforces approvals, prevents duplicate runs', status: 'running', progress: 0.3, message: 'Queuing tailor run…' },
+    { name: 'discovery', label: 'Job discovery', description: 'Finds roles on major boards and company career sites', status: 'active' },
+    { name: 'scorer', label: 'Role matching', description: 'Ranks how well each posting fits your profile', status: 'running', progress: 0.6, message: 'Scoring new roles for you…' },
+    { name: 'orchestrator', label: 'Coordinator', description: 'Keeps tasks in order, waits for your approvals, avoids duplicates', status: 'running', progress: 0.3, message: 'Preparing your next step…' },
   ]
 
   return (

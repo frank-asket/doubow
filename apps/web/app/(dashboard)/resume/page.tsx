@@ -199,7 +199,7 @@ export default function ResumePage() {
       <section className="flex flex-wrap items-end justify-between gap-3 border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 pb-[11px]">
         <div>
           <h1 className="hidden md:block text-[30px] font-medium leading-[1.05] tracking-[-0.012em] text-[#171d1c] dark:text-slate-100">Resume Lab</h1>
-          <p className="text-[13px] text-[#6d7a77] dark:text-slate-400">Manage iterations, extract technical metadata, and align with market sectors.</p>
+          <p className="text-[13px] text-[#6d7a77] dark:text-slate-400">Upload and refine your résumé — we use it to rank roles and tailor drafts.</p>
         </div>
         <div className="flex gap-2">
           <motion.button
@@ -278,7 +278,7 @@ export default function ResumePage() {
                     {uploaded && resumeProfile?.created_at
                       ? `Saved · ${formatResumeTimestamp(resumeProfile.created_at)}`
                       : uploaded
-                        ? 'On file — refresh if metadata looks stale'
+                        ? 'On file — reload if details look out of date'
                         : 'UPLOAD A RESUME TO START EXTRACTION'}
                   </p>
                   {uploading ? (
@@ -418,7 +418,7 @@ export default function ResumePage() {
                   ) : (
                     <tr>
                       <td colSpan={5} className="px-3 py-4 text-[12px] text-[#6d7a77] dark:text-slate-400">
-                        Upload a résumé to see revision metadata from your account.
+                        Upload a résumé to see your versions and dates here.
                       </td>
                     </tr>
                   )}

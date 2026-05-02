@@ -84,13 +84,13 @@ async def list_agent_status(session: AsyncSession, user_id: str) -> list[AgentSt
     orchestrator_message = f"{pending_approvals} approvals awaiting action"
     if latest_run is not None and latest_run.status == "failed" and pending_approvals == 0:
         orchestrator_status = "error"
-        orchestrator_message = latest_run.failure_detail or "Latest orchestration run failed"
+        orchestrator_message = latest_run.failure_detail or "Latest background update failed"
 
     return [
         AgentStatusResponse(
             name="discovery",
-            label="Discovery agent",
-            description="Scans job boards and ATS portals",
+            label="Job discovery",
+            description="Finds roles from job boards and company sites",
             status="active" if total_jobs > 0 else "idle",
             message=f"{total_jobs} indexed jobs",
             items_processed=int(total_jobs),
@@ -98,8 +98,8 @@ async def list_agent_status(session: AsyncSession, user_id: str) -> list[AgentSt
         ),
         AgentStatusResponse(
             name="scorer",
-            label="Match scorer",
-            description="Computes fit scores by dimension",
+            label="Role matching",
+            description="Scores how well each role fits your profile",
             status=scorer_status,
             progress=scorer_progress if active_run_count > 0 else None,
             message=scorer_message,
@@ -108,8 +108,8 @@ async def list_agent_status(session: AsyncSession, user_id: str) -> list[AgentSt
         ),
         AgentStatusResponse(
             name="orchestrator",
-            label="Orchestrator",
-            description="Routes tasks and enforces approval gate",
+            label="Coordinator",
+            description="Keeps tasks in order until you approve the next step",
             status=orchestrator_status,
             progress=orch_progress if pending_approvals > 0 and total_approvals > 0 else None,
             message=orchestrator_message,

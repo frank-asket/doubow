@@ -29,7 +29,7 @@ export function AuthBrandingPanel() {
           </span>
         </Link>
         <p className="font-display mt-10 text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-[#171d1c] dark:text-slate-100 sm:text-[1.65rem]">
-          Your next role, orchestrated—with you in control.
+          Your next role, planned and tracked — with you in control.
         </p>
         <p className="mt-4 max-w-md text-sm leading-relaxed text-[#3d4947] dark:text-slate-400">
           Create an account to track your pipeline, generate drafts that match each posting, and prep for

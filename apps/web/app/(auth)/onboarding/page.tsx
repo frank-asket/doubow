@@ -18,8 +18,8 @@ const steps = [
     cta: 'Open Discover',
   },
   {
-    title: 'Reconnect integrations',
-    body: 'Connect or reconnect Gmail and LinkedIn to support draft handoff workflows.',
+    title: 'Connect email & LinkedIn',
+    body: 'Link Gmail and LinkedIn so you can review drafts, send applications you approve, and use LinkedIn where we support it.',
     href: '/settings' as Route,
     cta: 'Open Settings',
   },

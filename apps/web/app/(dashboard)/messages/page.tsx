@@ -79,24 +79,31 @@ const SUGGESTIONS = [
   'Update my resume',
 ] as const
 
-/** Shipped shortcuts — mirrors backend slash routing (`services/agent_action_executor.py`). */
+/** Shipped shortcuts — same actions as buttons elsewhere in the app. */
 const ASSISTANT_SLASH_HINTS: readonly { cmd: string; hint: string }[] = [
-  { cmd: '/pipeline', hint: 'Pipeline summary & pending approvals count' },
+  { cmd: '/pipeline', hint: 'See your applications summary and how many drafts are waiting' },
   {
     cmd: '/pipeline-run',
-    hint:
-      'Full match update (profile, scoring, pipeline — same as Discover & Pipeline). Flags: --refresh (catalog), --persist-feedback (save tuning)',
+    hint: 'Full refresh (profile, rankings, applications) — same as Discover & Pipeline',
   },
-  { cmd: '/matches', hint: 'Top scored job matches' },
-  { cmd: '/queue jb_* email|linkedin', hint: 'Queue a job into your pipeline' },
-  { cmd: '/dismiss jb_*', hint: 'Hide a job from Discover' },
-  { cmd: '/approve <uuid>', hint: 'Approve an outbound draft (same as Approvals UI)' },
-  { cmd: '/reject <uuid>', hint: 'Discard a pending approval' },
-  { cmd: '/approvals', hint: 'List pending approvals' },
-  { cmd: '/rescore', hint: 'Refresh job fit scores' },
+  { cmd: '/matches', hint: 'Show your best-matching roles' },
+  { cmd: '/queue jb_* email|linkedin', hint: 'Add a role to your application list (use the job ID from Discover)' },
+  { cmd: '/dismiss jb_*', hint: 'Hide a role from your Discover list' },
+  { cmd: '/approve <uuid>', hint: 'Send or confirm a draft you already reviewed in Approvals' },
+  { cmd: '/reject <uuid>', hint: 'Cancel a draft waiting for approval' },
+  { cmd: '/approvals', hint: 'List drafts waiting for your OK' },
+  { cmd: '/rescore', hint: 'Recalculate how well roles fit your profile' },
 ]
 
 const LOCAL_STORAGE_NS = 'doubow.messages.history.v1'
+
+/** Readable titles for capability tool ids (optional advanced list). */
+function formatCapabilityTitle(internalName: string): string {
+  return internalName
+    .split('_')
+    .map((w) => (w.length ? w[0]!.toUpperCase() + w.slice(1) : w))
+    .join(' ')
+}
 
 function mapAgentState(state: AgentState): AgentTask {
   let tone: AgentTask['tone'] = 'muted'
@@ -636,14 +643,15 @@ export default function MessagesPage() {
                 <summary className="cursor-pointer list-none text-[13px] font-bold text-teal-900 dark:text-teal-100 [&::-webkit-details-marker]:hidden">
                   <span className="inline-flex items-center gap-2">
                     <Sparkles size={14} className="text-teal-700 dark:text-teal-300" />
-                    Assistant shortcuts — slash commands & account actions
+                    Quick commands (type / in chat)
                   </span>
                 </summary>
                 <div className="mt-3 space-y-3 border-t border-teal-200/60 pt-3 dark:border-teal-900/40">
                   <p className="text-[12px] font-semibold leading-snug text-zinc-700 dark:text-slate-200">
-                    Try commands starting with{' '}
-                    <kbd className="rounded bg-white px-1.5 py-0.5 font-mono text-[11px] dark:bg-slate-800">/</kbd> — same
-                    outcomes as Discover, Pipeline, and Approvals.
+                    Type{' '}
+                    <kbd className="rounded bg-white px-1.5 py-0.5 font-mono text-[11px] dark:bg-slate-800">/</kbd>
+                    , then a shortcut. Same results as using Discover, Pipeline, or Approvals — no technical setup
+                    needed.
                   </p>
                   <ul className="space-y-1.5 text-[12px] text-zinc-800 dark:text-slate-100">
                     {ASSISTANT_SLASH_HINTS.map((row) => (
@@ -656,22 +664,25 @@ export default function MessagesPage() {
                     ))}
                   </ul>
                   {agentCapabilities?.tools?.length ? (
-                    <div>
-                      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-zinc-500 dark:text-slate-400">
-                        Full tool list ({agentCapabilities.tools.length}) — from{' '}
-                        <code className="rounded bg-white px-1 font-mono text-[10px] dark:bg-slate-900">GET /v1/agents/capabilities</code>
+                    <details className="rounded-md border border-teal-200/70 bg-white/80 px-2 py-1.5 dark:border-teal-900/50 dark:bg-slate-900/80">
+                      <summary className="cursor-pointer list-none text-[11px] font-semibold text-zinc-600 dark:text-slate-300 [&::-webkit-details-marker]:hidden">
+                        Advanced — full list of actions ({agentCapabilities.tools.length})
+                      </summary>
+                      <p className="mt-2 text-[10px] leading-snug text-zinc-500 dark:text-slate-400">
+                        You don&apos;t need these names to use Doubow. They&apos;re here for teammates connecting other
+                        tools or helping you troubleshoot.
                       </p>
-                      <ul className="max-h-36 space-y-1 overflow-y-auto rounded border border-zinc-200 bg-white p-2 text-[11px] dark:border-slate-700 dark:bg-slate-900">
+                      <ul className="mt-2 max-h-36 space-y-1 overflow-y-auto rounded border border-zinc-200 bg-white p-2 text-[11px] dark:border-slate-700 dark:bg-slate-900">
                         {agentCapabilities.tools.map((t) => (
                           <li key={t.name} className="leading-snug">
-                            <span className="font-bold text-zinc-900 dark:text-white">{t.name}</span>
+                            <span className="font-bold text-zinc-900 dark:text-white">{formatCapabilityTitle(t.name)}</span>
                             <span className="text-zinc-600 dark:text-slate-400"> — {t.description}</span>
                           </li>
                         ))}
                       </ul>
-                    </div>
+                    </details>
                   ) : capabilitiesLoading && meDebug?.user_id ? (
-                    <p className="text-[11px] font-semibold text-zinc-500 dark:text-slate-400">Loading capabilities…</p>
+                    <p className="text-[11px] font-semibold text-zinc-500 dark:text-slate-400">Loading shortcuts…</p>
                   ) : null}
                 </div>
               </details>
@@ -843,7 +854,8 @@ export default function MessagesPage() {
                 })
               ) : (
                 <p className="text-[12px] font-semibold text-zinc-500 dark:text-slate-300">
-                  Agent status appears here when your API returns <code className="rounded bg-zinc-100 px-1 font-mono text-[11px] dark:bg-slate-800">/v1/agents/status</code>.
+                  When Doubow is working in the background — for example scoring new roles — you&apos;ll see progress
+                  here.
                 </p>
               )}
             </div>

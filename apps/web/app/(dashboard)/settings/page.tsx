@@ -33,7 +33,7 @@ export default function SettingsPage() {
           Settings &amp; Integrations
         </h1>
         <p className="mt-1 text-[13px] text-[#6d7a77] dark:text-slate-400">
-          Manage identity integrations used for approvals and outreach handoff.
+          Connect the accounts Doubow uses when you approve emails or LinkedIn steps.
         </p>
       </section>
 
@@ -53,7 +53,7 @@ export default function SettingsPage() {
               Gmail Service
             </p>
             <p className="mt-1 text-[13px] text-[#171d1c] dark:text-slate-100">
-              Reconnect Gmail if email draft handoff stops working.
+              Reconnect if approved emails stop sending or drafts get stuck.
             </p>
           </div>
           <button
@@ -72,7 +72,7 @@ export default function SettingsPage() {
               LinkedIn Service
             </p>
             <p className="mt-1 text-[13px] text-[#171d1c] dark:text-slate-100">
-              Reconnect LinkedIn when profile sync or handoff needs reauthorization.
+              Reconnect if LinkedIn asks you to sign in again or linked steps fail.
             </p>
           </div>
           <button

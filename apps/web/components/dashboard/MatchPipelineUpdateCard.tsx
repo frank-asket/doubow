@@ -29,12 +29,26 @@ function hasPersonalizedTuning(data: FeedbackLearningPreferenceResponse | null |
   return Object.keys(data.feedback_learning).length > 0
 }
 
+/** Plain-language labels for pipeline stages (avoid internal IDs in customer UI). */
+const STAGE_LABELS: Partial<Record<string, string>> = {
+  data_collection: 'bringing in new job listings',
+  resume_profile: 'updating your profile from your résumé',
+  job_matching: 'refreshing job fit scores',
+  outbound_application: 'syncing your applications list',
+  feedback: 'updating how we learn from your pipeline',
+}
+
+function friendlyStageLabel(stage: string): string {
+  return STAGE_LABELS[stage] ?? stage.replace(/_/g, ' ')
+}
+
 function summarizeRun(res: JobSearchPipelineRunResponse): string {
   const failed = res.stages.filter((s) => !s.ok)
   if (failed.length > 0) {
-    return `Some steps need attention: ${failed.map((f) => f.stage.replace(/_/g, ' ')).join(', ')}.`
+    const parts = failed.map((f) => friendlyStageLabel(f.stage))
+    return `We could not finish updating (${parts.join('; ')}). Try again in a moment, or ask Assistant for help.`
   }
-  return 'Your profile, matches, and applications view are up to date.'
+  return "You're all set — profile, matches, and applications are up to date."
 }
 
 export function MatchPipelineUpdateCard({
@@ -90,13 +104,13 @@ export function MatchPipelineUpdateCard({
     try {
       await mePreferencesApi.clearFeedbackLearning()
       await mutateFl()
-      setBanner({ tone: 'ok', text: 'Match scoring now uses the default weight mix.' })
+      setBanner({ tone: 'ok', text: 'Role rankings now use the standard mix — not your past activity.' })
       await onAfterRun?.()
     } catch (e) {
       const msg =
         e instanceof ApiError
-          ? e.detail || 'Could not reset tuning.'
-          : 'Could not reset tuning.'
+          ? e.detail || 'Could not change that setting. Try again.'
+          : 'Could not change that setting. Try again.'
       setBanner({ tone: 'err', text: msg })
     } finally {
       setClearing(false)
@@ -114,19 +128,19 @@ export function MatchPipelineUpdateCard({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-            Full match update
+            Refresh everything
           </p>
           <p className="text-sm text-zinc-800 dark:text-zinc-100">
-            Refreshes your résumé profile, rescores matches, and syncs your applications pipeline — the same
-            end-to-end run as in Assistant.
+            Updates your résumé profile, refreshes how roles are ranked for you, and syncs your applications — the same
+            full refresh you can start from Assistant.
           </p>
           {personalized ? (
             <p className="text-xs text-teal-800 dark:text-teal-300">
-              Your fit scores use tuning from your application outcomes.
+              Your role rankings reflect how you&apos;ve been applying and responding — not only keywords.
             </p>
           ) : null}
           {flError ? (
-            <p className="text-xs text-zinc-500">Could not load personalization status.</p>
+            <p className="text-xs text-zinc-500">Could not check personalization settings.</p>
           ) : null}
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:items-end">
@@ -147,18 +161,19 @@ export function MatchPipelineUpdateCard({
             ) : (
               <Sparkles className="h-4 w-4" aria-hidden />
             )}
-            {running ? 'Running…' : 'Run full update'}
+            {running ? 'Working…' : 'Refresh now'}
           </motion.button>
           <Link
             href="/messages"
             className="text-center text-2xs font-medium text-teal-800 hover:underline dark:text-teal-300 sm:text-right"
           >
-            Or ask Assistant to run it
+            Or ask Assistant to refresh for you
           </Link>
         </div>
       </div>
 
       <div className="mt-3 flex flex-col gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+        <p className="text-2xs font-semibold uppercase tracking-wider text-zinc-400">Optional</p>
         <label className="flex cursor-pointer items-start gap-2 text-xs text-zinc-700 dark:text-zinc-300">
           <input
             type="checkbox"
@@ -167,9 +182,9 @@ export function MatchPipelineUpdateCard({
             onChange={(e) => setPersistLearning(e.target.checked)}
           />
           <span>
-            <span className="font-medium">Save outcome-based tuning</span>
+            <span className="font-medium">Learn from my recent activity</span>
             <span className="block text-zinc-500">
-              Updates the learning snapshot from your pipeline feedback (optional).
+              Improves how we rank jobs based on your applications and pipeline (optional).
             </span>
           </span>
         </label>
@@ -181,8 +196,8 @@ export function MatchPipelineUpdateCard({
             onChange={(e) => setRefreshCatalog(e.target.checked)}
           />
           <span>
-            <span className="font-medium">Refresh job catalog from providers</span>
-            <span className="block text-zinc-500">Slower; use when you want new listings pulled in.</span>
+            <span className="font-medium">Also fetch new jobs from the web</span>
+            <span className="block text-zinc-500">Takes longer. Use when you want the latest listings from our sources.</span>
           </span>
         </label>
       </div>
@@ -196,7 +211,7 @@ export function MatchPipelineUpdateCard({
             {...microInteractionMotion}
             className="text-2xs font-semibold text-zinc-600 underline-offset-2 hover:underline disabled:opacity-50 dark:text-zinc-400"
           >
-            {clearing ? 'Resetting…' : 'Reset to default match weights'}
+            {clearing ? 'Resetting…' : 'Stop personalizing my rankings'}
           </motion.button>
         </div>
       ) : null}
