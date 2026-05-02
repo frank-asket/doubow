@@ -54,24 +54,24 @@ function storageKeyForApproval(approvalId: string) {
 function handoffSuccessToastMessage(channel: string, row?: Approval | null) {
   if (!row) {
     return channel === 'linkedin'
-      ? 'Approved. LinkedIn handoff is processing — check your email shortly.'
-      : 'Approved. Delivery is processing — check Recent delivery below.'
+      ? 'Approved. We are emailing you the LinkedIn message — check your inbox in a moment.'
+      : 'Approved. Your message is on its way — see status under Recent delivery below.'
   }
   if (row.delivery_status === 'failed') {
     const hint = row.delivery_error ? ` (${row.delivery_error})` : ''
-    return `Send failed${hint}. Try again or open Settings to reconnect Gmail or LinkedIn.`
+    return `Could not send${hint}. Try again, or open Settings to reconnect Gmail or LinkedIn.`
   }
   if (row.channel === 'linkedin' && row.send_provider === 'linkedin_email_handoff') {
-    return 'LinkedIn pack emailed to you — open the posting and paste the message from your inbox.'
+    return 'We emailed you the text to use on LinkedIn — open the job, then paste from your inbox.'
   }
   if (row.delivery_status === 'draft_created') {
-    return 'A Gmail draft was created. Open Gmail to review and send.'
+    return 'A draft was saved in Gmail. Open Gmail to review and send when you are ready.'
   }
   if (row.delivery_status === 'provider_confirmed' && row.send_provider === 'gmail') {
-    return 'Message sent via your Gmail account.'
+    return 'Sent from your Gmail account.'
   }
   if (row.send_provider === 'smtp') {
-    return 'Message sent via email relay.'
+    return 'Sent through Doubow’s email service.'
   }
   return 'Draft approved.'
 }
@@ -86,20 +86,20 @@ function approvalDeliveryBadgeClass(item: Approval) {
 }
 
 function approvalDeliverySummary(item: Approval) {
-  if (item.send_provider === 'linkedin_email_handoff') return 'Handoff emailed (paste on LinkedIn)'
-  if (item.delivery_status === 'provider_confirmed') return 'Sent (provider-confirmed)'
-  if (item.delivery_status === 'provider_accepted') return 'Sent (provider-accepted)'
-  if (item.delivery_status === 'draft_created') return 'Draft created (not sent)'
-  if (item.delivery_status === 'failed') return 'Send failed'
-  return item.delivery_status ?? 'Queued'
+  if (item.send_provider === 'linkedin_email_handoff') return 'Emailed for LinkedIn (paste on site)'
+  if (item.delivery_status === 'provider_confirmed') return 'Sent (confirmed)'
+  if (item.delivery_status === 'provider_accepted') return 'Sent (accepted)'
+  if (item.delivery_status === 'draft_created') return 'Saved as Gmail draft'
+  if (item.delivery_status === 'failed') return 'Not sent'
+  return item.delivery_status ?? 'In progress'
 }
 
 function confirmationCopySummary(item: Approval) {
   const status = item.confirmation_copy_status ?? 'pending'
-  if (status === 'delivered') return 'Confirmation copy delivered'
-  if (status === 'failed') return 'Confirmation copy failed'
-  if (status === 'not_applicable') return 'No confirmation copy required'
-  return 'Confirmation copy pending'
+  if (status === 'delivered') return 'Copy to you: delivered'
+  if (status === 'failed') return 'Copy to you: failed'
+  if (status === 'not_applicable') return 'No extra copy'
+  return 'Copy to you: pending'
 }
 
 function confirmationCopyBadgeClass(item: Approval) {
@@ -108,6 +108,17 @@ function confirmationCopyBadgeClass(item: Approval) {
   if (status === 'failed') return 'font-semibold text-rose-700 dark:text-rose-300'
   if (status === 'not_applicable') return 'font-semibold text-slate-500 dark:text-slate-400'
   return 'font-semibold text-amber-700 dark:text-amber-300'
+}
+
+/** Readable channel label for how the message was sent (avoid raw provider ids). */
+function sendChannelLabel(item: Pick<Approval, 'channel' | 'send_provider'>): string {
+  const sp = item.send_provider
+  if (sp === 'linkedin_email_handoff') return 'LinkedIn'
+  if (sp === 'gmail') return 'Gmail'
+  if (sp === 'smtp') return 'Email'
+  if (item.channel === 'linkedin') return 'LinkedIn'
+  if (item.channel === 'email') return 'Email'
+  return sp ?? item.channel
 }
 
 function asCurrency(value: number) {
@@ -319,11 +330,11 @@ export default function ApprovalsPage() {
 
   const approveButtonLabel = useMemo(() => {
     if (!current) return 'Approve'
-    if (current.channel === 'linkedin') return 'Approve outreach & email handoff'
+    if (current.channel === 'linkedin') return 'Approve & email me for LinkedIn'
     if (current.channel === 'email') {
-      if (gmailForApprovals?.loading) return 'Approve outreach…'
-      if (gmailForApprovals?.connected) return 'Approve outreach via Gmail'
-      return 'Approve outreach (email relay)'
+      if (gmailForApprovals?.loading) return 'Approve & send…'
+      if (gmailForApprovals?.connected) return 'Approve & send via Gmail'
+      return 'Approve & send through Doubow'
     }
     return 'Approve'
   }, [current, gmailForApprovals])
@@ -647,7 +658,7 @@ export default function ApprovalsPage() {
                 <p className="mt-0.5 text-lg font-bold text-slate-900 dark:text-white">{pending.length}</p>
               </div>
               <div className="rounded-[2px] border border-[#d9e1dd] bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-slate-500 dark:text-slate-400">Sent (provider-confirmed)</p>
+                <p className="text-slate-500 dark:text-slate-400">Sent (confirmed)</p>
                 <p className="mt-0.5 text-lg font-bold text-slate-900 dark:text-white">{providerConfirmed.length}</p>
               </div>
               <div className="rounded-[2px] border border-[#d9e1dd] bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
@@ -721,7 +732,7 @@ export default function ApprovalsPage() {
             <div className="mx-auto flex max-w-[1700px] flex-wrap items-center justify-between gap-3 text-xs text-slate-800 dark:text-slate-200">
               <p className="min-w-0 flex-1 leading-relaxed">
                 <span className="font-semibold text-[#00685f] dark:text-teal-300">Gmail is not connected.</span>{' '}
-                Approvals will fall back to the server email relay. Connect Google in Settings to create Gmail drafts or send from your address when the API is configured for it.
+                We can still send using Doubow’s email service. Connect Google in Settings to save drafts in Gmail or send from your own address when that option is available.
               </p>
               <Link
                 href="/settings"
@@ -795,11 +806,11 @@ export default function ApprovalsPage() {
                           : 'border-[#d6e5df] bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
                       }`}
                     >
-                      {showConfirmationFailuresOnly ? 'Showing failures only' : 'Show confirmation failures only'}
+                      {showConfirmationFailuresOnly ? 'Showing issues only' : 'Show email-copy issues only'}
                     </button>
                   </div>
                   {filteredRecentDelivery.length === 0 ? (
-                    <p className="text-xs text-slate-500 dark:text-slate-400">No confirmation-copy failures in recent deliveries.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">No email-copy issues in recent sends.</p>
                   ) : null}
                   {filteredRecentDelivery.map((item) => (
                     <div key={`empty-delivery-${item.id}`} className="space-y-1">
@@ -878,15 +889,15 @@ export default function ApprovalsPage() {
                         : 'border-[#d6e5df] bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
                     }`}
                   >
-                    Failures only
+                    Issues only
                   </button>
                 </div>
                 <div className="space-y-2">
                   {filteredRecentDelivery.length === 0 ? (
                     <p className="px-2 text-xs text-slate-500 dark:text-slate-400">
                       {showConfirmationFailuresOnly
-                        ? 'No confirmation-copy failures in recent deliveries.'
-                        : 'No sent confirmations yet.'}
+                        ? 'No email-copy issues in recent sends.'
+                        : 'No recent sends yet.'}
                     </p>
                   ) : (
                     filteredRecentDelivery.map((item) => (
@@ -898,7 +909,7 @@ export default function ApprovalsPage() {
                         <p className="mt-1 line-clamp-1 text-xs text-slate-600 dark:text-slate-300">{item.application.job.title}</p>
                         <div className="mt-2 flex items-center justify-between text-[11px]">
                           <span className="rounded-full border border-slate-200 px-2 py-0.5 uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-300">
-                            {item.send_provider ?? item.channel}
+                            {sendChannelLabel(item)}
                           </span>
                           <span className={approvalDeliveryBadgeClass(item)}>
                             {approvalDeliverySummary(item)}

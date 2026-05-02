@@ -291,7 +291,7 @@ export const googleIntegrationsApi = {
     request<{ ok: boolean }>('/v1/integrations/google/', { method: 'DELETE' }),
 }
 
-// ─── LinkedIn (OAuth link for note handoff) ─────────────────────────────────
+// ─── LinkedIn (OAuth for LinkedIn outreach) ────────────────────────────────
 
 export const linkedinIntegrationsApi = {
   getAuthorizationUrl: () =>

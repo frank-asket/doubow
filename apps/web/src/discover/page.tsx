@@ -97,10 +97,10 @@ const SOURCE_LABELS: Record<JobWithScore['source'], string> = {
 }
 
 function scoreProvenanceLabel(provenance: JobWithScore['score']['provenance']): string {
-  if (provenance === 'computed') return 'Computed'
-  if (provenance === 'template_default') return 'Default template'
-  if (provenance === 'template_seeded') return 'Seeded template'
-  return 'Unknown source'
+  if (provenance === 'computed') return 'Based on your profile'
+  if (provenance === 'template_default') return 'Starting estimate'
+  if (provenance === 'template_seeded') return 'From your setup'
+  return 'Still updating'
 }
 
 function scoreProvenanceClass(provenance: JobWithScore['score']['provenance']): string {
@@ -290,7 +290,7 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
               scoreProvenanceClass(job.score.provenance),
             )}
           >
-            Score source: {scoreProvenanceLabel(job.score.provenance)}
+            How we scored this: {scoreProvenanceLabel(job.score.provenance)}
           </span>
         </div>
         <div className="mt-3 flex items-center gap-3">
