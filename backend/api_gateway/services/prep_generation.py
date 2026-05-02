@@ -103,6 +103,9 @@ async def generate_prep_structured(job: Job) -> PrepStructured:
                 story.confidence = _infer_story_confidence(story)
             if not structured.questions:
                 structured = _fallback_prep(job)
+            elif not structured.star_stories:
+                # LLM often returns questions but omits star_stories; keep questions, fill STAR from template.
+                structured.star_stories = _fallback_prep(job).star_stories
             return structured
         except Exception:
             logger.exception("prep LLM generation failed; using template")
