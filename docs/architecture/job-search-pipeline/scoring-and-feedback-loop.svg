@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="title2 desc2">
+  <title id="title2">Doubow matching scores and outcome feedback</title>
+  <desc id="desc2">How job scores are blended and how application outcomes can adjust per-user matching hints.</desc>
+  <defs>
+    <linearGradient id="hdr2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#115e59"/>
+    </linearGradient>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#0d9488"/>
+    </marker>
+    <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#f59e0b"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="920" height="44" fill="url(#hdr2)"/>
+  <text x="20" y="29" fill="#ffffff" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="17" font-weight="600">Doubow · Discover scoring &amp; feedback loop</text>
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif">
+    <rect x="24" y="64" width="200" height="72" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="124" y="92" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="600">jobs (catalog)</text>
+    <text x="124" y="112" text-anchor="middle" fill="#475569" font-size="10">template score_template</text>
+    <rect x="24" y="152" width="200" height="72" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="124" y="180" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="600">résumé + preferences</text>
+    <text x="124" y="200" text-anchor="middle" fill="#475569" font-size="10">parsed_profile · skills · targets</text>
+    <path d="M 236 120 L 300 120 L 300 175 L 332 175" fill="none" stroke="#0d9488" stroke-width="2" marker-end="url(#arr)"/>
+    <path d="M 236 188 L 320 188 L 320 175" fill="none" stroke="#0d9488" stroke-width="2"/>
+    <rect x="340" y="120" width="240" height="120" rx="10" fill="#ffffff" stroke="#0d9488" stroke-width="2"/>
+    <text x="460" y="148" text-anchor="middle" fill="#115e59" font-size="13" font-weight="700">jobs_service · blend</text>
+    <text x="460" y="172" text-anchor="middle" fill="#334155" font-size="11">global weights ± matching_blend_hints</text>
+    <text x="460" y="192" text-anchor="middle" fill="#64748b" font-size="10">semantic · lexical · LLM</text>
+    <text x="460" y="216" text-anchor="middle" fill="#64748b" font-size="10">from preferences.feedback_learning</text>
+    <path d="M 584 180 L 648 180" fill="none" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arr2)"/>
+    <rect x="656" y="132" width="240" height="96" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+    <text x="776" y="162" text-anchor="middle" fill="#92400e" font-size="12" font-weight="600">job_scores · Discover</text>
+    <text x="776" y="184" text-anchor="middle" fill="#78350f" font-size="11">fit_score · fit_reasons</text>
+    <text x="776" y="204" text-anchor="middle" fill="#92400e" font-size="10">Pipeline · queue · apply</text>
+    <path d="M 776 236 Q 776 288 460 288 Q 144 288 124 252" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="460" y="322" text-anchor="middle" fill="#047857" font-size="11" font-weight="600">Application outcomes ? feedback stage ? feedback_learning (optional persist)</text>
+    <circle cx="124" cy="244" r="6" fill="#059669"/>
+  </g>
+</svg>

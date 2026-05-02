@@ -99,6 +99,42 @@ flowchart TB
 
 Matches the local section in **`docs/architecture/doubow-high-level-flow.md`** (no OpenRouter box—traffic is HTTPS from the API/workers). Assistant, ingestion, and autopilot usually share the **same API process** in dev unless workers are split. Autopilot and LangGraph flags: **`backend/README.md`**.
 
+## 🎯 Job search pipeline
+
+End-to-end stages run in order via `JobSearchPipelineCoordinator` in the API (`POST /v1/agents/job-search-pipeline/run`; assistant tool `run_job_search_pipeline`). Implementation: `backend/api_gateway/services/job_search_pipeline.py`.
+
+```mermaid
+flowchart LR
+  DC[data_collection]
+  RP[resume_profile]
+  JM[job_matching]
+  OA[outbound_application]
+  FB[feedback]
+  DC --> RP --> JM --> OA --> FB
+```
+
+| Stage | In Doubow |
+| --- | --- |
+| **data_collection** | Provider readiness, optional resume-aligned catalog ingest (Adzuna, Greenhouse, optional connectors), query plan from resume + preferences |
+| **resume_profile** | Latest parsed résumé + preferences on file |
+| **job_matching** | Recompute template-backed scores (semantic / lexical / LLM blend); optional per-user **`matching_blend_hints`** from stored **`feedback_learning`**; Prometheus **`doubow_matching_blend_score_sync_total`** when personalized blend differs from globals |
+| **outbound_application** | Snapshot: pending approvals + application counts |
+| **feedback** | Application outcomes by status + advisory **`feedback_learning`** snapshot; optional persist into preferences |
+
+**Related UX:** Discover shows **fit_score** / **fit_reasons**; the Unified Assistant can **queue** jobs (`queue_job_to_pipeline`) and run the same pipeline as the API. **Approvals** gate outbound send (HITL). Broader platform architecture: **`docs/architecture/doubow-high-level-flow.md`** and [High-Level Architecture](#-high-level-architecture) above.
+
+### Figures (Doubow-branded SVG)
+
+<p align="center">
+  <img src="./docs/architecture/job-search-pipeline/pipeline-stages.svg" alt="Doubow job search pipeline stages" width="920" />
+</p>
+
+<p align="center">
+  <img src="./docs/architecture/job-search-pipeline/scoring-and-feedback-loop.svg" alt="Discover scoring blend and feedback loop" width="920" />
+</p>
+
+Source files: **`docs/architecture/job-search-pipeline/`** (`README.md` lists assets).
+
 ## 🧱 Frontend + Backend Stack
 
 ### Web App (`apps/web/`)
@@ -250,6 +286,7 @@ Behavior:
 
 ## 📚 Documentation
 
+- Job-search pipeline: section **Job search pipeline** above; SVG figures under **`docs/architecture/job-search-pipeline/`**; code `backend/api_gateway/services/job_search_pipeline.py`
 - Capstone rubric + readiness (eval notes, deployment checklist, demo script, risk register): `docs/capstone-scoring-sheet.md`, `docs/capstone-readiness.md`
 - Architecture: high-level flow `docs/architecture/doubow-high-level-flow.md`; resilience (health probes, rate limits, OpenRouter circuit): `docs/architecture/resilience.md`
 - Backend detail (LLM tiers, ingestion, autopilot/LangGraph): `backend/README.md`
