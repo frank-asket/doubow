@@ -258,6 +258,45 @@ async def upload_resume_for_user(
     return resume_row_to_response(row)
 
 
+async def get_feedback_learning_debug_for_user(
+    session: AsyncSession, user_id: str
+) -> tuple[dict | None, dict[str, dict[str, float]]]:
+    """Return stored feedback_learning (if any) and base vs effective matching weight preview."""
+    from services.jobs_service import matching_blend_weight_preview
+
+    row = await _get_latest_resume_row(session, user_id)
+    if row is None:
+        raise LookupError("no_resume")
+    prefs = row.preferences if isinstance(row.preferences, dict) else {}
+    fl = prefs.get("feedback_learning")
+    fl_out = fl if isinstance(fl, dict) else None
+    preview = matching_blend_weight_preview(prefs)
+    return fl_out, preview
+
+
+async def clear_feedback_learning_for_user(session: AsyncSession, user_id: str) -> None:
+    """Remove feedback_learning from preferences (rescoring then uses global weights only)."""
+    row = await _get_latest_resume_row(session, user_id)
+    if row is None:
+        raise LookupError("no_resume")
+    merged = merge_preferences_dicts(row.preferences, {})
+    merged["feedback_learning"] = None
+    row.preferences = UserPreferencesModel.model_validate(merged).model_dump()
+    row.version = row.version + 1
+    await session.commit()
+
+
+async def persist_feedback_learning_snapshot(session: AsyncSession, user_id: str, snapshot: dict) -> None:
+    """Merge outcome feedback snapshot into the latest resume preferences (non-destructive merge via preferences patch)."""
+    row = await _get_latest_resume_row(session, user_id)
+    if row is None:
+        raise LookupError("no_resume")
+    merged = merge_preferences_dicts(row.preferences, {"feedback_learning": snapshot})
+    row.preferences = merged
+    row.version = row.version + 1
+    await session.commit()
+
+
 async def update_preferences_for_user(
     session: AsyncSession, user_id: str, patch: UserPreferencesPatch
 ) -> UserPreferencesModel:

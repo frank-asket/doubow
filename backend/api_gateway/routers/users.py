@@ -7,7 +7,7 @@ from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
 from schemas.dashboard import DashboardSummaryResponse
-from schemas.resume import UserPreferencesModel, UserPreferencesPatch
+from schemas.resume import FeedbackLearningPreferenceResponse, UserPreferencesModel, UserPreferencesPatch
 from schemas.users import (
     EmailIdentityRow,
     MeAiConfigDebugResponse,
@@ -18,7 +18,11 @@ from schemas.users import (
     OAuthProviderConfigDebug,
 )
 from services.dashboard_service import get_dashboard_summary as load_dashboard_summary
-from services.resume_service import update_preferences_for_user
+from services.resume_service import (
+    clear_feedback_learning_for_user,
+    get_feedback_learning_debug_for_user,
+    update_preferences_for_user,
+)
 from services.users_service import user_to_me_response
 
 router = APIRouter(prefix="/me", tags=["users"])
@@ -130,6 +134,45 @@ async def get_me_debug_oauth_config(
         google=summarize(google_required, settings.google_oauth_is_configured()),
         linkedin=summarize(linkedin_required, settings.linkedin_oauth_is_configured()),
     )
+
+
+@router.get(
+    "/preferences/feedback-learning",
+    response_model=FeedbackLearningPreferenceResponse,
+    summary="Read stored feedback_learning and resolved matching weights",
+)
+async def get_feedback_learning_prefs(
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> FeedbackLearningPreferenceResponse:
+    """Debug/diagnostic: shows persisted outcome snapshot and effective blend weights."""
+    try:
+        fl, preview = await get_feedback_learning_debug_for_user(session, user.id)
+    except LookupError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Resume not found — upload a resume first.",
+        )
+    return FeedbackLearningPreferenceResponse(
+        feedback_learning=fl,
+        base_matching_weights=preview["base"],
+        effective_matching_weights=preview["effective"],
+    )
+
+
+@router.delete("/preferences/feedback-learning", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_feedback_learning_prefs(
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> None:
+    """Clear feedback_learning so rescoring uses global weights only."""
+    try:
+        await clear_feedback_learning_for_user(session, user.id)
+    except LookupError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Resume not found — upload a resume first.",
+        )
 
 
 @router.patch("/preferences", response_model=UserPreferencesModel)

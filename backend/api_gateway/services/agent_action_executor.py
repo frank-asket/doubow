@@ -16,7 +16,9 @@ from models.job import Job
 from models.job_score import JobScore
 from models.prep_session import PrepSession
 from models.resume import Resume
+from config import settings as app_settings
 from schemas.applications import Channel, CreateApplicationRequest
+from schemas.job_search_pipeline import JobSearchPipelineRunRequest, JobSearchPipelineStageId
 from services.applications_service import (
     ApplicationIdempotencyConflictError,
     ApplicationJobNotFoundError,
@@ -36,8 +38,10 @@ from services.prep_service import (
     get_prep_detail_for_user,
     prep_row_to_detail,
 )
+from services.job_search_pipeline import coordinator as job_search_pipeline_coordinator
 
 AgentChannel = Literal["email", "linkedin", "company_site"]
+CatalogPreset = Literal["hourly", "daily"]
 
 AgentActionName = Literal[
     "get_pipeline_snapshot",
@@ -54,6 +58,7 @@ AgentActionName = Literal[
     "dismiss_job_from_discover",
     "approve_outbound_draft",
     "reject_outbound_draft",
+    "run_job_search_pipeline",
 ]
 
 _PIPELINE_HINTS = (
@@ -105,6 +110,15 @@ _PREP_GENERATE_HINTS = (
     "create interview prep",
 )
 _AUTOPILOT_HINTS = ("autopilot run", "batch run", "scoring run", "recent autopilot", "background run")
+_PIPELINE_RUN_HINTS = (
+    "run job search pipeline",
+    "full job search pipeline",
+    "run the job search pipeline",
+    "execute job search pipeline",
+    "end-to-end job search",
+    "run trading agents pipeline",
+    "run pipeline runner",
+)
 
 
 class AgentActionCall(BaseModel):
@@ -114,6 +128,12 @@ class AgentActionCall(BaseModel):
     job_id: str | None = None
     approval_id: str | None = None
     channel: AgentChannel | None = None
+    trigger_catalog_refresh: bool = False
+    persist_feedback_learning: bool = False
+    catalog_preset: CatalogPreset = "hourly"
+    include_legacy_connectors: bool = False
+    resume_aligned_catalog: bool = True
+    pipeline_stages: list[str] | None = None
 
 
 class AgentActionResult(BaseModel):
@@ -135,6 +155,16 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
     if not lower:
         return None
 
+    if lower.startswith("/pipeline-run"):
+        rest = lower[len("/pipeline-run") :].strip()
+        trig = "--refresh" in rest or " refresh" in f" {rest} "
+        persist = "--persist-feedback" in rest or "--learn" in rest
+        return AgentActionCall(
+            action="run_job_search_pipeline",
+            trigger_catalog_refresh=trig,
+            persist_feedback_learning=persist,
+        )
+
     if lower.startswith("/queue"):
         return AgentActionCall(
             action="queue_job_to_pipeline",
@@ -150,6 +180,15 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
 
     if lower.startswith("/reject"):
         return AgentActionCall(action="reject_outbound_draft", approval_id=_extract_approval_id_only(text))
+
+    if any(hint in lower for hint in _PIPELINE_RUN_HINTS):
+        trig = "catalog refresh" in lower or "refresh catalog" in lower
+        persist = "persist feedback" in lower or "save feedback" in lower or "learn from outcomes" in lower
+        return AgentActionCall(
+            action="run_job_search_pipeline",
+            trigger_catalog_refresh=trig,
+            persist_feedback_learning=persist,
+        )
 
     if lower.startswith("/pipeline") or any(hint in lower for hint in _PIPELINE_HINTS):
         return AgentActionCall(action="get_pipeline_snapshot")
@@ -250,7 +289,61 @@ async def execute_action(
         return await _approve_outbound_draft(session=session, user_id=user_id, call=call)
     if call.action == "reject_outbound_draft":
         return await _reject_outbound_draft(session=session, user_id=user_id, call=call)
+    if call.action == "run_job_search_pipeline":
+        return await _run_job_search_pipeline(session=session, user_id=user_id, call=call)
     raise ValueError(f"Unknown action: {call.action}")
+
+
+async def _run_job_search_pipeline(
+    *, session: AsyncSession, user_id: str, call: AgentActionCall
+) -> AgentActionResult:
+    stages = None
+    if call.pipeline_stages:
+        parsed: list[JobSearchPipelineStageId] = []
+        for s in call.pipeline_stages:
+            try:
+                parsed.append(JobSearchPipelineStageId(s))
+            except ValueError as exc:
+                raise AgentActionPolicyError(
+                    action="run_job_search_pipeline",
+                    code="invalid_stage",
+                    detail=f"Unknown pipeline stage {s!r}. Expected one of: "
+                    + ", ".join(e.value for e in JobSearchPipelineStageId),
+                ) from exc
+        stages = parsed
+
+    body = JobSearchPipelineRunRequest(
+        stages=stages,
+        trigger_catalog_refresh=call.trigger_catalog_refresh,
+        persist_feedback_learning=call.persist_feedback_learning,
+        catalog_preset=call.catalog_preset,
+        include_legacy_connectors=call.include_legacy_connectors,
+        resume_aligned_catalog=call.resume_aligned_catalog,
+    )
+    res = await job_search_pipeline_coordinator.run(session, app_settings, user_id, body)
+    lines = [
+        "Summary:",
+        f"- Ran job search pipeline (trace {res.trace_id}).",
+        "",
+        "Stages:",
+    ]
+    for st in res.stages:
+        status = "ok" if st.ok else "failed"
+        lines.append(f"- {st.stage.value} ({status}): {st.summary}")
+        if st.error:
+            lines.append(f"  error: {st.error}")
+    lines.extend(
+        [
+            "",
+            "Recommended Actions:",
+            "- Review any failed stages and fix configuration (e.g. catalog ingest env vars).",
+            "- Use Discover and Pipeline if matching scores were refreshed.",
+            "",
+            "Next Step:",
+            "- Ask for a pipeline summary or top matches to continue.",
+        ]
+    )
+    return AgentActionResult(action="run_job_search_pipeline", response_text="\n".join(lines))
 
 
 def _extract_application_id(text: str) -> str | None:

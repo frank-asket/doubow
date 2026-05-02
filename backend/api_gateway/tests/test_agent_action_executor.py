@@ -1,6 +1,30 @@
 from services.agent_action_executor import infer_action_from_message
 
 
+def test_infer_pipeline_run_slash_flags() -> None:
+    a1 = infer_action_from_message("/pipeline-run")
+    assert a1 is not None
+    assert a1.action == "run_job_search_pipeline"
+    assert a1.trigger_catalog_refresh is False
+    assert a1.persist_feedback_learning is False
+    a2 = infer_action_from_message("/pipeline-run --refresh --persist-feedback")
+    assert a2 is not None
+    assert a2.trigger_catalog_refresh is True
+    assert a2.persist_feedback_learning is True
+
+
+def test_infer_pipeline_run_natural_language() -> None:
+    action = infer_action_from_message("Please run job search pipeline")
+    assert action is not None
+    assert action.action == "run_job_search_pipeline"
+
+
+def test_infer_pipeline_summary_still_snapshot_not_runner() -> None:
+    action = infer_action_from_message("pipeline summary with status mix")
+    assert action is not None
+    assert action.action == "get_pipeline_snapshot"
+
+
 def test_infer_pipeline_action_from_slash_command() -> None:
     action = infer_action_from_message("/pipeline")
     assert action is not None

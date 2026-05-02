@@ -39,6 +39,53 @@ _ALLOWED_JOB_SOURCES = {
 }
 logger = logging.getLogger(__name__)
 
+# Clamp outcome-driven deltas to avoid extreme personalization (see job_search_feedback).
+_MAX_BLEND_DELTA = 0.15
+
+
+def effective_matching_weights_from_preferences(preferences: dict | None) -> tuple[float, float, float]:
+    """Return (semantic, lexical, llm) weights after applying ``feedback_learning.matching_blend_hints``.
+
+    Global settings remain the baseline; stored hints add small per-user nudges for rescoring.
+    """
+    base_sem = max(0.0, min(1.0, float(settings.semantic_matching_weight)))
+    base_lex = max(0.0, min(1.0, float(settings.lexical_matching_weight)))
+    base_llm = max(0.0, min(1.0, float(settings.llm_job_matching_weight)))
+
+    hints: dict = {}
+    prefs = preferences or {}
+    fl = prefs.get("feedback_learning")
+    if isinstance(fl, dict):
+        mb = fl.get("matching_blend_hints")
+        if isinstance(mb, dict):
+            hints = mb
+
+    def _delta(key: str) -> float:
+        try:
+            v = float(hints.get(key) or 0.0)
+        except (TypeError, ValueError):
+            return 0.0
+        return max(-_MAX_BLEND_DELTA, min(_MAX_BLEND_DELTA, v))
+
+    sem = max(0.0, min(1.0, base_sem + _delta("semantic_matching_delta")))
+    lex = max(0.0, min(1.0, base_lex + _delta("lexical_matching_delta")))
+    llm = max(0.0, min(1.0, base_llm + _delta("llm_job_matching_delta")))
+    return sem, lex, llm
+
+
+def matching_blend_weight_preview(preferences: dict | None) -> dict[str, dict[str, float]]:
+    """Human-facing breakdown for APIs (base vs effective weights)."""
+    base = {
+        "semantic": max(0.0, min(1.0, float(settings.semantic_matching_weight))),
+        "lexical": max(0.0, min(1.0, float(settings.lexical_matching_weight))),
+        "llm": max(0.0, min(1.0, float(settings.llm_job_matching_weight))),
+    }
+    sem, lex, llm = effective_matching_weights_from_preferences(preferences)
+    return {
+        "base": base,
+        "effective": {"semantic": sem, "lexical": lex, "llm": llm},
+    }
+
 
 def _safe_job_source(raw: object) -> str:
     s = str(raw or "").strip().lower()
@@ -139,14 +186,23 @@ async def _sync_template_scores_for_user(
         )
     ).scalar_one_or_none()
     parsed_profile = latest_resume.parsed_profile if latest_resume is not None else None
-    semantic_weight = max(0.0, min(1.0, float(settings.semantic_matching_weight)))
+    prefs_dict = latest_resume.preferences if latest_resume is not None else None
+    semantic_weight, lexical_weight, llm_weight = effective_matching_weights_from_preferences(
+        prefs_dict if isinstance(prefs_dict, dict) else None
+    )
     semantic_enabled = bool(settings.use_semantic_matching and semantic_weight > 0.0)
-    llm_weight = max(0.0, min(1.0, float(settings.llm_job_matching_weight)))
     llm_top_n = max(0, int(settings.llm_job_matching_top_n))
     llm_enabled = bool(
         settings.use_llm_job_matching and llm_weight > 0.0 and llm_top_n > 0 and settings.openrouter_api_key
     )
-    lexical_weight = max(0.0, min(1.0, float(settings.lexical_matching_weight)))
+    preview = matching_blend_weight_preview(prefs_dict if isinstance(prefs_dict, dict) else None)
+    if preview["base"] != preview["effective"]:
+        logger.debug(
+            "matching blend hints applied user_id=%s base=%s effective=%s",
+            user_id,
+            preview["base"],
+            preview["effective"],
+        )
 
     now = datetime.now(timezone.utc)
     added_scores = 0

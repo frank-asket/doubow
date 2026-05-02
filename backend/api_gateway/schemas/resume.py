@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -25,6 +25,10 @@ class UserPreferencesModel(BaseModel):
     seniority: SeniorityLevel = "Mid"
     skills: list[str] = Field(default_factory=list)
     excluded_companies: list[str] | None = None
+    feedback_learning: dict[str, Any] | None = Field(
+        default=None,
+        description="Last pipeline feedback snapshot (outcomes + advisory blend hints); optional.",
+    )
 
 
 class UserPreferencesPatch(BaseModel):
@@ -36,6 +40,7 @@ class UserPreferencesPatch(BaseModel):
     seniority: SeniorityLevel | None = None
     skills: list[str] | None = None
     excluded_companies: list[str] | None = None
+    feedback_learning: dict[str, Any] | None = None
 
 
 class ResumeProfileResponse(BaseModel):
@@ -50,6 +55,14 @@ class ResumeProfileResponse(BaseModel):
 
 class ResumeAnalyzeResponse(BaseModel):
     analysis: str
+
+
+class FeedbackLearningPreferenceResponse(BaseModel):
+    """Stored pipeline feedback plus how matching weights resolve for rescoring."""
+
+    feedback_learning: dict[str, Any] | None = None
+    base_matching_weights: dict[str, float]
+    effective_matching_weights: dict[str, float]
 
 
 OnboardingState = Literal["no_resume", "scoring_in_progress", "ready"]

@@ -20,6 +20,8 @@ from schemas.agents import (
     ChatThreadListResponse,
     OrchestratorChatRequest,
 )
+from schemas.job_search_pipeline import JobSearchPipelineRunRequest, JobSearchPipelineRunResponse
+from services.job_search_pipeline import coordinator as job_search_pipeline_coordinator
 from services.agent_chat_service import (
     append_chat_message,
     ensure_thread_for_user,
@@ -38,6 +40,29 @@ from services.openrouter import stream_chat_completion_chunks
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agents", tags=["agents"])
+
+
+@router.post(
+    "/job-search-pipeline/run",
+    response_model=JobSearchPipelineRunResponse,
+    summary="Run multi-stage job search pipeline",
+)
+async def run_job_search_pipeline(
+    payload: JobSearchPipelineRunRequest,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> JobSearchPipelineRunResponse:
+    """
+    TradingAgents-style pipeline: data collection → resume profile → matching → outbound → feedback.
+
+    Set ``trigger_catalog_refresh`` to run the full catalog ingest (slow; requires provider keys).
+    """
+    return await job_search_pipeline_coordinator.run(
+        session=session,
+        settings=settings,
+        user_id=user.id,
+        body=payload,
+    )
 
 
 @router.get("/capabilities", response_model=AgentCapabilitiesResponse)

@@ -18,6 +18,11 @@ AGENT_TOOLS: tuple[AgentToolSpec, ...] = (
         "Summarize application counts by status, pending approvals, and recent pipeline rows.",
     ),
     AgentToolSpec(
+        "run_job_search_pipeline",
+        "Run the multi-stage job search pipeline (data plan, profile, rescore, outbound snapshot, feedback). "
+        "Optional: trigger_catalog_refresh, persist_feedback_learning, pipeline_stages.",
+    ),
+    AgentToolSpec(
         "list_pending_approvals",
         "List pending outbound drafts awaiting human approval (optional limit 1–20).",
     ),
