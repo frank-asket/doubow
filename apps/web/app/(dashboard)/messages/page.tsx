@@ -82,6 +82,10 @@ const SUGGESTIONS = [
 /** Shipped shortcuts — mirrors backend slash routing (`services/agent_action_executor.py`). */
 const ASSISTANT_SLASH_HINTS: readonly { cmd: string; hint: string }[] = [
   { cmd: '/pipeline', hint: 'Pipeline summary & pending approvals count' },
+  {
+    cmd: '/pipeline-run',
+    hint: 'Full job-search pipeline (same as POST /v1/agents/job-search-pipeline/run); add --refresh or --persist-feedback',
+  },
   { cmd: '/matches', hint: 'Top scored job matches' },
   { cmd: '/queue jb_* email|linkedin', hint: 'Queue a job into your pipeline' },
   { cmd: '/dismiss jb_*', hint: 'Hide a job from Discover' },

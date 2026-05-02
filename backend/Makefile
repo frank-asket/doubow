@@ -5,7 +5,7 @@ ALEMBIC_CONFIG := api_gateway/alembic.ini
 API_PY_PATH := api_gateway
 NORMALIZE_DB_URL := $(PYTHON) scripts/normalize_database_url.py
 
-.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-sync-safe db-reset-demo api-test-autopilot-parity api-test-autopilot launch-probe auth-probe monitoring-drill-report jobs-cache-preview jobs-cache-invalidate
+.PHONY: db-migrate db-migrate-safe db-seed db-verify db-sync db-sync-safe db-reset-demo api-test-autopilot-parity api-test-autopilot api-test-job-search-contracts launch-probe auth-probe monitoring-drill-report jobs-cache-preview jobs-cache-invalidate
 
 # libpq/psql: normalize URL (asyncpg scheme + ssl= → sslmode=). See scripts/normalize_database_url.py.
 define PSQL_CMD
@@ -53,6 +53,16 @@ api-test-autopilot-parity:
 			--with pytest-asyncio \
 			--with aiosqlite \
 			python -m pytest tests/test_autopilot_execution.py -k "langgraph_and_legacy_produce_identical_item_results" -q
+
+# Job-search pipeline + feedback-learning production contracts (fast).
+api-test-job-search-contracts:
+	@cd "$(API_PY_PATH)" && PYTHONPATH=. \
+		uv run \
+			--with-requirements requirements.txt \
+			--with pytest \
+			--with pytest-asyncio \
+			--with aiosqlite \
+			python -m pytest tests/test_production_job_search_contracts.py -q
 
 # Full autopilot suite (idempotency/service + scope resolution + execution/parity).
 api-test-autopilot:

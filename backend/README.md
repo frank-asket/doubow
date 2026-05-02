@@ -108,6 +108,14 @@ Full autopilot suite (service, scopes, graph control-flow, execution/parity):
 make -C backend api-test-autopilot
 ```
 
+Job-search pipeline + feedback-learning **production contracts** (fast):
+
+```bash
+make -C backend api-test-job-search-contracts
+```
+
+Live API smoke and operator checklist: **`docs/operations/production-job-search-verify.md`**, `scripts/job_search_production_smoke.py`.
+
 ## OpenRouter model matrix
 
 AI features are routed through OpenRouter with per-surface model settings. Configure in `backend/.env` (or repo-root `.env` when running uvicorn directly).

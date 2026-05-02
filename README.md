@@ -290,6 +290,7 @@ Behavior:
 ## 📚 Documentation
 
 - Job-search pipeline: section **Job search pipeline** above; PNG figures (+ SVG sources) under **`docs/architecture/job-search-pipeline/`**; code `backend/api_gateway/services/job_search_pipeline.py`
+- Production / staging checks for pipeline + feedback learning: **`docs/operations/production-job-search-verify.md`**
 - Capstone rubric + readiness (eval notes, deployment checklist, demo script, risk register): `docs/capstone-scoring-sheet.md`, `docs/capstone-readiness.md`
 - Architecture: high-level flow `docs/architecture/doubow-high-level-flow.md`; resilience (health probes, rate limits, OpenRouter circuit): `docs/architecture/resilience.md`
 - Backend detail (LLM tiers, ingestion, autopilot/LangGraph): `backend/README.md`
