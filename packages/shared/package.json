@@ -23,5 +23,8 @@
     "index.ts",
     "types"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "scripts": {
+    "build": "echo 'No build step required'"
+  }
 }
