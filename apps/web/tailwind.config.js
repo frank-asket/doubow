@@ -9,68 +9,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Landing-aligned emerald system (black + green)
-        brand: {
-          50:  '#03251A',
-          100: '#064E3B',
-          200: '#047857',
-          400: '#34D399',
-          600: '#10B981',
-          800: '#A7F3D0',
-          900: '#D1FAE5',
-        },
-        // Landing-aligned zinc neutrals for dashboard shell
-        surface: {
-          0:   '#000000',
-          50:  '#09090B',
-          100: '#111113',
-          200: '#18181B',
-          300: '#27272A',
-          400: '#3F3F46',
-          500: '#71717A',
-          600: '#A1A1AA',
-          700: '#D4D4D8',
-          800: '#E4E4E7',
-          900: '#F4F4F5',
-        },
-        // Semantic
-        danger:  { bg: '#FCEBEB', border: '#F09595', text: '#791F1F' },
-        warning: {
-          bg: '#FAEEDA',
-          border: '#EF9F27',
-          text: '#633806',
-          500: 'rgb(var(--warning-500) / <alpha-value>)',
-          DEFAULT: 'rgb(var(--warning-500) / <alpha-value>)',
-        },
-        info:    { bg: '#E6F1FB', border: '#85B7EB', text: '#0C447C' },
-        purple:  { bg: '#EEEDFE', border: '#AFA9EC', text: '#3C3489' },
-        primary: {
-          500: 'rgb(var(--primary-500) / <alpha-value>)',
-          600: 'rgb(var(--primary-600) / <alpha-value>)',
-          DEFAULT: 'rgb(var(--primary-500) / <alpha-value>)',
-        },
-        secondary: {
-          500: 'rgb(var(--secondary-500) / <alpha-value>)',
-          600: 'rgb(var(--secondary-600) / <alpha-value>)',
-          accent: 'rgb(var(--secondary-accent) / <alpha-value>)',
-          DEFAULT: 'rgb(var(--secondary-500) / <alpha-value>)',
-        },
-        neutral: {
-          0: 'rgb(var(--neutral-0) / <alpha-value>)',
-          50: 'rgb(var(--neutral-50) / <alpha-value>)',
-          300: 'rgb(var(--neutral-300) / <alpha-value>)',
-          400: 'rgb(var(--neutral-400) / <alpha-value>)',
-          500: 'rgb(var(--neutral-500) / <alpha-value>)',
-          600: 'rgb(var(--neutral-600) / <alpha-value>)',
-          700: 'rgb(var(--neutral-700) / <alpha-value>)',
-          800: 'rgb(var(--neutral-800) / <alpha-value>)',
-          900: 'rgb(var(--neutral-900) / <alpha-value>)',
-          1000: 'rgb(var(--neutral-1000) / <alpha-value>)',
-        },
-        success: {
-          500: 'rgb(var(--success-500) / <alpha-value>)',
-          DEFAULT: 'rgb(var(--success-500) / <alpha-value>)',
-        },
+        // Brand Colors from GUF/Ivorian palette
+        'primary-green': 'var(--color-primary-green)',
+        'secondary-green': 'var(--color-secondary-green)',
+        'primary-orange': 'var(--color-primary-orange)',
+        // UI & Surface Colors
+        'bg-light-green': 'var(--color-bg-light-green)',
+        'bg-light-orange': 'var(--color-bg-light-orange)',
+        'text-main': 'var(--color-text-main)',
+        'text-muted': 'var(--color-text-muted)',
+        // Borders & Dividers
+        'border-subtle': 'var(--color-border-subtle)',
+        // Success & Highlights
+        'highlight-orange': 'var(--color-highlight-orange)',
+        'highlight-green': 'var(--color-highlight-green)',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],

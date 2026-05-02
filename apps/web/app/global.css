@@ -1,0 +1,19 @@
+:root {
+  /* Brand Colors */
+  --color-primary-green: #14603b;
+  --color-secondary-green: #2ea44f;
+  --color-primary-orange: #e89032;
+
+  /* UI & Surface Colors */
+  --color-bg-light-green: #ebf5ee;
+  --color-bg-light-orange: #fff9f0;
+  --color-text-main: #333333;
+  --color-text-muted: #6b7280;
+  
+  /* Borders & Dividers */
+  --color-border-subtle: #d1d5db;
+  
+  /* Success & Highlights */
+  --color-highlight-orange: #fce7d2;
+  --color-highlight-green: #dcfce7;
+}
