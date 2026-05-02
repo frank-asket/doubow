@@ -77,7 +77,9 @@ export interface ParsedProfile {
 // ─── Jobs ──────────────────────────────────────────────────────────────────
 
 export type JobSource =
+  | 'adzuna'
   | 'ashby'
+  | 'google_jobs'
   | 'greenhouse'
   | 'lever'
   | 'linkedin'

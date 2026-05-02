@@ -84,7 +84,9 @@ const ONBOARDING_STEP_LABELS: Record<string, string> = {
 }
 
 const SOURCE_LABELS: Record<JobWithScore['source'], string> = {
+  adzuna: 'Adzuna',
   ashby: 'Ashby',
+  google_jobs: 'Google Jobs',
   greenhouse: 'Greenhouse',
   lever: 'Lever',
   linkedin: 'LinkedIn',

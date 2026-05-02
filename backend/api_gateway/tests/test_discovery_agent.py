@@ -10,7 +10,7 @@ async def test_discovery_default_connector_plan() -> None:
     out = await DiscoveryAgent().run({})
     assert out["jobs"] == []
     assert "hint" in out
-    assert out["connector_plan"] == ["manual", "catalog"]
+    assert out["connector_plan"] == ["adzuna", "greenhouse", "google_jobs", "manual", "catalog"]
 
 
 @pytest.mark.asyncio

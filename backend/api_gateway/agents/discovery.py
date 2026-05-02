@@ -3,7 +3,17 @@
 from __future__ import annotations
 
 KNOWN_JOB_SOURCES = frozenset(
-    ("ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog"),
+    (
+        "adzuna",
+        "ashby",
+        "catalog",
+        "google_jobs",
+        "greenhouse",
+        "lever",
+        "linkedin",
+        "manual",
+        "wellfound",
+    ),
 )
 
 
@@ -18,9 +28,10 @@ class DiscoveryAgent:
                 if isinstance(item, str) and item in KNOWN_JOB_SOURCES and item not in plan:
                     plan.append(item)
         if not plan:
-            plan = ["manual", "catalog"]
+            plan = ["adzuna", "greenhouse", "google_jobs", "manual", "catalog"]
         return {
             "jobs": [],
-            "hint": "Use POST /v1/jobs/discover to upsert catalog rows",
+            "hint": "Catalog ingest: POST /v1/jobs/providers/catalog/ingest/preset (optional resume_aligned=1). "
+            "Google Jobs requires SERPAPI_API_KEY (third-party; plan limits apply).",
             "connector_plan": plan,
         }

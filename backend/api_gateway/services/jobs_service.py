@@ -26,7 +26,17 @@ from services.semantic_match_service import (
 )
 from services.llm_job_match_service import llm_fit_signal
 
-_ALLOWED_JOB_SOURCES = {"ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog", "adzuna"}
+_ALLOWED_JOB_SOURCES = {
+    "ashby",
+    "greenhouse",
+    "lever",
+    "linkedin",
+    "wellfound",
+    "manual",
+    "catalog",
+    "adzuna",
+    "google_jobs",
+}
 logger = logging.getLogger(__name__)
 
 

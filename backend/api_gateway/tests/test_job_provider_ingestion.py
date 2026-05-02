@@ -262,10 +262,11 @@ def test_catalog_ingest_preset_returns_partial_when_one_provider_fails(monkeypat
     assert body["status"] == "partial"
     assert body["created"] == 2
     assert body["updated"] == 1
-    assert len(body["providers"]) == 2
+    assert len(body["providers"]) == 3
     by_provider = {p["provider"]: p for p in body["providers"]}
     assert by_provider["adzuna"]["status"] == "completed"
     assert by_provider["greenhouse"]["status"] == "failed"
+    assert by_provider["google_jobs"]["status"] == "skipped"
 
 
 def test_catalog_ingest_preset_returns_failed_when_all_providers_fail(monkeypatch):
@@ -302,7 +303,8 @@ def test_catalog_ingest_preset_returns_failed_when_all_providers_fail(monkeypatc
     assert body["updated"] == 0
     assert body["run_ids"] == []
     assert body["job_ids"] == []
-    assert len(body["providers"]) == 2
+    assert len(body["providers"]) == 3
     by_provider = {p["provider"]: p for p in body["providers"]}
     assert by_provider["adzuna"]["status"] == "failed"
     assert by_provider["greenhouse"]["status"] == "failed"
+    assert by_provider["google_jobs"]["status"] == "skipped"

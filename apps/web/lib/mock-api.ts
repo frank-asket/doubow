@@ -127,7 +127,17 @@ const TITLES = [
 
 const LOCATIONS = ['Remote', 'Berlin', 'Amsterdam', 'London', 'Hybrid · NYC', 'Remote · EU'] as const
 
-const SOURCES: JobSource[] = ['ashby', 'greenhouse', 'lever', 'linkedin', 'catalog']
+const SOURCES: JobSource[] = [
+  'adzuna',
+  'ashby',
+  'google_jobs',
+  'greenhouse',
+  'lever',
+  'linkedin',
+  'wellfound',
+  'catalog',
+  'manual',
+]
 
 function isoMinutesAgo(min: number): string {
   return new Date(Date.now() - min * 60_000).toISOString()
@@ -135,7 +145,9 @@ function isoMinutesAgo(min: number): string {
 
 function sourceSiteLabel(source: JobSource): string {
   const labels: Record<JobSource, string> = {
+    adzuna: 'Adzuna',
     ashby: 'Ashby',
+    google_jobs: 'Google Jobs',
     greenhouse: 'Greenhouse',
     lever: 'Lever',
     linkedin: 'LinkedIn',

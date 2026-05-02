@@ -126,6 +126,14 @@ class Settings(BaseSettings):
     # System user id used by scheduled catalog ingestion wrappers.
     job_catalog_ingestion_user_id: str = "catalog_ingestion_system"
 
+    # Google Jobs (SerpAPI) — no public unlimited Google API; this uses a third-party SerpAPI plan.
+    # See https://serpapi.com/ — subject to account quotas, pricing, and SerpAPI/Google usage terms.
+    serpapi_api_key: str | None = None
+    google_jobs_default_query: str = "software engineer"
+    google_jobs_serp_max_rounds: int = 3
+    google_jobs_hl: str = "en"
+    google_jobs_gl: str | None = None
+
     # PostHog (optional). When configured, telemetry is mirrored to PostHog and
     # activation KPI is sourced from PostHog events.
     posthog_host: str = "https://eu.posthog.com"

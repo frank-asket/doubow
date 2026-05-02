@@ -25,8 +25,10 @@ from schemas.jobs import (
 from services.adzuna_adapter import AdzunaAdapter, resolve_adzuna_scheduled_ingest_params
 from services.greenhouse_adapter import GreenhouseAdapter, resolve_greenhouse_scheduled_ingest_params
 from services.job_discovery_service import discover_upsert_jobs
-from services.job_provider_ingestion_service import ingest_provider_jobs_paginated
+from services.job_provider_ingestion_service import ingest_provider_jobs, ingest_provider_jobs_paginated
 from services.provider_adapter import ProviderFetchParams
+from services.resume_catalog_params import merge_catalog_params_with_resume
+from services.serpapi_google_jobs_adapter import SerpApiGoogleJobsAdapter
 from services.jobs_service import (
     dismiss_job_for_user,
     list_jobs as list_jobs_service,
@@ -214,10 +216,14 @@ async def ingest_catalog_multi_provider_preset_route(
     location: str | None = Query(default=None, max_length=255),
     country: str | None = Query(default=None, max_length=8),
     start_page: int = Query(default=1, ge=1),
+    resume_aligned: bool = Query(
+        default=False,
+        description="Merge keywords/location from the authenticated user's latest resume + preferences.",
+    ),
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(get_authenticated_user),
+    user: User = Depends(get_authenticated_user),
 ) -> CatalogPresetIngestResponse:
-    """Cron-friendly multi-source ingest (Adzuna + configured Greenhouse boards)."""
+    """Multi-source catalog ingest: Adzuna, Greenhouse boards, optional Google Jobs via SerpAPI."""
     try:
         pages, base_params = resolve_adzuna_scheduled_ingest_params(
             settings,
@@ -229,6 +235,9 @@ async def ingest_catalog_multi_provider_preset_route(
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+
+    if resume_aligned:
+        base_params = await merge_catalog_params_with_resume(session, user.id, base_params)
 
     actor = settings.job_catalog_ingestion_user_id.strip()
     if not actor:
@@ -329,6 +338,55 @@ async def ingest_catalog_multi_provider_preset_route(
                 status="skipped",
                 pages=0,
                 error="GREENHOUSE_BOARD_TOKENS is empty; provider skipped.",
+            )
+        )
+
+    if (settings.serpapi_api_key or "").strip():
+        try:
+            gj_result, _gj_run = await ingest_provider_jobs(
+                session,
+                user_id=actor,
+                adapter=SerpApiGoogleJobsAdapter(),
+                params=ProviderFetchParams(
+                    keywords=base_params.keywords,
+                    location=base_params.location,
+                    country=base_params.country,
+                    page=max(1, int(base_params.page)),
+                    per_page=base_params.per_page,
+                    posted_after=base_params.posted_after,
+                ),
+            )
+            provider_summaries.append(
+                ProviderIngestSummary(
+                    provider="google_jobs",
+                    status="completed",
+                    pages=1,
+                    created=int(gj_result.created),
+                    updated=int(gj_result.updated),
+                    deduped=0,
+                    run_ids=[str(_gj_run.id)],
+                )
+            )
+            created += int(gj_result.created)
+            updated += int(gj_result.updated)
+            job_ids.extend([str(j) for j in gj_result.job_ids])
+            run_ids.append(str(_gj_run.id))
+        except Exception as exc:  # pragma: no cover - network/service variability
+            provider_summaries.append(
+                ProviderIngestSummary(
+                    provider="google_jobs",
+                    status="failed",
+                    pages=1,
+                    error=str(exc)[:500],
+                )
+            )
+    else:
+        provider_summaries.append(
+            ProviderIngestSummary(
+                provider="google_jobs",
+                status="skipped",
+                pages=0,
+                error="SERPAPI_API_KEY is not set; Google Jobs ingest skipped.",
             )
         )
 
