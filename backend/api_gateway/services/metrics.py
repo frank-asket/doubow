@@ -48,6 +48,11 @@ ASSISTANT_ACTION_TOTAL = Counter(
     "Assistant structured tool executions",
     ["action", "result"],
 )
+MATCHING_BLEND_SCORE_SYNC_TOTAL = Counter(
+    "doubow_matching_blend_score_sync_total",
+    "Template job score syncs: whether resume has feedback_learning and whether blend differs from global settings",
+    ["has_feedback_learning", "personalized_blend"],
+)
 API_ERRORS_TOTAL = Counter(
     "doubow_api_errors_total",
     "Unhandled API exceptions by method/path/error_type",
@@ -139,4 +144,12 @@ def observe_assistant_action(*, action: str, result: str) -> None:
     ASSISTANT_ACTION_TOTAL.labels(
         (action or "unknown").strip() or "unknown",
         (result or "unknown").strip() or "unknown",
+    ).inc()
+
+
+def observe_matching_blend_score_sync(*, has_feedback_learning: bool, personalized_blend: bool) -> None:
+    """Record outcome-driven matching signals when template scores are computed for a user."""
+    MATCHING_BLEND_SCORE_SYNC_TOTAL.labels(
+        "yes" if has_feedback_learning else "no",
+        "yes" if personalized_blend else "no",
     ).inc()

@@ -146,6 +146,8 @@ async def get_feedback_learning_prefs(
     user: User = Depends(get_authenticated_user),
 ) -> FeedbackLearningPreferenceResponse:
     """Debug/diagnostic: shows persisted outcome snapshot and effective blend weights."""
+    if settings.environment.lower() == "production":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     try:
         fl, preview = await get_feedback_learning_debug_for_user(session, user.id)
     except LookupError:
@@ -166,6 +168,8 @@ async def delete_feedback_learning_prefs(
     user: User = Depends(get_authenticated_user),
 ) -> None:
     """Clear feedback_learning so rescoring uses global weights only."""
+    if settings.environment.lower() == "production":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     try:
         await clear_feedback_learning_for_user(session, user.id)
     except LookupError:

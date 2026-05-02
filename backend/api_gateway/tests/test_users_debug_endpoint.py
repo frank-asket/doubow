@@ -122,3 +122,29 @@ async def test_oauth_config_debug_endpoint_reports_missing_keys(db_session: Asyn
     assert payload["linkedin"]["configured"] is False
     assert "LINKEDIN_OAUTH_CLIENT_SECRET" in payload["linkedin"]["missing_required_keys"]
     assert "LINKEDIN_OAUTH_TOKEN_FERNET_KEY_OR_GOOGLE_FALLBACK" in payload["linkedin"]["missing_required_keys"]
+
+
+@pytest.mark.asyncio
+async def test_feedback_learning_prefs_hidden_in_production(db_session: AsyncSession, monkeypatch):
+    monkeypatch.setattr(settings, "environment", "production")
+    user = User(id="user_fl_prod", email="fl-prod@example.com")
+    db_session.add(user)
+    await db_session.commit()
+
+    app = FastAPI()
+    app.include_router(users.router, prefix="/v1")
+
+    async def _override_session() -> AsyncGenerator[AsyncSession, None]:
+        yield db_session
+
+    async def _override_user() -> User:
+        return user
+
+    app.dependency_overrides[get_session] = _override_session
+    app.dependency_overrides[get_authenticated_user] = _override_user
+
+    with TestClient(app) as client:
+        res_get = client.get("/v1/me/preferences/feedback-learning")
+        res_del = client.delete("/v1/me/preferences/feedback-learning")
+    assert res_get.status_code == 404
+    assert res_del.status_code == 404

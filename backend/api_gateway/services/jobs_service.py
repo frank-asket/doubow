@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 import logging
+import math
 import re
 
 from sqlalchemy import delete, func, select
@@ -25,6 +26,7 @@ from services.semantic_match_service import (
     semantic_fit_score,
 )
 from services.llm_job_match_service import llm_fit_signal
+from services.metrics import observe_matching_blend_score_sync
 
 _ALLOWED_JOB_SOURCES = {
     "ashby",
@@ -85,6 +87,20 @@ def matching_blend_weight_preview(preferences: dict | None) -> dict[str, dict[st
         "base": base,
         "effective": {"semantic": sem, "lexical": lex, "llm": llm},
     }
+
+
+def matching_blend_preview_is_personalized(preview: dict[str, dict[str, float]]) -> bool:
+    """True when stored hints change any weight vs global settings (float-safe)."""
+    for k in ("semantic", "lexical", "llm"):
+        if not math.isclose(preview["base"][k], preview["effective"][k], rel_tol=0.0, abs_tol=1e-9):
+            return True
+    return False
+
+
+def _preferences_have_feedback_learning(prefs: dict | None) -> bool:
+    if not isinstance(prefs, dict):
+        return False
+    return isinstance(prefs.get("feedback_learning"), dict)
 
 
 def _safe_job_source(raw: object) -> str:
@@ -196,7 +212,10 @@ async def _sync_template_scores_for_user(
         settings.use_llm_job_matching and llm_weight > 0.0 and llm_top_n > 0 and settings.openrouter_api_key
     )
     preview = matching_blend_weight_preview(prefs_dict if isinstance(prefs_dict, dict) else None)
-    if preview["base"] != preview["effective"]:
+    has_fl = _preferences_have_feedback_learning(prefs_dict if isinstance(prefs_dict, dict) else None)
+    personalized = matching_blend_preview_is_personalized(preview)
+    observe_matching_blend_score_sync(has_feedback_learning=has_fl, personalized_blend=personalized)
+    if personalized:
         logger.debug(
             "matching blend hints applied user_id=%s base=%s effective=%s",
             user_id,

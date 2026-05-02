@@ -10,6 +10,7 @@ from models.resume import Resume
 from models.user import User
 from services.jobs_service import (
     effective_matching_weights_from_preferences,
+    matching_blend_preview_is_personalized,
     matching_blend_weight_preview,
     recompute_job_scores_for_user,
 )
@@ -39,6 +40,20 @@ def test_matching_blend_preview(monkeypatch):
     prefs = {"feedback_learning": {"matching_blend_hints": {"lexical_matching_delta": -0.05}}}
     prev = matching_blend_weight_preview(prefs)
     assert prev["effective"]["lexical"] == pytest.approx(0.35)
+
+
+def test_matching_blend_preview_is_personalized_true(monkeypatch):
+    monkeypatch.setattr(settings, "lexical_matching_weight", 0.5)
+    prev = matching_blend_weight_preview(
+        {"feedback_learning": {"matching_blend_hints": {"lexical_matching_delta": 0.1}}}
+    )
+    assert matching_blend_preview_is_personalized(prev) is True
+
+
+def test_matching_blend_preview_is_personalized_false(monkeypatch):
+    monkeypatch.setattr(settings, "lexical_matching_weight", 0.5)
+    prev = matching_blend_weight_preview({})
+    assert matching_blend_preview_is_personalized(prev) is False
 
 
 _SCORE_TEMPLATE = {
@@ -138,3 +153,49 @@ async def test_get_and_clear_feedback_learning_debug(db_session):
     row = (await db_session.execute(select(Resume).where(Resume.user_id == uid))).scalars().first()
     assert row is not None
     assert row.preferences.get("feedback_learning") is None
+
+
+@pytest.mark.asyncio
+async def test_recompute_observes_matching_blend_metric(db_session, monkeypatch_lexical_only, monkeypatch):
+    import services.jobs_service as jobs_mod
+
+    calls: list[dict] = []
+
+    def capture(**kwargs: object) -> None:
+        calls.append(dict(kwargs))
+
+    monkeypatch.setattr(jobs_mod, "observe_matching_blend_score_sync", capture)
+
+    jid = "jb_metric_blend"
+    uid = "user_metric_blend"
+    db_session.add(User(id=uid, email="mb@example.com"))
+    db_session.add(
+        Resume(
+            user_id=uid,
+            file_name="cv.pdf",
+            storage_path="/tmp/cv.pdf",
+            version=1,
+            parsed_profile={"headline": "X", "skills": ["a"]},
+            preferences={},
+        )
+    )
+    db_session.add(
+        Job(
+            id=jid,
+            source="catalog",
+            external_id="m1",
+            title="Role",
+            company="Co",
+            location="Remote",
+            salary_range=None,
+            description="Text",
+            url="https://example.com/m",
+            score_template=_SCORE_TEMPLATE,
+        )
+    )
+    await db_session.commit()
+
+    await recompute_job_scores_for_user(db_session, uid)
+    assert len(calls) == 1
+    assert calls[0]["has_feedback_learning"] is False
+    assert calls[0]["personalized_blend"] is False
