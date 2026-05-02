@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 260" width="1000" height="260" role="img" aria-labelledby="title desc">
   <title id="title">Doubow job search pipeline stages</title>
-  <desc id="desc">Five sequential stages from data collection through feedback, as implemented by JobSearchPipelineCoordinator.</desc>
+  <desc id="desc">Five sequential stages from data collection through feedback.</desc>
   <defs>
     <linearGradient id="hdr" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#0f766e"/>
@@ -11,46 +11,44 @@
       <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.12"/>
     </filter>
   </defs>
-  <!-- Header -->
   <rect x="0" y="0" width="1000" height="48" fill="url(#hdr)"/>
-  <text x="24" y="32" fill="#ffffff" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="600">Doubow · Job search pipeline</text>
-  <text x="700" y="30" fill="#99f6e4" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12">JobSearchPipelineCoordinator</text>
-  <!-- Stages -->
-  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif">
+  <text x="24" y="32" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600">Doubow &#183; Job search pipeline</text>
+  <text x="700" y="30" fill="#99f6e4" font-family="Arial, Helvetica, sans-serif" font-size="12">JobSearchPipelineCoordinator</text>
+  <g font-family="Arial, Helvetica, sans-serif">
     <g filter="url(#shadow)">
       <rect x="20" y="72" width="168" height="160" rx="10" fill="#f8fafc" stroke="#0d9488" stroke-width="2"/>
       <text x="104" y="108" text-anchor="middle" fill="#115e59" font-size="13" font-weight="700">data_collection</text>
-      <text x="104" y="132" text-anchor="middle" fill="#334155" font-size="11">Catalog ingest · readiness</text>
-      <text x="104" y="152" text-anchor="middle" fill="#64748b" font-size="10">Adzuna · Greenhouse · plan</text>
+      <text x="104" y="132" text-anchor="middle" fill="#334155" font-size="11">Catalog ingest &#183; readiness</text>
+      <text x="104" y="152" text-anchor="middle" fill="#64748b" font-size="10">Adzuna &#183; Greenhouse &#183; plan</text>
     </g>
-    <text x="206" y="158" fill="#f59e0b" font-size="22" font-weight="700">’</text>
+    <text x="206" y="158" fill="#f59e0b" font-size="22" font-weight="700">&#8594;</text>
     <g filter="url(#shadow)">
       <rect x="228" y="72" width="168" height="160" rx="10" fill="#f8fafc" stroke="#0d9488" stroke-width="2"/>
       <text x="312" y="108" text-anchor="middle" fill="#115e59" font-size="13" font-weight="700">resume_profile</text>
-      <text x="312" y="132" text-anchor="middle" fill="#334155" font-size="11">Parsed résumé</text>
+      <text x="312" y="132" text-anchor="middle" fill="#334155" font-size="11">Parsed resume</text>
       <text x="312" y="152" text-anchor="middle" fill="#64748b" font-size="10">Preferences on file</text>
     </g>
-    <text x="414" y="158" fill="#f59e0b" font-size="22" font-weight="700">’</text>
+    <text x="414" y="158" fill="#f59e0b" font-size="22" font-weight="700">&#8594;</text>
     <g filter="url(#shadow)">
       <rect x="436" y="72" width="168" height="160" rx="10" fill="#f8fafc" stroke="#0d9488" stroke-width="2"/>
       <text x="520" y="108" text-anchor="middle" fill="#115e59" font-size="13" font-weight="700">job_matching</text>
       <text x="520" y="132" text-anchor="middle" fill="#334155" font-size="11">Rescore Discover fits</text>
-      <text x="520" y="152" text-anchor="middle" fill="#64748b" font-size="10">Semantic · lexical · LLM</text>
+      <text x="520" y="152" text-anchor="middle" fill="#64748b" font-size="10">Semantic &#183; lexical &#183; LLM</text>
     </g>
-    <text x="622" y="158" fill="#f59e0b" font-size="22" font-weight="700">’</text>
+    <text x="622" y="158" fill="#f59e0b" font-size="22" font-weight="700">&#8594;</text>
     <g filter="url(#shadow)">
       <rect x="644" y="72" width="168" height="160" rx="10" fill="#f8fafc" stroke="#0d9488" stroke-width="2"/>
       <text x="728" y="108" text-anchor="middle" fill="#115e59" font-size="12" font-weight="700">outbound_application</text>
-      <text x="728" y="128" text-anchor="middle" fill="#334155" font-size="11">Approvals · pipeline</text>
-      <text x="728" y="148" text-anchor="middle" fill="#64748b" font-size="10">Pending drafts · apps</text>
+      <text x="728" y="128" text-anchor="middle" fill="#334155" font-size="11">Approvals &#183; pipeline</text>
+      <text x="728" y="148" text-anchor="middle" fill="#64748b" font-size="10">Pending drafts &#183; apps</text>
     </g>
-    <text x="830" y="158" fill="#f59e0b" font-size="22" font-weight="700">’</text>
+    <text x="830" y="158" fill="#f59e0b" font-size="22" font-weight="700">&#8594;</text>
     <g filter="url(#shadow)">
       <rect x="852" y="72" width="128" height="160" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
       <text x="916" y="108" text-anchor="middle" fill="#047857" font-size="13" font-weight="700">feedback</text>
-      <text x="916" y="132" text-anchor="middle" fill="#334155" font-size="11">Outcomes · learning</text>
+      <text x="916" y="132" text-anchor="middle" fill="#334155" font-size="11">Outcomes &#183; learning</text>
       <text x="916" y="152" text-anchor="middle" fill="#64748b" font-size="10">feedback_learning</text>
     </g>
   </g>
-  <text x="500" y="248" text-anchor="middle" fill="#64748b" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="11">POST /v1/agents/job-search-pipeline/run · assistant: run_job_search_pipeline</text>
+  <text x="500" y="248" text-anchor="middle" fill="#64748b" font-family="Arial, Helvetica, sans-serif" font-size="11">POST /v1/agents/job-search-pipeline/run &#183; assistant: run_job_search_pipeline</text>
 </svg>

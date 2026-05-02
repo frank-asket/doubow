@@ -127,14 +127,16 @@ flowchart LR
 ### Figures (Doubow-branded SVG)
 
 <p align="center">
-  <img src="./docs/architecture/job-search-pipeline/pipeline-stages.svg" alt="Doubow job search pipeline stages" width="920" />
+  <img src="./docs/architecture/job-search-pipeline/pipeline-stages.png" alt="Doubow job search pipeline stages" width="920" />
 </p>
 
 <p align="center">
-  <img src="./docs/architecture/job-search-pipeline/scoring-and-feedback-loop.svg" alt="Discover scoring blend and feedback loop" width="920" />
+  <img src="./docs/architecture/job-search-pipeline/scoring-and-feedback-loop.png" alt="Discover scoring blend and feedback loop" width="920" />
 </p>
 
-Source files: **`docs/architecture/job-search-pipeline/`** (`README.md` lists assets).
+Raster **`*.png`** (from SVG sources via `rsvg-convert`) so diagrams render reliably on GitHub. Editable sources: **`docs/architecture/job-search-pipeline/*.svg`**.
+
+Assets index: **`docs/architecture/job-search-pipeline/README.md`**.
 
 ## 🧱 Frontend + Backend Stack
 
@@ -287,7 +289,7 @@ Behavior:
 
 ## 📚 Documentation
 
-- Job-search pipeline: section **Job search pipeline** above; SVG figures under **`docs/architecture/job-search-pipeline/`**; code `backend/api_gateway/services/job_search_pipeline.py`
+- Job-search pipeline: section **Job search pipeline** above; PNG figures (+ SVG sources) under **`docs/architecture/job-search-pipeline/`**; code `backend/api_gateway/services/job_search_pipeline.py`
 - Capstone rubric + readiness (eval notes, deployment checklist, demo script, risk register): `docs/capstone-scoring-sheet.md`, `docs/capstone-readiness.md`
 - Architecture: high-level flow `docs/architecture/doubow-high-level-flow.md`; resilience (health probes, rate limits, OpenRouter circuit): `docs/architecture/resilience.md`
 - Backend detail (LLM tiers, ingestion, autopilot/LangGraph): `backend/README.md`

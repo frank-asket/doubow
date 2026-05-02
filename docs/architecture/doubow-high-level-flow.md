@@ -88,7 +88,7 @@ Orchestration: `services/job_provider_ingestion_service.py`, **`catalog_ingest_o
 | Preferences | `resume.preferences.feedback_learning` (optional persist from pipeline `persist_feedback_learning`) |
 | Debug API | **`GET` / `DELETE` `/v1/me/preferences/feedback-learning`** — disabled in **production** (404); non-prod for inspection/clear |
 
-Figures: **`docs/architecture/job-search-pipeline/*.svg`**.
+Figures (PNG for embedding): **`docs/architecture/job-search-pipeline/pipeline-stages.png`**, **`scoring-and-feedback-loop.png`** (sources: `*.svg`).
 
 ---
 
