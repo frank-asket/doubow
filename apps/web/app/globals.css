@@ -514,7 +514,8 @@ body {
   }
 
   .app-route-shell .fit-mid {
-    @apply border border-secondary-green/25 bg-highlight-green text-primary-green;
+    @apply border bg-highlight-green text-primary-green;
+    border-color: color-mix(in oklab, var(--color-secondary-green) 25%, transparent);
   }
 
   .app-route-shell .fit-low {
@@ -524,7 +525,8 @@ body {
   .app-route-shell .badge-applied,
   .app-route-shell .badge-interview,
   .app-route-shell .badge-offer {
-    @apply border border-secondary-green/30 bg-highlight-green text-primary-green;
+    @apply border bg-highlight-green text-primary-green;
+    border-color: color-mix(in oklab, var(--color-secondary-green) 30%, transparent);
   }
 
   .app-route-shell .badge-pending {
