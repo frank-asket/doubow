@@ -64,7 +64,7 @@ export default function ProfilePage() {
           </Link>
           <Link
             href="/settings"
-            className="inline-flex h-8 items-center gap-2 border border-[0.5px] border-[#008378] bg-[#00685f] px-4 text-[12px] font-medium text-white"
+            className="inline-flex h-8 items-center gap-2 border border-[0.5px] border-secondary-green bg-primary-green px-4 text-[12px] font-medium text-white"
           >
             <Pencil size={14} />
             Settings
@@ -82,7 +82,7 @@ export default function ProfilePage() {
               <p className="text-[13px] leading-[1.2] text-[#6d7a77] dark:text-slate-400">From your latest résumé upload.</p>
             </div>
             {profile?.parsed_profile?.summary ? (
-              <div className="inline-flex items-center gap-2 bg-[#f0f5f2] px-3 py-1 text-[12px] font-medium text-[#00685f] dark:bg-slate-800 dark:text-teal-400">
+              <div className="inline-flex items-center gap-2 bg-[#f0f5f2] px-3 py-1 text-[12px] font-medium text-primary-green dark:bg-slate-800 dark:text-emerald-400">
                 <TrendingUp size={14} />
                 Parsed
               </div>
@@ -106,7 +106,7 @@ export default function ProfilePage() {
                   ) : (
                     <>
                       No parser summary yet.{' '}
-                      <Link href="/resume" className="font-semibold text-[#00685f] underline-offset-2 hover:underline">
+                      <Link href="/resume" className="font-semibold text-primary-green underline-offset-2 hover:underline">
                         Upload or refresh
                       </Link>{' '}
                       in Résumé lab.
@@ -140,7 +140,7 @@ export default function ProfilePage() {
               <span className="font-semibold text-[#171d1c] dark:text-slate-100">{summary?.high_fit_count ?? '—'}</span>
             </div>
           </div>
-          <Link href="/dashboard" className="text-[12px] font-semibold text-[#00685f] hover:underline dark:text-teal-400">
+          <Link href="/dashboard" className="text-[12px] font-semibold text-primary-green hover:underline dark:text-emerald-400">
             Open overview →
           </Link>
         </aside>
@@ -151,7 +151,7 @@ export default function ProfilePage() {
           <h2 className="text-[24px] font-medium leading-[1.05] tracking-[-0.01em] text-[#171d1c] dark:text-slate-100">Your résumé file</h2>
           <Link
             href="/resume"
-            className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#00685f] dark:text-teal-400"
+            className="inline-flex items-center gap-1 text-[12px] font-semibold text-primary-green dark:text-emerald-400"
           >
             <Upload size={14} />
             Manage
@@ -171,7 +171,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="flex gap-3 border-t border-[0.5px] border-[#e4e9e7] pt-2 text-[13px] dark:border-slate-600">
-                <Link href="/resume" className="text-[#00685f] dark:text-teal-400">
+                <Link href="/resume" className="text-primary-green dark:text-emerald-400">
                   View in lab
                 </Link>
               </div>
@@ -181,7 +181,7 @@ export default function ProfilePage() {
               <p className="text-[13px] text-[#6d7a77] dark:text-slate-400">No résumé on file. Upload one to power matching and drafts.</p>
               <Link
                 href="/resume"
-                className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#00685f] dark:text-teal-400"
+                className="inline-flex items-center gap-1 text-[12px] font-semibold text-primary-green dark:text-emerald-400"
               >
                 <Upload size={14} /> Go to Résumé lab
               </Link>
@@ -190,7 +190,7 @@ export default function ProfilePage() {
 
           <article className="flex flex-col items-center justify-center gap-2 border border-dashed border-[0.5px] border-[#bcc9c6] bg-white p-3 text-center dark:border-slate-700 dark:bg-slate-900">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eaefed]">
-              <Plus size={16} className="text-[#00685f] dark:text-teal-400" />
+              <Plus size={16} className="text-primary-green dark:text-emerald-400" />
             </div>
             <p className="text-[12px] font-semibold text-[#171d1c] dark:text-slate-100">Tailored versions</p>
             <p className="text-[13px] leading-[1.2] text-[#6d7a77] dark:text-slate-400">Use Approvals and drafts per application; multi-file versions are not stored separately here.</p>
@@ -201,7 +201,7 @@ export default function ProfilePage() {
       <section className="border border-[0.5px] border-[rgba(188,201,198,0.88)] bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[24px] font-medium leading-[1.05] tracking-[-0.01em] text-[#171d1c] dark:text-slate-100">Key skills (parsed)</h2>
-          <Link href="/resume" className="text-[12px] font-semibold text-[#00685f] dark:text-teal-400">
+          <Link href="/resume" className="text-[12px] font-semibold text-primary-green dark:text-emerald-400">
             Edit preferences
           </Link>
         </div>
@@ -210,7 +210,7 @@ export default function ProfilePage() {
             skillTags.map((s) => (
               <span
                 key={s}
-                className="border border-[0.5px] border-teal-200 bg-teal-50 px-3 py-1.5 leading-none text-[#00685f] dark:border-teal-500/40 dark:bg-teal-950/40 dark:text-teal-300"
+                className="border border-[0.5px] border-secondary-green/30 bg-bg-light-green px-3 py-1.5 leading-none text-primary-green dark:border-secondary-green/40 dark:bg-primary-green/20 dark:text-emerald-300"
               >
                 {s}
               </span>

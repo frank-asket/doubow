@@ -114,7 +114,7 @@ export default function DraftsPage() {
       <aside className="fixed left-0 top-0 z-40 flex h-full w-[260px] flex-col gap-2 border-r border-[#E2E8F0] bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
         <div className="mb-5 px-1">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-[#00685f] text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-primary-green text-white">
               <Rocket size={14} />
             </div>
             <div>
@@ -124,13 +124,13 @@ export default function DraftsPage() {
           </div>
         </div>
 
-        <button className="mb-5 inline-flex h-9 items-center justify-center gap-2 rounded-[2px] bg-[#00685f] px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-opacity hover:opacity-95">
+        <button className="mb-5 inline-flex h-9 items-center justify-center gap-2 rounded-[2px] bg-primary-green px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-opacity hover:opacity-95">
           <Plus size={12} />
           New draft
         </button>
 
         <nav className="flex-1 space-y-1">
-          <div className="flex items-center gap-3 border-l-2 border-[#00685f] bg-white px-3 py-2 text-[#00685f] dark:bg-slate-900 dark:text-teal-300">
+          <div className="flex items-center gap-3 border-l-2 border-primary-green bg-white px-3 py-2 text-primary-green dark:bg-slate-900 dark:text-emerald-300">
             <FileText size={14} />
             <span className="text-xs font-semibold uppercase tracking-[0.12em]">Drafts</span>
           </div>
@@ -203,7 +203,7 @@ export default function DraftsPage() {
                 <button
                   type="button"
                   onClick={() => setDraftBody((prev) => `${prev}\n\nI can share additional measurable impact if helpful.`)}
-                  className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-[#44cfc0] bg-[#6bd8cb] px-3 text-[11px] font-semibold text-[#005049]"
+                  className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-secondary-green/45 bg-highlight-green px-3 text-[11px] font-semibold text-primary-green"
                 >
                   <Sparkles size={12} />
                   AI Refine
@@ -231,7 +231,7 @@ export default function DraftsPage() {
               <div className="space-y-3 text-[13px]">
                 <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2 dark:border-slate-700"><span className="text-slate-500">Base Salary</span><span className="font-semibold">{snapshotSalary}</span></div>
                 <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2 dark:border-slate-700"><span className="text-slate-500">Channel</span><span className="font-semibold">{snapshotChannel}</span></div>
-                <div className="flex items-center justify-between pt-1"><span className="font-medium text-slate-800 dark:text-slate-200">Status</span><span className="font-bold text-[#00685f]">{hasCurrent ? 'Pending' : 'Idle'}</span></div>
+                <div className="flex items-center justify-between pt-1"><span className="font-medium text-slate-800 dark:text-slate-200">Status</span><span className="font-bold text-primary-green">{hasCurrent ? 'Pending' : 'Idle'}</span></div>
               </div>
             </div>
             <div className="border border-[#E2E8F0] border-l-2 border-l-amber-600 bg-white p-4 text-[13px] dark:border-slate-700 dark:bg-slate-900">
@@ -241,8 +241,8 @@ export default function DraftsPage() {
               </h3>
               <p className="text-slate-600 dark:text-slate-300">Tone is professional and data-driven.</p>
             </div>
-            <div className="border border-[#E2E8F0] border-l-2 border-l-teal-600 bg-white p-4 text-[13px] dark:border-slate-700 dark:bg-slate-900">
-              <h3 className="mb-2 inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-teal-700">
+            <div className="border border-[#E2E8F0] border-l-2 border-l-primary-green bg-white p-4 text-[13px] dark:border-slate-700 dark:bg-slate-900">
+              <h3 className="mb-2 inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-primary-green">
                 <Shield size={12} />
                 Negotiation Guardrails
               </h3>
@@ -276,7 +276,7 @@ export default function DraftsPage() {
               type="button"
               onClick={() => void sendDraft()}
               disabled={!hasCurrent || busy !== null}
-              className="inline-flex h-8 items-center gap-2 rounded-[2px] bg-[#00685f] px-6 text-[11px] font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-60"
+              className="inline-flex h-8 items-center gap-2 rounded-[2px] bg-primary-green px-6 text-[11px] font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-60"
             >
               {busy === 'send' ? <Loader2 size={12} className="animate-spin" /> : null}
               Send via Gmail

@@ -60,7 +60,7 @@ export default function SettingsPage() {
             type="button"
             onClick={() => void startReconnect('google')}
             disabled={reconnectBusy !== null}
-            className="h-8 border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#00685f] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-teal-400"
+            className="h-8 border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-green disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-emerald-400"
           >
             Reconnect
           </button>
@@ -79,7 +79,7 @@ export default function SettingsPage() {
             type="button"
             onClick={() => void startReconnect('linkedin')}
             disabled={reconnectBusy !== null}
-            className="h-8 border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#00685f] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-teal-400"
+            className="h-8 border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-green disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-emerald-400"
           >
             Reconnect
           </button>
@@ -96,7 +96,7 @@ export default function SettingsPage() {
         <a
           href="mailto:support@doubow.com?subject=Account%20request"
           onClick={() => trackEvent('settings_contact_support_clicked', { source: 'settings_account_actions' })}
-          className="mt-3 inline-flex h-8 items-center justify-center border border-[0.5px] border-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#00685f] dark:border-teal-500 dark:text-teal-300"
+          className="mt-3 inline-flex h-8 items-center justify-center border border-[0.5px] border-primary-green px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-green dark:border-secondary-green dark:text-emerald-300"
         >
           Contact support
         </a>

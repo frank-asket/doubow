@@ -136,7 +136,7 @@ function ApprovalsLoadingShell() {
     <div className="approvals-surface min-h-screen bg-[#f5faf8] text-[#171d1c] dark:bg-slate-950 dark:text-slate-100">
       <main className="flex min-h-screen flex-col">
         <section className="border-b border-[#d9e1dd] bg-white/75 px-5 py-4 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/65">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#00685f] dark:text-teal-300">Approvals Workspace</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-green dark:text-emerald-300">Approvals Workspace</p>
           <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 dark:text-white">Draft Approvals</h1>
           <div className="mt-2 h-4 w-80 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
           <div className="mt-2 h-4 w-80 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
@@ -230,7 +230,7 @@ class ApprovalsWorkspaceBoundary extends Component<
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className={`${dashboardUi.actionButton} bg-[#00685f] px-4 font-semibold text-white`}
+              className={`${dashboardUi.actionButton} bg-primary-green px-4 font-semibold text-white`}
             >
               Reload page
             </button>
@@ -644,7 +644,7 @@ export default function ApprovalsPage() {
 
       <main className="flex min-h-screen flex-col">
         <section className="border-b border-[#d6e5df] bg-white/75 px-6 py-5 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/65">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#00685f] dark:text-teal-300">Approvals Workspace</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-green dark:text-emerald-300">Approvals Workspace</p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Draft Approvals</h1>
@@ -728,15 +728,15 @@ export default function ApprovalsPage() {
         ) : null}
 
         {current && current.channel === 'email' && gmailForApprovals && !gmailForApprovals.loading && !gmailForApprovals.connected && !gmailForApprovals.error ? (
-          <section className="border-b border-[#d6e5df] bg-[#ecfdfb] px-6 py-3 dark:border-slate-800 dark:bg-teal-950/30">
+          <section className="border-b border-[#d6e5df] bg-bg-light-green px-6 py-3 dark:border-slate-800 dark:bg-primary-green/15">
             <div className="mx-auto flex max-w-[1700px] flex-wrap items-center justify-between gap-3 text-xs text-slate-800 dark:text-slate-200">
               <p className="min-w-0 flex-1 leading-relaxed">
-                <span className="font-semibold text-[#00685f] dark:text-teal-300">Gmail is not connected.</span>{' '}
+                <span className="font-semibold text-primary-green dark:text-emerald-300">Gmail is not connected.</span>{' '}
                 We can still send using Doubow’s email service. Connect Google in Settings to save drafts in Gmail or send from your own address when that option is available.
               </p>
               <Link
                 href="/settings"
-                className="shrink-0 rounded-[2px] border border-[#00685f] bg-[#00685f] px-3 py-1.5 text-[11px] font-semibold text-white hover:opacity-95"
+                className="shrink-0 rounded-[2px] border border-primary-green bg-primary-green px-3 py-1.5 text-[11px] font-semibold text-white hover:opacity-95"
               >
                 Open Settings
               </Link>
@@ -779,7 +779,7 @@ export default function ApprovalsPage() {
               <span className="font-semibold text-slate-900 dark:text-white">LinkedIn is not connected.</span>{' '}
               You can still approve — Doubow emails you the note to paste on the posting. Link LinkedIn in Settings for profile sync.
               {' '}
-              <Link href="/settings" className="font-semibold text-[#00685f] underline-offset-2 hover:underline dark:text-teal-300">
+              <Link href="/settings" className="font-semibold text-primary-green underline-offset-2 hover:underline dark:text-emerald-300">
                 Settings
               </Link>
             </p>
@@ -859,7 +859,7 @@ export default function ApprovalsPage() {
                       {...microInteractionMotion}
                       className={`w-full rounded-[2px] border px-3 py-2.5 text-left transition-all ${
                         selected
-                          ? 'border-[#0d9488] bg-[#ecfdfb] shadow-sm dark:border-teal-500/60 dark:bg-teal-500/10'
+                          ? 'border-secondary-green bg-bg-light-green shadow-sm dark:border-secondary-green/50 dark:bg-primary-green/10'
                           : 'border-[#E2E8F0] bg-white hover:-translate-y-[1px] hover:shadow-sm dark:border-slate-700 dark:bg-slate-900'
                       }`}
                     >
@@ -869,7 +869,7 @@ export default function ApprovalsPage() {
                         <span className="rounded-full border border-slate-200 px-2 py-0.5 uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-300">
                           {item.channel}
                         </span>
-                        <span className="font-medium text-[#00685f] dark:text-teal-300">Pending</span>
+                        <span className="font-medium text-primary-green dark:text-emerald-300">Pending</span>
                       </div>
                     </motion.button>
                   )
@@ -960,7 +960,7 @@ export default function ApprovalsPage() {
                       }
                     }}
                     {...microInteractionMotion}
-                    className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-[#44cfc0] bg-[#6bd8cb] px-2.5 text-[11px] font-semibold text-[#005049]"
+                    className="inline-flex h-7 items-center gap-1 rounded-[2px] border border-secondary-green/45 bg-highlight-green px-2.5 text-[11px] font-semibold text-primary-green"
                   >
                     <CheckCircle2 size={12} strokeWidth={1.7} />
                     AI Refine
@@ -992,7 +992,7 @@ export default function ApprovalsPage() {
                     >
                       Save as Draft
                     </motion.button>
-                    <motion.button type="button" onClick={() => void submitApproval()} disabled={!current || submitting !== null} {...microInteractionMotion} className="inline-flex h-7 items-center gap-2 rounded-[2px] bg-[#00685f] px-6 text-[11px] font-semibold text-white disabled:opacity-60">
+                    <motion.button type="button" onClick={() => void submitApproval()} disabled={!current || submitting !== null} {...microInteractionMotion} className="inline-flex h-7 items-center gap-2 rounded-[2px] bg-primary-green px-6 text-[11px] font-semibold text-white disabled:opacity-60">
                       {submitting === 'approve' ? <Loader2 size={12} className="animate-spin" /> : null}
                       {approveButtonLabel}
                     </motion.button>
@@ -1012,7 +1012,7 @@ export default function ApprovalsPage() {
                   <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2 dark:border-slate-700"><span className="text-slate-500 dark:text-slate-400">Base Salary</span><span className="font-semibold">{asCurrency(originalBase)}</span></div>
                   <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2 dark:border-slate-700"><span className="text-slate-500 dark:text-slate-400">Equity (GSUs)</span><span className="font-semibold">450 Units</span></div>
                   <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2 dark:border-slate-700"><span className="text-slate-500 dark:text-slate-400">Target Bonus</span><span className="font-semibold">15%</span></div>
-                  <div className="flex items-center justify-between pt-1"><span className="font-medium text-slate-800 dark:text-slate-200">Total Comp (Est)</span><span className="font-bold text-[#00685f]">{asCurrency(originalTotal)}</span></div>
+                  <div className="flex items-center justify-between pt-1"><span className="font-medium text-slate-800 dark:text-slate-200">Total Comp (Est)</span><span className="font-bold text-primary-green">{asCurrency(originalTotal)}</span></div>
                 </div>
               </div>
 
@@ -1046,7 +1046,7 @@ export default function ApprovalsPage() {
                           setBaseSalary(Number(e.target.value))
                           if (!isDraftVariant(urlVariant)) setFlowVariant((prev) => (prev === 'whatif-1' ? 'whatif-2' : prev))
                         }}
-                        className="h-1 w-full cursor-pointer rounded-lg bg-slate-100 accent-[#00685f]"
+                        className="h-1 w-full cursor-pointer rounded-lg bg-slate-100 accent-primary-green"
                       />
                     </div>
                     <div>
@@ -1075,7 +1075,7 @@ export default function ApprovalsPage() {
                           setEquityUnits(Number(e.target.value))
                           if (!isDraftVariant(urlVariant)) setFlowVariant((prev) => (prev === 'whatif-1' ? 'whatif-2' : prev))
                         }}
-                        className="h-1 w-full cursor-pointer rounded-lg bg-slate-100 accent-[#00685f]"
+                        className="h-1 w-full cursor-pointer rounded-lg bg-slate-100 accent-primary-green"
                       />
                     </div>
                     <div>
@@ -1104,7 +1104,7 @@ export default function ApprovalsPage() {
                           setSignOnBonus(Number(e.target.value))
                           if (!isDraftVariant(urlVariant)) setFlowVariant((prev) => (prev === 'whatif-1' ? 'whatif-2' : prev))
                         }}
-                        className="h-1 w-full cursor-pointer rounded-lg bg-slate-100 accent-[#00685f]"
+                        className="h-1 w-full cursor-pointer rounded-lg bg-slate-100 accent-primary-green"
                       />
                     </div>
                     <div className={`${showCalculatorInputs ? 'pt-4' : 'pt-3'} border-t border-[#e2e8f0] dark:border-slate-700`}>
@@ -1118,7 +1118,7 @@ export default function ApprovalsPage() {
                                 if (!isDraftVariant(urlVariant)) setFlowVariant('whatif-3')
                                 setSaveToastOpen(true)
                               }}
-                              className={`${dashboardUi.actionButton} gap-1 border border-[#e2e8f0] dark:border-slate-700 px-3 text-[10px] font-bold uppercase tracking-[0.1em] text-[#00685f]`}
+                              className={`${dashboardUi.actionButton} gap-1 border border-[#e2e8f0] dark:border-slate-700 px-3 text-[10px] font-bold uppercase tracking-[0.1em] text-primary-green`}
                             >
                               <Bookmark size={dashboardUi.actionIcon} />
                               Save Scenario
@@ -1129,7 +1129,7 @@ export default function ApprovalsPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">Delta from Original</span>
-                        <span className="inline-flex items-center gap-1 text-xs font-bold leading-none text-[#00685f]">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold leading-none text-primary-green">
                           <TrendingUp size={dashboardUi.actionIcon} />
                           +{asCurrency(scenarioDelta)}
                         </span>
@@ -1146,7 +1146,7 @@ export default function ApprovalsPage() {
               </div>
 
               <div className={`${dashboardUi.utilityCard} !rounded-[2px] border-[#d9e1dd] p-3 dark:border-slate-700 border-l-2 border-l-[#0d9488]`}>
-                <h3 className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-[#00685f]">
+                <h3 className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-primary-green">
                   <Shield size={dashboardUi.actionIcon} />
                   Negotiation Guardrails
                 </h3>
@@ -1174,12 +1174,12 @@ export default function ApprovalsPage() {
                   <div>
                     <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">Market Benchmark (L5)</p>
                     <div className="relative h-1.5 rounded-full bg-slate-100">
-                      <div className="absolute left-[30%] right-[20%] top-0 h-1.5 rounded-full bg-[#89f5e7]" />
-                      <div className="absolute left-[55%] top-0 h-1.5 w-[2px] bg-[#00685f]" />
+                      <div className="absolute left-[30%] right-[20%] top-0 h-1.5 rounded-full bg-highlight-green" />
+                      <div className="absolute left-[55%] top-0 h-1.5 w-[2px] bg-primary-green" />
                     </div>
                     <div className="mt-1 flex items-center justify-between text-[9px] uppercase text-slate-400">
                       <span>$175k</span>
-                      <span className="font-bold text-[#00685f]">Current Target</span>
+                      <span className="font-bold text-primary-green">Current Target</span>
                       <span>$230k</span>
                     </div>
                   </div>

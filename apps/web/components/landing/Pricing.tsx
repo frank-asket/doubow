@@ -96,7 +96,7 @@ export function Pricing() {
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <div className="relative inline-flex rounded-full border border-[#c6c6cd] bg-white p-1 shadow-sm">
             <span
-              className={`absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-full bg-[#006a61] transition-all duration-200 ${
+              className={`absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-full bg-primary-green transition-all duration-200 ${
                 yearly ? "left-[calc(50%+2px)]" : "left-1"
               }`}
               aria-hidden
@@ -104,7 +104,7 @@ export function Pricing() {
             <button
               type="button"
               onClick={() => onIntervalToggle(false)}
-              className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2 ${
+              className={`relative z-10 rounded-full px-6 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-green/30 focus-visible:ring-offset-2 ${
                 !yearly ? "text-white" : "text-[#45464d]"
               }`}
             >
@@ -113,12 +113,12 @@ export function Pricing() {
             <button
               type="button"
               onClick={() => onIntervalToggle(true)}
-              className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2 ${
+              className={`relative z-10 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-green/30 focus-visible:ring-offset-2 ${
                 yearly ? "text-white" : "text-[#45464d]"
               }`}
             >
               Yearly
-              <span className="rounded-full bg-[#131b2e] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#86f2e4]">
+              <span className="rounded-full bg-[#131b2e] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary-green">
                 20% OFF
               </span>
             </button>
@@ -130,7 +130,7 @@ export function Pricing() {
           <Link
             href={billingFromPricingHref as Route}
             onClick={() => trackEvent("pricing_billing_link_clicked", { source: "pricing_section_text_link" })}
-            className="rounded font-semibold text-[#006a61] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/30 focus-visible:ring-offset-2"
+            className="rounded font-semibold text-primary-green underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-green/30 focus-visible:ring-offset-2"
           >
             Doubow plans &amp; billing
           </Link>{" "}
@@ -143,12 +143,12 @@ export function Pricing() {
               key={tier.name}
               className={`relative flex flex-col overflow-hidden rounded-2xl border p-6 sm:p-7 ${
                 tier.featured
-                  ? "border-[#006a61] bg-white shadow-md ring-1 ring-[#86f2e4]"
+                  ? "border-primary-green bg-white shadow-md ring-1 ring-secondary-green/35"
                   : "border-[#c6c6cd] bg-white shadow-sm"
               }`}
             >
               {tier.featured ? (
-                <span className="absolute right-4 top-4 rounded-full bg-[#006a61] px-2.5 py-0.5 text-[10px] font-bold uppercase text-white">
+                <span className="absolute right-4 top-4 rounded-full bg-primary-green px-2.5 py-0.5 text-[10px] font-bold uppercase text-white">
                   Popular
                 </span>
               ) : null}
@@ -171,8 +171,8 @@ export function Pricing() {
                 }
                 className={`mt-8 inline-flex h-11 justify-center rounded-full px-5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                   tier.featured
-                    ? "border border-[#006a61] bg-[#006a61] text-white shadow-sm hover:bg-[#005049] focus-visible:ring-[#006a61]/30"
-                    : "border border-[#c6c6cd] bg-white text-[#191c1e] shadow-sm hover:bg-[#f2f4f6] focus-visible:ring-[#006a61]/20"
+                    ? "border border-primary-green bg-primary-green text-white shadow-sm hover:bg-primary-green-hover focus-visible:ring-primary-green/30"
+                    : "border border-[#c6c6cd] bg-white text-[#191c1e] shadow-sm hover:bg-[#f2f4f6] focus-visible:ring-primary-green/20"
                 }`}
               >
                 {tier.name === "Free" ? "Create account" : "Create account to upgrade"}
@@ -192,7 +192,7 @@ export function Pricing() {
               <ul className="space-y-3 text-sm text-[#45464d]">
                 {tier.features.map((f) => (
                   <li key={f} className="flex gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#006a61]" strokeWidth={1.75} />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary-green" strokeWidth={1.75} />
                     {f}
                   </li>
                 ))}

@@ -171,7 +171,7 @@ export default function JobDetailPage() {
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:font-bold dark:text-white">{job.title}</h1>
-                    <span className="rounded bg-[#89f5e7] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#005049]">
+                    <span className="rounded bg-highlight-green px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary-green">
                       Open
                     </span>
                   </div>
@@ -218,10 +218,10 @@ export default function JobDetailPage() {
                   <div key={key}>
                     <div className="mb-1 flex items-end justify-between">
                       <span className="text-xs font-semibold text-zinc-800 dark:font-bold dark:text-white">{DIMENSION_LABELS[key] ?? key}</span>
-                      <span className="text-[11px] font-semibold text-teal-700">{Math.round(scoreBarWidth(value))}%</span>
+                      <span className="text-[11px] font-semibold text-primary-green">{Math.round(scoreBarWidth(value))}%</span>
                     </div>
                     <div className="h-1.5 w-full bg-zinc-100">
-                      <div className="h-full bg-teal-600" style={{ width: `${scoreBarWidth(value)}%` }} />
+                      <div className="h-full bg-primary-green" style={{ width: `${scoreBarWidth(value)}%` }} />
                     </div>
                   </div>
                 ))}
@@ -248,7 +248,7 @@ export default function JobDetailPage() {
                     setDraftBody(e.target.value)
                     if (actionState !== 'idle') setActionState('idle')
                   }}
-                  className="h-56 w-full resize-none rounded-xl border border-[0.5px] p-4 text-sm leading-relaxed text-zinc-700 outline-none focus:border-teal-600 dark:font-bold dark:text-white"
+                  className="h-56 w-full resize-none rounded-xl border border-[0.5px] p-4 text-sm leading-relaxed text-zinc-700 outline-none focus:border-primary-green dark:font-bold dark:text-white"
                   style={{ borderColor: SURFACE_BORDER }}
                 />
               </div>
@@ -293,7 +293,7 @@ export default function JobDetailPage() {
                 <button
                   onClick={() => void handleApprove()}
                   disabled={approving || rejecting || loadingDraft}
-                  className={`${dashboardUi.actionButton} bg-teal-600 text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70`}
+                  className={`${dashboardUi.actionButton} bg-primary-green text-white hover:bg-primary-green-hover disabled:cursor-not-allowed disabled:opacity-70`}
                 >
                   {approving || loadingDraft ? <Loader2 size={dashboardUi.actionIcon} className="animate-spin" /> : <Send size={dashboardUi.actionIcon} />}
                   {approving ? 'Queuing...' : 'Approve outreach'}

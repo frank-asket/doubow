@@ -210,7 +210,7 @@ export default function ResumePage() {
             Replace Resume
           </motion.button>
           <motion.button
-            className="inline-flex h-[31px] items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-4 text-[12px] font-medium uppercase tracking-[0.05em] text-white disabled:opacity-70"
+            className="inline-flex h-[31px] items-center gap-1 border border-[0.5px] border-secondary-green bg-primary-green px-4 text-[12px] font-medium uppercase tracking-[0.05em] text-white disabled:opacity-70"
             onClick={() => analyzeWithAI()}
             disabled={analyzing || loadingProfile || !resumeExists}
             {...microInteractionMotion}
@@ -243,7 +243,7 @@ export default function ResumePage() {
         <section className="space-y-4 lg:col-span-8">
           <article className="md:hidden border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
             <button
-              className="inline-flex h-11 w-full items-center justify-center gap-2 border border-[0.5px] border-[#008378] bg-[#00685f] text-[20px] font-medium text-white tracking-[-0.01em]"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 border border-[0.5px] border-secondary-green bg-primary-green text-[20px] font-medium text-white tracking-[-0.01em]"
               onClick={() => fileRef.current?.click()}
             >
               <Upload size={16} />
@@ -255,7 +255,7 @@ export default function ResumePage() {
             variants={motionEnabled ? fadeInUpVariants : undefined}
             className={cn(
               'relative cursor-pointer border border-[0.5px] bg-white dark:bg-slate-900 p-4 transition-colors',
-              (dragOver || uploaded) && 'bg-teal-50/40',
+              (dragOver || uploaded) && 'bg-bg-light-green/70',
             )}
             style={{ borderColor: dragOver || uploaded ? '#67d7cb' : 'rgba(188, 201, 198, 0.92)' }}
             onClick={() => fileRef.current?.click()}
@@ -282,11 +282,11 @@ export default function ResumePage() {
                         : 'UPLOAD A RESUME TO START EXTRACTION'}
                   </p>
                   {uploading ? (
-                    <p className="mt-2 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] text-[#00685f]">
+                    <p className="mt-2 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] text-primary-green">
                       <Loader2 size={11} className="animate-spin" /> Uploading...
                     </p>
                   ) : uploaded ? (
-                    <div className="mt-2 inline-flex h-5 items-center gap-1 bg-teal-50 px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f] border border-[0.5px] border-teal-200">
+                    <div className="mt-2 inline-flex h-5 items-center gap-1 bg-bg-light-green px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-green border border-[0.5px] border-secondary-green/30">
                       <CheckCircle size={10} /> AI Scanned
                     </div>
                   ) : (
@@ -297,7 +297,7 @@ export default function ResumePage() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-[52px] leading-[0.92] font-black tracking-[-0.03em] text-[#00685f]">
+                <p className="text-[52px] leading-[0.92] font-black tracking-[-0.03em] text-primary-green">
                   {uploaded && resumeProfile != null ? `v${resumeProfile.version}` : '—'}
                 </p>
                 <p className="text-[11px] uppercase tracking-[0.08em] leading-none text-[#6d7a77] dark:text-slate-400">Resume revision</p>
@@ -329,7 +329,7 @@ export default function ResumePage() {
                   setUploaded(false)
                   setFileName('')
                 }}
-                className="mt-3 inline-flex items-center gap-1 text-[11px] text-[#6d7a77] dark:text-slate-400 hover:text-[#00685f]"
+                className="mt-3 inline-flex items-center gap-1 text-[11px] text-[#6d7a77] dark:text-slate-400 hover:text-primary-green"
               >
                 <X size={11} /> Replace file
               </button>
@@ -340,7 +340,7 @@ export default function ResumePage() {
             <article className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5">
               <div className="mb-3 flex items-center justify-between">
                 <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Extracted Keywords</h4>
-                <span className="material-symbols-outlined text-[#00685f]">data_object</span>
+                <span className="material-symbols-outlined text-primary-green">data_object</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {keywordTags.length ? (
@@ -363,7 +363,7 @@ export default function ResumePage() {
             <article className="border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5">
               <div className="mb-3 flex items-center justify-between">
                 <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Market Alignment</h4>
-                <span className="material-symbols-outlined text-[#00685f]">trending_up</span>
+                <span className="material-symbols-outlined text-primary-green">trending_up</span>
               </div>
               <div className="space-y-2">
                 {parsedArchetypes.length ? (
@@ -385,7 +385,7 @@ export default function ResumePage() {
             <header className="border-b border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-slate-50/50 px-3 py-2">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#171d1c] dark:text-slate-100">
-                  <span className="material-symbols-outlined text-[16px] text-[#00685f]">history</span>
+                  <span className="material-symbols-outlined text-[16px] text-primary-green">history</span>
                   Version_Manifest
                 </span>
                 <span className="text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Latest upload</span>
@@ -409,7 +409,7 @@ export default function ResumePage() {
                       <td className="px-3 py-1.5 text-[#6d7a77] dark:text-slate-400">{formatResumeTimestamp(resumeProfile.created_at)}</td>
                       <td className="px-3 py-1.5 text-[#171d1c] dark:text-slate-100">{parsedSkillCount} skills</td>
                       <td className="px-3 py-1.5">
-                        <span className="border border-[0.5px] border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">
+                        <span className="border border-[0.5px] border-secondary-green/30 bg-bg-light-green px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-green">
                           Current
                         </span>
                       </td>
@@ -464,9 +464,9 @@ export default function ResumePage() {
             </article>
           ) : null}
 
-          <article className="border border-[0.5px] border-[#008378] bg-[#00685f] p-3 text-white">
+          <article className="border border-[0.5px] border-secondary-green bg-primary-green p-3 text-white">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em]">Account storage</p>
-            <p className="mt-1 text-[12px] text-teal-100">Your file and parsed profile are stored for your account and used for matching and drafts.</p>
+            <p className="mt-1 text-[12px] text-emerald-100">Your file and parsed profile are stored for your account and used for matching and drafts.</p>
           </article>
         </aside>
       </div>
@@ -499,25 +499,25 @@ export default function ResumePage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Target role</label>
-            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={role} onChange={(e) => setRole(e.target.value)} />
+            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-primary-green" value={role} onChange={(e) => setRole(e.target.value)} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Location</label>
-            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={location} onChange={(e) => setLocation(e.target.value)} />
+            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-primary-green" value={location} onChange={(e) => setLocation(e.target.value)} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Min salary (USD)</label>
-            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={salary} type="number" onChange={(e) => setSalary(e.target.value)} />
+            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-primary-green" value={salary} type="number" onChange={(e) => setSalary(e.target.value)} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Seniority</label>
-            <select className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={seniority} onChange={(e) => setSeniority(e.target.value as UserPreferences['seniority'])}>
+            <select className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-primary-green" value={seniority} onChange={(e) => setSeniority(e.target.value as UserPreferences['seniority'])}>
               {SENIORITY_OPTIONS.map((o) => <option key={o}>{o}</option>)}
             </select>
           </div>
           <div className="col-span-2">
             <label className="mb-1 block text-[11px] uppercase tracking-[0.08em] text-[#6d7a77] dark:text-slate-400">Key skills</label>
-            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-[#00685f]" value={skills} onChange={(e) => setSkills(e.target.value)} />
+            <input className="h-9 w-full border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 px-2 text-sm outline-none focus:border-primary-green" value={skills} onChange={(e) => setSkills(e.target.value)} />
           </div>
         </div>
         {prefsStatus && (
@@ -534,10 +534,10 @@ export default function ResumePage() {
           </div>
         )}
         {resumeExists && !loadingProfile && (
-          <div className="mt-3 flex items-center gap-2 border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
+          <div className="mt-3 flex items-center gap-2 border border-secondary-green/30 bg-bg-light-green px-3 py-2 text-xs text-primary-green">
             <CheckCircle size={12} className="mt-0.5 flex-shrink-0" />
             <span>You can explore matches now. Preferences can be refined anytime.</span>
-            <Link href="/discover" className="ml-auto font-semibold text-teal-900 underline-offset-2 hover:underline">
+            <Link href="/discover" className="ml-auto font-semibold text-primary-green underline-offset-2 hover:underline">
               Open matches
             </Link>
           </div>
@@ -552,7 +552,7 @@ export default function ResumePage() {
           {resumeExists && !loadingProfile ? (
             <Link
               href="/discover"
-              className="inline-flex h-8 items-center border border-[0.5px] border-[#008378] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-white"
+              className="inline-flex h-8 items-center border border-[0.5px] border-secondary-green bg-primary-green px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-white"
             >
               Open first matches
             </Link>
@@ -580,7 +580,7 @@ export default function ResumePage() {
         </div>
         <div className="mt-3 min-h-[90px] border border-[0.5px] border-[#bcc9c6] dark:border-slate-700 bg-[#f0f5f2] p-3 text-xs leading-relaxed text-[#171d1c] dark:text-slate-100 whitespace-pre-wrap">
           {analysis || 'Run Analyze Core to generate AI extraction insights and role alignment recommendations.'}
-          {analyzing && <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-[#00685f] align-middle" />}
+          {analyzing && <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-primary-green align-middle" />}
         </div>
       </section>
 
@@ -597,7 +597,7 @@ export default function ResumePage() {
               {...microInteractionMotion}
               className={cn(
                 'flex h-14 flex-col items-center justify-center gap-0.5 border-t-2 text-[10px] font-medium uppercase tracking-[0.08em]',
-                active ? 'border-t-[#00685f] text-[#00685f]' : 'border-t-transparent text-[#6d7a77] dark:text-slate-400',
+                active ? 'border-t-primary-green text-primary-green' : 'border-t-transparent text-[#6d7a77] dark:text-slate-400',
               )}
             >
               <span className="material-symbols-outlined text-[18px]">{icon}</span>

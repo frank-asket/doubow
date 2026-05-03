@@ -47,17 +47,17 @@ function NavItem({
         'group motion-nav flex items-center gap-3 border-l-[3px] px-3 py-2.5 text-[14px] hover:-translate-y-[1px]',
         showUrgent && !active && 'ring-1 ring-amber-400/50 rounded-r-lg',
         active
-          ? 'border-teal-600 bg-white font-semibold text-teal-700 shadow-sm shadow-teal-500/10 dark:bg-slate-800 dark:text-teal-200 dark:shadow-teal-400/10'
-          : 'border-transparent font-bold text-zinc-700 hover:bg-slate-100 hover:text-teal-700 hover:shadow-sm hover:shadow-slate-300/40 dark:font-bold dark:text-white dark:hover:bg-slate-800 dark:hover:text-teal-200 dark:hover:shadow-black/30',
+          ? 'border-primary-green bg-white font-semibold text-primary-green shadow-sm shadow-primary-green/10 dark:bg-slate-800 dark:text-emerald-200 dark:shadow-secondary-green/15'
+          : 'border-transparent font-bold text-zinc-700 hover:bg-slate-100 hover:text-primary-green hover:shadow-sm hover:shadow-slate-300/40 dark:font-bold dark:text-white dark:hover:bg-slate-800 dark:hover:text-emerald-200 dark:hover:shadow-black/30',
       )}
     >
-      <Icon size={20} className={cn('motion-icon group-hover:scale-[1.06]', active ? 'text-teal-600 dark:text-teal-200' : 'text-zinc-700 group-hover:text-teal-600 dark:font-bold dark:text-white dark:group-hover:text-teal-200')} />
+      <Icon size={20} className={cn('motion-icon group-hover:scale-[1.06]', active ? 'text-secondary-green dark:text-emerald-200' : 'text-zinc-700 group-hover:text-secondary-green dark:font-bold dark:text-white dark:group-hover:text-emerald-200')} />
       <span className="flex-1">{label}</span>
       {count !== undefined && count > 0 && (
         <span
           className={cn(
             'text-2xs rounded-full px-1.5 py-0.5 font-medium tabular-nums',
-            active ? 'bg-teal-50 text-teal-800 dark:bg-teal-500/20 dark:text-teal-200' : 'bg-slate-200/80 font-bold text-zinc-700 dark:bg-slate-700 dark:font-bold dark:text-white',
+            active ? 'bg-bg-light-green text-primary-green dark:bg-primary-green/20 dark:text-emerald-200' : 'bg-slate-200/80 font-bold text-zinc-700 dark:bg-slate-700 dark:font-bold dark:text-white',
           )}
         >
           {count}
@@ -158,11 +158,11 @@ function DashboardLayoutInner({
       {/* Sidebar — Candidate Hub (mockup: light rail + teal active state) */}
       <aside className="hidden w-64 flex-shrink-0 flex-col border-r border-slate-200/90 bg-slate-50/95 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/90 lg:flex">
         <div className="border-b border-slate-200 px-4 pb-5 pt-6 dark:border-slate-800">
-          <span className="text-xl font-black uppercase tracking-tighter text-teal-600 dark:text-teal-400">Doubow</span>
+          <span className="text-xl font-black uppercase tracking-tighter text-secondary-green dark:text-emerald-400">Doubow</span>
           <div className="mt-5">
             <h2 className="text-base font-bold text-zinc-700 dark:text-white">Candidate Hub</h2>
             <div className="mt-1 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-teal-500" aria-hidden />
+              <span className="h-2 w-2 rounded-full bg-secondary-green" aria-hidden />
               <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-700 dark:font-bold dark:text-white">Active status</p>
             </div>
           </div>
@@ -186,7 +186,7 @@ function DashboardLayoutInner({
         <div className="mt-auto space-y-1 border-t border-slate-200 p-4">
           <Link
             href="/discover"
-            className="motion-cta mb-4 flex w-full items-center justify-center rounded border border-[#00685f] bg-[#00685f] px-3 py-2 text-[14px] font-medium text-white shadow-sm hover:-translate-y-[1px] hover:brightness-110 hover:shadow-md hover:shadow-teal-600/20"
+            className="motion-cta mb-4 flex w-full items-center justify-center rounded border border-primary-green bg-primary-green px-3 py-2 text-[14px] font-medium text-white shadow-sm hover:-translate-y-[1px] hover:brightness-110 hover:shadow-md hover:shadow-primary-green/20"
           >
             Find new jobs
           </Link>
@@ -252,7 +252,7 @@ function DashboardLayoutInner({
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-700 dark:font-bold dark:text-white" />
             <input
               aria-label="Search dashboard desktop"
-              className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-[13px] font-bold text-zinc-700 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-[13px] font-bold text-zinc-700 outline-none focus:border-secondary-green focus:ring-1 focus:ring-secondary-green/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               placeholder="Search anything here..."
               value={desktopSearch}
               onChange={(event) => setDesktopSearch(event.target.value)}
@@ -264,8 +264,8 @@ function DashboardLayoutInner({
               className={cn(
                 'border-b-2 pb-1 text-sm font-bold transition-colors dark:font-semibold',
                 path === '/dashboard' || path === '/discover' || path.startsWith('/discover/')
-                  ? 'border-teal-600 text-teal-700 dark:text-teal-300'
-                  : 'border-transparent font-bold text-zinc-700 hover:text-teal-700 dark:font-bold dark:text-white dark:hover:text-white',
+                  ? 'border-primary-green text-primary-green dark:text-emerald-300'
+                  : 'border-transparent font-bold text-zinc-700 hover:text-primary-green dark:font-bold dark:text-white dark:hover:text-white',
               )}
             >
               Jobs
@@ -275,8 +275,8 @@ function DashboardLayoutInner({
               className={cn(
                 'border-b-2 pb-1 text-sm font-bold transition-colors dark:font-semibold',
                 path === '/pipeline' || path.startsWith('/pipeline/')
-                  ? 'border-teal-600 text-teal-700 dark:text-teal-300'
-                  : 'border-transparent font-bold text-zinc-700 hover:text-teal-700 dark:font-bold dark:text-white dark:hover:text-white',
+                  ? 'border-primary-green text-primary-green dark:text-emerald-300'
+                  : 'border-transparent font-bold text-zinc-700 hover:text-primary-green dark:font-bold dark:text-white dark:hover:text-white',
               )}
             >
               Applications
@@ -286,8 +286,8 @@ function DashboardLayoutInner({
               className={cn(
                 'border-b-2 pb-1 text-sm font-bold transition-colors dark:font-semibold',
                 path === '/messages' || path.startsWith('/messages/')
-                  ? 'border-teal-600 text-teal-700 dark:text-teal-300'
-                  : 'border-transparent font-bold text-zinc-700 hover:text-teal-700 dark:font-bold dark:text-white dark:hover:text-white',
+                  ? 'border-primary-green text-primary-green dark:text-emerald-300'
+                  : 'border-transparent font-bold text-zinc-700 hover:text-primary-green dark:font-bold dark:text-white dark:hover:text-white',
               )}
             >
               Assistant
@@ -297,8 +297,8 @@ function DashboardLayoutInner({
               className={cn(
                 'border-b-2 pb-1 text-sm font-bold transition-colors',
                 path === '/resume' || path.startsWith('/resume/')
-                  ? 'border-teal-600 text-teal-700 dark:text-teal-400'
-                  : 'border-transparent font-bold text-zinc-700 hover:text-teal-700 dark:font-bold dark:text-white dark:hover:text-white',
+                  ? 'border-primary-green text-primary-green dark:text-emerald-400'
+                  : 'border-transparent font-bold text-zinc-700 hover:text-primary-green dark:font-bold dark:text-white dark:hover:text-white',
               )}
             >
               Resume
@@ -340,7 +340,7 @@ function DashboardLayoutInner({
             </div>
             <Link
               href="/discover"
-              className="motion-cta hidden rounded border border-[#00685f] bg-[#00685f] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:-translate-y-[1px] hover:brightness-110 hover:shadow-md hover:shadow-teal-600/20 md:inline-flex"
+              className="motion-cta hidden rounded border border-primary-green bg-primary-green px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:-translate-y-[1px] hover:brightness-110 hover:shadow-md hover:shadow-primary-green/20 md:inline-flex"
             >
               Apply now
             </Link>
@@ -352,7 +352,7 @@ function DashboardLayoutInner({
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
               <div>
-                <p className="text-sm font-black uppercase tracking-tighter text-teal-600 dark:text-teal-400">Doubow</p>
+                <p className="text-sm font-black uppercase tracking-tighter text-secondary-green dark:text-emerald-400">Doubow</p>
                 <p className="text-2xs font-bold text-zinc-700 dark:font-bold dark:text-white">Candidate Hub</p>
               </div>
             </div>
@@ -383,7 +383,7 @@ function DashboardLayoutInner({
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-700 dark:font-bold dark:text-white" />
               <input
                 aria-label="Search dashboard mobile"
-                className="h-10 w-full rounded-[10px] border border-zinc-200 bg-white pl-9 pr-3 text-[13px] font-bold text-zinc-700 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="h-10 w-full rounded-[10px] border border-zinc-200 bg-white pl-9 pr-3 text-[13px] font-bold text-zinc-700 outline-none focus:border-secondary-green focus:ring-1 focus:ring-secondary-green/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 placeholder="Search anything here..."
                 value={mobileSearch}
                 onChange={(event) => setMobileSearch(event.target.value)}
@@ -403,8 +403,8 @@ function DashboardLayoutInner({
                     className={cn(
                       'motion-nav inline-flex items-center gap-1.5 rounded-xl border px-2 py-1 text-[13px] hover:-translate-y-[1px] sm:px-2.5 sm:py-1.5',
                       active
-                        ? 'border-teal-200 bg-teal-50 text-teal-800 dark:border-teal-500/40 dark:bg-teal-500/20 dark:text-teal-200'
-                        : 'border-zinc-200 bg-white font-bold text-zinc-700 hover:text-teal-800 dark:border-slate-700 dark:bg-slate-800 dark:font-bold dark:text-white dark:hover:text-white'
+                        ? 'border-secondary-green/30 bg-bg-light-green text-primary-green dark:border-secondary-green/40 dark:bg-primary-green/20 dark:text-emerald-200'
+                        : 'border-zinc-200 bg-white font-bold text-zinc-700 hover:text-primary-green dark:border-slate-700 dark:bg-slate-800 dark:font-bold dark:text-white dark:hover:text-white'
                     )}
                   >
                     <Icon size={14} />
@@ -412,7 +412,7 @@ function DashboardLayoutInner({
                     {count !== undefined && count > 0 ? (
                       <span className={cn(
                         'text-2xs px-1.5 py-0.5 rounded-full font-medium tabular-nums',
-                        active ? 'bg-teal-100 text-teal-800 dark:bg-teal-500/30 dark:text-teal-200' : 'bg-zinc-100 font-bold text-zinc-700 dark:bg-slate-700 dark:font-bold dark:text-white'
+                        active ? 'bg-highlight-green text-primary-green dark:bg-primary-green/30 dark:text-emerald-200' : 'bg-zinc-100 font-bold text-zinc-700 dark:bg-slate-700 dark:font-bold dark:text-white'
                       )}>
                         {count}
                       </span>
@@ -425,12 +425,12 @@ function DashboardLayoutInner({
           <div className="px-4 pb-3">
             <Link
               href="/billing"
-              className="motion-card mb-2 block rounded-2xl border border-teal-100 bg-white px-3 py-3 text-zinc-700 shadow-sm ring-1 ring-teal-500/10 hover:-translate-y-[1px] hover:border-teal-200 hover:shadow-md hover:shadow-teal-500/10 dark:border-teal-500/30 dark:bg-slate-900 dark:text-slate-100 dark:ring-teal-500/20 dark:hover:border-teal-400/50"
+              className="motion-card mb-2 block rounded-2xl border border-secondary-green/20 bg-white px-3 py-3 text-zinc-700 shadow-sm ring-1 ring-secondary-green/15 hover:-translate-y-[1px] hover:border-secondary-green/30 hover:shadow-md hover:shadow-primary-green/10 dark:border-secondary-green/30 dark:bg-slate-900 dark:text-slate-100 dark:ring-secondary-green/25 dark:hover:border-emerald-400/50"
             >
-              <span className="inline-flex items-center rounded-full bg-teal-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+              <span className="inline-flex items-center rounded-full bg-primary-green px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                 Doubow Pro
               </span>
-              <p className="mt-2 text-[15px] font-bold leading-snug tracking-tight text-teal-950 dark:text-teal-100">
+              <p className="mt-2 text-[15px] font-bold leading-snug tracking-tight text-primary-green dark:text-emerald-100">
                 Get Personal Career Coach On-the-go
               </p>
               <p className="mt-1 text-[11px] font-bold leading-relaxed text-zinc-700 dark:font-bold dark:text-white">

@@ -30,7 +30,7 @@ export default function OnboardingPage() {
     <main className="min-h-screen bg-[#f7f9fb] px-4 py-10 text-[#171d1c] sm:px-6">
       <div className="mx-auto max-w-4xl space-y-6">
         <header className="rounded-2xl border border-[#c6c6cd] bg-white p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#00685f]">Getting Started</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary-green">Getting Started</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-[-0.01em] text-[#000000]">Welcome to Doubow</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#3d4947]">
             Complete these setup steps to start receiving useful matches and managing your outreach workflow from one
@@ -53,7 +53,7 @@ export default function OnboardingPage() {
                     destination: step.href,
                   })
                 }
-                className="mt-4 inline-flex h-9 items-center rounded-md border border-[#00685f] bg-[#00685f] px-4 text-sm font-medium text-white hover:bg-[#005049]"
+                className="mt-4 inline-flex h-9 items-center rounded-md border border-primary-green bg-primary-green px-4 text-sm font-medium text-white hover:bg-primary-green-hover"
               >
                 {step.cta}
               </Link>

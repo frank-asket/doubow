@@ -44,7 +44,7 @@ function ChangeRow({
         onClick={() => {
           if (targetId) onJumpToApplication(targetId)
         }}
-        className="text-2xs whitespace-nowrap text-teal-700 hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+        className="text-2xs whitespace-nowrap text-primary-green hover:underline disabled:cursor-not-allowed disabled:opacity-40"
       >
         Jump to row
       </button>
@@ -120,9 +120,9 @@ export default function PipelinePage() {
     window.requestAnimationFrame(() => {
       const el = document.querySelector<HTMLElement>(`[data-application-id="${applicationId}"]`)
       el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      el?.classList.add('ring-2', 'ring-teal-500/60', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-slate-950')
+      el?.classList.add('ring-2', 'ring-secondary-green/60', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-slate-950')
       window.setTimeout(() => {
-        el?.classList.remove('ring-2', 'ring-teal-500/60', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-slate-950')
+        el?.classList.remove('ring-2', 'ring-secondary-green/60', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-slate-950')
       }, 1800)
     })
   }, [])
@@ -167,7 +167,7 @@ export default function PipelinePage() {
           Application Pipeline
         </p>
         <div className="inline-flex items-center overflow-hidden rounded-sm border border-[0.5px]" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
-            <motion.button {...microInteractionMotion} className="bg-teal-50 px-3 py-1.5 text-2xs font-semibold text-teal-800">List</motion.button>
+            <motion.button {...microInteractionMotion} className="bg-bg-light-green px-3 py-1.5 text-2xs font-semibold text-primary-green">List</motion.button>
           <motion.button {...microInteractionMotion} className="border-l border-[0.5px] px-3 py-1.5 text-2xs font-semibold text-zinc-500" style={{ borderColor: 'rgba(109,122,119,0.45)' }}>
             Kanban
           </motion.button>
@@ -271,7 +271,7 @@ export default function PipelinePage() {
               className={cn(
                 'rounded-md border-[0.5px] px-3 py-1.5 text-xs font-medium transition-all duration-150',
                 activeTab === tab.value
-                  ? 'border-teal-600/30 bg-white dark:bg-slate-900 font-semibold text-teal-800 shadow-sm'
+                  ? 'border-primary-green/30 bg-white dark:bg-slate-900 font-semibold text-primary-green shadow-sm'
                   : 'border-transparent text-zinc-500 hover:bg-white dark:bg-slate-900/70 hover:text-zinc-800',
               )}
             >
@@ -352,7 +352,7 @@ export default function PipelinePage() {
                 >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded border border-teal-100 bg-teal-50 text-2xs font-semibold text-teal-900">
+                      <div className="flex h-6 w-6 items-center justify-center rounded border border-secondary-green/20 bg-bg-light-green text-2xs font-semibold text-primary-green">
                         {app.job.company.slice(0, 2).toUpperCase()}
                       </div>
                       <span className="text-sm font-medium text-zinc-900">{app.job.company}</span>
@@ -392,7 +392,7 @@ export default function PipelinePage() {
                         disabled={draftingId === app.id}
                         title="Generate outreach draft (opens in Approvals)"
                         {...microInteractionMotion}
-                        className="inline-flex items-center gap-1 rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-teal-300 hover:bg-teal-50 hover:text-teal-900 disabled:opacity-50"
+                        className="inline-flex items-center gap-1 rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-secondary-green/45 hover:bg-bg-light-green hover:text-primary-green disabled:opacity-50"
                         style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
                       >
                         {draftingId === app.id ? (
@@ -405,7 +405,7 @@ export default function PipelinePage() {
                       <motion.div {...microInteractionMotion}>
                         <Link
                         href={`/prep?applicationId=${encodeURIComponent(app.id)}` as Route}
-                        className="inline-flex items-center rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-teal-300 hover:bg-teal-50 hover:text-teal-900"
+                        className="inline-flex items-center rounded-lg border border-[0.5px] bg-white dark:bg-slate-900 px-2 py-1 text-2xs font-medium shadow-sm hover:border-secondary-green/45 hover:bg-bg-light-green hover:text-primary-green"
                         style={{ borderColor: candidateTokens.outline, color: candidateTokens.onSurface }}
                       >
                         Prep

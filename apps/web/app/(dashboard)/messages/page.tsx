@@ -133,9 +133,9 @@ function renderAssistantBody(text: string, isStreaming: boolean) {
       <span className="inline-flex items-center gap-2 text-zinc-600 dark:text-slate-200">
         <Loader2 size={14} className="animate-spin" />
         <span className="inline-flex items-center gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-teal-600 [animation:ping_1.2s_infinite]" />
-          <span className="h-1.5 w-1.5 rounded-full bg-teal-600 [animation:ping_1.2s_infinite_150ms]" />
-          <span className="h-1.5 w-1.5 rounded-full bg-teal-600 [animation:ping_1.2s_infinite_300ms]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary-green [animation:ping_1.2s_infinite]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary-green [animation:ping_1.2s_infinite_150ms]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary-green [animation:ping_1.2s_infinite_300ms]" />
         </span>
         Thinking...
       </span>
@@ -157,7 +157,7 @@ function renderAssistantBody(text: string, isStreaming: boolean) {
           const Icon = sectionIconForLine(line)
           const cleaned = line.replace(/^#{1,3}\s+/, '').replace(/:$/, '')
           return (
-            <p key={`${index}-${cleaned}`} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-teal-700 dark:text-teal-300">
+            <p key={`${index}-${cleaned}`} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary-green dark:text-emerald-300">
               <Icon size={13} />
               {cleaned}
             </p>
@@ -167,7 +167,7 @@ function renderAssistantBody(text: string, isStreaming: boolean) {
           const cleaned = line.replace(/^[-*•]\s+/, '').replace(/^\d+\.\s+/, '')
           return (
             <p key={`${index}-${cleaned}`} className="flex items-start gap-2 text-[14px] leading-relaxed text-zinc-800 dark:text-slate-100">
-              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-600" />
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-green" />
               <span>{cleaned}</span>
             </p>
           )
@@ -192,8 +192,8 @@ function taskToneClasses(tone: AgentTask['tone']) {
   }
   if (tone === 'teal') {
     return {
-      rail: 'bg-teal-600',
-      icon: 'text-teal-700 dark:text-teal-300',
+      rail: 'bg-primary-green',
+      icon: 'text-primary-green dark:text-emerald-300',
       panel: 'border-zinc-200 bg-white dark:border-slate-700 dark:bg-slate-900',
     }
   }
@@ -542,7 +542,7 @@ export default function MessagesPage() {
           <header className="flex h-14 items-center justify-between border-b border-zinc-200 px-5 dark:border-slate-700">
             <div className="flex items-center gap-3">
               <h1 className="text-[20px] font-bold tracking-tight text-zinc-900 dark:text-white">Doubow Assistant</h1>
-              <span className="rounded bg-teal-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              <span className="rounded bg-primary-green px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
                 All topics
               </span>
             </div>
@@ -627,7 +627,7 @@ export default function MessagesPage() {
                             item.status === 'running'
                               ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
                               : item.status === 'done'
-                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
+                                ? 'bg-highlight-green text-primary-green dark:bg-primary-green/20 dark:text-emerald-300'
                                 : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
                           }`}
                         >
@@ -639,14 +639,14 @@ export default function MessagesPage() {
                 </div>
               ) : null}
 
-              <details className="ml-11 rounded-lg border border-teal-200/80 bg-teal-50/50 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/30">
-                <summary className="cursor-pointer list-none text-[13px] font-bold text-teal-900 dark:text-teal-100 [&::-webkit-details-marker]:hidden">
+              <details className="ml-11 rounded-lg border border-secondary-green/35 bg-bg-light-green/80 px-3 py-2 dark:border-primary-green/40 dark:bg-primary-green/15">
+                <summary className="cursor-pointer list-none text-[13px] font-bold text-primary-green dark:text-emerald-100 [&::-webkit-details-marker]:hidden">
                   <span className="inline-flex items-center gap-2">
-                    <Sparkles size={14} className="text-teal-700 dark:text-teal-300" />
+                    <Sparkles size={14} className="text-primary-green dark:text-emerald-300" />
                     Quick commands (type / in chat)
                   </span>
                 </summary>
-                <div className="mt-3 space-y-3 border-t border-teal-200/60 pt-3 dark:border-teal-900/40">
+                <div className="mt-3 space-y-3 border-t border-secondary-green/30 pt-3 dark:border-primary-green/35">
                   <p className="text-[12px] font-semibold leading-snug text-zinc-700 dark:text-slate-200">
                     Type{' '}
                     <kbd className="rounded bg-white px-1.5 py-0.5 font-mono text-[11px] dark:bg-slate-800">/</kbd>
@@ -656,7 +656,7 @@ export default function MessagesPage() {
                   <ul className="space-y-1.5 text-[12px] text-zinc-800 dark:text-slate-100">
                     {ASSISTANT_SLASH_HINTS.map((row) => (
                       <li key={row.cmd} className="flex flex-wrap gap-x-2 gap-y-0.5">
-                        <code className="shrink-0 rounded bg-white px-1.5 py-0.5 font-mono text-[11px] text-teal-900 dark:bg-slate-900 dark:text-teal-200">
+                        <code className="shrink-0 rounded bg-white px-1.5 py-0.5 font-mono text-[11px] text-primary-green dark:bg-slate-900 dark:text-emerald-200">
                           {row.cmd}
                         </code>
                         <span className="font-medium text-zinc-600 dark:text-slate-300">— {row.hint}</span>
@@ -664,7 +664,7 @@ export default function MessagesPage() {
                     ))}
                   </ul>
                   {agentCapabilities?.tools?.length ? (
-                    <details className="rounded-md border border-teal-200/70 bg-white/80 px-2 py-1.5 dark:border-teal-900/50 dark:bg-slate-900/80">
+                    <details className="rounded-md border border-secondary-green/35 bg-white/80 px-2 py-1.5 dark:border-primary-green/40 dark:bg-slate-900/80">
                       <summary className="cursor-pointer list-none text-[11px] font-semibold text-zinc-600 dark:text-slate-300 [&::-webkit-details-marker]:hidden">
                         Advanced — full list of actions ({agentCapabilities.tools.length})
                       </summary>
@@ -693,7 +693,7 @@ export default function MessagesPage() {
                     key={item}
                     type="button"
                     onClick={() => sendMessage(item)}
-                    className="rounded-full border px-4 py-1.5 text-[13px] font-bold text-[#00685f] transition-colors hover:bg-teal-50 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+                    className="rounded-full border px-4 py-1.5 text-[13px] font-bold text-primary-green transition-colors hover:bg-bg-light-green dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
                     style={{ borderColor: tk.primary }}
                     disabled={streaming}
                   >
@@ -780,7 +780,7 @@ export default function MessagesPage() {
                   ) : (
                     <button
                       type="submit"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-teal-700 bg-teal-700 text-white transition-colors hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary-green bg-primary-green text-white transition-colors hover:bg-primary-green-hover disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label="Send message"
                       disabled={!composer.trim()}
                     >
@@ -806,7 +806,7 @@ export default function MessagesPage() {
                   type="button"
                   onClick={() => setThreadId(thread.id)}
                   className={`w-full rounded border px-2.5 py-2 text-left transition-colors ${
-                    threadId === thread.id ? 'border-teal-300 bg-teal-50 dark:border-teal-500/40 dark:bg-teal-950/40' : 'border-zinc-200 bg-white hover:bg-zinc-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
+                    threadId === thread.id ? 'border-secondary-green/45 bg-bg-light-green dark:border-secondary-green/40 dark:bg-primary-green/20' : 'border-zinc-200 bg-white hover:bg-zinc-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
                   }`}
                 >
                   <p className="truncate text-[12px] font-bold text-zinc-800 dark:text-white">{thread.title || 'Conversation'}</p>
@@ -907,7 +907,7 @@ export default function MessagesPage() {
             ) : (
               <p className="px-1 text-[12px] font-semibold text-zinc-500 dark:text-slate-300">
                 No pending approvals.{' '}
-                <Link href="/approvals" className="font-bold text-teal-700 underline-offset-2 hover:underline dark:text-teal-300">
+                <Link href="/approvals" className="font-bold text-primary-green underline-offset-2 hover:underline dark:text-emerald-300">
                   Open queue
                 </Link>
               </p>
@@ -929,7 +929,7 @@ export default function MessagesPage() {
 
       <button
         type="button"
-        className="fixed bottom-28 right-5 z-10 inline-flex h-12 w-12 items-center justify-center rounded-full border border-teal-700 bg-teal-700 text-white shadow-lg transition-colors hover:bg-teal-800 sm:bottom-24"
+        className="fixed bottom-28 right-5 z-10 inline-flex h-12 w-12 items-center justify-center rounded-full border border-primary-green bg-primary-green text-white shadow-lg transition-colors hover:bg-primary-green-hover sm:bottom-24"
         aria-label="Create new assistant task"
       >
         <Plus size={18} />

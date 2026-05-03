@@ -56,7 +56,7 @@ function SearchPageContent() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="block rounded-xl border border-zinc-100 bg-zinc-50/60 px-4 py-3 transition hover:border-indigo-200 hover:bg-indigo-50/40 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-teal-500/40 dark:hover:bg-slate-800"
+                className="block rounded-xl border border-zinc-100 bg-zinc-50/60 px-4 py-3 transition hover:border-indigo-200 hover:bg-indigo-50/40 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-secondary-green/40 dark:hover:bg-slate-800"
               >
                 <p className="text-sm font-semibold text-zinc-900 dark:text-slate-100">{item.label}</p>
                 <p className="text-xs text-zinc-600 dark:text-slate-400">{item.hint}</p>

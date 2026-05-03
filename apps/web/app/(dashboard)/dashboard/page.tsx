@@ -287,7 +287,7 @@ export default function DashboardOverviewPage() {
           <span className="mt-1 text-3xl font-black tabular-nums" style={{ color: tk.onSurface }}>
             {summaryLoading ? '…' : pipelineCount}
           </span>
-          <div className="mt-auto flex items-center gap-1 pt-2 text-teal-600">
+          <div className="mt-auto flex items-center gap-1 pt-2 text-secondary-green">
             <TrendingUp size={14} aria-hidden />
             <span className="text-xs font-bold">
               {evaluatedWeek > 0 ? `+${evaluatedWeek} this week` : 'Queue roles from Discover'}
@@ -308,7 +308,7 @@ export default function DashboardOverviewPage() {
           <span className="mt-1 text-3xl font-black tabular-nums" style={{ color: tk.onSurface }}>
             {summaryLoading ? '…' : showProfileViews ? profileViewsMetric : scoredTotal}
           </span>
-          <div className="mt-auto flex items-center gap-1 pt-2 text-teal-600">
+          <div className="mt-auto flex items-center gap-1 pt-2 text-secondary-green">
             <Eye size={14} aria-hidden />
             <span className="text-xs font-bold">
               {showProfileViews ? (
@@ -476,7 +476,7 @@ export default function DashboardOverviewPage() {
                 <input
                   value={discoverQuery}
                   onChange={(e) => setDiscoverQuery(e.target.value)}
-                  className="w-full border-[0.5px] py-2 pl-10 pr-4 text-[13px] outline-none ring-0 focus:border-[#00685f]"
+                  className="w-full border-[0.5px] py-2 pl-10 pr-4 text-[13px] outline-none ring-0 focus:border-primary-green"
                   style={{
                     backgroundColor: tk.surfaceLow,
                     borderColor: tk.outline,
@@ -598,7 +598,7 @@ export default function DashboardOverviewPage() {
                   <Link
                     key={item.id}
                     href="/pipeline"
-                    className="group block border-[0.5px] bg-white p-4 transition-colors hover:border-[#00685f] dark:bg-slate-900 dark:hover:border-teal-400"
+                    className="group block border-[0.5px] bg-white p-4 transition-colors hover:border-primary-green dark:bg-slate-900 dark:hover:border-emerald-400"
                     style={{ borderColor: 'rgba(109,122,119,0.45)' }}
                   >
                     <div className="flex gap-4">
@@ -612,7 +612,7 @@ export default function DashboardOverviewPage() {
                         <div className="flex flex-wrap items-start justify-between gap-2">
                           <div>
                             <h4
-                              className="text-[15px] font-semibold tracking-tight transition-colors group-hover:text-[#00685f]"
+                              className="text-[15px] font-semibold tracking-tight transition-colors group-hover:text-primary-green"
                               style={{ color: tk.onSurface }}
                             >
                               {item.job.title}
@@ -688,7 +688,7 @@ export default function DashboardOverviewPage() {
               style={{ borderColor: 'rgba(109,122,119,0.45)' }}
             >
               <div className="flex gap-3">
-                <CheckCircle2 className="shrink-0 text-teal-600" size={22} aria-hidden />
+                <CheckCircle2 className="shrink-0 text-secondary-green" size={22} aria-hidden />
                 <div>
                   <h4 className="text-[13px] font-bold" style={{ color: tk.onSurface }}>
                     No pending actions

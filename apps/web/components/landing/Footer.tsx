@@ -29,11 +29,11 @@ export function FooterCTA() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-zinc-800/80 bg-zinc-950 pb-12 pt-10">
+    <footer className="border-t border-border-subtle bg-bg-light-green pb-12 pt-10">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
         <div className="sm:col-span-2 lg:col-span-1">
           <Logo href="/" />
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-zinc-400">
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-text-muted">
             Save jobs, shape application materials from your résumé, apply on official sites yourself,
             and use optional Gmail drafts you review before anything goes out.
           </p>

@@ -5,22 +5,23 @@ module.exports = {
     './app/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './hooks/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        // Brand Colors from GUF/Ivorian palette
+        // Brand — Guichet Unique du Foncier (GUF) aligned palette (:root in globals.css)
         'primary-green': 'var(--color-primary-green)',
+        'primary-green-hover': 'var(--color-primary-green-hover)',
         'secondary-green': 'var(--color-secondary-green)',
         'primary-orange': 'var(--color-primary-orange)',
-        // UI & Surface Colors
+        'primary-orange-hover': 'var(--color-primary-orange-hover)',
+        // UI & surfaces
         'bg-light-green': 'var(--color-bg-light-green)',
         'bg-light-orange': 'var(--color-bg-light-orange)',
         'text-main': 'var(--color-text-main)',
         'text-muted': 'var(--color-text-muted)',
-        // Borders & Dividers
         'border-subtle': 'var(--color-border-subtle)',
-        // Success & Highlights
         'highlight-orange': 'var(--color-highlight-orange)',
         'highlight-green': 'var(--color-highlight-green)',
       },
@@ -50,7 +51,7 @@ module.exports = {
       boxShadow: {
         card: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
         'card-hover': '0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
-        focus: '0 0 0 3px rgba(52,211,153,0.25)',
+        focus: '0 0 0 3px color-mix(in oklab, var(--color-secondary-green) 35%, transparent)',
       },
       animation: {
         'fade-in':  'fadeIn 0.2s ease-out',

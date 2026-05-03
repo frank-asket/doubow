@@ -131,7 +131,7 @@ export default function BillingPage() {
       </header>
 
       {checkoutStatus === 'success' ? (
-        <div className="mb-4 border border-[0.5px] border-teal-200 bg-teal-50 px-4 py-3 text-[13px] text-teal-900 dark:border-teal-500/40 dark:bg-teal-950/30 dark:text-teal-200">
+        <div className="mb-4 border border-[0.5px] border-secondary-green/30 bg-bg-light-green px-4 py-3 text-[13px] text-primary-green dark:border-secondary-green/40 dark:bg-primary-green/15 dark:text-emerald-200">
           Checkout complete. Your billing setup was submitted successfully.
         </div>
       ) : null}
@@ -170,7 +170,7 @@ export default function BillingPage() {
               </div>
               <div className="h-1 w-full bg-slate-100 dark:bg-slate-800">
                 <div
-                  className="h-full bg-teal-500 transition-[width]"
+                  className="h-full bg-secondary-green transition-[width]"
                   style={{ width: `${creditsPct}%` }}
                 />
               </div>
@@ -194,12 +194,12 @@ export default function BillingPage() {
                       href={checkoutUrlWithIntent}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 inline-block text-[11px] font-bold uppercase tracking-wider text-teal-600 hover:underline dark:text-teal-400"
+                      className="mt-3 inline-block text-[11px] font-bold uppercase tracking-wider text-secondary-green hover:underline dark:text-emerald-400"
                     >
                       Add Payment Method
                     </a>
                   ) : (
-                    <span className="mt-3 block text-[11px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">
+                    <span className="mt-3 block text-[11px] font-bold uppercase tracking-wider text-secondary-green dark:text-emerald-400">
                       Add Payment Method
                     </span>
                   )}
@@ -217,7 +217,7 @@ export default function BillingPage() {
                   href={portalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-block text-[11px] font-bold uppercase tracking-wider text-teal-600 hover:underline dark:text-teal-400"
+                  className="mt-3 inline-block text-[11px] font-bold uppercase tracking-wider text-secondary-green hover:underline dark:text-emerald-400"
                 >
                   Manage subscription
                 </a>
@@ -233,12 +233,12 @@ export default function BillingPage() {
 
         {/* Right column */}
         <div className="space-y-4 lg:col-span-8">
-          <div className="overflow-hidden border border-[0.5px] border-teal-600/30 bg-white dark:border-teal-500/30 dark:bg-slate-900">
+          <div className="overflow-hidden border border-[0.5px] border-primary-green/30 bg-white dark:border-secondary-green/30 dark:bg-slate-900">
             <div className="p-6">
               <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
                   <div className="mb-1 flex items-center gap-2">
-                    <Sparkles className="h-6 w-6 text-teal-600 dark:text-teal-400" aria-hidden />
+                    <Sparkles className="h-6 w-6 text-secondary-green dark:text-emerald-400" aria-hidden />
                     <h2 className="text-xl font-medium leading-tight tracking-[-0.01em] text-[#171d1c] dark:text-white">
                       {isPaid ? `Doubow ${planLabel}` : `Upgrade to ${requestedPlan}`}
                     </h2>
@@ -254,7 +254,7 @@ export default function BillingPage() {
                     <div className="text-[28px] font-bold text-slate-900 dark:text-white">
                       €12<span className="text-sm font-normal text-slate-500 dark:text-slate-300">/month</span>
                     </div>
-                    <div className="text-[11px] font-medium uppercase tracking-wider text-teal-600 dark:text-teal-400">
+                    <div className="text-[11px] font-medium uppercase tracking-wider text-secondary-green dark:text-emerald-400">
                       Billed Monthly
                     </div>
                   </div>
@@ -264,8 +264,8 @@ export default function BillingPage() {
               <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
                 {FEATURES.map(({ icon: Icon, title, body }) => (
                   <div key={title} className="flex gap-3">
-                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center border border-[0.5px] border-teal-100 bg-teal-50 dark:border-teal-500/30 dark:bg-teal-950/40">
-                      <Icon className="h-[18px] w-[18px] text-teal-600 dark:text-teal-400" aria-hidden />
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center border border-[0.5px] border-secondary-green/20 bg-bg-light-green dark:border-secondary-green/30 dark:bg-primary-green/20">
+                      <Icon className="h-[18px] w-[18px] text-secondary-green dark:text-emerald-400" aria-hidden />
                     </div>
                     <div>
                       <h4 className="text-[14px] font-semibold text-[#171d1c] dark:text-white">{title}</h4>
@@ -283,7 +283,7 @@ export default function BillingPage() {
                         href={checkoutUrlWithIntent}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full border border-[0.5px] border-teal-700 bg-teal-600 px-8 py-3 text-center text-[14px] font-semibold text-white transition-colors hover:bg-teal-700 sm:w-auto"
+                        className="w-full border border-[0.5px] border-primary-green bg-primary-green px-8 py-3 text-center text-[14px] font-semibold text-white transition-colors hover:bg-primary-green sm:w-auto"
                       >
                         {requestedPlan === 'Business' ? 'Start Business Checkout' : 'Start Free Trial'}
                       </a>
@@ -310,7 +310,7 @@ export default function BillingPage() {
                   ) : null}
                 </>
               ) : (
-                <p className="border-t border-[0.5px] border-slate-100 pt-6 text-[14px] font-medium text-teal-700 dark:border-slate-700 dark:text-teal-300">
+                <p className="border-t border-[0.5px] border-slate-100 pt-6 text-[14px] font-medium text-primary-green dark:border-slate-700 dark:text-emerald-300">
                   Thank you for supporting Doubow.
                 </p>
               )}
@@ -318,7 +318,7 @@ export default function BillingPage() {
 
             <div className="flex items-center justify-between bg-slate-900 px-6 py-4">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-teal-400" />
+                <div className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-secondary-green" />
                 <span className="text-[12px] font-medium text-white">
                   {isPaid
                     ? 'Refer a friend — share Doubow with your network.'
@@ -359,7 +359,7 @@ export default function BillingPage() {
                       <td className="px-4 py-3 text-[12px] text-[#171d1c] dark:text-slate-200">{row.id}</td>
                       <td className="px-4 py-3 text-[12px] text-[#171d1c] dark:text-slate-200">{row.amount}</td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center border border-[0.5px] border-teal-100 bg-teal-50 px-2 py-0.5 text-[10px] font-medium uppercase text-teal-700 dark:border-teal-500/30 dark:bg-teal-950/50 dark:text-teal-300">
+                        <span className="inline-flex items-center border border-[0.5px] border-secondary-green/20 bg-bg-light-green px-2 py-0.5 text-[10px] font-medium uppercase text-primary-green dark:border-secondary-green/30 dark:bg-primary-green/35 dark:text-emerald-300">
                           {row.status}
                         </span>
                       </td>
@@ -380,7 +380,7 @@ export default function BillingPage() {
             <div className="border-t border-[0.5px] border-slate-100 bg-slate-50/30 p-3 text-center dark:border-slate-700 dark:bg-slate-800/30">
               <button
                 type="button"
-                className="text-[11px] font-bold uppercase tracking-widest text-slate-500 transition-colors hover:text-teal-600 dark:text-slate-300 dark:hover:text-teal-400"
+                className="text-[11px] font-bold uppercase tracking-widest text-slate-500 transition-colors hover:text-secondary-green dark:text-slate-300 dark:hover:text-emerald-400"
               >
                 View All Billing History
               </button>

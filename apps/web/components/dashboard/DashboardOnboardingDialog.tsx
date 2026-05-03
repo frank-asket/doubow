@@ -262,14 +262,14 @@ export default function DashboardOnboardingDialog({
           <div className="flex max-h-[min(92vh,640px)] flex-col">
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 pb-4 pt-5 dark:border-slate-800">
               <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-bg-light-green text-primary-green dark:bg-primary-green/15 dark:text-emerald-300">
                   <Icon size={22} strokeWidth={2} aria-hidden />
                 </div>
                 <div className="min-w-0">
                   <Dialog.Title className="text-base font-bold leading-snug text-zinc-900 dark:text-white">
                     {current.title}
                   </Dialog.Title>
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-primary-green dark:text-emerald-400">
                     Step {step + 1} of {STEPS.length}
                   </p>
                 </div>
@@ -291,7 +291,7 @@ export default function DashboardOnboardingDialog({
               {current.primaryAction ? (
                 <Link
                   href={current.primaryAction.href}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-bold text-teal-900 shadow-sm transition-colors hover:bg-teal-100 dark:border-teal-500/40 dark:bg-teal-500/15 dark:text-teal-100 dark:hover:bg-teal-500/25"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-secondary-green/30 bg-bg-light-green px-4 py-3 text-sm font-bold text-primary-green shadow-sm transition-colors hover:bg-highlight-green dark:border-secondary-green/40 dark:bg-primary-green/15 dark:text-emerald-100 dark:hover:bg-primary-green/25"
                   onClick={() => handlePrimaryActionClick(last)}
                 >
                   {current.primaryAction.label}
@@ -306,7 +306,7 @@ export default function DashboardOnboardingDialog({
                       key={hint}
                       className="flex gap-2 text-[13px] leading-snug text-zinc-600 dark:text-slate-400"
                     >
-                      <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
+                      <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-secondary-green dark:text-emerald-400" aria-hidden />
                       <span>{hint}</span>
                     </li>
                   ))}
@@ -324,7 +324,7 @@ export default function DashboardOnboardingDialog({
                     aria-current={i === step ? 'step' : undefined}
                     className={cn(
                       'h-1.5 rounded-full transition-all',
-                      i === step ? 'w-5 bg-teal-600 dark:bg-teal-400' : 'w-1.5 bg-slate-200 dark:bg-slate-600',
+                      i === step ? 'w-5 bg-primary-green dark:bg-secondary-green' : 'w-1.5 bg-slate-200 dark:bg-slate-600',
                     )}
                     onClick={() => setStep(i)}
                   />
@@ -344,7 +344,7 @@ export default function DashboardOnboardingDialog({
                 {last ? (
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1 rounded-lg bg-[#00685f] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+                    className="inline-flex items-center gap-1 rounded-lg bg-primary-green px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110"
                     onClick={finish}
                   >
                     Finish tour
@@ -353,7 +353,7 @@ export default function DashboardOnboardingDialog({
                 ) : (
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1 rounded-lg bg-[#00685f] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+                    className="inline-flex items-center gap-1 rounded-lg bg-primary-green px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110"
                     onClick={() => setStep((s) => s + 1)}
                   >
                     Next
@@ -366,19 +366,19 @@ export default function DashboardOnboardingDialog({
             <div className="border-t border-slate-100 bg-slate-50/80 px-5 py-3 dark:border-slate-800 dark:bg-slate-950/50">
               <p className="text-center text-[11px] text-zinc-500 dark:text-slate-500">
                 Quick links:{' '}
-                <Link href="/resume" className="font-semibold text-teal-700 underline-offset-2 hover:underline dark:text-teal-400">
+                <Link href="/resume" className="font-semibold text-primary-green underline-offset-2 hover:underline dark:text-emerald-400">
                   Resume
                 </Link>
                 {' · '}
-                <Link href={'/discover' as Route} className="font-semibold text-teal-700 underline-offset-2 hover:underline dark:text-teal-400">
+                <Link href={'/discover' as Route} className="font-semibold text-primary-green underline-offset-2 hover:underline dark:text-emerald-400">
                   Job matches
                 </Link>
                 {' · '}
-                <Link href={'/messages' as Route} className="font-semibold text-teal-700 underline-offset-2 hover:underline dark:text-teal-400">
+                <Link href={'/messages' as Route} className="font-semibold text-primary-green underline-offset-2 hover:underline dark:text-emerald-400">
                   Assistant
                 </Link>
                 {' · '}
-                <Link href="/settings" className="font-semibold text-teal-700 underline-offset-2 hover:underline dark:text-teal-400">
+                <Link href="/settings" className="font-semibold text-primary-green underline-offset-2 hover:underline dark:text-emerald-400">
                   Settings
                 </Link>
               </p>

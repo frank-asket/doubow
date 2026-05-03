@@ -252,7 +252,7 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
             {job.location}
           </span>
           {job.salary_range && (
-            <span className="text-xs font-medium text-teal-700">{job.salary_range}</span>
+            <span className="text-xs font-medium text-primary-green">{job.salary_range}</span>
           )}
           <span className={cn('badge text-2xs', channelBadgeClass(job.score.channel_recommendation))}>
             via {channelLabel(job.score.channel_recommendation)}
@@ -274,7 +274,7 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
               <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-500">{DIMENSION_LABELS[k] ?? k}</p>
               <div className="h-1 w-full bg-zinc-100">
                 <div
-                  className={cn('h-full', hasGap && k === 'tech' ? 'bg-amber-500' : 'bg-teal-600')}
+                  className={cn('h-full', hasGap && k === 'tech' ? 'bg-amber-500' : 'bg-primary-green')}
                   style={{ width: `${scoreBarWidth(v)}%` }}
                 />
               </div>
@@ -301,7 +301,7 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
               'inline-flex h-9 flex-1 items-center justify-center gap-1 border border-[0.5px] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors',
               hasGap
                 ? 'border-zinc-200 bg-white dark:bg-slate-900 text-zinc-600 hover:bg-zinc-50'
-                : 'border-[#00685f] bg-white dark:bg-slate-900 text-[#00685f] hover:bg-teal-50',
+                : 'border-primary-green bg-white dark:bg-slate-900 text-primary-green hover:bg-bg-light-green',
             )}
           >
             <BookOpen size={12} />
@@ -317,8 +317,8 @@ function JobCard({ job, motionEnabled }: { job: JobWithScore; motionEnabled: boo
               className={cn(
                 'inline-flex h-9 flex-1 items-center justify-center gap-1 border border-[0.5px] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors',
                 hasGap
-                  ? 'border-[#00685f] bg-white dark:bg-slate-900 text-[#00685f] hover:bg-teal-50'
-                  : 'border-[#00685f] bg-[#00685f] text-white hover:bg-[#005049]',
+                  ? 'border-primary-green bg-white dark:bg-slate-900 text-primary-green hover:bg-bg-light-green'
+                  : 'border-primary-green bg-primary-green text-white hover:bg-primary-green-hover',
               )}
             >
               {queuing ? 'Preparing…' : hasGap ? 'Bypass & Apply' : 'Initiate Application'}
@@ -370,15 +370,15 @@ function CatalogFeaturedMatch({ job, motionEnabled }: { job: JobWithScore; motio
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 flex-1 gap-4">
           <div
-            className="flex h-16 w-16 flex-shrink-0 items-center justify-center border-[0.5px] bg-[#f0f5f2] text-sm font-bold text-teal-900"
+            className="flex h-16 w-16 flex-shrink-0 items-center justify-center border-[0.5px] bg-[#f0f5f2] text-sm font-bold text-primary-green"
             style={{ borderColor: candidateTokens.outline }}
           >
-            <CompanyLogo company={job.company} logoUrl={job.logo_url} imageSize={44} className="h-11 w-11 text-sm font-bold text-teal-900" />
+            <CompanyLogo company={job.company} logoUrl={job.logo_url} imageSize={44} className="h-11 w-11 text-sm font-bold text-primary-green" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-lg font-semibold leading-snug text-zinc-900">{job.title}</h3>
-              <span className="rounded bg-[#89f5e7] px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight text-[#005049]">
+              <span className="rounded bg-highlight-green px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight text-primary-green">
                 {fitPct}% match
               </span>
             </div>
@@ -388,7 +388,7 @@ function CatalogFeaturedMatch({ job, motionEnabled }: { job: JobWithScore; motio
           </div>
         </div>
         <div className="text-right lg:pl-4">
-          <div className="text-[32px] font-black leading-none tracking-tighter text-[#00685f]">
+          <div className="text-[32px] font-black leading-none tracking-tighter text-primary-green">
             {job.score.fit_score.toFixed(2)}
           </div>
           <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">Fit index</p>
@@ -408,7 +408,7 @@ function CatalogFeaturedMatch({ job, motionEnabled }: { job: JobWithScore; motio
             <div className="flex items-center gap-2">
               <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-200">
                 <div
-                  className="h-full rounded-full bg-[#00685f]"
+                  className="h-full rounded-full bg-primary-green"
                   style={{ width: `${scoreBarWidth(v)}%` }}
                 />
               </div>
@@ -746,7 +746,7 @@ function DiscoverPageContent() {
           <>
             <Link
               href="/messages"
-              className="inline-flex items-center gap-1.5 rounded-sm border border-[#00685f] bg-[#00685f] px-3 py-2 text-[14px] font-medium text-white shadow-sm transition-opacity hover:opacity-95"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-primary-green bg-primary-green px-3 py-2 text-[14px] font-medium text-white shadow-sm transition-opacity hover:opacity-95"
             >
               <Sparkles size={13} aria-hidden />
               Assistant
@@ -758,7 +758,7 @@ function DiscoverPageContent() {
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[14px] font-medium shadow-sm transition-colors',
                 filterOpen
-                  ? 'border-teal-200 bg-teal-50 text-teal-900'
+                  ? 'border-secondary-green/30 bg-bg-light-green text-primary-green'
                   : 'border-[#e4e5ec] bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
               )}
             >
@@ -854,7 +854,7 @@ function DiscoverPageContent() {
             {...microInteractionMotion}
             className={cn(
               'inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 text-2xs font-semibold transition-colors',
-              filterOpen ? 'border-teal-300 bg-teal-50 text-teal-900' : 'border-[#e4e5ec] bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
+              filterOpen ? 'border-secondary-green/45 bg-bg-light-green text-primary-green' : 'border-[#e4e5ec] bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
             )}
           >
             <motion.span {...iconTapMotion} className="inline-flex">
@@ -867,7 +867,7 @@ function DiscoverPageContent() {
               type="button"
               onClick={() => setLocationFilter('')}
               {...microInteractionMotion}
-              className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2 py-1 text-2xs font-semibold text-teal-900"
+              className="inline-flex items-center gap-1 rounded-full border border-secondary-green/30 bg-bg-light-green px-2 py-1 text-2xs font-semibold text-primary-green"
             >
               Location: {locationFilter.trim()}
               <motion.span {...iconTapMotion} className="inline-flex">
@@ -902,7 +902,7 @@ function DiscoverPageContent() {
           {...microInteractionMotion}
           className={cn(
             'rounded-sm border border-[0.5px] px-3 py-1 text-xs transition-colors',
-            locationFilter.trim() ? 'bg-teal-50 text-teal-800' : 'bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
+            locationFilter.trim() ? 'bg-bg-light-green text-primary-green' : 'bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
           )}
           style={{ borderColor: 'rgba(109,122,119,0.45)' }}
         >
@@ -914,7 +914,7 @@ function DiscoverPageContent() {
           {...microInteractionMotion}
           className={cn(
             'rounded-sm border border-[0.5px] px-3 py-1 text-xs transition-colors',
-            minFit >= 4 ? 'bg-teal-50 text-teal-800' : 'bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
+            minFit >= 4 ? 'bg-bg-light-green text-primary-green' : 'bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
           )}
           style={{ borderColor: 'rgba(109,122,119,0.45)' }}
         >
@@ -938,7 +938,7 @@ function DiscoverPageContent() {
             setSortBy('fit')
           }}
           {...microInteractionMotion}
-          className="ml-auto rounded bg-[#00685f] px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-95"
+          className="ml-auto rounded bg-primary-green px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-95"
         >
           Clear all
         </motion.button>
@@ -968,7 +968,7 @@ function DiscoverPageContent() {
               <div>
                 <div className="mb-1 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
                   <span>Minimum fit score</span>
-                  <span className="text-teal-700">{minFitChip}</span>
+                  <span className="text-primary-green">{minFitChip}</span>
                 </div>
                 <input
                   type="range"
@@ -977,7 +977,7 @@ function DiscoverPageContent() {
                   step={0.5}
                   value={minFit}
                   onChange={(e) => setMinFit(Number(e.target.value))}
-                  className="w-full accent-teal-600"
+                  className="w-full accent-primary-green"
                 />
               </div>
               <div>
@@ -995,7 +995,7 @@ function DiscoverPageContent() {
                     .map((item) => (
                       <span
                         key={item}
-                        className="rounded-sm border border-teal-200 bg-teal-50 px-2 py-1 text-[10px] font-semibold text-teal-700"
+                        className="rounded-sm border border-secondary-green/30 bg-bg-light-green px-2 py-1 text-[10px] font-semibold text-primary-green"
                       >
                         {item}
                       </span>
@@ -1017,7 +1017,7 @@ function DiscoverPageContent() {
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
               {precisionMode ? 'Overall match score' : 'Your match score'}
             </p>
-            <p className="text-2xl font-bold text-teal-700">
+            <p className="text-2xl font-bold text-primary-green">
               <AnimatedMetricValue
                 value={summary?.avg_fit_score != null ? `${(summary.avg_fit_score * 20).toFixed(1)}` : '—'}
               />
@@ -1033,7 +1033,7 @@ function DiscoverPageContent() {
         <div className="space-y-2 lg:col-span-8">
           <div className="flex items-center justify-between">
             <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              <Compass size={13} className="text-teal-600" />
+              <Compass size={13} className="text-secondary-green" />
               <AnimatedMetricValue
                 className="min-w-[1ch]"
                 value={String(filteredJobs.length)}
@@ -1122,7 +1122,7 @@ function DiscoverPageContent() {
             >
               <div className="mx-auto max-w-2xl">
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-2xs font-medium text-teal-900">
+                  <span className="rounded-full border border-secondary-green/30 bg-bg-light-green px-2 py-0.5 text-2xs font-medium text-primary-green">
                     Scoring in progress
                   </span>
                   {etaMinutes != null && (
@@ -1147,15 +1147,15 @@ function DiscoverPageContent() {
                         <span className={cn('text-xs', active ? 'text-zinc-900' : 'text-zinc-500')}>
                           {ONBOARDING_STEP_LABELS[step]}
                         </span>
-                        <span className={cn('text-2xs', done ? 'text-emerald-700' : active ? 'text-teal-800' : 'text-zinc-400')}>
+                        <span className={cn('text-2xs', done ? 'text-emerald-700' : active ? 'text-primary-green' : 'text-zinc-400')}>
                           {done ? 'Done' : active ? 'In progress' : 'Pending'}
                         </span>
                       </div>
                     )
                   })}
                 </div>
-                <div className="mt-4 flex items-start gap-2 rounded-sm border border-teal-100 bg-teal-50/80 p-3 text-xs text-teal-950">
-                  <ShieldCheck size={13} className="mt-0.5 shrink-0 text-teal-700" />
+                <div className="mt-4 flex items-start gap-2 rounded-sm border border-secondary-green/20 bg-bg-light-green/90 p-3 text-xs text-primary-green">
+                  <ShieldCheck size={13} className="mt-0.5 shrink-0 text-primary-green" />
                   You can leave this page. We keep processing in the background.
                 </div>
               </div>

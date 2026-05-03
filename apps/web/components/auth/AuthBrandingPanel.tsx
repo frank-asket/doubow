@@ -14,17 +14,17 @@ export function AuthBrandingPanel() {
         className="pointer-events-none absolute inset-0 opacity-90"
         aria-hidden
       >
-        <div className="absolute -right-1/4 top-12 h-72 w-72 rounded-full bg-teal-400/15 blur-[90px]" />
+        <div className="absolute -right-1/4 top-12 h-72 w-72 rounded-full bg-secondary-green/15 blur-[90px]" />
         <div className="absolute bottom-8 left-0 h-56 w-56 rounded-full bg-[#FFBC01]/20 blur-[72px]" />
       </div>
 
-      <div className="relative border-l-[3px] border-teal-600 pl-5 dark:border-teal-500">
+      <div className="relative border-l-[3px] border-primary-green pl-5 dark:border-secondary-green">
         <Link
           href="/"
-          className="inline-flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+          className="inline-flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-green"
         >
           <LogoMark className="h-9 w-9 shrink-0" />
-          <span className="text-xl font-black uppercase tracking-tighter text-teal-600 dark:text-teal-400">
+          <span className="text-xl font-black uppercase tracking-tighter text-secondary-green dark:text-emerald-400">
             Doubow
           </span>
         </Link>
@@ -38,7 +38,7 @@ export function AuthBrandingPanel() {
         <ul className="mt-10 space-y-3">
           {highlights.map((line) => (
             <li key={line} className="flex gap-3 text-sm leading-snug text-[#2c3130] dark:text-slate-300">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-600/12 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-green/12 text-primary-green dark:bg-primary-green/20 dark:text-emerald-300">
                 <svg
                   className="h-3 w-3"
                   viewBox="0 0 24 24"
@@ -63,7 +63,7 @@ export function AuthBrandingPanel() {
 
       <p className="relative mt-12 text-xs text-slate-500 dark:text-slate-500 lg:mt-0">
         Explore the product story on{' '}
-        <Link href="/" className="font-semibold text-teal-700 underline-offset-2 hover:text-teal-800 hover:underline dark:text-teal-400 dark:hover:text-teal-300">
+        <Link href="/" className="font-semibold text-primary-green underline-offset-2 hover:text-primary-green hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
           the Doubow home page
         </Link>
       </p>

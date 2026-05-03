@@ -40,7 +40,7 @@ function normalizeStoryConfidence(story: PrepSession['star_stories'][number]): S
 
 function confidenceBadge(confidence: StoryConfidence): { label: string; className: string } {
   if (confidence === 'high') {
-    return { label: 'HIGH', className: 'bg-teal-100 text-teal-800' }
+    return { label: 'HIGH', className: 'bg-highlight-green text-primary-green' }
   }
   if (confidence === 'low') {
     return { label: 'LOW', className: 'bg-amber-100 text-amber-900' }
@@ -91,7 +91,7 @@ export default function PrepPage() {
             <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center border border-[0.5px] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
               EXPORT BRIEF
             </motion.button>
-            <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center gap-1 border border-[0.5px] border-[#008378] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
+            <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center gap-1 border border-[0.5px] border-secondary-green bg-primary-green px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
               <Mi name="add" className="text-[12px]" />
               NEW STORY
             </motion.button>
@@ -108,7 +108,7 @@ export default function PrepPage() {
                   ? `STAR draft · ${selectedSession.application.job.title}`
                   : 'STAR builder — generate prep for an application to start'}
               </p>
-              <span className="shrink-0 bg-teal-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-teal-800">
+              <span className="shrink-0 bg-highlight-green px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-green">
                 {selectedSession ? 'FROM YOUR DATA' : 'EMPTY'}
               </span>
             </header>
@@ -181,7 +181,7 @@ export default function PrepPage() {
             </motion.article>
             <motion.article variants={motionEnabled ? fadeInUpVariants : undefined} className="border border-[0.5px] bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">PREPARATION SCORE</p>
-              <p className="mt-2 text-[30px] font-semibold leading-none text-[#00685f]">
+              <p className="mt-2 text-[30px] font-semibold leading-none text-primary-green">
                 {readiness != null ? (
                   <>
                     {readiness.overall}% <span className="text-[11px] uppercase tracking-[0.08em] text-[#3d4947]">HEURISTIC</span>
@@ -191,7 +191,7 @@ export default function PrepPage() {
                 )}
               </p>
               <div className="mt-2 h-1 bg-[#eaefed]">
-                <div className="h-full bg-[#00685f]" style={{ width: `${readiness?.overall ?? 0}%` }} />
+                <div className="h-full bg-primary-green" style={{ width: `${readiness?.overall ?? 0}%` }} />
               </div>
               {readiness == null ? (
                 <p className="mt-1 text-[10px] text-[#6d7a77]">Scores from prep content length, not employer data.</p>
@@ -203,7 +203,7 @@ export default function PrepPage() {
             <article className="border border-[0.5px] bg-white dark:bg-slate-900 md:col-span-8" style={{ borderColor: SURFACE_BORDER }}>
               <header className="flex items-center justify-between border-b border-[0.5px] px-3 py-2" style={{ borderColor: SURFACE_BORDER }}>
                 <h3 className="text-base font-medium text-[#171d1c]">Recent Peer Feedback</h3>
-                <button className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#00685f]">REQUEST NEW</button>
+                <button className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-green">REQUEST NEW</button>
               </header>
               <div className="divide-y divide-[0.5px] px-3" style={{ borderColor: SURFACE_BORDER }}>
                 <div className="py-3">
@@ -303,7 +303,7 @@ export default function PrepPage() {
             </div>
             <button
               type="button"
-              className="inline-flex h-9 w-full items-center justify-center border-t border-[0.5px] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#00685f]"
+              className="inline-flex h-9 w-full items-center justify-center border-t border-[0.5px] text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-green"
               style={{ borderColor: SURFACE_BORDER }}
             >
               STORIES ({starStories.length})
@@ -313,7 +313,7 @@ export default function PrepPage() {
           <article className="border border-[0.5px] bg-[#eaefed] p-3" style={{ borderColor: SURFACE_BORDER }}>
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#3d4947]">Voice practice</h3>
-              <Mi name="mic" className="text-[15px] text-[#00685f]" />
+              <Mi name="mic" className="text-[15px] text-primary-green" />
             </div>
             <p className="text-xs text-[#3d4947]">Practice this story with AI Voice Coach.</p>
             <motion.button {...microInteractionMotion} className="mt-3 inline-flex h-8 w-full items-center justify-center gap-1 border border-[0.5px] bg-white dark:bg-slate-900 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
@@ -334,19 +334,19 @@ export default function PrepPage() {
           </h3>
           <div className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
             <div className="flex items-start gap-3">
-              <ShieldCheck size={18} className="mt-1 shrink-0 text-[#006d66]" />
+              <ShieldCheck size={18} className="mt-1 shrink-0 text-primary-green" />
               <p className="text-[18px] leading-[1.2] text-[#0f1918] sm:text-[22px]">
                 <span className="font-semibold">Be Precise.</span> Detailed job titles help our AI filter out noise.
               </p>
             </div>
             <div className="flex items-start gap-3">
-              <Zap size={18} className="mt-1 shrink-0 text-[#006d66]" />
+              <Zap size={18} className="mt-1 shrink-0 text-primary-green" />
               <p className="text-[18px] leading-[1.2] text-[#0f1918] sm:text-[22px]">
                 <span className="font-semibold">Stay Active.</span> Checking your progress weekly keeps the algorithm fresh.
               </p>
             </div>
             <div className="flex items-start gap-3">
-              <MessageSquareText size={18} className="mt-1 shrink-0 text-[#006d66]" />
+              <MessageSquareText size={18} className="mt-1 shrink-0 text-primary-green" />
               <p className="text-[18px] leading-[1.2] text-[#0f1918] sm:text-[22px]">
                 <span className="font-semibold">Ask AI.</span> Use the assistant in the sidebar for resume feedback anytime.
               </p>

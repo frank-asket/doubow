@@ -3,6 +3,23 @@
 @tailwind utilities;
 
 :root {
+  /*
+   * Global brand — GUF-aligned (primary / secondary green + orange).
+   * Use via Tailwind: bg-primary-green, text-primary-orange, border-border-subtle, etc.
+   */
+  --color-primary-green: #14603b;
+  --color-primary-green-hover: #0f4d30;
+  --color-secondary-green: #2ea44f;
+  --color-primary-orange: #e89032;
+  --color-primary-orange-hover: #c97628;
+  --color-bg-light-green: #ebf5ee;
+  --color-bg-light-orange: #fff9f0;
+  --color-text-main: #333333;
+  --color-text-muted: #6b7280;
+  --color-border-subtle: #d1d5db;
+  --color-highlight-orange: #fce7d2;
+  --color-highlight-green: #dcfce7;
+
   /* Djamo-inspired RGB tokens for Tailwind alpha utilities */
   --primary-500: 255 188 1;
   --primary-600: 232 191 0;
@@ -23,13 +40,13 @@
   --warning-500: 253 60 45;
 
   --background: #ffffff;
-  /* Light theme: bold gray body copy (dark mode overrides via .dark) */
-  --foreground: #3f3f46;
+  /* Light theme: main copy aligns with brand text token */
+  --foreground: var(--color-text-main);
   --mint: #e8bf00;
   --mint-bright: #ffbc01;
   --card: #ffffff;
-  --border: #d1d5db;
-  --muted: #6b7280;
+  --border: var(--color-border-subtle);
+  --muted: var(--color-text-muted);
   --surface-2: #f9fafb;
   --sidebar-width: 224px;
   --header-height: 56px;
@@ -75,7 +92,7 @@ body {
 }
 
 ::selection {
-  background: rgba(52, 211, 153, 0.28);
+  background: color-mix(in oklab, var(--color-secondary-green) 32%, transparent);
   color: var(--foreground);
 }
 
@@ -92,8 +109,15 @@ body {
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { @apply bg-transparent; }
-  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+  ::-webkit-scrollbar-thumb { background: var(--color-primary-green); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-primary-green-hover); }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
 }
 
 @layer components {
@@ -416,27 +440,27 @@ body {
    * light surfaces, border-[#e7e8ee], indigo accents.
    */
   .app-route-shell {
-    color: #18181b;
+    color: var(--color-text-main);
     --card: #ffffff;
-    --border: #e7e8ee;
-    --foreground: #18181b;
-    --muted: #71717a;
-    --surface-2: #f4f4f8;
-    --background: #f3f4f8;
+    --border: var(--color-border-subtle);
+    --foreground: var(--color-text-main);
+    --muted: var(--color-text-muted);
+    --surface-2: var(--color-bg-light-green);
+    --background: color-mix(in oklab, var(--color-bg-light-green) 28%, #f8fafc);
 
-    /* Candidate mockup palette (inline styles via candidateUi.ts) */
-    --cand-surface: #f5faf8;
-    --cand-on-surface: #171d1c;
-    --cand-on-variant: #3d4947;
-    --cand-outline: #bcc9c6;
-    --cand-primary: #00685f;
-    --cand-secondary: #0051d5;
-    --cand-insight-blue: #316bf3;
-    --cand-primary-fixed: #89f5e7;
-    --cand-on-primary-fixed-variant: #005049;
-    --cand-surface-high: #e4e9e7;
-    --cand-surface-low: #f0f5f2;
-    --cand-amber: #d97706;
+    /* Dashboard tokens (candidateUi.ts) — GUF brand mapping */
+    --cand-surface: #ffffff;
+    --cand-on-surface: var(--color-text-main);
+    --cand-on-variant: var(--color-text-muted);
+    --cand-outline: var(--color-border-subtle);
+    --cand-primary: var(--color-primary-green);
+    --cand-secondary: var(--color-secondary-green);
+    --cand-insight-blue: var(--color-secondary-green);
+    --cand-primary-fixed: var(--color-highlight-green);
+    --cand-on-primary-fixed-variant: var(--color-primary-green);
+    --cand-surface-high: var(--color-bg-light-green);
+    --cand-surface-low: var(--color-bg-light-orange);
+    --cand-amber: var(--color-primary-orange);
   }
 
   .app-route-shell .card {
@@ -460,14 +484,14 @@ body {
   }
 
   .app-route-shell .btn-primary {
-    background: #4f46e5;
+    background: var(--color-primary-green);
     color: #ffffff;
-    border-color: #4f46e5;
+    border-color: var(--color-primary-green);
   }
 
   .app-route-shell .btn-primary:hover {
-    background: #4338ca;
-    border-color: #4338ca;
+    background: var(--color-primary-green-hover);
+    border-color: var(--color-primary-green-hover);
   }
 
   .app-route-shell .field {
@@ -477,7 +501,8 @@ body {
   }
 
   .app-route-shell .field:focus {
-    border-color: #a5b4fc;
+    border-color: color-mix(in oklab, var(--color-secondary-green) 65%, var(--color-border-subtle));
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-secondary-green) 25%, transparent);
   }
 
   .app-route-shell .skeleton {
@@ -489,7 +514,7 @@ body {
   }
 
   .app-route-shell .fit-mid {
-    @apply border border-indigo-100 bg-indigo-50 text-indigo-900;
+    @apply border border-secondary-green/25 bg-highlight-green text-primary-green;
   }
 
   .app-route-shell .fit-low {
@@ -499,7 +524,7 @@ body {
   .app-route-shell .badge-applied,
   .app-route-shell .badge-interview,
   .app-route-shell .badge-offer {
-    @apply border border-indigo-100 bg-indigo-50 text-indigo-800;
+    @apply border border-secondary-green/30 bg-highlight-green text-primary-green;
   }
 
   .app-route-shell .badge-pending {
@@ -535,18 +560,19 @@ body {
     --surface-2: #111827;
     --background: #020617;
 
+    /* Dark: keep contrast; accents stay on-brand (lighter greens + warm orange) */
     --cand-surface: #020617;
     --cand-on-surface: #ffffff;
-    --cand-on-variant: #ffffff;
+    --cand-on-variant: #e2e8f0;
     --cand-outline: #475569;
-    --cand-primary: #5eead4;
-    --cand-secondary: #93c5fd;
-    --cand-insight-blue: #93c5fd;
-    --cand-primary-fixed: #115e59;
+    --cand-primary: #6ee7b7;
+    --cand-secondary: #86efac;
+    --cand-insight-blue: #86efac;
+    --cand-primary-fixed: #14532d;
     --cand-on-primary-fixed-variant: #ecfdf5;
-    --cand-surface-high: #334155;
-    --cand-surface-low: #1e293b;
-    --cand-amber: #fcd34d;
+    --cand-surface-high: #1e293b;
+    --cand-surface-low: #0f172a;
+    --cand-amber: #fdba74;
   }
 
   .dark .app-route-shell h1,

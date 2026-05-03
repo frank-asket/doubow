@@ -47,7 +47,7 @@ function normalizeStoryConfidence(story: unknown): StoryConfidence {
 }
 
 function confidenceBadge(confidence: StoryConfidence): { label: string; className: string } {
-  if (confidence === 'high') return { label: 'HIGH', className: 'bg-teal-100 text-teal-800' }
+  if (confidence === 'high') return { label: 'HIGH', className: 'bg-highlight-green text-primary-green' }
   if (confidence === 'low') return { label: 'LOW', className: 'bg-amber-100 text-amber-900' }
   return { label: 'MEDIUM', className: 'bg-slate-100 text-slate-700' }
 }
@@ -82,7 +82,7 @@ export default function SuccessCoachPage() {
         kicker="INTERVIEW PREP"
         title="Your Interview Coach"
         description={`Get ready for your upcoming interview with ${company} for the ${role} role.`}
-        actions={<div className="inline-flex items-center gap-2 border border-[0.5px] bg-[#eaefed] px-3 py-1.5 text-[11px] font-semibold text-[#00685f]" style={{ borderColor: SURFACE_BORDER }}><span className="h-2 w-2 rounded-full bg-[#00685f]" />Interview in 2 days</div>}
+        actions={<div className="inline-flex items-center gap-2 border border-[0.5px] bg-[#eaefed] px-3 py-1.5 text-[11px] font-semibold text-primary-green" style={{ borderColor: SURFACE_BORDER }}><span className="h-2 w-2 rounded-full bg-primary-green" />Interview in 2 days</div>}
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
@@ -90,7 +90,7 @@ export default function SuccessCoachPage() {
           <motion.article variants={motionEnabled ? fadeInUpVariants : undefined} className="border border-[0.5px] bg-white dark:bg-slate-900 p-3 md:p-3" style={{ borderColor: SURFACE_BORDER }}>
             <div className="mb-3 flex items-center justify-between">
               <div className="inline-flex items-center gap-2">
-                <Mi name="quiz" className="text-[14px] text-[#00685f]" />
+                <Mi name="quiz" className="text-[14px] text-primary-green" />
                 <h3 className="text-[16px] font-medium tracking-[-0.01em] text-[#171d1c]">Common Questions</h3>
               </div>
               <Mi name="info" className="text-[14px] text-[#3d4947]" />
@@ -99,7 +99,7 @@ export default function SuccessCoachPage() {
               {questions.map((q, idx) => (
                 <div key={`${q}-${idx}`} className="border border-[0.5px] bg-white dark:bg-slate-900 p-3 hover:bg-[#f0f5f2]" style={{ borderColor: SURFACE_BORDER }}>
                   <div className="mb-1 flex items-center justify-between text-[11px]">
-                    <span className="font-semibold tracking-[0.08em] text-[#00685f]">{questionCategory(idx)}</span>
+                    <span className="font-semibold tracking-[0.08em] text-primary-green">{questionCategory(idx)}</span>
                     <span className="text-[#3d4947]">{5 + idx * 5}-min prep</span>
                   </div>
                   <p className="text-sm font-medium text-[#171d1c]">"{q.replace(/^["']|["']$/g, '')}"</p>
@@ -111,7 +111,7 @@ export default function SuccessCoachPage() {
                         : 'Provide a concrete architecture, trade-offs, and operating metrics.'}
                   </p>
                   <div className="mt-3 flex gap-2">
-                    <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center border border-[0.5px] border-[#00685f] bg-[#00685f] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-white">
+                    <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center border border-[0.5px] border-primary-green bg-primary-green px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-white">
                       Draft Answer
                     </motion.button>
                     <motion.button {...microInteractionMotion} className="inline-flex h-8 items-center border border-[0.5px] bg-white dark:bg-slate-900 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#171d1c]" style={{ borderColor: SURFACE_BORDER }}>
@@ -126,8 +126,8 @@ export default function SuccessCoachPage() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
             <article className="space-y-3 border border-[0.5px] bg-white dark:bg-slate-900 p-3 md:col-span-5" style={{ borderColor: SURFACE_BORDER }}>
               <div className="mb-2 inline-flex items-center gap-2">
-                <Building2 size={14} className="text-[#00685f]" />
-                <Mi name="corporate_fare" className="text-[14px] text-[#00685f]" />
+                <Building2 size={14} className="text-primary-green" />
+                <Mi name="corporate_fare" className="text-[14px] text-primary-green" />
                 <h3 className="text-[16px] font-medium tracking-[-0.01em] text-[#171d1c]">About the Company</h3>
               </div>
               <div className="h-32 border border-[0.5px] bg-[#dee4e1]" style={{ borderColor: SURFACE_BORDER }} />
@@ -139,15 +139,15 @@ export default function SuccessCoachPage() {
                   <span className="font-semibold text-[#171d1c]">Culture:</span> Summarize culture signals from primary sources (careers page, filings, reputable interviews).
                 </p>
               </div>
-              <p className="text-xs font-semibold text-[#00685f]">
+              <p className="text-xs font-semibold text-primary-green">
                 Read latest annual report
               </p>
             </article>
 
             <article className="space-y-3 border border-[0.5px] bg-white dark:bg-slate-900 p-3 md:col-span-7" style={{ borderColor: SURFACE_BORDER }}>
               <div className="mb-2 inline-flex items-center gap-2">
-                <Sparkles size={14} className="text-[#00685f]" />
-                <Mi name="history_edu" className="text-[14px] text-[#00685f]" />
+                <Sparkles size={14} className="text-primary-green" />
+                <Mi name="history_edu" className="text-[14px] text-primary-green" />
                 <h3 className="text-[16px] font-medium tracking-[-0.01em] text-[#171d1c]">Your Success Stories</h3>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -205,7 +205,7 @@ export default function SuccessCoachPage() {
                     </div>
                   </div>
                 ))}
-                <button className="sm:col-span-2 inline-flex h-20 items-center justify-center gap-2 border border-[0.5px] border-dashed text-xs font-semibold text-[#3d4947] hover:border-[#00685f] hover:text-[#00685f]" style={{ borderColor: SURFACE_BORDER }}>
+                <button className="sm:col-span-2 inline-flex h-20 items-center justify-center gap-2 border border-[0.5px] border-dashed text-xs font-semibold text-[#3d4947] hover:border-primary-green hover:text-primary-green" style={{ borderColor: SURFACE_BORDER }}>
                   <Mi name="add_circle" className="text-[14px]" />
                   Add another story using the STAR method
                 </button>
@@ -218,7 +218,7 @@ export default function SuccessCoachPage() {
           <article className="border border-[0.5px] border-l-2 border-l-amber-600 bg-white dark:bg-slate-900 p-3" style={{ borderColor: SURFACE_BORDER }}>
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-[16px] font-medium tracking-[-0.01em] text-[#171d1c]">Prep Status</h3>
-              <span className={cn('px-2 py-0.5 text-[10px] font-semibold uppercase', requiresAction ? 'bg-amber-100 text-amber-900' : 'bg-teal-100 text-teal-900')}>
+              <span className={cn('px-2 py-0.5 text-[10px] font-semibold uppercase', requiresAction ? 'bg-amber-100 text-amber-900' : 'bg-highlight-green text-primary-green')}>
                 {requiresAction ? 'Requires Action' : 'On Track'}
               </span>
             </div>
@@ -229,8 +229,8 @@ export default function SuccessCoachPage() {
             </p>
             <div className="mt-3 space-y-2 text-xs">
               <div className="flex items-center gap-2">
-                <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#00685f]/10">
-                  <Mi name="mic" className="text-[12px] text-[#00685f]" />
+                <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-green/10">
+                  <Mi name="mic" className="text-[12px] text-primary-green" />
                 </div>
                 <div>
                   <p className="font-semibold text-[#171d1c]">Voice Practice</p>
@@ -238,8 +238,8 @@ export default function SuccessCoachPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#00685f]/10">
-                  <Mi name="fact_check" className="text-[12px] text-[#00685f]" />
+                <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-green/10">
+                  <Mi name="fact_check" className="text-[12px] text-primary-green" />
                 </div>
                 <div>
                   <p className="font-semibold text-[#171d1c]">Company Research</p>
@@ -247,7 +247,7 @@ export default function SuccessCoachPage() {
                 </div>
               </div>
             </div>
-            <motion.button {...microInteractionMotion} className="mt-4 inline-flex h-9 w-full items-center justify-center border border-[0.5px] border-[#00685f] bg-[#00685f] text-[11px] font-semibold uppercase tracking-[0.12em] text-white">
+            <motion.button {...microInteractionMotion} className="mt-4 inline-flex h-9 w-full items-center justify-center border border-[0.5px] border-primary-green bg-primary-green text-[11px] font-semibold uppercase tracking-[0.12em] text-white">
               Start practice interview
             </motion.button>
             {selectedSession ? (
@@ -259,7 +259,7 @@ export default function SuccessCoachPage() {
               onClick={() => void generateForSelected()}
               disabled={generating}
               {...microInteractionMotion}
-              className="mt-2 inline-flex h-8 w-full items-center justify-center gap-1 border border-[0.5px] text-[11px] font-semibold uppercase tracking-[0.1em] text-[#00685f] hover:bg-teal-50 disabled:opacity-70"
+              className="mt-2 inline-flex h-8 w-full items-center justify-center gap-1 border border-[0.5px] text-[11px] font-semibold uppercase tracking-[0.1em] text-primary-green hover:bg-bg-light-green disabled:opacity-70"
               style={{ borderColor: SURFACE_BORDER }}
             >
               {generating ? <Loader2 size={12} className="animate-spin" /> : null}

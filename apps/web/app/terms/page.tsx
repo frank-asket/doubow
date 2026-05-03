@@ -21,7 +21,7 @@ export default function TermsOfServicePage() {
         </Link>
 
         <header className="mt-8 rounded-2xl border border-[#c6c6cd] bg-white p-8 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.05em] text-[#006a61]">Legal</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.05em] text-primary-green">Legal</p>
           <h1 className="mt-3 font-display text-4xl font-semibold tracking-[-0.02em] text-[#000000]">Terms of Service</h1>
           <p className="mt-4 text-[16px] leading-[1.6] text-[#45464d]">
             These Terms govern your access to and use of Doubow products and services.
@@ -121,7 +121,7 @@ export default function TermsOfServicePage() {
             <h2 className="text-lg font-semibold text-[#000000]">Contact</h2>
             <p className="mt-2 text-[15px] leading-[1.55] text-[#45464d]">
               Questions about these Terms can be sent to{' '}
-              <a className="font-semibold text-[#006a61] underline-offset-4 hover:underline" href="mailto:legal@doubow.com">
+              <a className="font-semibold text-primary-green underline-offset-4 hover:underline" href="mailto:legal@doubow.com">
                 legal@doubow.com
               </a>.
             </p>

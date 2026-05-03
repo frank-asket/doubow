@@ -13,9 +13,9 @@ import { useAgentStore } from './agentStore'
 import type { AgentState, AutopilotRun } from '@doubow/shared'
 
 const AGENT_META: Record<string, { icon: string; color: string }> = {
-  discovery: { icon: '🔍', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
+  discovery: { icon: '🔍', color: 'border border-secondary-green/20 bg-bg-light-green text-primary-green' },
   scorer: { icon: '◆', color: 'border border-zinc-200 bg-zinc-100 text-zinc-800' },
-  orchestrator: { icon: '⊕', color: 'border border-teal-100 bg-teal-50 text-teal-900' },
+  orchestrator: { icon: '⊕', color: 'border border-secondary-green/20 bg-bg-light-green text-primary-green' },
 }
 
 const SUGGESTED_PROMPTS = [
@@ -30,7 +30,7 @@ function StatusDot({ status }: { status: AgentState['status'] }) {
     <span
       className={cn(
         'h-2 w-2 flex-shrink-0 rounded-full',
-        status === 'running' && 'animate-pulse bg-teal-400',
+        status === 'running' && 'animate-pulse bg-secondary-green',
         status === 'active' && 'bg-emerald-500',
         status === 'idle' && 'bg-zinc-300',
         status === 'error' && 'bg-rose-500',
@@ -59,7 +59,7 @@ function AgentCard({ agent }: { agent: AgentState }) {
         {agent.status === 'running' && agent.progress !== undefined && (
           <div className="mt-2 h-0.5 overflow-hidden rounded-full bg-zinc-200">
             <div
-              className="h-full rounded-full bg-teal-500 transition-all duration-500"
+              className="h-full rounded-full bg-secondary-green transition-all duration-500"
               style={{ width: `${Math.round(agent.progress * 100)}%` }}
             />
           </div>
@@ -80,7 +80,7 @@ function ChatMessage({ role, text }: { role: 'user' | 'ai'; text: string }) {
     <div className={cn('flex items-start gap-2.5', role === 'user' && 'flex-row-reverse')}>
       <div className={cn(
         'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
-        role === 'ai' ? 'border border-teal-100 bg-teal-50 text-teal-900' : 'bg-zinc-200 text-zinc-900'
+        role === 'ai' ? 'border border-secondary-green/20 bg-bg-light-green text-primary-green' : 'bg-zinc-200 text-zinc-900'
       )}>
         {role === 'ai' ? <Bot size={12} /> : <User size={12} />}
       </div>
@@ -167,9 +167,9 @@ export default function AgentsPage() {
         description="Chat about your search and pipeline — plus what’s running in the background."
         actions={
           <>
-            <div className="flex items-center gap-1.5 rounded-[10px] border border-teal-100 bg-teal-50 px-2.5 py-1.5">
-              <Zap size={12} className="text-teal-800" />
-              <span className="text-xs font-medium text-teal-900">
+            <div className="flex items-center gap-1.5 rounded-[10px] border border-secondary-green/20 bg-bg-light-green px-2.5 py-1.5">
+              <Zap size={12} className="text-primary-green" />
+              <span className="text-xs font-medium text-primary-green">
                 {activeCount > 0 ? `${activeCount} task${activeCount === 1 ? '' : 's'} running` : 'Ready'}
               </span>
             </div>
@@ -207,8 +207,8 @@ export default function AgentsPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 py-8">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-teal-100 bg-teal-50">
-                    <Bot size={18} className="text-teal-800" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-secondary-green/20 bg-bg-light-green">
+                    <Bot size={18} className="text-primary-green" />
                   </div>
                   <p className="text-center text-xs text-zinc-500">Ask me anything about your pipeline</p>
                   <div className="grid grid-cols-1 gap-2 w-full">
@@ -217,7 +217,7 @@ export default function AgentsPage() {
                         key={p}
                         onClick={() => send(p)}
                         {...microInteractionMotion}
-                        className="rounded-[10px] border border-[#e7e8ee] bg-white dark:bg-slate-900 px-3 py-2 text-left text-xs text-zinc-700 shadow-sm transition-colors hover:border-teal-200 hover:bg-teal-50"
+                        className="rounded-[10px] border border-[#e7e8ee] bg-white dark:bg-slate-900 px-3 py-2 text-left text-xs text-zinc-700 shadow-sm transition-colors hover:border-secondary-green/30 hover:bg-bg-light-green"
                       >
                         {p}
                       </motion.button>
@@ -267,7 +267,7 @@ export default function AgentsPage() {
             className={cn(
               'mb-3 rounded-[10px] border px-3 py-2 text-xs',
               resumeNotice.tone === 'ok'
-                ? 'border-teal-200 bg-teal-50 text-teal-900'
+                ? 'border-secondary-green/30 bg-bg-light-green text-primary-green'
                 : 'border-rose-200 bg-rose-50 text-rose-900',
             )}
           >
@@ -298,7 +298,7 @@ export default function AgentsPage() {
                               onClick={() => void handleResumeRun(run.run_id)}
                               disabled={resumeBusyRunId === run.run_id}
                               {...microInteractionMotion}
-                              className="inline-flex items-center gap-1.5 rounded-[8px] border border-teal-200 bg-teal-50 px-2.5 py-1 text-2xs font-semibold uppercase tracking-wide text-teal-900 shadow-sm transition-colors hover:bg-teal-100 disabled:opacity-50"
+                              className="inline-flex items-center gap-1.5 rounded-[8px] border border-secondary-green/30 bg-bg-light-green px-2.5 py-1 text-2xs font-semibold uppercase tracking-wide text-primary-green shadow-sm transition-colors hover:bg-highlight-green disabled:opacity-50"
                             >
                               {resumeBusyRunId === run.run_id ? (
                                 <Loader2 size={12} className="animate-spin" aria-hidden />

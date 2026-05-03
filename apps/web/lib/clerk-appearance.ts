@@ -1,7 +1,7 @@
-/** Clerk `<SignIn />` / `<SignUp />` styling — aligned with Candidate Hub + teal primary (#00685f). */
+/** Clerk `<SignIn />` / `<SignUp />` styling — aligned with app brand (primary green #14603b). */
 export const clerkAppearance = {
   variables: {
-    colorPrimary: '#00685f',
+    colorPrimary: '#14603b',
     colorBackground: '#ffffff',
     colorInputBackground: '#f8fafc',
     colorInputText: '#171d1c',
@@ -19,10 +19,11 @@ export const clerkAppearance = {
     socialButtonsBlockButton:
       'border-[0.5px] border-slate-200 bg-white text-[#171d1c] hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
     formButtonPrimary:
-      'bg-[#00685f] text-white hover:bg-[#005a52] shadow-sm border border-[0.5px] border-teal-800/30',
-    footerActionLink: 'text-teal-700 hover:text-teal-800 font-medium dark:text-teal-400 dark:hover:text-teal-300',
+      'bg-[#14603b] text-white hover:bg-[#0f4d30] shadow-sm border border-[0.5px] border-[#14603b]/35',
+    footerActionLink:
+      'text-[#14603b] hover:text-[#0f4d30] font-medium dark:text-emerald-400 dark:hover:text-emerald-300',
     formFieldInput:
-      'border-[0.5px] border-slate-200 bg-slate-50/80 text-[#171d1c] focus:border-teal-500 focus:ring-teal-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100',
+      'border-[0.5px] border-slate-200 bg-slate-50/80 text-[#171d1c] focus:border-[#2ea44f] focus:ring-[#2ea44f]/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100',
     identityPreviewText: 'text-[#171d1c] dark:text-slate-100',
     formFieldLabel: 'text-[#3d4947] dark:text-slate-400',
     dividerLine: 'bg-slate-200 dark:bg-slate-700',
