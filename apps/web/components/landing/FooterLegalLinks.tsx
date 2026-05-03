@@ -11,7 +11,7 @@ export function FooterLegalLinks() {
   if (!terms && !privacy && !email && !book) {
     return (
       <li>
-        <Link href="/discover" className="hover:text-neutral-900">
+        <Link href="/discover" className="hover:text-primary-green">
           Help &amp; support
         </Link>
       </li>
@@ -22,34 +22,34 @@ export function FooterLegalLinks() {
     <>
       {terms ? (
         <li>
-          <a href={terms} target="_blank" rel="noreferrer" className="hover:text-neutral-900">
+          <a href={terms} target="_blank" rel="noreferrer" className="hover:text-primary-green">
             Terms of service
           </a>
         </li>
       ) : null}
       {privacy ? (
         <li>
-          <a href={privacy} target="_blank" rel="noreferrer" className="hover:text-neutral-900">
+          <a href={privacy} target="_blank" rel="noreferrer" className="hover:text-primary-green">
             Privacy
           </a>
         </li>
       ) : null}
       {email ? (
         <li>
-          <a href={`mailto:${encodeURIComponent(email)}`} className="hover:text-neutral-900">
+          <a href={`mailto:${encodeURIComponent(email)}`} className="hover:text-primary-green">
             {email}
           </a>
         </li>
       ) : null}
       {book ? (
         <li>
-          <a href={book} target="_blank" rel="noreferrer" className="hover:text-neutral-900">
+          <a href={book} target="_blank" rel="noreferrer" className="hover:text-primary-green">
             Book a call
           </a>
         </li>
       ) : null}
       <li>
-        <Link href="/discover" className="hover:text-neutral-900">
+        <Link href="/discover" className="hover:text-primary-green">
           In-app help
         </Link>
       </li>

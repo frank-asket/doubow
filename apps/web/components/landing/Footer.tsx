@@ -39,68 +39,68 @@ export function Footer() {
           </p>
         </div>
         <div>
-          <p className="text-sm font-semibold text-zinc-100">Doubow</p>
-          <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+          <p className="text-sm font-semibold text-primary-green">Doubow</p>
+          <ul className="mt-4 space-y-2 text-sm text-text-muted">
             <li>
-              <a href="#why" className="hover:text-zinc-200">
+              <a href="#why" className="hover:text-primary-green">
                 Why Doubow?
               </a>
             </li>
             <li>
-              <a href="#product" className="hover:text-zinc-200">
+              <a href="#product" className="hover:text-primary-green">
                 Product
               </a>
             </li>
             <li>
-              <a href="#how" className="hover:text-zinc-200">
+              <a href="#how" className="hover:text-primary-green">
                 How it works
               </a>
             </li>
             <li>
-              <Link href={"/auth/sign-up" as Route} prefetch className="hover:text-zinc-200">
+              <Link href={"/auth/sign-up" as Route} prefetch className="hover:text-primary-green">
                 Plans
               </Link>
             </li>
             <li>
-              <a href="#faq" className="hover:text-zinc-200">
+              <a href="#faq" className="hover:text-primary-green">
                 FAQ
               </a>
             </li>
             <li>
-              <Link href="/discover" className="hover:text-zinc-200">
+              <Link href="/discover" className="hover:text-primary-green">
                 Open app
               </Link>
             </li>
           </ul>
         </div>
         <div>
-          <p className="text-sm font-semibold text-zinc-100">Legal &amp; support</p>
-          <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+          <p className="text-sm font-semibold text-primary-green">Legal &amp; support</p>
+          <ul className="mt-4 space-y-2 text-sm text-text-muted">
             <FooterLegalLinks />
           </ul>
         </div>
         <div>
-          <p className="text-sm font-semibold text-zinc-100">Product</p>
-          <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+          <p className="text-sm font-semibold text-primary-green">Product</p>
+          <ul className="mt-4 space-y-2 text-sm text-text-muted">
             <li>
-              <Link href={"/auth/sign-in" as Route} prefetch className="hover:text-zinc-200">
+              <Link href={"/auth/sign-in" as Route} prefetch className="hover:text-primary-green">
                 Sign in
               </Link>
             </li>
             <li>
-              <Link href={"/auth/sign-up" as Route} prefetch className="hover:text-zinc-200">
+              <Link href={"/auth/sign-up" as Route} prefetch className="hover:text-primary-green">
                 Create account
               </Link>
             </li>
             <li>
-              <Link href="/settings" className="hover:text-zinc-200">
+              <Link href="/settings" className="hover:text-primary-green">
                 Account settings
               </Link>
             </li>
           </ul>
         </div>
       </div>
-      <p className="mt-12 text-center text-xs text-zinc-500">
+      <p className="mt-12 text-center text-xs text-text-muted">
         © {new Date().getFullYear()} {productName()}. All rights reserved.
       </p>
     </footer>

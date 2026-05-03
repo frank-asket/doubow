@@ -283,7 +283,7 @@ export default function BillingPage() {
                         href={checkoutUrlWithIntent}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full border border-[0.5px] border-primary-green bg-primary-green px-8 py-3 text-center text-[14px] font-semibold text-white transition-colors hover:bg-primary-green sm:w-auto"
+                        className="w-full border border-[0.5px] border-primary-green bg-primary-green px-8 py-3 text-center text-[14px] font-semibold text-white transition-colors hover:bg-primary-green-hover sm:w-auto"
                       >
                         {requestedPlan === 'Business' ? 'Start Business Checkout' : 'Start Free Trial'}
                       </a>
