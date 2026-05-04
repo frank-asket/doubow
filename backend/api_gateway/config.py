@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _API_DIR = Path(__file__).resolve().parent
@@ -66,6 +67,16 @@ class Settings(BaseSettings):
     openrouter_model_drafts: str | None = "qwen/qwen3-8b"
     openrouter_model_prep: str | None = "deepseek/deepseek-r1-0528"
     openrouter_model_resume: str | None = None
+    # Optional tier aliases: heavy reasoning (fit debate, prep when set) vs fast drafts/tailor-style tasks.
+    # Env: OPENROUTER_MODEL_DEEP or DOUBOW_DEEP_THINK_LLM; OPENROUTER_MODEL_QUICK or DOUBOW_QUICK_THINK_LLM.
+    openrouter_model_deep: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("OPENROUTER_MODEL_DEEP", "DOUBOW_DEEP_THINK_LLM"),
+    )
+    openrouter_model_quick: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("OPENROUTER_MODEL_QUICK", "DOUBOW_QUICK_THINK_LLM"),
+    )
     openrouter_api_url: str = "https://openrouter.ai/api/v1"
     # OpenRouter optional attribution header (e.g. your app URL).
     openrouter_http_referer: str | None = "http://localhost:3000"
@@ -78,8 +89,14 @@ class Settings(BaseSettings):
     use_semantic_matching: bool = False
     # Feature flag: optional LLM-based resume/job fit signal blended into score.
     use_llm_job_matching: bool = False
+    # When True (default), job-fit LLM uses bull/bear sub-prompts before synthesis. False = legacy single JSON call.
+    use_llm_fit_debate: bool = True
     # Feature flag: run autopilot executor through LangGraph wrapper (parity mode).
     use_langgraph_autopilot: bool = False
+    # When True with LangGraph autopilot: pause after draft generation via langgraph.types.interrupt until resume.
+    # Resume uses POST /me/autopilot/runs/{id}/resume (same as checkpoint resume). Uses in-process MemorySaver — same
+    # worker process must handle the follow-up invoke (see workflow.autopilot_langgraph module docstring).
+    use_langgraph_autopilot_approval_interrupt: bool = False
     # Feature flag: log per-node LangGraph autopilot trace events (debug only).
     use_langgraph_autopilot_trace: bool = False
     # Max retries for retryable LangGraph autopilot node failures.
@@ -201,11 +218,15 @@ class Settings(BaseSettings):
     def resolve_openrouter_model(self, use_case: str | None = None) -> str:
         """Resolve model by use-case with fallback to global OpenRouter/Anthropic model."""
         key = (use_case or "").strip().lower()
+        deep = self.openrouter_model_deep
+        quick = self.openrouter_model_quick
         per_case = {
             "chat": self.openrouter_model_chat,
-            "drafts": self.openrouter_model_drafts,
-            "prep": self.openrouter_model_prep,
+            "drafts": quick or self.openrouter_model_drafts,
+            "prep": deep or self.openrouter_model_prep,
             "resume": self.openrouter_model_resume,
+            "deep": deep or self.openrouter_model_prep or self.openrouter_model_resume,
+            "quick": quick or self.openrouter_model_drafts,
         }
         candidate = (per_case.get(key) or self.openrouter_model or self.anthropic_model or "").strip()
         return candidate

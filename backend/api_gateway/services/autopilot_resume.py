@@ -37,6 +37,9 @@ async def validate_resume_eligibility(
         return None, "Run not found"
     if row.status != "running":
         return None, f"Run is not running (status={row.status})"
+    ck = row.graph_checkpoint if isinstance(row.graph_checkpoint, dict) else {}
+    if ck.get("interrupt_pending"):
+        return row, ""
     if settings.use_langgraph_autopilot and settings.use_langgraph_autopilot_checkpoint:
         if not row.graph_checkpoint:
             return None, "No graph checkpoint — resume only applies to LangGraph checkpointed runs"

@@ -23,6 +23,10 @@ _USE_CASE_DEFAULTS: dict[str, dict[str, float | int]] = {
     "prep": {"temperature": 0.38, "max_tokens": 1200, "top_p": 0.94},
     # Resume analysis: factual, low temperature; full top_p allows ranked tokens.
     "resume": {"temperature": 0.2, "max_tokens": 1000, "top_p": 1.0},
+    # Job-fit debate + synthesis: structured JSON, conservative temperature.
+    "deep": {"temperature": 0.25, "max_tokens": 1400, "top_p": 0.95},
+    # Lightweight generation routed via OPENROUTER_MODEL_QUICK (mirrors drafts tuning).
+    "quick": {"temperature": 0.4, "max_tokens": 900, "top_p": 0.9, "frequency_penalty": 0.1},
 }
 _USE_CASE_RUNTIME_POLICY: dict[str, dict[str, float | int]] = {
     # Lower latency and quick feedback for UX chat streaming/completions.
@@ -33,6 +37,9 @@ _USE_CASE_RUNTIME_POLICY: dict[str, dict[str, float | int]] = {
     "prep": {"timeout_s": 120.0, "attempts": 3},
     # Resume analysis can run long and benefits from retries.
     "resume": {"timeout_s": 120.0, "attempts": 3},
+    # Multi-step fit scoring (bull/bear/synthesis).
+    "deep": {"timeout_s": 120.0, "attempts": 3},
+    "quick": {"timeout_s": 90.0, "attempts": 3},
 }
 _CIRCUIT_OPEN_AFTER_FAILURES = 2
 _CIRCUIT_COOLDOWN_S = 20.0

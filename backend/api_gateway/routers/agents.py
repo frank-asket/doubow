@@ -53,7 +53,7 @@ async def run_job_search_pipeline(
     user: User = Depends(get_authenticated_user),
 ) -> JobSearchPipelineRunResponse:
     """
-    TradingAgents-style pipeline: data collection → resume profile → matching → outbound → feedback.
+    Multi-stage pipeline: data collection → resume profile → matching → outbound → feedback.
 
     Set ``trigger_catalog_refresh`` to run the full catalog ingest (slow; requires provider keys).
     """

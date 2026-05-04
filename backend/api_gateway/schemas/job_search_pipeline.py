@@ -1,4 +1,4 @@
-"""Request/response models for the TradingAgents-style job-search pipeline runner."""
+"""Request/response models for the job-search pipeline runner."""
 
 from __future__ import annotations
 

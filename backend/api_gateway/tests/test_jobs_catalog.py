@@ -291,7 +291,7 @@ async def test_list_jobs_llm_matching_applies_only_top_n(db_session, monkeypatch
 
     async def _fake_llm_fit_signal(_profile, job):  # type: ignore[no-untyped-def]
         called_job_ids.append(job.id)
-        return 5.0, ["strong alignment"]
+        return 5.0, ["strong alignment"], []
 
     monkeypatch.setattr("services.jobs_service.llm_fit_signal", _fake_llm_fit_signal)
 

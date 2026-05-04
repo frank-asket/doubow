@@ -9,7 +9,11 @@ from models.user import User
 from sqlalchemy import select
 
 import services.autopilot_runner as autopilot_runner
-from workflow.autopilot_langgraph import AutopilotGraphState, run_autopilot_via_langgraph
+from workflow.autopilot_langgraph import (
+    AutopilotGraphState,
+    reset_autopilot_langgraph_checkpointer_for_tests,
+    run_autopilot_via_langgraph,
+)
 
 
 @pytest.mark.asyncio
@@ -200,3 +204,77 @@ async def test_persist_run_failed_stores_structured_failure_metadata(db_session)
     assert row.failure_code == "resolve_targets_failed"
     assert row.failure_detail == "database timeout while resolving targets"
     assert row.failure_node == "resolve_targets"
+
+
+@pytest.mark.asyncio
+async def test_langgraph_approval_interrupt_writes_interrupt_pending_checkpoint(db_session, monkeypatch):
+    reset_autopilot_langgraph_checkpointer_for_tests()
+    uid = "user_auto_interrupt_1"
+    db_session.add(User(id=uid, email="auto-interrupt@example.com"))
+    jid = "job_auto_interrupt_1"
+    db_session.add(
+        Job(
+            id=jid,
+            source="manual",
+            external_id="auto-j-interrupt",
+            title="Role",
+            company="Co",
+            location="Remote",
+            description="d",
+            url="https://example.com/j",
+        )
+    )
+    aid = "app_auto_interrupt_1"
+    db_session.add(Application(id=aid, user_id=uid, job_id=jid, status="pending", channel="email"))
+    db_session.add(
+        AutopilotRun(
+            id="run_interrupt_gate_001",
+            user_id=uid,
+            status="queued",
+            scope="all",
+            idempotency_key="idem_interrupt_gate_001",
+            request_fingerprint="fp_interrupt_gate_001",
+        )
+    )
+    await db_session.commit()
+
+    monkeypatch.setattr(autopilot_runner.settings, "use_langgraph_autopilot", True)
+    monkeypatch.setattr(autopilot_runner.settings, "use_langgraph_autopilot_checkpoint", True)
+    monkeypatch.setattr(autopilot_runner.settings, "use_langgraph_autopilot_approval_interrupt", True)
+
+    async def _draft_stub(_session, _user_id: str, _app_id: str):
+        return None
+
+    monkeypatch.setattr(autopilot_runner, "create_draft_approval_for_application", _draft_stub)
+
+    out = await autopilot_runner._run_autopilot_langgraph_invoke(
+        db_session,
+        run_id="run_interrupt_gate_001",
+        user_id=uid,
+        application_ids=None,
+        initial_state=AutopilotGraphState(
+            run_id="run_interrupt_gate_001",
+            user_id=uid,
+            application_ids=None,
+        ),
+    )
+    assert out.get("__interrupt__")
+    await autopilot_runner._persist_autopilot_interrupt_marker(
+        db_session,
+        run_id="run_interrupt_gate_001",
+        graph_out=out,
+    )
+
+    row = (
+        await db_session.execute(select(AutopilotRun).where(AutopilotRun.id == "run_interrupt_gate_001"))
+    ).scalar_one()
+
+    assert row.status == "running"
+    assert isinstance(row.graph_checkpoint, dict)
+    assert row.graph_checkpoint.get("interrupt_pending") is True
+    assert row.graph_checkpoint.get("next_resume_entry") == "approval_interrupt"
+    state = row.graph_checkpoint.get("state")
+    assert isinstance(state, dict)
+    # Presence of item_payload proves process_items completed before interrupt persisted.
+    assert isinstance(state.get("item_payload"), list)
+    assert len(state.get("item_payload") or []) == 1

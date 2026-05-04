@@ -1,5 +1,5 @@
 """
-TradingAgents-style multi-stage job search pipeline.
+Multi-stage job search pipeline.
 
 Maps modular agents to existing Doubow services without replacing them:
   data_collection  → catalog ingest + env readiness

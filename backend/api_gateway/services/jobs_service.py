@@ -274,13 +274,18 @@ async def _sync_template_scores_for_user(
         for row in top_candidates:
             job = row["job"]
             try:
-                llm_score, llm_reasons = await llm_fit_signal(parsed_profile, job)
+                llm_score, llm_reasons, llm_risks = await llm_fit_signal(parsed_profile, job)
             except Exception:
-                llm_score, llm_reasons = None, []
+                llm_score, llm_reasons, llm_risks = None, [], []
             if llm_score is not None:
                 blended = round(((1.0 - llm_weight) * float(row["fit_score"])) + (llm_weight * llm_score), 1)
                 row["fit_score"] = blended
                 row["provenance"] = "computed"
+                if llm_risks:
+                    row["risk_flags"] = [
+                        *row["risk_flags"],
+                        *[f"LLM fit risk: {r}" for r in llm_risks],
+                    ]
                 if llm_reasons:
                     row["fit_reasons"] = [
                         *row["fit_reasons"],

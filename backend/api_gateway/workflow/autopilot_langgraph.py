@@ -1,9 +1,33 @@
-"""LangGraph scaffold for autopilot execution (structure parity mode)."""
+"""LangGraph scaffold for autopilot execution (structure parity mode).
+
+Approval interrupt (``USE_LANGGRAPH_AUTOPILOT_APPROVAL_INTERRUPT=true``) uses ``langgraph.types.interrupt`` after
+draft generation and a process-wide :class:`langgraph.checkpoint.memory.MemorySaver`. Resuming with
+``Command(resume=...)`` must run in the **same API/worker process** that handled the interrupted invoke, or checkpoint
+state is lost. For multi-worker production, add a durable checkpointer (e.g. Postgres) in a follow-up.
+"""
 
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, TypedDict, cast
+
+_MEMORY_CHECKPOINTER = None
+
+
+def get_autopilot_langgraph_checkpointer():
+    """Shared MemorySaver for interrupt/resume within one process."""
+    global _MEMORY_CHECKPOINTER
+    if _MEMORY_CHECKPOINTER is None:
+        from langgraph.checkpoint.memory import MemorySaver
+
+        _MEMORY_CHECKPOINTER = MemorySaver()
+    return _MEMORY_CHECKPOINTER
+
+
+def reset_autopilot_langgraph_checkpointer_for_tests() -> None:
+    """Clear in-memory LangGraph checkpoints (test helper)."""
+    global _MEMORY_CHECKPOINTER
+    _MEMORY_CHECKPOINTER = None
 
 
 class AutopilotGraphState(TypedDict, total=False):
@@ -61,6 +85,8 @@ def _build_autopilot_parity_graph(
     persist_failed: Callable[[AutopilotGraphState], Awaitable[AutopilotGraphState]],
     on_node_event: Callable[[AutopilotGraphTraceEvent], None] | None = None,
     on_node_checkpoint: Callable[[str, AutopilotGraphState], Awaitable[None]] | None = None,
+    *,
+    approval_interrupt_enabled: bool = False,
 ):
     """Create parity graph with explicit autopilot lifecycle nodes and retry/recovery routing."""
 
@@ -136,6 +162,31 @@ def _build_autopilot_parity_graph(
             _emit_trace(on_node_event, node="process_items", phase="error", state={**state, **out})
             return out
 
+    async def _approval_interrupt_node(state: AutopilotGraphState) -> AutopilotGraphState:
+        _emit_trace(on_node_event, node="approval_interrupt", phase="start", state=state)
+        try:
+            from langgraph.errors import GraphInterrupt
+            from langgraph.types import interrupt
+
+            payload = {
+                "kind": "autopilot_approval_gate",
+                "run_id": state.get("run_id"),
+                "user_id": state.get("user_id"),
+            }
+            resume_value = interrupt(payload)
+            _emit_trace(on_node_event, node="approval_interrupt", phase="end", state=state)
+            out: AutopilotGraphState = {}
+            if isinstance(resume_value, dict):
+                out["approval_resume"] = resume_value  # type: ignore[typeddict-item]
+            return out
+        except GraphInterrupt:
+            raise
+        except Exception as exc:
+            out = _exception_error_state("approval_interrupt", str(exc), retryable=False)
+            out = {**out, "failed_node": "approval_interrupt", "retry_target_node": "approval_interrupt"}
+            _emit_trace(on_node_event, node="approval_interrupt", phase="error", state={**state, **out})
+            return out
+
     async def _persist_done_node(state: AutopilotGraphState) -> AutopilotGraphState:
         _emit_trace(on_node_event, node="persist_done", phase="start", state=state)
         try:
@@ -192,6 +243,8 @@ def _build_autopilot_parity_graph(
     def _route_after_process_items(state: AutopilotGraphState) -> str:
         if state.get("error_code"):
             return "recover_retry" if _can_retry(state) else "persist_failed"
+        if approval_interrupt_enabled:
+            return "approval_interrupt"
         return "persist_done"
 
     def _route_after_persist_done(state: AutopilotGraphState) -> str:
@@ -207,7 +260,10 @@ def _build_autopilot_parity_graph(
 
     def _route_graph_entry(state: AutopilotGraphState) -> str:
         entry = str(state.get("resume_entry_node") or "").strip()
-        if entry in {"resolve_targets", "process_items", "persist_done"}:
+        allowed = {"resolve_targets", "process_items", "persist_done"}
+        if approval_interrupt_enabled:
+            allowed = {*allowed, "approval_interrupt"}
+        if entry in allowed:
             return entry
         return "mark_running"
 
@@ -218,28 +274,40 @@ def _build_autopilot_parity_graph(
     graph.add_node("persist_done", _persist_done_node)
     graph.add_node("recover_retry", _recover_retry_node)
     graph.add_node("persist_failed", _persist_failed_node)
+    if approval_interrupt_enabled:
+        graph.add_node("approval_interrupt", _approval_interrupt_node)
+    entry_map = {
+        "mark_running": "mark_running",
+        "resolve_targets": "resolve_targets",
+        "process_items": "process_items",
+        "persist_done": "persist_done",
+    }
+    if approval_interrupt_enabled:
+        entry_map["approval_interrupt"] = "approval_interrupt"
     graph.add_conditional_edges(
         START,
         _route_graph_entry,
-        {
-            "mark_running": "mark_running",
-            "resolve_targets": "resolve_targets",
-            "process_items": "process_items",
-            "persist_done": "persist_done",
-        },
+        entry_map,
     )
     graph.add_conditional_edges("mark_running", _route_after_mark_running)
     graph.add_conditional_edges("resolve_targets", _route_after_resolve_targets)
     graph.add_conditional_edges("process_items", _route_after_process_items)
+    if approval_interrupt_enabled:
+        graph.add_edge("approval_interrupt", "persist_done")
     graph.add_conditional_edges("persist_done", _route_after_persist_done)
     graph.add_conditional_edges("recover_retry", _route_after_recover_retry)
     graph.add_edge("persist_failed", END)
+    if approval_interrupt_enabled:
+        return graph.compile(checkpointer=get_autopilot_langgraph_checkpointer())
     return graph.compile()
 
 
 async def run_autopilot_via_langgraph(
     *,
-    initial_state: AutopilotGraphState,
+    initial_state: AutopilotGraphState | None = None,
+    resume_command: Any | None = None,
+    graph_invoke_config: dict[str, Any] | None = None,
+    approval_interrupt_enabled: bool = False,
     mark_running: Callable[[AutopilotGraphState], Awaitable[AutopilotGraphState]],
     resolve_targets: Callable[[AutopilotGraphState], Awaitable[AutopilotGraphState]],
     process_items: Callable[[AutopilotGraphState], Awaitable[AutopilotGraphState]],
@@ -247,8 +315,13 @@ async def run_autopilot_via_langgraph(
     persist_failed: Callable[[AutopilotGraphState], Awaitable[AutopilotGraphState]],
     on_node_event: Callable[[AutopilotGraphTraceEvent], None] | None = None,
     on_node_checkpoint: Callable[[str, AutopilotGraphState], Awaitable[None]] | None = None,
-) -> AutopilotGraphState:
-    """Execute existing autopilot behavior through explicit LangGraph parity nodes."""
+) -> dict[str, Any]:
+    """Execute existing autopilot behavior through explicit LangGraph parity nodes.
+
+    When ``approval_interrupt_enabled`` and using a checkpointer, pass ``graph_invoke_config`` with
+    ``{"configurable": {"thread_id": "<run_id>"}}``. For human resume after ``interrupt()``, call again with
+    ``resume_command=Command(resume=...)`` and the same ``graph_invoke_config`` (same worker process).
+    """
     app = _build_autopilot_parity_graph(
         mark_running=mark_running,
         resolve_targets=resolve_targets,
@@ -257,6 +330,13 @@ async def run_autopilot_via_langgraph(
         persist_failed=persist_failed,
         on_node_event=on_node_event,
         on_node_checkpoint=on_node_checkpoint,
+        approval_interrupt_enabled=approval_interrupt_enabled,
     )
-    out = await app.ainvoke(initial_state)
-    return out
+    cfg = graph_invoke_config
+    if resume_command is not None:
+        out = await app.ainvoke(resume_command, cfg) if cfg else await app.ainvoke(resume_command)
+    elif cfg:
+        out = await app.ainvoke(initial_state or {}, cfg)
+    else:
+        out = await app.ainvoke(initial_state or {})
+    return cast(dict[str, Any], out)

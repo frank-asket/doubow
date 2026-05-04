@@ -28,6 +28,19 @@ def test_resolve_openrouter_model_tier_defaults(monkeypatch):
     assert settings.resolve_openrouter_model("resume") == "qwen/qwen3-32b"
 
 
+def test_resolve_openrouter_model_deep_quick_override_prep_and_drafts(monkeypatch):
+    monkeypatch.setattr(settings, "openrouter_model", "qwen/qwen3-32b")
+    monkeypatch.setattr(settings, "openrouter_model_prep", "deepseek/deepseek-r1-0528")
+    monkeypatch.setattr(settings, "openrouter_model_drafts", "qwen/qwen3-8b")
+    monkeypatch.setattr(settings, "openrouter_model_deep", "anthropic/claude-opus-4")
+    monkeypatch.setattr(settings, "openrouter_model_quick", "anthropic/claude-haiku-4")
+
+    assert settings.resolve_openrouter_model("prep") == "anthropic/claude-opus-4"
+    assert settings.resolve_openrouter_model("drafts") == "anthropic/claude-haiku-4"
+    assert settings.resolve_openrouter_model("deep") == "anthropic/claude-opus-4"
+    assert settings.resolve_openrouter_model("quick") == "anthropic/claude-haiku-4"
+
+
 def test_resolve_openrouter_model_uses_use_case_override(monkeypatch):
     monkeypatch.setattr(settings, "openrouter_model", "anthropic/claude-sonnet-4.6")
     monkeypatch.setattr(settings, "openrouter_model_prep", "openai/gpt-4.1-mini")

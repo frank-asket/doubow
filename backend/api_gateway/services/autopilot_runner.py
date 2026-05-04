@@ -34,11 +34,18 @@ _CHECKPOINT_STATE_KEYS = frozenset(
     }
 )
 
-_NODE_TO_NEXT_RESUME = {
-    "mark_running": "resolve_targets",
-    "resolve_targets": "process_items",
-    "process_items": "persist_done",
-}
+def _next_resume_entry_after_node(completed_node: str) -> str | None:
+    chain: dict[str, str] = {
+        "mark_running": "resolve_targets",
+        "resolve_targets": "process_items",
+        "process_items": (
+            "approval_interrupt"
+            if settings.use_langgraph_autopilot_approval_interrupt
+            else "persist_done"
+        ),
+        "approval_interrupt": "persist_done",
+    }
+    return chain.get(completed_node)
 
 
 def _serialize_autopilot_checkpoint(merged: AutopilotGraphState, *, completed_node: str) -> dict[str, object]:
@@ -49,7 +56,7 @@ def _serialize_autopilot_checkpoint(merged: AutopilotGraphState, *, completed_no
     return {
         "v": 1,
         "state": st,
-        "next_resume_entry": _NODE_TO_NEXT_RESUME.get(completed_node),
+        "next_resume_entry": _next_resume_entry_after_node(completed_node),
     }
 
 
@@ -72,6 +79,29 @@ async def _clear_autopilot_checkpoint(session: AsyncSession, *, run_id: str) -> 
     if row is None or row.graph_checkpoint is None:
         return
     row.graph_checkpoint = None
+    await session.commit()
+
+
+async def _persist_autopilot_interrupt_marker(
+    session: AsyncSession,
+    *,
+    run_id: str,
+    graph_out: dict[str, object],
+) -> None:
+    """Record that the LangGraph run is paused at ``interrupt()`` (human approval gate)."""
+    row = await session.get(AutopilotRun, run_id)
+    if row is None:
+        return
+    st: dict[str, object] = {}
+    for k in _CHECKPOINT_STATE_KEYS:
+        if k in graph_out and graph_out[k] is not None:
+            st[str(k)] = graph_out[k]
+    row.graph_checkpoint = {
+        "v": 1,
+        "state": st,
+        "next_resume_entry": "approval_interrupt",
+        "interrupt_pending": True,
+    }
     await session.commit()
 
 
@@ -103,7 +133,12 @@ async def _build_initial_langgraph_state(
     if application_ids is not None:
         st_dict["application_ids"] = application_ids
     nxt = ck.get("next_resume_entry")
-    if isinstance(nxt, str) and nxt in ("resolve_targets", "process_items", "persist_done"):
+    if isinstance(nxt, str) and nxt in (
+        "resolve_targets",
+        "process_items",
+        "persist_done",
+        "approval_interrupt",
+    ):
         st_dict["resume_entry_node"] = nxt
     return st_dict  # type: ignore[return-value]
 
@@ -375,6 +410,71 @@ async def _persist_run_failed(
     )
 
 
+async def _run_autopilot_langgraph_invoke(
+    session: AsyncSession,
+    *,
+    run_id: str,
+    user_id: str,
+    application_ids: list[str] | None,
+    initial_state: AutopilotGraphState | None,
+    resume_command: object | None = None,
+) -> dict[str, object]:
+    from workflow.autopilot_langgraph import run_autopilot_via_langgraph
+
+    interrupt_on = bool(
+        settings.use_langgraph_autopilot
+        and settings.use_langgraph_autopilot_approval_interrupt
+    )
+    graph_cfg = (
+        {"configurable": {"thread_id": run_id}}
+        if interrupt_on
+        else None
+    )
+
+    async def _on_node_checkpoint(node: str, merged: AutopilotGraphState) -> None:
+        if not settings.use_langgraph_autopilot_checkpoint:
+            return
+        await _persist_autopilot_checkpoint(
+            session,
+            run_id=run_id,
+            merged=merged,
+            completed_node=node,
+        )
+
+    return await run_autopilot_via_langgraph(
+        initial_state=initial_state,
+        resume_command=resume_command,
+        graph_invoke_config=graph_cfg,
+        approval_interrupt_enabled=interrupt_on,
+        mark_running=lambda state: _langgraph_mark_running_step(
+            session=session,
+            state=state,
+        ),
+        resolve_targets=lambda state: _langgraph_resolve_targets_step(
+            session=session,
+            state=state,
+        ),
+        process_items=lambda state: _langgraph_process_items_step(
+            session=session,
+            state=state,
+        ),
+        persist_done=lambda state: _langgraph_persist_done_step(
+            session=session,
+            state=state,
+        ),
+        persist_failed=lambda state: _langgraph_persist_failed_step(
+            session=session,
+            state=state,
+        ),
+        on_node_event=(
+            _build_langgraph_trace_callback(run_id=run_id, user_id=user_id)
+            if settings.use_langgraph_autopilot_trace
+            else None
+        ),
+        on_node_checkpoint=_on_node_checkpoint if settings.use_langgraph_autopilot_checkpoint else None,
+    )
+
+
 async def execute_autopilot_run_background(
     run_id: str,
     user_id: str,
@@ -383,54 +483,60 @@ async def execute_autopilot_run_background(
     token = bind_request_user_for_rls(user_id)
     try:
         async with SessionLocal() as session:
+            row = await session.get(AutopilotRun, run_id)
+            ck = row.graph_checkpoint if row and isinstance(row.graph_checkpoint, dict) else {}
+
+            if (
+                settings.use_langgraph_autopilot
+                and ck.get("interrupt_pending")
+                and row
+                and row.user_id == user_id
+            ):
+                try:
+                    from langgraph.types import Command
+
+                    await _run_autopilot_langgraph_invoke(
+                        session,
+                        run_id=run_id,
+                        user_id=user_id,
+                        application_ids=application_ids,
+                        initial_state=None,
+                        resume_command=Command(resume={"approved": True}),
+                    )
+                except Exception:
+                    logger.exception(
+                        "autopilot langgraph approval-interrupt resume failed run_id=%s", run_id
+                    )
+                    await _persist_run_failed(
+                        session,
+                        run_id=run_id,
+                        error_code="langgraph_interrupt_resume_failed",
+                        error_detail="Could not resume interrupted graph (worker restart loses in-memory checkpoint)",
+                        failed_node="approval_interrupt",
+                    )
+                return
+
             if settings.use_langgraph_autopilot:
                 try:
-                    from workflow.autopilot_langgraph import run_autopilot_via_langgraph
-
                     initial_state = await _build_initial_langgraph_state(
                         session,
                         run_id=run_id,
                         user_id=user_id,
                         application_ids=application_ids,
                     )
-
-                    async def _on_node_checkpoint(node: str, merged: AutopilotGraphState) -> None:
-                        await _persist_autopilot_checkpoint(
+                    out = await _run_autopilot_langgraph_invoke(
+                        session,
+                        run_id=run_id,
+                        user_id=user_id,
+                        application_ids=application_ids,
+                        initial_state=initial_state,
+                    )
+                    if out.get("__interrupt__"):
+                        await _persist_autopilot_interrupt_marker(
                             session,
                             run_id=run_id,
-                            merged=merged,
-                            completed_node=node,
+                            graph_out=out,
                         )
-
-                    await run_autopilot_via_langgraph(
-                        initial_state=initial_state,
-                        mark_running=lambda state: _langgraph_mark_running_step(
-                            session=session,
-                            state=state,
-                        ),
-                        resolve_targets=lambda state: _langgraph_resolve_targets_step(
-                            session=session,
-                            state=state,
-                        ),
-                        process_items=lambda state: _langgraph_process_items_step(
-                            session=session,
-                            state=state,
-                        ),
-                        persist_done=lambda state: _langgraph_persist_done_step(
-                            session=session,
-                            state=state,
-                        ),
-                        persist_failed=lambda state: _langgraph_persist_failed_step(
-                            session=session,
-                            state=state,
-                        ),
-                        on_node_event=(
-                            _build_langgraph_trace_callback(run_id=run_id, user_id=user_id)
-                            if settings.use_langgraph_autopilot_trace
-                            else None
-                        ),
-                        on_node_checkpoint=_on_node_checkpoint if settings.use_langgraph_autopilot_checkpoint else None,
-                    )
                 except Exception:
                     logger.exception(
                         "autopilot langgraph wrapper failed; falling back to legacy run_id=%s", run_id
