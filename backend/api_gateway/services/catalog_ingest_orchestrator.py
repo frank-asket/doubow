@@ -164,6 +164,7 @@ async def run_catalog_preset_ingest(
                     posted_after=base_params.posted_after,
                 ),
             )
+            gj_deduped = int((gj_run.metadata_json or {}).get("deduped_count") or 0)
             provider_summaries.append(
                 ProviderIngestSummary(
                     provider="google_jobs",
@@ -171,12 +172,13 @@ async def run_catalog_preset_ingest(
                     pages=1,
                     created=int(gj_result.created),
                     updated=int(gj_result.updated),
-                    deduped=0,
+                    deduped=gj_deduped,
                     run_ids=[str(gj_run.id)],
                 )
             )
             created += int(gj_result.created)
             updated += int(gj_result.updated)
+            deduped += gj_deduped
             job_ids.extend([str(j) for j in gj_result.job_ids])
             run_ids.append(str(gj_run.id))
         except Exception as exc:  # pragma: no cover
@@ -220,6 +222,7 @@ async def run_catalog_preset_ingest(
                     posted_after=base_params.posted_after,
                 ),
             )
+            sl_deduped = int((sl_run.metadata_json or {}).get("deduped_count") or 0)
             provider_summaries.append(
                 ProviderIngestSummary(
                     provider="scrapling",
@@ -227,12 +230,13 @@ async def run_catalog_preset_ingest(
                     pages=1,
                     created=int(sl_result.created),
                     updated=int(sl_result.updated),
-                    deduped=0,
+                    deduped=sl_deduped,
                     run_ids=[str(sl_run.id)],
                 )
             )
             created += int(sl_result.created)
             updated += int(sl_result.updated)
+            deduped += sl_deduped
             job_ids.extend([str(j) for j in sl_result.job_ids])
             run_ids.append(str(sl_run.id))
         except Exception as exc:  # pragma: no cover - defensive
