@@ -14,7 +14,7 @@ export type GufCardProps = {
  * Couleurs : tokens `guf` / variables `--guf-*` dans `globals.css`.
  */
 export function GufCard({ title, children, type = 'green', icon, className }: GufCardProps) {
-  const surface = type === 'orange' ? 'bg-guf-orange-light' : 'bg-guf-green-light'
+  const surface = type === 'orange' ? 'bg-guf-orange-fade' : 'bg-guf-green-light'
   const titleColor = type === 'orange' ? 'text-guf-orange' : 'text-guf-green'
 
   return (
@@ -26,7 +26,12 @@ export function GufCard({ title, children, type = 'green', icon, className }: Gu
       )}
     >
       {icon ? (
-        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-white/50">
+        <div
+          className={cn(
+            'mb-4 flex h-10 w-10 items-center justify-center rounded-xl',
+            type === 'orange' ? 'bg-orange-muted text-primary-orange' : 'bg-white/50 text-primary-green'
+          )}
+        >
           {icon}
         </div>
       ) : null}

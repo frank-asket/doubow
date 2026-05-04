@@ -5,26 +5,36 @@
 :root {
   /*
    * Global brand — GUF-aligned (primary / secondary green + orange).
-   * Use via Tailwind: bg-primary-green, text-primary-orange, border-border-subtle, etc.
+   * Orange: text-primary-orange / bg-primary-orange-hover;
+   * fond crème (carte « Notaire »): bg-orange-fade (alias historique: bg-bg-light-orange);
+   * pastilles sur fond orange: bg-orange-muted; accent pêche: bg-highlight-orange.
    */
   --color-primary-green: #14603b;
   --color-primary-green-hover: #0f4d30;
   --color-secondary-green: #2ea44f;
   --color-primary-orange: #e89032;
   --color-primary-orange-hover: #c97628;
+  /* Orange « fade » : fond crème des cartes type « Notaire » (document GUF) */
+  --color-orange-fade: #fff9f0;
+  /* Entre fade et highlight : pastilles / sous-titres sur fond orange (ex. « sécurité juridique ») */
+  --color-orange-muted: #ffefd9;
+  /* Accent pêche plus marqué (badges, zones de mise en avant chaudes) */
+  --color-highlight-orange: #fce7d2;
   --color-bg-light-green: #ebf5ee;
-  --color-bg-light-orange: #fff9f0;
+  /* Même teinte que --color-orange-fade (nom historique conservé) */
+  --color-bg-light-orange: var(--color-orange-fade);
   --color-text-main: #333333;
   --color-text-muted: #6b7280;
   --color-border-subtle: #d1d5db;
-  --color-highlight-orange: #fce7d2;
   --color-highlight-green: #dcfce7;
 
   /* Alias GUF (document institutionnel) — pratique pour CSS custom / Gradio / copie */
   --guf-green: var(--color-primary-green);
   --guf-green-light: var(--color-bg-light-green);
   --guf-orange: var(--color-primary-orange);
-  --guf-orange-light: var(--color-bg-light-orange);
+  --guf-orange-fade: var(--color-orange-fade);
+  --guf-orange-muted: var(--color-orange-muted);
+  --guf-orange-light: var(--color-orange-fade);
   --guf-text: var(--color-text-main);
   --guf-radius: 24px;
 

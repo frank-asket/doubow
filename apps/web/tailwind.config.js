@@ -16,6 +16,9 @@ module.exports = {
         'secondary-green': 'var(--color-secondary-green)',
         'primary-orange': 'var(--color-primary-orange)',
         'primary-orange-hover': 'var(--color-primary-orange-hover)',
+        /* Orange GUF : accent solide + déclinaisons « document » (carte Notaire, pastilles) */
+        'orange-fade': 'var(--color-orange-fade)',
+        'orange-muted': 'var(--color-orange-muted)',
         // UI & surfaces
         'bg-light-green': 'var(--color-bg-light-green)',
         'bg-light-orange': 'var(--color-bg-light-orange)',
@@ -29,6 +32,8 @@ module.exports = {
           green: 'var(--guf-green)',
           'green-light': 'var(--guf-green-light)',
           orange: 'var(--guf-orange)',
+          'orange-fade': 'var(--guf-orange-fade)',
+          'orange-muted': 'var(--guf-orange-muted)',
           'orange-light': 'var(--guf-orange-light)',
           text: 'var(--guf-text)',
         },
