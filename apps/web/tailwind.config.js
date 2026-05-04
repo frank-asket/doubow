@@ -24,6 +24,14 @@ module.exports = {
         'border-subtle': 'var(--color-border-subtle)',
         'highlight-orange': 'var(--color-highlight-orange)',
         'highlight-green': 'var(--color-highlight-green)',
+        /* Alias de nommage GUF (même source que ci-dessus) — ex. text-guf-green, bg-guf-green-light */
+        guf: {
+          green: 'var(--guf-green)',
+          'green-light': 'var(--guf-green-light)',
+          orange: 'var(--guf-orange)',
+          'orange-light': 'var(--guf-orange-light)',
+          text: 'var(--guf-text)',
+        },
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
@@ -47,6 +55,7 @@ module.exports = {
         lg:  '12px',
         xl:  '16px',
         '2xl': '20px',
+        guf: 'var(--guf-radius)',
       },
       boxShadow: {
         card: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',

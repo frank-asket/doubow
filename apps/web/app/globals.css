@@ -20,6 +20,14 @@
   --color-highlight-orange: #fce7d2;
   --color-highlight-green: #dcfce7;
 
+  /* Alias GUF (document institutionnel) — pratique pour CSS custom / Gradio / copie */
+  --guf-green: var(--color-primary-green);
+  --guf-green-light: var(--color-bg-light-green);
+  --guf-orange: var(--color-primary-orange);
+  --guf-orange-light: var(--color-bg-light-orange);
+  --guf-text: var(--color-text-main);
+  --guf-radius: 24px;
+
   /* Djamo-inspired RGB tokens for Tailwind alpha utilities */
   --primary-500: 255 188 1;
   --primary-600: 232 191 0;
