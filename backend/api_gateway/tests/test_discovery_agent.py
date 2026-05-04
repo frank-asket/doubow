@@ -3,14 +3,30 @@
 import pytest
 
 from agents.discovery import KNOWN_JOB_SOURCES, DiscoveryAgent
+from config import settings
 
 
 @pytest.mark.asyncio
-async def test_discovery_default_connector_plan() -> None:
+async def test_discovery_default_connector_plan(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "scrapling_enabled", False)
     out = await DiscoveryAgent().run({})
     assert out["jobs"] == []
     assert "hint" in out
     assert out["connector_plan"] == ["adzuna", "greenhouse", "google_jobs", "manual", "catalog"]
+
+
+@pytest.mark.asyncio
+async def test_discovery_includes_scrapling_when_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "scrapling_enabled", True)
+    out = await DiscoveryAgent().run({})
+    assert out["connector_plan"] == [
+        "adzuna",
+        "greenhouse",
+        "google_jobs",
+        "scrapling",
+        "manual",
+        "catalog",
+    ]
 
 
 @pytest.mark.asyncio

@@ -106,6 +106,7 @@ class JobSearchPipelineCoordinator:
             "adzuna_configured": bool((settings.adzuna_app_id or "").strip() and (settings.adzuna_app_key or "").strip()),
             "greenhouse_boards": len(settings.greenhouse_board_tokens_list()),
             "serpapi_configured": bool((settings.serpapi_api_key or "").strip()),
+            "scrapling_enabled": bool(settings.scrapling_enabled),
         }
         detail: dict = {
             "readiness": readiness,
@@ -147,6 +148,7 @@ class JobSearchPipelineCoordinator:
                 start_page=1,
                 resume_aligned=body.resume_aligned_catalog,
                 include_legacy_connectors=body.include_legacy_connectors,
+                include_scrapling=body.include_scrapling,
             )
             detail["catalog_ingest"] = {
                 "status": ingest.status,

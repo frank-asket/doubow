@@ -3,7 +3,17 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-JobSource = Literal["ashby", "greenhouse", "lever", "linkedin", "wellfound", "manual", "catalog", "adzuna"]
+JobSource = Literal[
+    "adzuna",
+    "ashby",
+    "catalog",
+    "greenhouse",
+    "lever",
+    "linkedin",
+    "manual",
+    "scrapling",
+    "wellfound",
+]
 Channel = Literal["email", "linkedin", "company_site"]
 ScoreProvenance = Literal["computed", "template_default", "template_seeded", "unknown"]
 
@@ -111,6 +121,25 @@ class GreenhouseIngestRequest(BaseModel):
 class GreenhouseIngestResponse(BaseModel):
     provider: str
     pages: int
+    created: int
+    updated: int
+    run_ids: list[str]
+    job_ids: list[str]
+    deduped: int = 0
+
+
+class ScraplingIngestRequest(BaseModel):
+    """Query context for Scrapling (runtime hook may use keywords/location; fixture ignores them)."""
+
+    keywords: str | None = Field(default=None, max_length=255)
+    location: str | None = Field(default=None, max_length=255)
+    page: int = Field(default=1, ge=1)
+    per_page: int = Field(default=50, ge=1, le=100)
+
+
+class ScraplingIngestResponse(BaseModel):
+    provider: str = "scrapling"
+    pages: int = 1
     created: int
     updated: int
     run_ids: list[str]

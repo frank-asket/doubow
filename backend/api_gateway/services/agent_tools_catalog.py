@@ -20,7 +20,8 @@ AGENT_TOOLS: tuple[AgentToolSpec, ...] = (
     AgentToolSpec(
         "run_job_search_pipeline",
         "Run the multi-stage job search pipeline (data plan, profile, rescore, outbound snapshot, feedback). "
-        "Optional: trigger_catalog_refresh, persist_feedback_learning, pipeline_stages.",
+        "Optional: trigger_catalog_refresh, persist_feedback_learning, pipeline_stages, include_scrapling "
+        "(catalog Scrapling step when SCRAPLING_ENABLED).",
     ),
     AgentToolSpec(
         "list_pending_approvals",

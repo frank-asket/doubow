@@ -20,12 +20,15 @@ from schemas.jobs import (
     GreenhousePresetIngestResponse,
     JobsListResponse,
     JobScoresRecomputeResponse,
+    ScraplingIngestRequest,
+    ScraplingIngestResponse,
 )
 from services.adzuna_adapter import AdzunaAdapter, resolve_adzuna_scheduled_ingest_params
 from services.greenhouse_adapter import GreenhouseAdapter, resolve_greenhouse_scheduled_ingest_params
 from services.job_discovery_service import discover_upsert_jobs
 from services.catalog_ingest_orchestrator import run_catalog_preset_ingest
 from services.job_provider_ingestion_service import ingest_provider_jobs, ingest_provider_jobs_paginated
+from services.scrapling_adapter import ScraplingAdapter
 from services.provider_adapter import ProviderFetchParams
 from services.jobs_service import (
     dismiss_job_for_user,
@@ -207,6 +210,40 @@ async def ingest_adzuna_preset_route(
     )
 
 
+@router.post("/providers/scrapling/ingest", response_model=ScraplingIngestResponse)
+async def ingest_scrapling_jobs_route(
+    payload: ScraplingIngestRequest,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> ScraplingIngestResponse:
+    """Ingest jobs via Scrapling adapter (fixture bundle, explicit JSON path, or runtime hook when wired)."""
+    if not settings.scrapling_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="SCRAPLING_ENABLED is false; enable Scrapling in server configuration.",
+        )
+    result, run = await ingest_provider_jobs(
+        session,
+        user_id=user.id,
+        adapter=ScraplingAdapter(settings),
+        params=ProviderFetchParams(
+            keywords=payload.keywords,
+            location=payload.location,
+            country=None,
+            page=payload.page,
+            per_page=payload.per_page,
+        ),
+    )
+    deduped = int((run.metadata_json or {}).get("deduped_count") or 0)
+    return ScraplingIngestResponse(
+        created=int(result.created),
+        updated=int(result.updated),
+        run_ids=[str(run.id)],
+        job_ids=[str(j) for j in result.job_ids],
+        deduped=deduped,
+    )
+
+
 @router.post("/providers/catalog/ingest/preset", response_model=CatalogPresetIngestResponse)
 async def ingest_catalog_multi_provider_preset_route(
     preset: IngestSchedulePreset,
@@ -222,10 +259,14 @@ async def ingest_catalog_multi_provider_preset_route(
         default=False,
         description="When true, runs legacy parallel connectors (Ashby, Lever, Remotive, …) with the same resume/query context.",
     ),
+    include_scrapling: bool = Query(
+        default=True,
+        description="When true and SCRAPLING_ENABLED + SCRAPLING_CATALOG_IN_PRESET, runs Scrapling after Google Jobs.",
+    ),
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> CatalogPresetIngestResponse:
-    """Unified catalog ingest: Adzuna → Greenhouse adapter → Google Jobs (SerpAPI) → optional legacy connectors."""
+    """Unified catalog ingest: Adzuna → Greenhouse → Google Jobs → optional Scrapling → optional legacy connectors."""
     if not settings.job_catalog_ingestion_user_id.strip():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -243,6 +284,7 @@ async def ingest_catalog_multi_provider_preset_route(
             start_page=start_page,
             resume_aligned=resume_aligned,
             include_legacy_connectors=include_legacy_connectors,
+            include_scrapling=include_scrapling,
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc

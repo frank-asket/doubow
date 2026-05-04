@@ -132,6 +132,7 @@ class AgentActionCall(BaseModel):
     persist_feedback_learning: bool = False
     catalog_preset: CatalogPreset = "hourly"
     include_legacy_connectors: bool = False
+    include_scrapling: bool = True
     resume_aligned_catalog: bool = True
     pipeline_stages: list[str] | None = None
 
@@ -318,6 +319,7 @@ async def _run_job_search_pipeline(
         persist_feedback_learning=call.persist_feedback_learning,
         catalog_preset=call.catalog_preset,
         include_legacy_connectors=call.include_legacy_connectors,
+        include_scrapling=call.include_scrapling,
         resume_aligned_catalog=call.resume_aligned_catalog,
     )
     res = await job_search_pipeline_coordinator.run(session, app_settings, user_id, body)

@@ -37,6 +37,7 @@ class _ToolPlanRaw(BaseModel):
     persist_feedback_learning: bool | None = None
     catalog_preset: str | None = None
     include_legacy_connectors: bool | None = None
+    include_scrapling: bool | None = None
     resume_aligned_catalog: bool | None = None
     pipeline_stages: list[str] | None = None
 
@@ -77,6 +78,7 @@ async def plan_agent_action_from_llm(user_message: str) -> AgentActionCall | Non
         "- persist_feedback_learning: boolean or null — only for run_job_search_pipeline.\n"
         '- catalog_preset: "hourly" or "daily" or null — only when triggering catalog refresh.\n'
         "- include_legacy_connectors: boolean or null — catalog ingest option.\n"
+        "- include_scrapling: boolean or null — only for run_job_search_pipeline with catalog refresh; Scrapling step.\n"
         "- resume_aligned_catalog: boolean or null — catalog ingest option.\n"
         "- pipeline_stages: array of stage id strings or null — omit for default full pipeline.\n"
         "Choose `none` when the user is asking for advice, explanation, or editing prose — not an account action.\n\n"
@@ -145,6 +147,8 @@ async def plan_agent_action_from_llm(user_message: str) -> AgentActionCall | Non
         call_kwargs["catalog_preset"] = cp
     if plan.include_legacy_connectors is not None:
         call_kwargs["include_legacy_connectors"] = plan.include_legacy_connectors
+    if plan.include_scrapling is not None:
+        call_kwargs["include_scrapling"] = plan.include_scrapling
     if plan.resume_aligned_catalog is not None:
         call_kwargs["resume_aligned_catalog"] = plan.resume_aligned_catalog
     if plan.pipeline_stages is not None:

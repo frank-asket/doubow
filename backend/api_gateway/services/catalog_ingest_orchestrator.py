@@ -15,6 +15,7 @@ from services.greenhouse_adapter import GreenhouseAdapter
 from services.job_provider_ingestion_service import ingest_provider_jobs, ingest_provider_jobs_paginated
 from services.provider_adapter import ProviderFetchParams
 from services.resume_catalog_params import merge_catalog_params_with_resume
+from services.scrapling_adapter import ScraplingAdapter
 from services.serpapi_google_jobs_adapter import SerpApiGoogleJobsAdapter
 
 logger = logging.getLogger(__name__)
@@ -32,8 +33,9 @@ async def run_catalog_preset_ingest(
     start_page: int,
     resume_aligned: bool,
     include_legacy_connectors: bool = False,
+    include_scrapling: bool = True,
 ) -> CatalogPresetIngestResponse:
-    """Adzuna → Greenhouse (adapter) → Google Jobs (SerpAPI) → optional Celery-style connectors + template backfill."""
+    """Adzuna → Greenhouse (adapter) → Google Jobs (SerpAPI) → optional Scrapling → optional legacy connectors + template backfill."""
 
     pages, base_params = resolve_adzuna_scheduled_ingest_params(
         settings,
@@ -197,7 +199,72 @@ async def run_catalog_preset_ingest(
             )
         )
 
-    # 4) Legacy parallel connectors (Ashby, Lever, Remotive, …) — same resume keywords/location filter
+    # 4) Scrapling (fixture or runtime hook; requires SCRAPLING_ENABLED)
+    want_scrapling = (
+        bool(include_scrapling)
+        and bool(settings.scrapling_catalog_in_preset)
+        and bool(settings.scrapling_enabled)
+    )
+    if want_scrapling:
+        try:
+            sl_result, sl_run = await ingest_provider_jobs(
+                session,
+                user_id=actor,
+                adapter=ScraplingAdapter(settings),
+                params=ProviderFetchParams(
+                    keywords=base_params.keywords,
+                    location=base_params.location,
+                    country=base_params.country,
+                    page=max(1, int(base_params.page)),
+                    per_page=max(1, min(50, int(base_params.per_page or 50))),
+                    posted_after=base_params.posted_after,
+                ),
+            )
+            provider_summaries.append(
+                ProviderIngestSummary(
+                    provider="scrapling",
+                    status="completed",
+                    pages=1,
+                    created=int(sl_result.created),
+                    updated=int(sl_result.updated),
+                    deduped=0,
+                    run_ids=[str(sl_run.id)],
+                )
+            )
+            created += int(sl_result.created)
+            updated += int(sl_result.updated)
+            job_ids.extend([str(j) for j in sl_result.job_ids])
+            run_ids.append(str(sl_run.id))
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.exception("catalog ingest: scrapling failed")
+            provider_summaries.append(
+                ProviderIngestSummary(
+                    provider="scrapling",
+                    status="failed",
+                    pages=1,
+                    error=str(exc)[:500],
+                )
+            )
+    else:
+        skip_reason: str
+        if not include_scrapling:
+            skip_reason = "include_scrapling=false on this request."
+        elif not settings.scrapling_catalog_in_preset:
+            skip_reason = "SCRAPLING_CATALOG_IN_PRESET is false."
+        elif not settings.scrapling_enabled:
+            skip_reason = "SCRAPLING_ENABLED is false; set env to ingest fixture/runtime output."
+        else:
+            skip_reason = "Scrapling skipped."
+        provider_summaries.append(
+            ProviderIngestSummary(
+                provider="scrapling",
+                status="skipped",
+                pages=0,
+                error=skip_reason,
+            )
+        )
+
+    # 5) Legacy parallel connectors (Ashby, Lever, Remotive, …) — same resume keywords/location filter
     if include_legacy_connectors:
         try:
             from ingestion.scheduler.ingestion_engine import run_ingestion

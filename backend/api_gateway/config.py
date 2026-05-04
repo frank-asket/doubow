@@ -134,6 +134,26 @@ class Settings(BaseSettings):
     google_jobs_hl: str = "en"
     google_jobs_gl: str | None = None
 
+    # Scrapling (https://github.com/D4Vinci/Scrapling) — optional job extraction adapter.
+    # When SCRAPLING_ENABLED=true: loads SCRAPLING_FIXTURE_JSON_PATH if set, else bundled
+    # api_gateway/fixtures/scrapling_sample_jobs.json when scrapling_bundle_fixture is true.
+    # Production: prefer scrapling_enabled=false and scrapling_bundle_fixture=false when not using
+    # live HTML (explicit seeds + auto Greenhouse job URLs, or JSON-LD from seed pages).
+    # scrapling_catalog_in_preset: include Scrapling in POST .../catalog/ingest/preset (after Google Jobs).
+    scrapling_enabled: bool = False
+    scrapling_fixture_json_path: str | None = None
+    scrapling_bundle_fixture: bool = True
+    scrapling_catalog_in_preset: bool = True
+    scrapling_timeout_s: float = 60.0
+    # Comma-separated HTTPS URLs to fetch when no JSON fixture is used (JSON-LD JobPosting in HTML).
+    # Example: career pages or individual job pages that embed schema.org JobPosting.
+    scrapling_seed_urls: str | None = None
+    # When true (default), merge seed URLs derived from GREENHOUSE_BOARD_TOKENS via the public
+    # boards-api job list (same service as GreenhouseAdapter) — job detail pages for JSON-LD.
+    scrapling_auto_greenhouse_board_seeds: bool = True
+    # Max job detail URLs to take per board when building auto seeds (page 1 only).
+    scrapling_greenhouse_seed_jobs_per_board: int = 5
+
     # PostHog (optional). When configured, telemetry is mirrored to PostHog and
     # activation KPI is sourced from PostHog events.
     posthog_host: str = "https://eu.posthog.com"

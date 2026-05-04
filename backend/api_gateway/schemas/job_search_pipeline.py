@@ -34,6 +34,10 @@ class JobSearchPipelineRunRequest(BaseModel):
         default=False,
         description="Passed to catalog ingest when trigger_catalog_refresh is true.",
     )
+    include_scrapling: bool = Field(
+        default=True,
+        description="When refreshing catalog, run Scrapling step after Google Jobs (same as POST …/catalog/ingest/preset?include_scrapling).",
+    )
     resume_aligned_catalog: bool = Field(
         default=True,
         description="When refreshing catalog, derive keywords/location from this user's resume.",

@@ -1,0 +1,18 @@
+{
+  "jobs": [
+    {
+      "title": "Software Engineer (sample — Scrapling fixture)",
+      "company": "Example Corp",
+      "url": "https://example.com/careers/jobs/sample-scrapling-1",
+      "location": "Remote",
+      "description": "Sample job body from bundled Scrapling fixture. Replace with real Scrapling output in production."
+    },
+    {
+      "title": "Product Designer (sample — Scrapling fixture)",
+      "company": "Sample Studio",
+      "job_url": "https://example.com/careers/jobs/sample-scrapling-2",
+      "location": "Abidjan, CI",
+      "description": "Second fixture row for catalog dedup / ingest tests."
+    }
+  ]
+}

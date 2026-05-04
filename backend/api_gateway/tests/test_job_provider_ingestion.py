@@ -224,6 +224,8 @@ def test_catalog_ingest_preset_returns_partial_when_one_provider_fails(monkeypat
     import services.catalog_ingest_orchestrator as orch_module
 
     monkeypatch.setattr(settings, "job_catalog_ingestion_user_id", "catalog_ingestion_system")
+    monkeypatch.setattr(settings, "scrapling_enabled", False)
+    monkeypatch.setattr(settings, "scrapling_catalog_in_preset", False)
     monkeypatch.setattr(settings, "greenhouse_board_tokens", "openai,notion")
     monkeypatch.setattr(settings, "serpapi_api_key", None)
 
@@ -263,17 +265,20 @@ def test_catalog_ingest_preset_returns_partial_when_one_provider_fails(monkeypat
     assert body["status"] == "partial"
     assert body["created"] == 2
     assert body["updated"] == 1
-    assert len(body["providers"]) == 3
+    assert len(body["providers"]) == 4
     by_provider = {p["provider"]: p for p in body["providers"]}
     assert by_provider["adzuna"]["status"] == "completed"
     assert by_provider["greenhouse"]["status"] == "failed"
     assert by_provider["google_jobs"]["status"] == "skipped"
+    assert by_provider["scrapling"]["status"] == "skipped"
 
 
 def test_catalog_ingest_preset_returns_failed_when_all_providers_fail(monkeypatch):
     import services.catalog_ingest_orchestrator as orch_module
 
     monkeypatch.setattr(settings, "job_catalog_ingestion_user_id", "catalog_ingestion_system")
+    monkeypatch.setattr(settings, "scrapling_enabled", False)
+    monkeypatch.setattr(settings, "scrapling_catalog_in_preset", False)
     monkeypatch.setattr(settings, "greenhouse_board_tokens", "openai,notion")
     monkeypatch.setattr(settings, "serpapi_api_key", None)
 
@@ -305,8 +310,9 @@ def test_catalog_ingest_preset_returns_failed_when_all_providers_fail(monkeypatc
     assert body["updated"] == 0
     assert body["run_ids"] == []
     assert body["job_ids"] == []
-    assert len(body["providers"]) == 3
+    assert len(body["providers"]) == 4
     by_provider = {p["provider"]: p for p in body["providers"]}
     assert by_provider["adzuna"]["status"] == "failed"
     assert by_provider["greenhouse"]["status"] == "failed"
     assert by_provider["google_jobs"]["status"] == "skipped"
+    assert by_provider["scrapling"]["status"] == "skipped"
