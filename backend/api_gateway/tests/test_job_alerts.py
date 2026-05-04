@@ -6,6 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session import get_session
@@ -106,6 +107,105 @@ async def test_run_job_alerts_for_user_creates_deliveries_and_updates_last_run(d
         await db_session.execute(select(JobAlertSubscription).where(JobAlertSubscription.user_id == uid))
     ).scalar_one()
     assert sub.last_run_at is not None
+
+
+@pytest.mark.asyncio
+async def test_run_job_alerts_send_failure_does_not_advance_last_run(db_session: AsyncSession, monkeypatch):
+    uid = "user_alert_send_fail_1"
+    now = datetime.now(timezone.utc)
+    last_run = now - timedelta(days=1)
+    db_session.add(User(id=uid, email="alerts-send-fail@example.com"))
+    db_session.add(
+        JobAlertSubscription(
+            id="sub_alert_fail_1",
+            user_id=uid,
+            enabled=True,
+            frequency="daily",
+            min_fit=4.0,
+            max_items=5,
+            email_enabled=True,
+            last_run_at=last_run,
+        )
+    )
+    db_session.add(
+        Job(
+            id="job_alert_fail_1",
+            source="catalog",
+            external_id="alert-fail-1",
+            title="Platform Engineer",
+            company="Acme",
+            location="Remote",
+            salary_range=None,
+            description="desc",
+            url="https://example.com/fail-1",
+            discovered_at=now - timedelta(hours=1),
+        )
+    )
+    db_session.add(
+        JobScore(
+            id="score_alert_fail_1",
+            user_id=uid,
+            job_id="job_alert_fail_1",
+            fit_score=4.7,
+            fit_reasons=["Great platform fit"],
+            risk_flags=[],
+            dimension_scores={},
+            scored_at=now - timedelta(minutes=10),
+            provenance="computed",
+        )
+    )
+    await db_session.commit()
+
+    async def _fake_send_email_outbound(*, to_addr: str, subject: str, body: str) -> bool:
+        return False
+
+    monkeypatch.setattr(job_alert_service, "send_email_outbound", _fake_send_email_outbound)
+    result = await job_alert_service.run_job_alerts_for_user(db_session, user_id=uid, now=now)
+    assert result == {"candidates": 1, "sent": 0}
+
+    sub = (
+        await db_session.execute(select(JobAlertSubscription).where(JobAlertSubscription.user_id == uid))
+    ).scalar_one()
+    assert sub.last_run_at is not None
+    assert sub.last_run_at.replace(tzinfo=timezone.utc) == last_run
+
+
+@pytest.mark.asyncio
+async def test_get_or_create_subscription_recovers_from_unique_race():
+    user_id = "user_alert_race_1"
+    existing = JobAlertSubscription(id="sub_existing", user_id=user_id)
+
+    class _Result:
+        def __init__(self, row):
+            self._row = row
+
+        def scalar_one_or_none(self):
+            return self._row
+
+    class _DummySession:
+        def __init__(self):
+            self._rows = [None, existing]
+            self.rolled_back = False
+
+        async def execute(self, *_args, **_kwargs):
+            return _Result(self._rows.pop(0))
+
+        def add(self, *_args, **_kwargs):
+            return None
+
+        async def commit(self):
+            raise IntegrityError("INSERT", {}, Exception("duplicate key value"))
+
+        async def rollback(self):
+            self.rolled_back = True
+
+        async def refresh(self, *_args, **_kwargs):
+            return None
+
+    session = _DummySession()
+    row = await job_alert_service._get_or_create_subscription(session, user_id)
+    assert row is existing
+    assert session.rolled_back is True
 
 
 @pytest.mark.asyncio

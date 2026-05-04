@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from models.job import Job
 from models.job_alert_delivery import JobAlertDelivery
@@ -45,9 +46,21 @@ async def _get_or_create_subscription(session: AsyncSession, user_id: str) -> Jo
         return row
     row = JobAlertSubscription(user_id=user_id)
     session.add(row)
-    await session.commit()
-    await session.refresh(row)
-    return row
+    try:
+        await session.commit()
+        await session.refresh(row)
+        return row
+    except IntegrityError:
+        # Concurrent create: another transaction inserted the unique user_id row first.
+        await session.rollback()
+        existing = (
+            await session.execute(
+                select(JobAlertSubscription).where(JobAlertSubscription.user_id == user_id).limit(1)
+            )
+        ).scalar_one_or_none()
+        if existing is None:
+            raise
+        return existing
 
 
 async def get_job_alert_settings(session: AsyncSession, *, user_id: str) -> JobAlertSettingsResponse:
@@ -144,6 +157,7 @@ async def run_job_alerts_for_user(
 
     items = [(row[0], row[1]) for row in rows]
     sent = 0
+    advance_window = True
     if items and sub.email_enabled:
         subject, body = _render_digest_email(user_email=user.email, items=items)
         ok = await send_email_outbound(to_addr=user.email, subject=subject, body=body)
@@ -161,8 +175,10 @@ async def run_job_alerts_for_user(
             sent = len(items)
         else:
             logger.warning("job_alert send failed user_id=%s", user_id)
+            advance_window = False
 
-    sub.last_run_at = ts_now
+    if advance_window:
+        sub.last_run_at = ts_now
     await session.commit()
     return {"candidates": len(items), "sent": sent}
 
