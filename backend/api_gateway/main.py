@@ -21,6 +21,7 @@ from routers import (
     ingestion,
     integrations_google,
     integrations_linkedin,
+    job_alerts,
     jobs,
     prep,
     resume,
@@ -107,6 +108,7 @@ app.include_router(auth.router, prefix=API_PREFIX)
 app.include_router(integrations_google.router, prefix=API_PREFIX)
 app.include_router(integrations_linkedin.router, prefix=API_PREFIX)
 app.include_router(users.router, prefix=API_PREFIX)
+app.include_router(job_alerts.router, prefix=API_PREFIX)
 app.include_router(resume.router, prefix=API_PREFIX)
 app.include_router(jobs.router, prefix=API_PREFIX)
 app.include_router(applications.router, prefix=API_PREFIX)

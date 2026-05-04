@@ -1,6 +1,7 @@
 """LangGraph control-flow tests for autopilot parity graph."""
 
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from langgraph.types import Command
@@ -379,7 +380,7 @@ async def test_langgraph_approval_rejected_routes_to_persist_failed():
             "failed_node": str(state.get("failed_node") or ""),
         }
 
-    cfg = {"configurable": {"thread_id": "approval-rejected-1"}}
+    cfg = {"configurable": {"thread_id": f"approval-rejected-{uuid4()}"}}
     out1 = await run_autopilot_via_langgraph(
         initial_state={"run_id": "r1", "user_id": "u1"},
         graph_invoke_config=cfg,

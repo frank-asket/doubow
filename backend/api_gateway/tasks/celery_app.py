@@ -34,9 +34,14 @@ celery_app.conf.beat_schedule = {
         "task": "ingestion.scheduler.cleanup_stale_jobs",
         "schedule": crontab(minute=0, hour=3),
     },
+    "job-alerts-daily-digest": {
+        "task": "tasks.job_alerts.run_daily",
+        "schedule": crontab(minute=30, hour=9),
+    },
 }
 
 import tasks.send_tasks  # noqa: E402, F401 — register tasks
 import tasks.autopilot_tasks  # noqa: E402, F401 — register tasks
 import tasks.discovery_task  # noqa: E402, F401 — register tasks
+import tasks.job_alert_tasks  # noqa: E402, F401 — register tasks
 import ingestion.scheduler.celery_tasks  # noqa: E402, F401 — register tasks
