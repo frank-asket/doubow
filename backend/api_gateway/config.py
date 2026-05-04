@@ -93,9 +93,11 @@ class Settings(BaseSettings):
     use_llm_fit_debate: bool = True
     # Feature flag: run autopilot executor through LangGraph wrapper (parity mode).
     use_langgraph_autopilot: bool = False
+    # Durable SQLite checkpointer path for LangGraph autopilot interrupt/resume state.
+    # Used when ``use_langgraph_autopilot_approval_interrupt`` is enabled.
+    langgraph_autopilot_checkpoint_db_path: str = "./data/langgraph/autopilot_checkpoints.sqlite"
     # When True with LangGraph autopilot: pause after draft generation via langgraph.types.interrupt until resume.
-    # Resume uses POST /me/autopilot/runs/{id}/resume (same as checkpoint resume). Uses in-process MemorySaver — same
-    # worker process must handle the follow-up invoke (see workflow.autopilot_langgraph module docstring).
+    # Resume uses POST /me/autopilot/runs/{id}/resume and re-enters LangGraph with a real resume payload.
     use_langgraph_autopilot_approval_interrupt: bool = False
     # Feature flag: log per-node LangGraph autopilot trace events (debug only).
     use_langgraph_autopilot_trace: bool = False

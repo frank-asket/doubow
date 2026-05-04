@@ -1,8 +1,16 @@
 """LangGraph control-flow tests for autopilot parity graph."""
 
-import pytest
+from pathlib import Path
 
-from workflow.autopilot_langgraph import AutopilotGraphState, run_autopilot_via_langgraph
+import pytest
+from langgraph.types import Command
+
+from workflow.autopilot_langgraph import (
+    AutopilotGraphState,
+    get_autopilot_langgraph_checkpointer,
+    reset_autopilot_langgraph_checkpointer_for_tests,
+    run_autopilot_via_langgraph,
+)
 
 
 @pytest.mark.asyncio
@@ -328,3 +336,75 @@ async def test_langgraph_resume_entry_skips_completed_nodes():
     )
 
     assert calls == ["process_items", "persist_done"]
+
+
+@pytest.mark.asyncio
+async def test_durable_sqlite_checkpointer_initializes_file(monkeypatch, tmp_path):
+    db_path = tmp_path / "lg" / "autopilot.sqlite"
+    monkeypatch.setattr("workflow.autopilot_langgraph.settings.langgraph_autopilot_checkpoint_db_path", str(db_path))
+    reset_autopilot_langgraph_checkpointer_for_tests()
+    saver = await get_autopilot_langgraph_checkpointer()
+    assert saver is not None
+    assert isinstance(db_path, Path)
+    assert db_path.exists()
+
+
+@pytest.mark.asyncio
+async def test_langgraph_approval_rejected_routes_to_persist_failed():
+    calls: list[str] = []
+    reset_autopilot_langgraph_checkpointer_for_tests()
+
+    async def _mark_running(_state: AutopilotGraphState) -> AutopilotGraphState:
+        calls.append("mark_running")
+        return {"halt": False}
+
+    async def _resolve_targets(_state: AutopilotGraphState) -> AutopilotGraphState:
+        calls.append("resolve_targets")
+        return {"app_ids": ["a1"]}
+
+    async def _process_items(_state: AutopilotGraphState) -> AutopilotGraphState:
+        calls.append("process_items")
+        return {"item_payload": []}
+
+    async def _persist_done(_state: AutopilotGraphState) -> AutopilotGraphState:
+        calls.append("persist_done")
+        return {"ok": True}
+
+    async def _persist_failed(state: AutopilotGraphState) -> AutopilotGraphState:
+        calls.append("persist_failed")
+        return {
+            "ok": False,
+            "error_code": str(state.get("error_code") or ""),
+            "error_detail": str(state.get("error_detail") or ""),
+            "failed_node": str(state.get("failed_node") or ""),
+        }
+
+    cfg = {"configurable": {"thread_id": "approval-rejected-1"}}
+    out1 = await run_autopilot_via_langgraph(
+        initial_state={"run_id": "r1", "user_id": "u1"},
+        graph_invoke_config=cfg,
+        approval_interrupt_enabled=True,
+        mark_running=_mark_running,
+        resolve_targets=_resolve_targets,
+        process_items=_process_items,
+        persist_done=_persist_done,
+        persist_failed=_persist_failed,
+    )
+    assert out1.get("__interrupt__")
+
+    out2 = await run_autopilot_via_langgraph(
+        resume_command=Command(resume={"approved": False, "rejection_reason": "Not ready"}),
+        graph_invoke_config=cfg,
+        approval_interrupt_enabled=True,
+        mark_running=_mark_running,
+        resolve_targets=_resolve_targets,
+        process_items=_process_items,
+        persist_done=_persist_done,
+        persist_failed=_persist_failed,
+    )
+
+    assert calls == ["mark_running", "resolve_targets", "process_items", "persist_failed"]
+    assert out2.get("ok") is False
+    assert out2.get("error_code") == "approval_rejected"
+    assert out2.get("failed_node") == "approval_interrupt"
+    assert out2.get("error_detail") == "Not ready"

@@ -13,12 +13,12 @@ def autopilot_run_task(run_id: str, user_id: str, application_ids: list[str] | N
 
 
 @celery_app.task(name="doubow.autopilot_resume_run")
-def autopilot_resume_run_task(run_id: str, user_id: str) -> None:
+def autopilot_resume_run_task(run_id: str, user_id: str, resume_payload: dict | None = None) -> None:
     from services.autopilot_resume import release_resume_slot
     from services.autopilot_runner import execute_autopilot_run_background
 
     try:
-        asyncio.run(execute_autopilot_run_background(run_id, user_id, None))
+        asyncio.run(execute_autopilot_run_background(run_id, user_id, None, resume_payload=resume_payload))
     finally:
         release_resume_slot(run_id)
 

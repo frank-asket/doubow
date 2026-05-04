@@ -9,6 +9,7 @@ from db.session import get_session
 from dependencies import get_authenticated_user, require_idempotency_key
 from models.user import User
 from schemas.autopilot import (
+    AutopilotResumeRequest,
     AutopilotRunRequest,
     AutopilotRunResponse,
     AutopilotResumeResponse,
@@ -30,9 +31,10 @@ async def _execute_autopilot_resume_task(
     run_id: str,
     user_id: str,
     application_ids: list[str] | None,
+    resume_payload: dict[str, object] | None = None,
 ) -> None:
     try:
-        await execute_autopilot_run_background(run_id, user_id, application_ids)
+        await execute_autopilot_run_background(run_id, user_id, application_ids, resume_payload=resume_payload)
     finally:
         release_resume_slot(run_id)
 
@@ -100,6 +102,7 @@ async def run_autopilot_route(
 async def resume_autopilot_run_route(
     run_id: str,
     background_tasks: BackgroundTasks,
+    payload: AutopilotResumeRequest | None = None,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> AutopilotResumeResponse:
@@ -118,11 +121,13 @@ async def resume_autopilot_run_route(
             detail="Resume already in progress for this run",
         )
 
+    resume_payload = (payload or AutopilotResumeRequest()).model_dump()
+
     if settings.use_celery_for_autopilot_effective():
         try:
             from tasks.autopilot_tasks import autopilot_resume_run_task
 
-            autopilot_resume_run_task.delay(run_id, user.id)
+            autopilot_resume_run_task.delay(run_id, user.id, resume_payload)
         except Exception:
             if settings.environment.lower() == "production" and not settings.allow_inprocess_background_in_production:
                 release_resume_slot(run_id)
@@ -136,6 +141,7 @@ async def resume_autopilot_run_route(
                 run_id,
                 user.id,
                 None,
+                resume_payload,
             )
     else:
         background_tasks.add_task(
@@ -143,6 +149,7 @@ async def resume_autopilot_run_route(
             run_id,
             user.id,
             None,
+            resume_payload,
         )
     return AutopilotResumeResponse(run_id=run_id, enqueued=True, detail=None)
 

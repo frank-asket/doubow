@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -57,3 +57,12 @@ class AutopilotResumeResponse(BaseModel):
     run_id: str
     enqueued: bool = True
     detail: str | None = None
+
+
+class AutopilotResumeRequest(BaseModel):
+    """Human decision payload used to resume an interrupted autopilot LangGraph."""
+
+    approved: bool = True
+    edited_body: str | None = None
+    rejection_reason: str | None = None
+    metadata: dict[str, Any] | None = None

@@ -1,33 +1,48 @@
 """LangGraph scaffold for autopilot execution (structure parity mode).
 
 Approval interrupt (``USE_LANGGRAPH_AUTOPILOT_APPROVAL_INTERRUPT=true``) uses ``langgraph.types.interrupt`` after
-draft generation and a process-wide :class:`langgraph.checkpoint.memory.MemorySaver`. Resuming with
-``Command(resume=...)`` must run in the **same API/worker process** that handled the interrupted invoke, or checkpoint
-state is lost. For multi-worker production, add a durable checkpointer (e.g. Postgres) in a follow-up.
+draft generation and a durable SQLite checkpointer so ``Command(resume=...)`` can continue across worker restarts.
 """
 
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 from typing import Any, Literal, TypedDict, cast
 
-_MEMORY_CHECKPOINTER = None
+from config import settings
+
+_SQLITE_CHECKPOINTER = None
+_SQLITE_CHECKPOINTER_CONN = None
 
 
-def get_autopilot_langgraph_checkpointer():
-    """Shared MemorySaver for interrupt/resume within one process."""
-    global _MEMORY_CHECKPOINTER
-    if _MEMORY_CHECKPOINTER is None:
-        from langgraph.checkpoint.memory import MemorySaver
+async def get_autopilot_langgraph_checkpointer():
+    """Shared durable SqliteSaver for interrupt/resume."""
+    global _SQLITE_CHECKPOINTER
+    global _SQLITE_CHECKPOINTER_CONN
+    if _SQLITE_CHECKPOINTER is None:
+        import aiosqlite
+        from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
-        _MEMORY_CHECKPOINTER = MemorySaver()
-    return _MEMORY_CHECKPOINTER
+        raw = (settings.langgraph_autopilot_checkpoint_db_path or "").strip() or "./data/langgraph/autopilot_checkpoints.sqlite"
+        db_path = Path(raw).expanduser()
+        if not db_path.is_absolute():
+            db_path = Path.cwd() / db_path
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        conn = await aiosqlite.connect(str(db_path))
+        saver = AsyncSqliteSaver(conn)
+        await saver.setup()
+        _SQLITE_CHECKPOINTER_CONN = conn
+        _SQLITE_CHECKPOINTER = saver
+    return _SQLITE_CHECKPOINTER
 
 
 def reset_autopilot_langgraph_checkpointer_for_tests() -> None:
-    """Clear in-memory LangGraph checkpoints (test helper)."""
-    global _MEMORY_CHECKPOINTER
-    _MEMORY_CHECKPOINTER = None
+    """Reset durable LangGraph checkpointer singleton (test helper)."""
+    global _SQLITE_CHECKPOINTER
+    global _SQLITE_CHECKPOINTER_CONN
+    _SQLITE_CHECKPOINTER = None
+    _SQLITE_CHECKPOINTER_CONN = None
 
 
 class AutopilotGraphState(TypedDict, total=False):
@@ -47,6 +62,7 @@ class AutopilotGraphState(TypedDict, total=False):
     max_retries: int
     retry_target_node: str
     halt: bool
+    approval_resume: dict[str, Any]
 
 
 class AutopilotGraphTraceEvent(TypedDict):
@@ -87,6 +103,7 @@ def _build_autopilot_parity_graph(
     on_node_checkpoint: Callable[[str, AutopilotGraphState], Awaitable[None]] | None = None,
     *,
     approval_interrupt_enabled: bool = False,
+    checkpointer: Any | None = None,
 ):
     """Create parity graph with explicit autopilot lifecycle nodes and retry/recovery routing."""
 
@@ -178,6 +195,17 @@ def _build_autopilot_parity_graph(
             out: AutopilotGraphState = {}
             if isinstance(resume_value, dict):
                 out["approval_resume"] = resume_value  # type: ignore[typeddict-item]
+                approved = resume_value.get("approved")
+                if approved is False:
+                    reason = str(
+                        resume_value.get("rejection_reason")
+                        or "Approval rejected by user"
+                    )[:500]
+                    out["error_code"] = "approval_rejected"
+                    out["error_detail"] = reason
+                    out["failed_node"] = "approval_interrupt"
+                    out["retryable_error"] = False
+                    out["retry_target_node"] = "approval_interrupt"
             return out
         except GraphInterrupt:
             raise
@@ -247,6 +275,11 @@ def _build_autopilot_parity_graph(
             return "approval_interrupt"
         return "persist_done"
 
+    def _route_after_approval_interrupt(state: AutopilotGraphState) -> str:
+        if state.get("error_code"):
+            return "persist_failed"
+        return "persist_done"
+
     def _route_after_persist_done(state: AutopilotGraphState) -> str:
         if state.get("error_code"):
             return "persist_failed"
@@ -293,12 +326,12 @@ def _build_autopilot_parity_graph(
     graph.add_conditional_edges("resolve_targets", _route_after_resolve_targets)
     graph.add_conditional_edges("process_items", _route_after_process_items)
     if approval_interrupt_enabled:
-        graph.add_edge("approval_interrupt", "persist_done")
+        graph.add_conditional_edges("approval_interrupt", _route_after_approval_interrupt)
     graph.add_conditional_edges("persist_done", _route_after_persist_done)
     graph.add_conditional_edges("recover_retry", _route_after_recover_retry)
     graph.add_edge("persist_failed", END)
     if approval_interrupt_enabled:
-        return graph.compile(checkpointer=get_autopilot_langgraph_checkpointer())
+        return graph.compile(checkpointer=checkpointer)
     return graph.compile()
 
 
@@ -322,6 +355,7 @@ async def run_autopilot_via_langgraph(
     ``{"configurable": {"thread_id": "<run_id>"}}``. For human resume after ``interrupt()``, call again with
     ``resume_command=Command(resume=...)`` and the same ``graph_invoke_config`` (same worker process).
     """
+    checkpointer = await get_autopilot_langgraph_checkpointer() if approval_interrupt_enabled else None
     app = _build_autopilot_parity_graph(
         mark_running=mark_running,
         resolve_targets=resolve_targets,
@@ -331,6 +365,7 @@ async def run_autopilot_via_langgraph(
         on_node_event=on_node_event,
         on_node_checkpoint=on_node_checkpoint,
         approval_interrupt_enabled=approval_interrupt_enabled,
+        checkpointer=checkpointer,
     )
     cfg = graph_invoke_config
     if resume_command is not None:

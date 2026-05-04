@@ -475,10 +475,18 @@ async def _run_autopilot_langgraph_invoke(
     )
 
 
+def _normalize_resume_payload(resume_payload: dict[str, object] | None) -> dict[str, object]:
+    if isinstance(resume_payload, dict) and resume_payload:
+        return resume_payload
+    return {"approved": True}
+
+
 async def execute_autopilot_run_background(
     run_id: str,
     user_id: str,
     application_ids: list[str] | None,
+    *,
+    resume_payload: dict[str, object] | None = None,
 ) -> None:
     token = bind_request_user_for_rls(user_id)
     try:
@@ -501,7 +509,7 @@ async def execute_autopilot_run_background(
                         user_id=user_id,
                         application_ids=application_ids,
                         initial_state=None,
-                        resume_command=Command(resume={"approved": True}),
+                        resume_command=Command(resume=_normalize_resume_payload(resume_payload)),
                     )
                 except Exception:
                     logger.exception(

@@ -278,3 +278,11 @@ async def test_langgraph_approval_interrupt_writes_interrupt_pending_checkpoint(
     # Presence of item_payload proves process_items completed before interrupt persisted.
     assert isinstance(state.get("item_payload"), list)
     assert len(state.get("item_payload") or []) == 1
+
+
+def test_normalize_resume_payload_uses_user_payload_when_present():
+    assert autopilot_runner._normalize_resume_payload({"approved": False, "rejection_reason": "Needs rewrite"}) == {
+        "approved": False,
+        "rejection_reason": "Needs rewrite",
+    }
+    assert autopilot_runner._normalize_resume_payload(None) == {"approved": True}
