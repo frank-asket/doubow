@@ -2,7 +2,10 @@
   "name": "doubow",
   "private": true,
   "packageManager": "npm@9.6.4",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "turbo run dev",
     "dev:web": "npm run dev -w @doubow/web",
@@ -19,5 +22,8 @@
   },
   "devDependencies": {
     "turbo": "^2.0.14"
+  },
+  "dependencies": {
+    "@doubow/web": "^0.1.0"
   }
 }

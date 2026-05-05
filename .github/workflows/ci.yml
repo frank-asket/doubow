@@ -1,5 +1,9 @@
 name: CI
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
   push:
@@ -45,6 +49,7 @@ jobs:
 
   backend-migration-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:16-alpine
@@ -88,7 +93,7 @@ jobs:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
-          python -m pytest -q backend/api_gateway/tests
+          timeout 15m python -m pytest -q backend/api_gateway/tests
       - name: Run durability and ops readiness guardrails
         env:
           PYTHONPATH: backend/api_gateway
