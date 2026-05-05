@@ -42,36 +42,12 @@ import {
 } from '../../lib/motion'
 import { useDashboard } from '../../hooks/useDashboard'
 import type { JobWithScore } from '@doubow/shared'
+import { AnimatedMetricValue } from './discoverShared'
+import { useDiscoverController } from './useDiscoverController'
+import { DiscoverFiltersSection } from './DiscoverFiltersSection'
+import { DiscoverResultsSection } from './DiscoverResultsSection'
 
 const MotionLink = motion(Link)
-
-function AnimatedMetricValue({
-  value,
-  className,
-}: {
-  value: string
-  className?: string
-}) {
-  const prefersReducedMotion = useReducedMotion()
-  if (prefersReducedMotion) {
-    return <span className={cn('inline-flex', className)}>{value}</span>
-  }
-  return (
-    <span className={cn('inline-flex', className)}>
-      <AnimatePresence initial={false} mode="wait">
-        <motion.span
-          key={value}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {value}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  )
-}
 
 const DIMENSION_LABELS: Record<string, string> = {
   tech: 'Tech match', culture: 'Culture', seniority: 'Seniority', comp: 'Compensation', location: 'Location',
@@ -486,27 +462,6 @@ function JobSkeleton() {
   )
 }
 
-function jobMatchesQuery(job: JobWithScore, q: string) {
-  const needle = q.trim().toLowerCase()
-  if (!needle) return true
-  const hay = `${job.title} ${job.company} ${job.location ?? ''} ${job.description ?? ''}`.toLowerCase()
-  return hay.includes(needle)
-}
-
-type DiscoverSort = 'fit' | 'recent' | 'company'
-
-function sortJobs(items: JobWithScore[], sort: DiscoverSort): JobWithScore[] {
-  if (sort === 'company') {
-    return [...items].sort((a, b) => a.company.localeCompare(b.company))
-  }
-  if (sort === 'recent') {
-    return [...items].sort(
-      (a, b) => Date.parse(b.posted_at ?? b.discovered_at) - Date.parse(a.posted_at ?? a.discovered_at),
-    )
-  }
-  return [...items].sort((a, b) => b.score.fit_score - a.score.fit_score)
-}
-
 function DiscoverPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -537,10 +492,28 @@ function DiscoverPageContent() {
     { revalidateOnFocus: true, dedupingInterval: 30_000 },
   )
   const [filterOpen, setFilterOpen] = useState(false)
-  const [searchText, setSearchText] = useState(() => searchParams.get('q') ?? '')
-  const [sortBy, setSortBy] = useState<DiscoverSort>(
-    () => (searchParams.get('sort') as DiscoverSort) || 'fit',
-  )
+  const {
+    searchText,
+    setSearchText,
+    sortBy,
+    setSortBy,
+    filteredJobs,
+    sortedJobs,
+    minFitChip,
+    precisionMode,
+    clearSearch,
+    resetSearchAndFilters,
+  } = useDiscoverController({
+    jobs,
+    minFit,
+    locationFilter,
+    hasSalaryOnly,
+    setMinFit,
+    setLocationFilter,
+    setHasSalaryOnly,
+    searchParams,
+    router,
+  })
   const prefersReducedMotion = useReducedMotion()
   const motionEnabled = !prefersReducedMotion
   const microInteractionMotion = getMicroInteractionMotion(motionEnabled)
@@ -555,55 +528,11 @@ function DiscoverPageContent() {
   const etaTracked = useRef(false)
   const readyTracked = useRef(false)
 
-  useEffect(() => {
-    setSearchText(searchParams.get('q') ?? '')
-    const incomingSort = (searchParams.get('sort') as DiscoverSort) || 'fit'
-    setSortBy(incomingSort)
-    setHasSalaryOnly(searchParams.get('has_salary') === 'true')
-  }, [searchParams, setHasSalaryOnly])
-
-  /** Keep shareable `/discover?q=…` in sync when the user types (debounced). */
-  useEffect(() => {
-    const trimmed = searchText.trim()
-    const current = searchParams.get('q') ?? ''
-    const currentSort = (searchParams.get('sort') as DiscoverSort) || 'fit'
-    if (trimmed === current && currentSort === sortBy) return
-    const id = window.setTimeout(() => {
-      const p = new URLSearchParams(searchParams.toString())
-      if (trimmed) p.set('q', trimmed)
-      else p.delete('q')
-      if (sortBy === 'fit') p.delete('sort')
-      else p.set('sort', sortBy)
-      const qs = p.toString()
-      router.replace(qs ? `/discover?${qs}` : '/discover', { scroll: false })
-    }, 400)
-    return () => window.clearTimeout(id)
-  }, [searchText, sortBy, router, searchParams])
-
-  const fitFiltered = useMemo(
-    () => jobs.filter((j) => !minFit || j.score.fit_score >= minFit),
-    [jobs, minFit],
-  )
-
-  const filteredJobs = useMemo(() => {
-    return fitFiltered.filter((j) => jobMatchesQuery(j, searchText))
-  }, [fitFiltered, searchText])
-
-  const sortedJobs = useMemo(() => sortJobs(filteredJobs, sortBy), [filteredJobs, sortBy])
-
   const topMatch = sortedJobs[0]
   const showFeaturedCard =
     !loading && Boolean(topMatch) && sortedJobs.length > 0 && onboarding?.state !== 'scoring_in_progress'
   const jobsForList = showFeaturedCard ? sortedJobs.slice(1) : sortedJobs
 
-  const minFitChip =
-    minFit === 0 ? 'Any' : Number.isInteger(minFit) ? `${minFit}.0+` : `${minFit}+`
-  const activeFilterCount =
-    Number(Boolean(searchText.trim())) +
-    Number(Boolean(locationFilter.trim())) +
-    Number(minFit > 0) +
-    Number(hasSalaryOnly)
-  const precisionMode = activeFilterCount >= 2
   const highFitVisible = filteredJobs.filter((j) => j.score.fit_score >= 4).length
   const etaMinutes = onboarding?.eta_seconds ? Math.max(1, Math.round(onboarding.eta_seconds / 60)) : null
   const onboardingSteps = [
@@ -806,7 +735,7 @@ function DiscoverPageContent() {
             <select
               className="field ml-2 w-36 py-1 text-xs"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as DiscoverSort)}
+              onChange={(e) => setSortBy(e.target.value as 'fit' | 'recent' | 'company')}
             >
               <option value="fit">Best fit</option>
               <option value="recent">Most recent</option>
@@ -818,13 +747,7 @@ function DiscoverPageContent() {
               type="button"
               className="text-xs font-medium text-zinc-500 hover:text-zinc-800"
               {...microInteractionMotion}
-              onClick={() => {
-                setSearchText('')
-                const p = new URLSearchParams(searchParams.toString())
-                p.delete('q')
-                const qs = p.toString()
-                router.replace(qs ? `/discover?${qs}` : '/discover', { scroll: false })
-              }}
+              onClick={clearSearch}
             >
               Clear search
             </motion.button>
@@ -891,58 +814,15 @@ function DiscoverPageContent() {
         </div>
       </div>
 
-      <section
-        className="flex flex-wrap items-center gap-2 rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 p-3"
-        style={{ borderColor: 'rgba(109,122,119,0.45)' }}
-      >
-        <span className="px-2 text-2xs font-semibold uppercase tracking-wider text-zinc-500">Filters</span>
-        <motion.button
-          type="button"
-          onClick={() => setLocationFilter(locationFilter.trim() ? '' : 'Remote')}
-          {...microInteractionMotion}
-          className={cn(
-            'rounded-sm border border-[0.5px] px-3 py-1 text-xs transition-colors',
-            locationFilter.trim() ? 'bg-bg-light-green text-primary-green' : 'bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
-          )}
-          style={{ borderColor: 'rgba(109,122,119,0.45)' }}
-        >
-          Remote roles
-        </motion.button>
-        <motion.button
-          type="button"
-          onClick={() => setMinFit(minFit < 4 ? 4 : 0)}
-          {...microInteractionMotion}
-          className={cn(
-            'rounded-sm border border-[0.5px] px-3 py-1 text-xs transition-colors',
-            minFit >= 4 ? 'bg-bg-light-green text-primary-green' : 'bg-white dark:bg-slate-900 text-zinc-700 hover:bg-zinc-50',
-          )}
-          style={{ borderColor: 'rgba(109,122,119,0.45)' }}
-        >
-          High fit (4.0+)
-        </motion.button>
-        <motion.button
-          type="button"
-          onClick={() => setSearchText((s) => (s.trim() ? '' : 'full-time'))}
-          {...microInteractionMotion}
-          className="rounded-sm border border-[0.5px] bg-white dark:bg-slate-900 px-3 py-1 text-xs text-zinc-700 transition-colors hover:bg-zinc-50"
-          style={{ borderColor: 'rgba(109,122,119,0.45)' }}
-        >
-          Full-time
-        </motion.button>
-        <motion.button
-          type="button"
-          onClick={() => {
-            setSearchText('')
-            setMinFit(0)
-            setLocationFilter('')
-            setSortBy('fit')
-          }}
-          {...microInteractionMotion}
-          className="ml-auto rounded bg-primary-green px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-95"
-        >
-          Clear all
-        </motion.button>
-      </section>
+      <DiscoverFiltersSection
+        locationFilter={locationFilter}
+        setLocationFilter={setLocationFilter}
+        minFit={minFit}
+        setMinFit={setMinFit}
+        setSearchText={setSearchText}
+        setSortBy={setSortBy}
+        microInteractionMotion={microInteractionMotion}
+      />
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <aside className="space-y-3 lg:col-span-4">
@@ -1030,24 +910,11 @@ function DiscoverPageContent() {
           </article>
         </aside>
 
-        <div className="space-y-2 lg:col-span-8">
-          <div className="flex items-center justify-between">
-            <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              <Compass size={13} className="text-secondary-green" />
-              <AnimatedMetricValue
-                className="min-w-[1ch]"
-                value={String(filteredJobs.length)}
-              />
-              {precisionMode ? ' refined matches based on your filters' : ' active opportunities found'}
-            </p>
-            <p className="text-xs text-zinc-600">
-              Sort:{' '}
-              <span className="font-semibold">
-                {sortBy === 'fit' ? 'FitScore (High-Low)' : sortBy === 'recent' ? 'Most recent' : 'Company A-Z'}
-              </span>
-            </p>
-          </div>
-        </div>
+        <DiscoverResultsSection
+          filteredCount={filteredJobs.length}
+          precisionMode={precisionMode}
+          sortBy={sortBy}
+        />
       </section>
 
       <AnimatePresence initial={false} mode="wait">
@@ -1178,15 +1045,7 @@ function DiscoverPageContent() {
                 <button
                   type="button"
                   className="btn text-xs"
-                  onClick={() => {
-                    setSearchText('')
-                    setMinFit(0)
-                    setLocationFilter('')
-                    const p = new URLSearchParams(searchParams.toString())
-                    p.delete('q')
-                    const qs = p.toString()
-                    router.replace(qs ? `/discover?${qs}` : '/discover', { scroll: false })
-                  }}
+                  onClick={resetSearchAndFilters}
                 >
                   Reset search & filters
                 </button>

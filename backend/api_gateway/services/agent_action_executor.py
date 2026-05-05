@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import json
-import re
 from typing import Literal
-from uuid import uuid4
 
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
@@ -24,14 +22,13 @@ from services.applications_service import (
     ApplicationJobNotFoundError,
     create_application,
 )
-from services.approvals_service import (
-    ApprovalIdempotencyConflictError,
-    approve_approval as approve_approval_service,
-    reject_approval as reject_approval_service,
-)
 from services.draft_service import ApplicationNotFoundError, create_draft_approval_for_application
 from services.jobs_service import dismiss_job_for_user, recompute_job_scores_for_user
-from services.send_approval_service import schedule_post_approve_dispatch
+from services.agent_action_approvals import (
+    ApprovalActionError,
+    approve_outbound_draft_action,
+    reject_outbound_draft_action,
+)
 from services.prep_service import (
     PrepApplicationNotFoundError,
     generate_prep_for_application,
@@ -39,6 +36,24 @@ from services.prep_service import (
     prep_row_to_detail,
 )
 from services.job_search_pipeline import coordinator as job_search_pipeline_coordinator
+from services.agent_action_inference import (
+    APPLICATION_HINTS,
+    APPROVAL_HINTS,
+    AUTOPILOT_HINTS,
+    DRAFT_HINTS,
+    MATCH_HINTS,
+    PIPELINE_HINTS,
+    PIPELINE_RUN_HINTS,
+    PREP_GENERATE_HINTS,
+    PREP_SUMMARY_HINTS,
+    RECOMPUTE_HINTS,
+    RESUME_HINTS,
+    extract_application_id,
+    extract_approval_id_only,
+    extract_job_id,
+    extract_limit,
+    infer_channel,
+)
 
 AgentChannel = Literal["email", "linkedin", "company_site"]
 CatalogPreset = Literal["hourly", "daily"]
@@ -60,66 +75,6 @@ AgentActionName = Literal[
     "reject_outbound_draft",
     "run_job_search_pipeline",
 ]
-
-_PIPELINE_HINTS = (
-    "pipeline summary",
-    "pipeline status",
-    "status mix",
-    "application status",
-    "show pipeline",
-)
-_APPROVAL_HINTS = (
-    "pending approvals",
-    "approval queue",
-    "approvals queue",
-    "show approvals",
-)
-_MATCH_HINTS = ("job matches", "top matches", "best matches", "fit matches", "match summary")
-_APPLICATION_HINTS = ("application detail", "application status", "show application", "latest application")
-_DRAFT_HINTS = ("create draft", "draft approval", "generate draft", "make draft", "new draft")
-_RECOMPUTE_HINTS = (
-    "recompute",
-    "rescore",
-    "refresh match",
-    "refresh scores",
-    "refresh job scores",
-    "update match scores",
-)
-_RESUME_HINTS = (
-    "resume summary",
-    "parsed resume",
-    "what's on my resume",
-    "whats on my resume",
-    "my resume profile",
-    "profile snapshot",
-    "resume on file",
-)
-_PREP_SUMMARY_HINTS = (
-    "prep summary",
-    "my prep session",
-    "show prep",
-    "interview prep summary",
-    "star stories",
-    "company brief",
-)
-_PREP_GENERATE_HINTS = (
-    "generate prep",
-    "regenerate prep",
-    "build prep",
-    "run prep generation",
-    "create interview prep",
-)
-_AUTOPILOT_HINTS = ("autopilot run", "batch run", "scoring run", "recent autopilot", "background run")
-_PIPELINE_RUN_HINTS = (
-    "run job search pipeline",
-    "full job search pipeline",
-    "run the job search pipeline",
-    "execute job search pipeline",
-    "end-to-end job search",
-    "run trading agents pipeline",
-    "run pipeline runner",
-)
-
 
 class AgentActionCall(BaseModel):
     action: AgentActionName
@@ -182,7 +137,7 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
     if lower.startswith("/reject"):
         return AgentActionCall(action="reject_outbound_draft", approval_id=_extract_approval_id_only(text))
 
-    if any(hint in lower for hint in _PIPELINE_RUN_HINTS):
+    if any(hint in lower for hint in PIPELINE_RUN_HINTS):
         trig = "catalog refresh" in lower or "refresh catalog" in lower
         persist = "persist feedback" in lower or "save feedback" in lower or "learn from outcomes" in lower
         return AgentActionCall(
@@ -191,67 +146,54 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
             persist_feedback_learning=persist,
         )
 
-    if lower.startswith("/pipeline") or any(hint in lower for hint in _PIPELINE_HINTS):
+    if lower.startswith("/pipeline") or any(hint in lower for hint in PIPELINE_HINTS):
         return AgentActionCall(action="get_pipeline_snapshot")
 
-    if lower.startswith("/approvals") or any(hint in lower for hint in _APPROVAL_HINTS):
-        return AgentActionCall(action="list_pending_approvals", limit=_extract_limit(lower))
+    if lower.startswith("/approvals") or any(hint in lower for hint in APPROVAL_HINTS):
+        return AgentActionCall(action="list_pending_approvals", limit=extract_limit(lower))
 
-    if lower.startswith("/matches") or any(hint in lower for hint in _MATCH_HINTS):
-        return AgentActionCall(action="get_job_matches", limit=_extract_limit(lower))
+    if lower.startswith("/matches") or any(hint in lower for hint in MATCH_HINTS):
+        return AgentActionCall(action="get_job_matches", limit=extract_limit(lower))
 
-    if lower.startswith("/application") or any(hint in lower for hint in _APPLICATION_HINTS):
-        return AgentActionCall(action="get_application_detail", application_id=_extract_application_id(text))
+    if lower.startswith("/application") or any(hint in lower for hint in APPLICATION_HINTS):
+        return AgentActionCall(action="get_application_detail", application_id=extract_application_id(text))
 
-    if lower.startswith("/draft") or any(hint in lower for hint in _DRAFT_HINTS):
-        return AgentActionCall(action="create_draft_for_application", application_id=_extract_application_id(text))
+    if lower.startswith("/draft") or any(hint in lower for hint in DRAFT_HINTS):
+        return AgentActionCall(action="create_draft_for_application", application_id=extract_application_id(text))
 
-    if lower.startswith("/rescore") or lower.startswith("/recompute") or any(hint in lower for hint in _RECOMPUTE_HINTS):
+    if lower.startswith("/rescore") or lower.startswith("/recompute") or any(hint in lower for hint in RECOMPUTE_HINTS):
         return AgentActionCall(action="recompute_job_scores")
 
-    if lower.startswith("/resume") or any(hint in lower for hint in _RESUME_HINTS):
+    if lower.startswith("/resume") or any(hint in lower for hint in RESUME_HINTS):
         return AgentActionCall(action="get_resume_profile_snapshot")
 
-    if any(hint in lower for hint in _PREP_GENERATE_HINTS):
-        return AgentActionCall(action="generate_prep_for_application", application_id=_extract_application_id(text))
+    if any(hint in lower for hint in PREP_GENERATE_HINTS):
+        return AgentActionCall(action="generate_prep_for_application", application_id=extract_application_id(text))
 
-    if lower.startswith("/prep") or any(hint in lower for hint in _PREP_SUMMARY_HINTS):
-        return AgentActionCall(action="get_prep_session_summary", application_id=_extract_application_id(text))
+    if lower.startswith("/prep") or any(hint in lower for hint in PREP_SUMMARY_HINTS):
+        return AgentActionCall(action="get_prep_session_summary", application_id=extract_application_id(text))
 
-    if any(hint in lower for hint in _AUTOPILOT_HINTS):
-        return AgentActionCall(action="list_recent_autopilot_runs", limit=_extract_limit(lower))
+    if any(hint in lower for hint in AUTOPILOT_HINTS):
+        return AgentActionCall(action="list_recent_autopilot_runs", limit=extract_limit(lower))
 
-    jid = _extract_job_id(text)
+    jid = extract_job_id(text)
     if jid:
         if any(p in lower for p in ("add to pipeline", "queue this job", "save to pipeline")):
             return AgentActionCall(
                 action="queue_job_to_pipeline",
                 job_id=jid,
-                channel=_infer_channel(lower),
+                channel=infer_channel(lower),
             )
         if any(p in lower for p in ("dismiss this job", "hide this job", "not interested in this job")):
             return AgentActionCall(action="dismiss_job_from_discover", job_id=jid)
 
-    aid = _extract_approval_id_only(text)
+    aid = extract_approval_id_only(text)
     if aid and any(p in lower for p in ("approve this draft", "approve the draft", "approve outbound draft")):
         return AgentActionCall(action="approve_outbound_draft", approval_id=aid)
     if aid and any(p in lower for p in ("reject this draft", "reject the draft", "discard this draft")):
         return AgentActionCall(action="reject_outbound_draft", approval_id=aid)
 
     return None
-
-
-def _extract_limit(lower_text: str) -> int:
-    m = re.search(r"\btop\s+(\d{1,2})\b", lower_text)
-    if not m:
-        m = re.search(r"\b(\d{1,2})\s+approvals?\b", lower_text)
-    if not m:
-        return 5
-    try:
-        value = int(m.group(1))
-    except Exception:
-        return 5
-    return max(1, min(20, value))
 
 
 async def execute_action(
@@ -349,37 +291,19 @@ async def _run_job_search_pipeline(
 
 
 def _extract_application_id(text: str) -> str | None:
-    m = re.search(r"\b(app_[a-zA-Z0-9]+)\b", text)
-    if m:
-        return m.group(1)
-    m = re.search(r"\b([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b", text)
-    if m:
-        return m.group(1)
-    return None
+    return extract_application_id(text)
 
 
 def _extract_job_id(text: str) -> str | None:
-    m = re.search(r"\b(jb_[a-zA-Z0-9_]+)\b", text)
-    if m:
-        return m.group(1)
-    m = re.search(r"\b([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b", text)
-    return m.group(1) if m else None
+    return extract_job_id(text)
 
 
 def _extract_approval_id_only(text: str) -> str | None:
-    """Approval rows use UUID primary keys."""
-    m = re.search(r"\b([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b", text)
-    return m.group(1) if m else None
+    return extract_approval_id_only(text)
 
 
 def _infer_channel(lower_text: str) -> AgentChannel | None:
-    if "linkedin" in lower_text:
-        return "linkedin"
-    if "company site" in lower_text or "company_site" in lower_text or "company-site" in lower_text:
-        return "company_site"
-    if "email" in lower_text:
-        return "email"
-    return None
+    return infer_channel(lower_text)
 
 
 def _normalize_channel(ch: AgentChannel | None) -> Channel:
@@ -464,85 +388,36 @@ async def _dismiss_job_from_discover(
 async def _approve_outbound_draft(
     *, session: AsyncSession, user_id: str, call: AgentActionCall
 ) -> AgentActionResult:
-    if not call.approval_id:
-        raise AgentActionPolicyError(
-            action="approve_outbound_draft",
-            code="approval_id_required",
-            detail="Include an approval id (UUID), e.g. `/approve <uuid>`.",
-        )
     try:
-        resp = await approve_approval_service(
-            session,
-            user_id,
-            call.approval_id,
-            edited_body=None,
-            idempotency_key=f"agent-approve-{uuid4().hex}",
-        )
-        schedule_post_approve_dispatch(
-            approval_id=call.approval_id,
+        body = await approve_outbound_draft_action(
+            session=session,
             user_id=user_id,
-            queued_send=bool(resp.queued_send and resp.send_task_id),
-            send_task_id=resp.send_task_id,
+            approval_id=call.approval_id,
         )
-    except ApprovalIdempotencyConflictError as exc:
+    except ApprovalActionError as exc:
         raise AgentActionPolicyError(
             action="approve_outbound_draft",
-            code="idempotency_conflict",
-            detail=f"Approval idempotency conflict with `{exc.prior_approval_id}`.",
+            code=exc.code,
+            detail=exc.detail,
         ) from exc
-    except ValueError:
-        raise AgentActionPolicyError(
-            action="approve_outbound_draft",
-            code="approval_not_found",
-            detail=f"Approval `{call.approval_id}` was not found.",
-        ) from None
-
-    body = (
-        "Summary:\n"
-        f"- Approved outbound draft `{call.approval_id}` (status={resp.status}).\n"
-        + (
-            "- Outbound send has been queued.\n"
-            if resp.queued_send
-            else "- No new send was queued (already processed or duplicate approval token).\n"
-        )
-        + "Recommended Actions:\n"
-        "- Track delivery from Approvals / Pipeline.\n"
-        "Why:\n"
-        "- Approval authorizes the same outbound path as the product UI.\n"
-        "Next Step:\n"
-        "- Confirm delivery or retry from Approvals if needed."
-    )
     return AgentActionResult(action="approve_outbound_draft", response_text=body)
 
 
 async def _reject_outbound_draft(
     *, session: AsyncSession, user_id: str, call: AgentActionCall
 ) -> AgentActionResult:
-    if not call.approval_id:
-        raise AgentActionPolicyError(
-            action="reject_outbound_draft",
-            code="approval_id_required",
-            detail="Include an approval id (UUID), e.g. `/reject <uuid>`.",
-        )
     try:
-        await reject_approval_service(session, user_id, call.approval_id)
-    except ValueError:
+        body = await reject_outbound_draft_action(
+            session=session,
+            user_id=user_id,
+            approval_id=call.approval_id,
+        )
+    except ApprovalActionError as exc:
         raise AgentActionPolicyError(
             action="reject_outbound_draft",
-            code="approval_not_found",
-            detail=f"Approval `{call.approval_id}` was not found.",
-        ) from None
-
-    body = (
-        "Summary:\n"
-        f"- Rejected and removed pending approval `{call.approval_id}`.\n"
-        "Recommended Actions:\n"
-        "- Generate a new draft from Pipeline if you still want to reach out.\n"
-        "Why:\n"
-        "- Reject removes the draft without sending.\n"
-        "Next Step:\n"
-        "- Continue reviewing remaining approvals."
-    )
+            code=exc.code,
+            detail=exc.detail,
+        ) from exc
     return AgentActionResult(action="reject_outbound_draft", response_text=body)
 
 

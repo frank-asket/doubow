@@ -1,4 +1,13 @@
-from services.agent_action_executor import infer_action_from_message
+from types import SimpleNamespace
+
+import pytest
+
+from services.agent_action_approvals import (
+    ApprovalActionError,
+    approve_outbound_draft_action,
+    reject_outbound_draft_action,
+)
+from services.agent_action_executor import AgentActionCall, AgentActionPolicyError, execute_action, infer_action_from_message
 
 
 def test_infer_pipeline_run_slash_flags() -> None:
@@ -127,3 +136,82 @@ def test_infer_approve_reject_uuids() -> None:
     assert a2 is not None
     assert a2.action == "reject_outbound_draft"
     assert a2.approval_id == uid
+
+
+@pytest.mark.asyncio
+async def test_approve_outbound_draft_action_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    async def _fake_approve(session, user_id, approval_id, edited_body, idempotency_key):
+        captured["approve_args"] = (session, user_id, approval_id, edited_body, idempotency_key)
+        return SimpleNamespace(status="approved", queued_send=True, send_task_id="task-123")
+
+    def _fake_schedule(*, approval_id: str, user_id: str, queued_send: bool, send_task_id: str | None) -> None:
+        captured["schedule_args"] = (approval_id, user_id, queued_send, send_task_id)
+
+    monkeypatch.setattr("services.agent_action_approvals.approve_approval_service", _fake_approve)
+    monkeypatch.setattr("services.agent_action_approvals.schedule_post_approve_dispatch", _fake_schedule)
+
+    body = await approve_outbound_draft_action(
+        session=SimpleNamespace(),
+        user_id="usr_1",
+        approval_id="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    )
+
+    assert "Approved outbound draft" in body
+    assert "Outbound send has been queued" in body
+    assert captured["schedule_args"] == (
+        "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        "usr_1",
+        True,
+        "task-123",
+    )
+
+
+@pytest.mark.asyncio
+async def test_approve_outbound_draft_action_not_found(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def _fake_approve(*args, **kwargs):
+        raise ValueError("missing")
+
+    monkeypatch.setattr("services.agent_action_approvals.approve_approval_service", _fake_approve)
+
+    with pytest.raises(ApprovalActionError) as exc:
+        await approve_outbound_draft_action(
+            session=SimpleNamespace(),
+            user_id="usr_1",
+            approval_id="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        )
+    assert exc.value.code == "approval_not_found"
+
+
+@pytest.mark.asyncio
+async def test_reject_outbound_draft_action_not_found(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def _fake_reject(*args, **kwargs):
+        raise ValueError("missing")
+
+    monkeypatch.setattr("services.agent_action_approvals.reject_approval_service", _fake_reject)
+
+    with pytest.raises(ApprovalActionError) as exc:
+        await reject_outbound_draft_action(
+            session=SimpleNamespace(),
+            user_id="usr_1",
+            approval_id="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        )
+    assert exc.value.code == "approval_not_found"
+
+
+@pytest.mark.asyncio
+async def test_execute_action_maps_approval_error_to_policy_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def _fake_approve_action(*, session, user_id, approval_id):
+        raise ApprovalActionError(code="approval_not_found", detail="Approval not found")
+
+    monkeypatch.setattr("services.agent_action_executor.approve_outbound_draft_action", _fake_approve_action)
+
+    with pytest.raises(AgentActionPolicyError) as exc:
+        await execute_action(
+            session=SimpleNamespace(),
+            user_id="usr_1",
+            call=AgentActionCall(action="approve_outbound_draft", approval_id="missing"),
+        )
+    assert exc.value.action == "approve_outbound_draft"
+    assert exc.value.code == "approval_not_found"
