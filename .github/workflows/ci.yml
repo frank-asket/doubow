@@ -116,14 +116,14 @@ jobs:
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             timeout "${timeout_window}" "$@"
             exit_code="$?"
+            step_end="$(date +%s)"
+            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
               echo "[timing] ${label} command timed out after ${timeout_window}"
             fi
             if [ "${exit_code}" -ne 0 ]; then
               exit "${exit_code}"
             fi
-            step_end="$(date +%s)"
-            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
           }
           run_timed "backend tests" "15m" python -m pytest -q backend/api_gateway/tests
       - name: Run durability and ops readiness guardrails
@@ -142,14 +142,14 @@ jobs:
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             timeout "${timeout_window}" "$@"
             exit_code="$?"
+            step_end="$(date +%s)"
+            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
               echo "[timing] ${label} command timed out after ${timeout_window}"
             fi
             if [ "${exit_code}" -ne 0 ]; then
               exit "${exit_code}"
             fi
-            step_end="$(date +%s)"
-            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
           }
           run_timed "durability guardrails" "10m" python -m pytest -q \
             backend/api_gateway/tests/test_background_durability_guardrails.py \
@@ -172,14 +172,14 @@ jobs:
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             timeout "${timeout_window}" "$@"
             exit_code="$?"
+            step_end="$(date +%s)"
+            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
               echo "[timing] ${label} command timed out after ${timeout_window}"
             fi
             if [ "${exit_code}" -ne 0 ]; then
               exit "${exit_code}"
             fi
-            step_end="$(date +%s)"
-            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
           }
           run_timed "resume integration" "10m" python -m pytest -q backend/api_gateway/tests/integration/test_resume_langchain_integration.py
       - name: Run migrated schema parity guardrail
@@ -198,14 +198,14 @@ jobs:
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             timeout "${timeout_window}" "$@"
             exit_code="$?"
+            step_end="$(date +%s)"
+            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
               echo "[timing] ${label} command timed out after ${timeout_window}"
             fi
             if [ "${exit_code}" -ne 0 ]; then
               exit "${exit_code}"
             fi
-            step_end="$(date +%s)"
-            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
           }
           run_timed "schema parity" "10m" python -m pytest -q backend/api_gateway/tests/integration/test_ci_postgres_schema.py
       - name: List lingering backend processes
