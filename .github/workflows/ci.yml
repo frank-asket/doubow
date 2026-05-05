@@ -112,18 +112,42 @@ jobs:
             local step_start
             local step_end
             local exit_code
+            local before_file
+            local after_file
+            local before_pids
+            local after_pids
+            local lingering_pids
             step_start="$(date +%s)"
+            before_file="$(mktemp)"
+            after_file="$(mktemp)"
+            ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${before_file}" || true
+            echo "[timing] ${label} process snapshot BEFORE:"
+            cat "${before_file}" || true
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             timeout "${timeout_window}" "$@"
             exit_code="$?"
+            # Defensive cleanup: ensure no orphaned pytest/alembic command remains from this step.
+            pkill -f "python -m pytest" || true
+            pkill -f "python -m alembic" || true
+            ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
+            echo "[timing] ${label} process snapshot AFTER:"
+            cat "${after_file}" || true
+            before_pids="$(awk '{print $1}' "${before_file}" | sort -u | tr '\n' ' ')"
+            after_pids="$(awk '{print $1}' "${after_file}" | sort -u | tr '\n' ' ')"
+            lingering_pids="$(comm -13 <(awk '{print $1}' "${before_file}" | sort -u) <(awk '{print $1}' "${after_file}" | sort -u) | tr '\n' ' ')"
+            echo "[timing] ${label} pid set BEFORE: ${before_pids:-<none>}"
+            echo "[timing] ${label} pid set AFTER: ${after_pids:-<none>}"
+            echo "[timing] ${label} new pids AFTER command: ${lingering_pids:-<none>}"
             step_end="$(date +%s)"
             echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
               echo "[timing] ${label} command timed out after ${timeout_window}"
             fi
             if [ "${exit_code}" -ne 0 ]; then
+              rm -f "${before_file}" "${after_file}"
               exit "${exit_code}"
             fi
+            rm -f "${before_file}" "${after_file}"
           }
           run_timed "backend tests" "15m" python -m pytest -q backend/api_gateway/tests
       - name: Run durability and ops readiness guardrails
@@ -138,18 +162,42 @@ jobs:
             local step_start
             local step_end
             local exit_code
+            local before_file
+            local after_file
+            local before_pids
+            local after_pids
+            local lingering_pids
             step_start="$(date +%s)"
+            before_file="$(mktemp)"
+            after_file="$(mktemp)"
+            ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${before_file}" || true
+            echo "[timing] ${label} process snapshot BEFORE:"
+            cat "${before_file}" || true
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             timeout "${timeout_window}" "$@"
             exit_code="$?"
+            # Defensive cleanup: ensure no orphaned pytest/alembic command remains from this step.
+            pkill -f "python -m pytest" || true
+            pkill -f "python -m alembic" || true
+            ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
+            echo "[timing] ${label} process snapshot AFTER:"
+            cat "${after_file}" || true
+            before_pids="$(awk '{print $1}' "${before_file}" | sort -u | tr '\n' ' ')"
+            after_pids="$(awk '{print $1}' "${after_file}" | sort -u | tr '\n' ' ')"
+            lingering_pids="$(comm -13 <(awk '{print $1}' "${before_file}" | sort -u) <(awk '{print $1}' "${after_file}" | sort -u) | tr '\n' ' ')"
+            echo "[timing] ${label} pid set BEFORE: ${before_pids:-<none>}"
+            echo "[timing] ${label} pid set AFTER: ${after_pids:-<none>}"
+            echo "[timing] ${label} new pids AFTER command: ${lingering_pids:-<none>}"
             step_end="$(date +%s)"
             echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
               echo "[timing] ${label} command timed out after ${timeout_window}"
             fi
             if [ "${exit_code}" -ne 0 ]; then
+              rm -f "${before_file}" "${after_file}"
               exit "${exit_code}"
             fi
+            rm -f "${before_file}" "${after_file}"
           }
           run_timed "durability guardrails" "10m" python -m pytest -q \
             backend/api_gateway/tests/test_background_durability_guardrails.py \
@@ -168,18 +216,42 @@ jobs:
             local step_start
             local step_end
             local exit_code
+            local before_file
+            local after_file
+            local before_pids
+            local after_pids
+            local lingering_pids
             step_start="$(date +%s)"
+            before_file="$(mktemp)"
+            after_file="$(mktemp)"
+            ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${before_file}" || true
+            echo "[timing] ${label} process snapshot BEFORE:"
+            cat "${before_file}" || true
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             timeout "${timeout_window}" "$@"
             exit_code="$?"
+            # Defensive cleanup: ensure no orphaned pytest/alembic command remains from this step.
+            pkill -f "python -m pytest" || true
+            pkill -f "python -m alembic" || true
+            ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
+            echo "[timing] ${label} process snapshot AFTER:"
+            cat "${after_file}" || true
+            before_pids="$(awk '{print $1}' "${before_file}" | sort -u | tr '\n' ' ')"
+            after_pids="$(awk '{print $1}' "${after_file}" | sort -u | tr '\n' ' ')"
+            lingering_pids="$(comm -13 <(awk '{print $1}' "${before_file}" | sort -u) <(awk '{print $1}' "${after_file}" | sort -u) | tr '\n' ' ')"
+            echo "[timing] ${label} pid set BEFORE: ${before_pids:-<none>}"
+            echo "[timing] ${label} pid set AFTER: ${after_pids:-<none>}"
+            echo "[timing] ${label} new pids AFTER command: ${lingering_pids:-<none>}"
             step_end="$(date +%s)"
             echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
               echo "[timing] ${label} command timed out after ${timeout_window}"
             fi
             if [ "${exit_code}" -ne 0 ]; then
+              rm -f "${before_file}" "${after_file}"
               exit "${exit_code}"
             fi
+            rm -f "${before_file}" "${after_file}"
           }
           run_timed "resume integration" "10m" python -m pytest -q backend/api_gateway/tests/integration/test_resume_langchain_integration.py
       - name: Run migrated schema parity guardrail
@@ -194,18 +266,42 @@ jobs:
             local step_start
             local step_end
             local exit_code
+            local before_file
+            local after_file
+            local before_pids
+            local after_pids
+            local lingering_pids
             step_start="$(date +%s)"
+            before_file="$(mktemp)"
+            after_file="$(mktemp)"
+            ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${before_file}" || true
+            echo "[timing] ${label} process snapshot BEFORE:"
+            cat "${before_file}" || true
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             timeout "${timeout_window}" "$@"
             exit_code="$?"
+            # Defensive cleanup: ensure no orphaned pytest/alembic command remains from this step.
+            pkill -f "python -m pytest" || true
+            pkill -f "python -m alembic" || true
+            ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
+            echo "[timing] ${label} process snapshot AFTER:"
+            cat "${after_file}" || true
+            before_pids="$(awk '{print $1}' "${before_file}" | sort -u | tr '\n' ' ')"
+            after_pids="$(awk '{print $1}' "${after_file}" | sort -u | tr '\n' ' ')"
+            lingering_pids="$(comm -13 <(awk '{print $1}' "${before_file}" | sort -u) <(awk '{print $1}' "${after_file}" | sort -u) | tr '\n' ' ')"
+            echo "[timing] ${label} pid set BEFORE: ${before_pids:-<none>}"
+            echo "[timing] ${label} pid set AFTER: ${after_pids:-<none>}"
+            echo "[timing] ${label} new pids AFTER command: ${lingering_pids:-<none>}"
             step_end="$(date +%s)"
             echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
               echo "[timing] ${label} command timed out after ${timeout_window}"
             fi
             if [ "${exit_code}" -ne 0 ]; then
+              rm -f "${before_file}" "${after_file}"
               exit "${exit_code}"
             fi
+            rm -f "${before_file}" "${after_file}"
           }
           run_timed "schema parity" "10m" python -m pytest -q backend/api_gateway/tests/integration/test_ci_postgres_schema.py
       - name: List lingering backend processes
