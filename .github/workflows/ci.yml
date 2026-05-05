@@ -124,11 +124,8 @@ jobs:
             echo "[timing] ${label} process snapshot BEFORE:"
             cat "${before_file}" || true
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            timeout "${timeout_window}" "$@"
+            timeout --foreground --kill-after=30s "${timeout_window}" "$@"
             exit_code="$?"
-            # Defensive cleanup: ensure no orphaned pytest/alembic command remains from this step.
-            pkill -f "python -m pytest" || true
-            pkill -f "python -m alembic" || true
             ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
             echo "[timing] ${label} process snapshot AFTER:"
             cat "${after_file}" || true
@@ -138,6 +135,18 @@ jobs:
             echo "[timing] ${label} pid set BEFORE: ${before_pids:-<none>}"
             echo "[timing] ${label} pid set AFTER: ${after_pids:-<none>}"
             echo "[timing] ${label} new pids AFTER command: ${lingering_pids:-<none>}"
+            if [ -n "${lingering_pids// }" ]; then
+              echo "[timing] ${label} attempting targeted cleanup for lingering pids"
+              for pid in ${lingering_pids}; do
+                ps -p "${pid}" -o pid,ppid,etime,cmd || true
+              done
+              kill -TERM ${lingering_pids} 2>/dev/null || true
+              sleep 2
+              kill -KILL ${lingering_pids} 2>/dev/null || true
+            fi
+            # Safety-net cleanup for command signatures known to hang in this job.
+            pkill -f "python -m pytest" || true
+            pkill -f "python -m alembic" || true
             step_end="$(date +%s)"
             echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
@@ -174,11 +183,8 @@ jobs:
             echo "[timing] ${label} process snapshot BEFORE:"
             cat "${before_file}" || true
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            timeout "${timeout_window}" "$@"
+            timeout --foreground --kill-after=30s "${timeout_window}" "$@"
             exit_code="$?"
-            # Defensive cleanup: ensure no orphaned pytest/alembic command remains from this step.
-            pkill -f "python -m pytest" || true
-            pkill -f "python -m alembic" || true
             ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
             echo "[timing] ${label} process snapshot AFTER:"
             cat "${after_file}" || true
@@ -188,6 +194,18 @@ jobs:
             echo "[timing] ${label} pid set BEFORE: ${before_pids:-<none>}"
             echo "[timing] ${label} pid set AFTER: ${after_pids:-<none>}"
             echo "[timing] ${label} new pids AFTER command: ${lingering_pids:-<none>}"
+            if [ -n "${lingering_pids// }" ]; then
+              echo "[timing] ${label} attempting targeted cleanup for lingering pids"
+              for pid in ${lingering_pids}; do
+                ps -p "${pid}" -o pid,ppid,etime,cmd || true
+              done
+              kill -TERM ${lingering_pids} 2>/dev/null || true
+              sleep 2
+              kill -KILL ${lingering_pids} 2>/dev/null || true
+            fi
+            # Safety-net cleanup for command signatures known to hang in this job.
+            pkill -f "python -m pytest" || true
+            pkill -f "python -m alembic" || true
             step_end="$(date +%s)"
             echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
@@ -228,11 +246,8 @@ jobs:
             echo "[timing] ${label} process snapshot BEFORE:"
             cat "${before_file}" || true
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            timeout "${timeout_window}" "$@"
+            timeout --foreground --kill-after=30s "${timeout_window}" "$@"
             exit_code="$?"
-            # Defensive cleanup: ensure no orphaned pytest/alembic command remains from this step.
-            pkill -f "python -m pytest" || true
-            pkill -f "python -m alembic" || true
             ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
             echo "[timing] ${label} process snapshot AFTER:"
             cat "${after_file}" || true
@@ -242,6 +257,18 @@ jobs:
             echo "[timing] ${label} pid set BEFORE: ${before_pids:-<none>}"
             echo "[timing] ${label} pid set AFTER: ${after_pids:-<none>}"
             echo "[timing] ${label} new pids AFTER command: ${lingering_pids:-<none>}"
+            if [ -n "${lingering_pids// }" ]; then
+              echo "[timing] ${label} attempting targeted cleanup for lingering pids"
+              for pid in ${lingering_pids}; do
+                ps -p "${pid}" -o pid,ppid,etime,cmd || true
+              done
+              kill -TERM ${lingering_pids} 2>/dev/null || true
+              sleep 2
+              kill -KILL ${lingering_pids} 2>/dev/null || true
+            fi
+            # Safety-net cleanup for command signatures known to hang in this job.
+            pkill -f "python -m pytest" || true
+            pkill -f "python -m alembic" || true
             step_end="$(date +%s)"
             echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then
@@ -278,11 +305,8 @@ jobs:
             echo "[timing] ${label} process snapshot BEFORE:"
             cat "${before_file}" || true
             echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            timeout "${timeout_window}" "$@"
+            timeout --foreground --kill-after=30s "${timeout_window}" "$@"
             exit_code="$?"
-            # Defensive cleanup: ensure no orphaned pytest/alembic command remains from this step.
-            pkill -f "python -m pytest" || true
-            pkill -f "python -m alembic" || true
             ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
             echo "[timing] ${label} process snapshot AFTER:"
             cat "${after_file}" || true
@@ -292,6 +316,18 @@ jobs:
             echo "[timing] ${label} pid set BEFORE: ${before_pids:-<none>}"
             echo "[timing] ${label} pid set AFTER: ${after_pids:-<none>}"
             echo "[timing] ${label} new pids AFTER command: ${lingering_pids:-<none>}"
+            if [ -n "${lingering_pids// }" ]; then
+              echo "[timing] ${label} attempting targeted cleanup for lingering pids"
+              for pid in ${lingering_pids}; do
+                ps -p "${pid}" -o pid,ppid,etime,cmd || true
+              done
+              kill -TERM ${lingering_pids} 2>/dev/null || true
+              sleep 2
+              kill -KILL ${lingering_pids} 2>/dev/null || true
+            fi
+            # Safety-net cleanup for command signatures known to hang in this job.
+            pkill -f "python -m pytest" || true
+            pkill -f "python -m alembic" || true
             step_end="$(date +%s)"
             echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
             if [ "${exit_code}" -eq 124 ]; then

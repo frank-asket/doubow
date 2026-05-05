@@ -1,4 +1,4 @@
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
@@ -35,7 +35,7 @@ async def _override_authenticated_user() -> User:
 
 
 @pytest.fixture
-def client() -> TestClient:
+def client() -> Generator[TestClient, None, None]:
     app = FastAPI()
     app.include_router(applications.router, prefix="/v1")
     app.include_router(autopilot.router, prefix="/v1")
@@ -43,7 +43,8 @@ def client() -> TestClient:
     app.include_router(jobs.router, prefix="/v1")
     app.dependency_overrides[get_session] = _override_session
     app.dependency_overrides[get_authenticated_user] = _override_authenticated_user
-    return TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 @pytest_asyncio.fixture
