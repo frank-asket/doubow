@@ -71,35 +71,87 @@ jobs:
           python-version: "3.12"
       - name: Install backend dependencies
         run: |
+          STEP_START="$(date +%s)"
+          echo "[timing] install deps start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           python -m pip install --upgrade pip
           pip install -r backend/api_gateway/requirements.txt psycopg2-binary pytest pytest-asyncio httpx aiosqlite
+          STEP_END="$(date +%s)"
+          echo "[timing] install deps end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((STEP_END-STEP_START))s)"
       - name: Verify Alembic migration chain compiles (offline SQL)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
           ALEMBIC_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
           PYTHONPATH: backend/api_gateway
         run: |
+          STEP_START="$(date +%s)"
+          echo "[timing] alembic offline start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           python -m alembic -c backend/api_gateway/alembic.ini upgrade head --sql > /tmp/alembic.sql
           test -s /tmp/alembic.sql
+          STEP_END="$(date +%s)"
+          echo "[timing] alembic offline end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((STEP_END-STEP_START))s)"
       - name: Apply migrations to Postgres (online)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
           ALEMBIC_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
           PYTHONPATH: backend/api_gateway
         run: |
+          STEP_START="$(date +%s)"
+          echo "[timing] alembic online start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           python -m alembic -c backend/api_gateway/alembic.ini upgrade head
+          STEP_END="$(date +%s)"
+          echo "[timing] alembic online end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((STEP_END-STEP_START))s)"
       - name: Run backend test suite
         env:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
-          timeout 15m python -m pytest -q backend/api_gateway/tests
+          run_timed() {
+            local label="$1"
+            local timeout_window="$2"
+            shift 2
+            local step_start
+            local step_end
+            local exit_code
+            step_start="$(date +%s)"
+            echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            timeout "${timeout_window}" "$@"
+            exit_code="$?"
+            if [ "${exit_code}" -eq 124 ]; then
+              echo "[timing] ${label} command timed out after ${timeout_window}"
+            fi
+            if [ "${exit_code}" -ne 0 ]; then
+              exit "${exit_code}"
+            fi
+            step_end="$(date +%s)"
+            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
+          }
+          run_timed "backend tests" "15m" python -m pytest -q backend/api_gateway/tests
       - name: Run durability and ops readiness guardrails
         env:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
-          python -m pytest -q \
+          run_timed() {
+            local label="$1"
+            local timeout_window="$2"
+            shift 2
+            local step_start
+            local step_end
+            local exit_code
+            step_start="$(date +%s)"
+            echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            timeout "${timeout_window}" "$@"
+            exit_code="$?"
+            if [ "${exit_code}" -eq 124 ]; then
+              echo "[timing] ${label} command timed out after ${timeout_window}"
+            fi
+            if [ "${exit_code}" -ne 0 ]; then
+              exit "${exit_code}"
+            fi
+            step_end="$(date +%s)"
+            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
+          }
+          run_timed "durability guardrails" "10m" python -m pytest -q \
             backend/api_gateway/tests/test_background_durability_guardrails.py \
             backend/api_gateway/tests/test_health_readiness.py \
             backend/api_gateway/tests/test_ingestion_admin_authz.py \
@@ -109,13 +161,62 @@ jobs:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
-          python -m pytest -q backend/api_gateway/tests/integration/test_resume_langchain_integration.py
+          run_timed() {
+            local label="$1"
+            local timeout_window="$2"
+            shift 2
+            local step_start
+            local step_end
+            local exit_code
+            step_start="$(date +%s)"
+            echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            timeout "${timeout_window}" "$@"
+            exit_code="$?"
+            if [ "${exit_code}" -eq 124 ]; then
+              echo "[timing] ${label} command timed out after ${timeout_window}"
+            fi
+            if [ "${exit_code}" -ne 0 ]; then
+              exit "${exit_code}"
+            fi
+            step_end="$(date +%s)"
+            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
+          }
+          run_timed "resume integration" "10m" python -m pytest -q backend/api_gateway/tests/integration/test_resume_langchain_integration.py
       - name: Run migrated schema parity guardrail
         env:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
         run: |
-          python -m pytest -q backend/api_gateway/tests/integration/test_ci_postgres_schema.py
+          run_timed() {
+            local label="$1"
+            local timeout_window="$2"
+            shift 2
+            local step_start
+            local step_end
+            local exit_code
+            step_start="$(date +%s)"
+            echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            timeout "${timeout_window}" "$@"
+            exit_code="$?"
+            if [ "${exit_code}" -eq 124 ]; then
+              echo "[timing] ${label} command timed out after ${timeout_window}"
+            fi
+            if [ "${exit_code}" -ne 0 ]; then
+              exit "${exit_code}"
+            fi
+            step_end="$(date +%s)"
+            echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
+          }
+          run_timed "schema parity" "10m" python -m pytest -q backend/api_gateway/tests/integration/test_ci_postgres_schema.py
+      - name: List lingering backend processes
+        if: always()
+        run: |
+          ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" || true
+      - name: Kill lingering pytest/alembic processes
+        if: always()
+        run: |
+          pkill -f "python -m pytest" || true
+          pkill -f "python -m alembic" || true
 
   semantic-eval-nightly:
     if: ${{ github.event_name == 'schedule' }}
