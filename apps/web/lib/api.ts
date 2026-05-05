@@ -367,6 +367,38 @@ export const mePreferencesApi = {
     request<void>('/v1/me/preferences/feedback-learning', { method: 'DELETE' }),
 }
 
+// ─── Job alerts ──────────────────────────────────────────────────────────────
+
+export type JobAlertFeedItem = {
+  delivery_id: string
+  delivered_at: string
+  fit_score: number
+  job_id: string
+  title: string
+  company: string
+  location?: string | null
+  url?: string | null
+  fit_reasons: string[]
+  risk_flags: string[]
+}
+
+export type JobAlertFeedResponse = {
+  items: JobAlertFeedItem[]
+  total: number
+  page: number
+  per_page: number
+}
+
+export const jobAlertsApi = {
+  feed: (params: { page?: number; per_page?: number } = {}) => {
+    const q = new URLSearchParams()
+    if (params.page) q.set('page', String(params.page))
+    if (params.per_page) q.set('per_page', String(params.per_page))
+    const suffix = q.toString()
+    return request<JobAlertFeedResponse>(`/v1/me/job-alerts/feed${suffix ? `?${suffix}` : ''}`)
+  },
+}
+
 export type ChatThreadSummary = {
   id: string
   title: string

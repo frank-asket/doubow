@@ -1,12 +1,23 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { ApiError, googleIntegrationsApi, linkedinIntegrationsApi } from '@/lib/api'
+import useSWR from 'swr'
+import { ApiError, googleIntegrationsApi, jobAlertsApi, linkedinIntegrationsApi } from '@/lib/api'
 import { trackEvent } from '@/lib/telemetry'
 
 export default function SettingsPage() {
   const [reconnectBusy, setReconnectBusy] = useState<'google' | 'linkedin' | null>(null)
   const [reconnectError, setReconnectError] = useState<string | null>(null)
+  const [alertsPage, setAlertsPage] = useState(1)
+  const {
+    data: alertsFeed,
+    isLoading: alertsLoading,
+    error: alertsError,
+  } = useSWR(
+    ['job-alerts-feed', alertsPage],
+    ([, page]) => jobAlertsApi.feed({ page, per_page: 8 }),
+    { revalidateOnFocus: false },
+  )
 
   const startReconnect = useCallback(async (provider: 'google' | 'linkedin') => {
     trackEvent('settings_reconnect_clicked', { provider })
@@ -100,6 +111,84 @@ export default function SettingsPage() {
         >
           Contact support
         </a>
+      </section>
+
+      <section className="border border-[0.5px] border-[rgba(188,201,198,0.9)] bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+        <h2 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#3d4947] dark:text-slate-400">
+          Job Alerts History
+        </h2>
+        <p className="mt-2 text-[13px] text-[#3d4947] dark:text-slate-400">
+          Delivered alert items based on your fit score and resume profile.
+        </p>
+
+        {alertsLoading ? (
+          <p className="mt-3 text-xs text-[#6d7a77] dark:text-slate-400">Loading recent alerts…</p>
+        ) : alertsError ? (
+          <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">
+            Could not load alerts history right now.
+          </p>
+        ) : alertsFeed?.items.length ? (
+          <>
+            <ul className="mt-3 space-y-2">
+              {alertsFeed.items.map((item) => (
+                <li
+                  key={item.delivery_id}
+                  className="rounded-sm border border-[0.5px] border-[rgba(188,201,198,0.9)] bg-[#f7fbf9] p-3 dark:border-slate-700 dark:bg-slate-950/50"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[13px] font-medium text-[#171d1c] dark:text-slate-100">
+                      {item.title} @ {item.company}
+                    </p>
+                    <span className="text-[11px] font-semibold text-primary-green dark:text-emerald-300">
+                      Fit {item.fit_score.toFixed(1)}/5
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-[#6d7a77] dark:text-slate-400">
+                    Delivered {new Date(item.delivered_at).toLocaleString()}
+                    {item.location ? ` · ${item.location}` : ''}
+                  </p>
+                  {item.url ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex text-[11px] font-semibold text-primary-green hover:underline dark:text-emerald-300"
+                    >
+                      Open job listing ↗
+                    </a>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-[11px] text-[#6d7a77] dark:text-slate-400">
+                Showing page {alertsFeed.page} of {Math.max(1, Math.ceil(alertsFeed.total / alertsFeed.per_page))}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAlertsPage((p) => Math.max(1, p - 1))}
+                  disabled={alertsFeed.page <= 1}
+                  className="h-8 border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-green disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-emerald-400"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAlertsPage((p) => p + 1)}
+                  disabled={alertsFeed.page * alertsFeed.per_page >= alertsFeed.total}
+                  className="h-8 border border-[0.5px] border-[rgba(188,201,198,0.9)] px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-green disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-emerald-400"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="mt-3 text-xs text-[#6d7a77] dark:text-slate-400">
+            No delivered alerts yet. Once alerts run, matched jobs will appear here.
+          </p>
+        )}
       </section>
     </div>
   )

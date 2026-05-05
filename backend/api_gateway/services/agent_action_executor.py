@@ -15,19 +15,19 @@ from models.job_score import JobScore
 from models.prep_session import PrepSession
 from models.resume import Resume
 from config import settings as app_settings
-from schemas.applications import Channel, CreateApplicationRequest
-from schemas.job_search_pipeline import JobSearchPipelineRunRequest, JobSearchPipelineStageId
-from services.applications_service import (
-    ApplicationIdempotencyConflictError,
-    ApplicationJobNotFoundError,
-    create_application,
-)
 from services.draft_service import ApplicationNotFoundError, create_draft_approval_for_application
-from services.jobs_service import dismiss_job_for_user, recompute_job_scores_for_user
+from services.jobs_service import recompute_job_scores_for_user
 from services.agent_action_approvals import (
     ApprovalActionError,
     approve_outbound_draft_action,
     reject_outbound_draft_action,
+)
+from services.agent_action_pipeline import (
+    PipelineActionError,
+    dismiss_job_from_discover_action,
+    pipeline_snapshot_action,
+    queue_job_to_pipeline_action,
+    run_job_search_pipeline_action,
 )
 from services.prep_service import (
     PrepApplicationNotFoundError,
@@ -35,7 +35,6 @@ from services.prep_service import (
     get_prep_detail_for_user,
     prep_row_to_detail,
 )
-from services.job_search_pipeline import coordinator as job_search_pipeline_coordinator
 from services.agent_action_inference import (
     APPLICATION_HINTS,
     APPROVAL_HINTS,
@@ -240,54 +239,26 @@ async def execute_action(
 async def _run_job_search_pipeline(
     *, session: AsyncSession, user_id: str, call: AgentActionCall
 ) -> AgentActionResult:
-    stages = None
-    if call.pipeline_stages:
-        parsed: list[JobSearchPipelineStageId] = []
-        for s in call.pipeline_stages:
-            try:
-                parsed.append(JobSearchPipelineStageId(s))
-            except ValueError as exc:
-                raise AgentActionPolicyError(
-                    action="run_job_search_pipeline",
-                    code="invalid_stage",
-                    detail=f"Unknown pipeline stage {s!r}. Expected one of: "
-                    + ", ".join(e.value for e in JobSearchPipelineStageId),
-                ) from exc
-        stages = parsed
-
-    body = JobSearchPipelineRunRequest(
-        stages=stages,
-        trigger_catalog_refresh=call.trigger_catalog_refresh,
-        persist_feedback_learning=call.persist_feedback_learning,
-        catalog_preset=call.catalog_preset,
-        include_legacy_connectors=call.include_legacy_connectors,
-        include_scrapling=call.include_scrapling,
-        resume_aligned_catalog=call.resume_aligned_catalog,
-    )
-    res = await job_search_pipeline_coordinator.run(session, app_settings, user_id, body)
-    lines = [
-        "Summary:",
-        f"- Ran job search pipeline (trace {res.trace_id}).",
-        "",
-        "Stages:",
-    ]
-    for st in res.stages:
-        status = "ok" if st.ok else "failed"
-        lines.append(f"- {st.stage.value} ({status}): {st.summary}")
-        if st.error:
-            lines.append(f"  error: {st.error}")
-    lines.extend(
-        [
-            "",
-            "Recommended Actions:",
-            "- Review any failed stages and fix configuration (e.g. catalog ingest env vars).",
-            "- Use Discover and Pipeline if matching scores were refreshed.",
-            "",
-            "Next Step:",
-            "- Ask for a pipeline summary or top matches to continue.",
-        ]
-    )
-    return AgentActionResult(action="run_job_search_pipeline", response_text="\n".join(lines))
+    try:
+        body = await run_job_search_pipeline_action(
+            session=session,
+            user_id=user_id,
+            pipeline_stages=call.pipeline_stages,
+            trigger_catalog_refresh=call.trigger_catalog_refresh,
+            persist_feedback_learning=call.persist_feedback_learning,
+            catalog_preset=call.catalog_preset,
+            include_legacy_connectors=call.include_legacy_connectors,
+            include_scrapling=call.include_scrapling,
+            resume_aligned_catalog=call.resume_aligned_catalog,
+            settings=app_settings,
+        )
+    except PipelineActionError as exc:
+        raise AgentActionPolicyError(
+            action="run_job_search_pipeline",
+            code=exc.code,
+            detail=exc.detail,
+        ) from exc
+    return AgentActionResult(action="run_job_search_pipeline", response_text=body)
 
 
 def _extract_application_id(text: str) -> str | None:
@@ -306,82 +277,40 @@ def _infer_channel(lower_text: str) -> AgentChannel | None:
     return infer_channel(lower_text)
 
 
-def _normalize_channel(ch: AgentChannel | None) -> Channel:
-    return ch if ch is not None else "email"
-
-
 async def _queue_job_to_pipeline(
     *, session: AsyncSession, user_id: str, call: AgentActionCall
 ) -> AgentActionResult:
-    if not call.job_id:
-        raise AgentActionPolicyError(
-            action="queue_job_to_pipeline",
-            code="job_id_required",
-            detail="Include a job id (jb_* or UUID), e.g. `/queue jb_cat_001 email`.",
-        )
-    channel = _normalize_channel(call.channel)
     try:
-        created = await create_application(
-            session,
-            user_id,
-            CreateApplicationRequest(job_id=call.job_id, channel=channel),
+        body = await queue_job_to_pipeline_action(
+            session=session,
+            user_id=user_id,
+            job_id=call.job_id,
+            channel=call.channel,
         )
-    except ApplicationJobNotFoundError:
+    except PipelineActionError as exc:
         raise AgentActionPolicyError(
             action="queue_job_to_pipeline",
-            code="job_not_found",
-            detail=f"Job `{call.job_id}` was not found in the catalog.",
-        ) from None
-    except ApplicationIdempotencyConflictError as exc:
-        raise AgentActionPolicyError(
-            action="queue_job_to_pipeline",
-            code="idempotency_conflict",
-            detail=f"Idempotency conflict with existing application `{exc.prior_application_id}`.",
+            code=exc.code,
+            detail=exc.detail,
         ) from exc
-
-    body = (
-        "Summary:\n"
-        f"- Queued job into your pipeline: application `{created.id}` (channel={channel}).\n"
-        f"- Role: {created.job.title} @ {created.job.company}.\n"
-        "Recommended Actions:\n"
-        "- Open Pipeline to track status.\n"
-        "- Generate a draft when you are ready to reach out.\n"
-        "Why:\n"
-        "- Queuing records intent and enables drafting and prep.\n"
-        "Next Step:\n"
-        "- Open Pipeline or ask for a draft for this application."
-    )
     return AgentActionResult(action="queue_job_to_pipeline", response_text=body)
 
 
 async def _dismiss_job_from_discover(
     *, session: AsyncSession, user_id: str, call: AgentActionCall
 ) -> AgentActionResult:
-    if not call.job_id:
-        raise AgentActionPolicyError(
-            action="dismiss_job_from_discover",
-            code="job_id_required",
-            detail="Include a job id to dismiss, e.g. `/dismiss jb_cat_001`.",
-        )
     try:
-        await dismiss_job_for_user(session, user_id, call.job_id)
-    except LookupError:
+        body = await dismiss_job_from_discover_action(
+            session=session,
+            user_id=user_id,
+            job_id=call.job_id,
+        )
+    except PipelineActionError as exc:
         raise AgentActionPolicyError(
             action="dismiss_job_from_discover",
-            code="job_not_found",
-            detail=f"Job `{call.job_id}` was not found.",
-        ) from None
-
-    body = (
-        "Summary:\n"
-        f"- Dismissed job `{call.job_id}` from your Discover matches.\n"
-        "Recommended Actions:\n"
-        "- Refresh Discover to continue reviewing remaining roles.\n"
-        "Why:\n"
-        "- Dismissals hide roles from your feed without deleting catalog data.\n"
-        "Next Step:\n"
-        "- Review your next highest-fit match."
-    )
+            code=exc.code,
+            detail=exc.detail,
+        ) from exc
     return AgentActionResult(action="dismiss_job_from_discover", response_text=body)
 
 
@@ -422,66 +351,7 @@ async def _reject_outbound_draft(
 
 
 async def _pipeline_snapshot(*, session: AsyncSession, user_id: str) -> AgentActionResult:
-    status_rows = (
-        await session.execute(
-            select(Application.status, func.count(Application.id))
-            .where(Application.user_id == user_id)
-            .group_by(Application.status)
-        )
-    ).all()
-    status_counts = {str(status): int(count) for status, count in status_rows}
-    total_apps = sum(status_counts.values())
-    pending_approvals = (
-        await session.execute(
-            select(func.count(Approval.id)).where(Approval.user_id == user_id, Approval.status == "pending")
-        )
-    ).scalar_one()
-    recent_rows = (
-        await session.execute(
-            select(Application.status, Application.channel, Job.company, Job.title)
-            .join(Job, Job.id == Application.job_id)
-            .where(Application.user_id == user_id)
-            .order_by(Application.last_updated.desc())
-            .limit(3)
-        )
-    ).all()
-
-    if total_apps == 0:
-        body = (
-            "Summary:\n"
-            "- You do not have applications in the pipeline yet.\n"
-            "Recommended Actions:\n"
-            "- Queue a few high-fit jobs from Discover to create your pipeline baseline.\n"
-            "- Run autopilot draft generation once you have queued applications.\n"
-            "Why:\n"
-            "- Pipeline insights become useful only after at least one application exists.\n"
-            "Next Step:\n"
-            "- Queue your first 3 jobs from Discover."
-        )
-        return AgentActionResult(action="get_pipeline_snapshot", response_text=body)
-
-    status_text = ", ".join(f"{k}:{v}" for k, v in sorted(status_counts.items()))
-    recent_lines = [
-        f"- {company} — {title} (status={status}, channel={channel})"
-        for status, channel, company, title in recent_rows
-    ]
-    if not recent_lines:
-        recent_lines = ["- No recent pipeline items found."]
-
-    body = (
-        "Summary:\n"
-        f"- Pipeline snapshot: {total_apps} applications; status mix [{status_text}].\n"
-        f"- Pending approvals waiting for action: {int(pending_approvals)}.\n"
-        "Recommended Actions:\n"
-        "- Prioritize pending approvals first to unblock outreach delivery.\n"
-        "- Review the most recent applications for stalled statuses and update next actions.\n"
-        "Why:\n"
-        "- Approval backlog directly delays outbound progress and response velocity.\n"
-        "Next Step:\n"
-        "- Clear at least 1 pending approval now.\n\n"
-        "Recent pipeline items:\n"
-        + "\n".join(recent_lines)
-    )
+    body = await pipeline_snapshot_action(session=session, user_id=user_id)
     return AgentActionResult(action="get_pipeline_snapshot", response_text=body)
 
 
