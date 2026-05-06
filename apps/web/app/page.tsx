@@ -30,6 +30,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import LandingGateRedirect from '@/components/landing/LandingGateRedirect'
+import MobileSectionPills from '@/components/landing/MobileSectionPills'
 import { Pricing as LegacyPricing } from '@/components/landing/Pricing'
 
 const metrics = [
@@ -124,9 +125,10 @@ export default function RootPage() {
             <Link href={"/auth/sign-up" as Route} className="rounded-lg bg-primary-green px-6 py-2.5 text-[15px] font-semibold text-white transition-all hover:bg-primary-green-hover hover:shadow-md">Get Started</Link>
           </div>
         </nav>
+        <MobileSectionPills />
       </header>
 
-      <main className="pt-16">
+      <main className="pt-[108px] md:pt-16">
         <section className="relative overflow-hidden pb-[96px] pt-[80px]">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute -left-16 top-16 h-64 w-64 rounded-full bg-secondary-green/25 blur-3xl motion-safe:animate-pulse" />
@@ -136,8 +138,8 @@ export default function RootPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto mb-16 max-w-3xl text-center motion-safe:animate-landing-rise motion-reduce:animate-none">
               <span className="mb-6 inline-block rounded-full bg-[#e1e0ff] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#2f2ebe]">AI-DRIVEN CAREER CO-PILOT</span>
-              <h1 className="font-display mb-6 text-[clamp(2.5rem,5vw,3rem)] font-bold leading-[1.18] tracking-[-0.02em] text-[#000000]">Stop wasting hours on job applications. <span className="text-primary-green">Focus only on the right roles.</span></h1>
-              <p className="mb-10 text-[18px] leading-[1.6] text-[#45464d]">Doubow Assistant is your AI career copilot for modern job search: it finds high-fit roles, tailors your resume and outreach, and tracks every application in one place. You approve every final action.</p>
+              <h1 className="font-display mb-6 text-[clamp(2.5rem,5vw,3rem)] font-bold leading-[1.18] tracking-[-0.02em] text-[#000000]">A calmer way to run your job search. <span className="text-primary-green">Focus only on roles worth your time.</span></h1>
+              <p className="mb-10 text-[18px] leading-[1.6] text-[#45464d]">Doubow Assistant finds high-fit roles, tailors your materials, and keeps your pipeline moving in one workspace. You stay in control of every outbound action.</p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link href={"/auth/sign-up" as Route} className="inline-flex h-14 w-full items-center justify-center rounded-[8px] bg-primary-green px-8 text-center text-[15px] font-semibold text-white shadow-lg transition-all hover:bg-primary-green-hover hover:shadow-xl sm:w-auto">Start Free and See Your Matches</Link>
                 <a href="#how-it-works" className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[8px] border border-[#c6c6cd] bg-white px-8 text-center text-[15px] font-semibold text-[#191c1e] transition-all hover:bg-[#f2f4f6] sm:w-auto">
@@ -161,6 +163,11 @@ export default function RootPage() {
                 <a href="#solutions" className="rounded-full border border-[#c6c6cd] bg-white px-3 py-1.5 font-medium text-[#45464d] transition-colors hover:border-secondary-green/50 hover:text-primary-green">Explore capabilities</a>
                 <a href="#how-it-works" className="rounded-full border border-[#c6c6cd] bg-white px-3 py-1.5 font-medium text-[#45464d] transition-colors hover:border-secondary-green/50 hover:text-primary-green">See Workflow</a>
                 <a href="#pricing" className="rounded-full border border-[#c6c6cd] bg-white px-3 py-1.5 font-medium text-[#45464d] transition-colors hover:border-secondary-green/50 hover:text-primary-green">Compare Pricing</a>
+              </div>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[12px] text-[#45464d]">
+                <span className="rounded-full bg-white/80 px-3 py-1.5 ring-1 ring-[#c6c6cd]/70">Human approval before sends</span>
+                <span className="rounded-full bg-white/80 px-3 py-1.5 ring-1 ring-[#c6c6cd]/70">Single workspace for discovery to interview</span>
+                <span className="rounded-full bg-white/80 px-3 py-1.5 ring-1 ring-[#c6c6cd]/70">Built for active candidates</span>
               </div>
             </div>
 

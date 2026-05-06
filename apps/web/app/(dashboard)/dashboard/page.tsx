@@ -218,7 +218,7 @@ export default function DashboardOverviewPage() {
             Candidate Overview
           </h1>
           <p className="mt-1 max-w-xl text-[13px] leading-snug" style={{ color: tk.onVariant }}>
-            Analytical performance and application tracking.
+            Your weekly workspace for matches, pipeline momentum, and next actions.
             {period === 'all'
               ? ' Showing all-time workspace totals.'
               : ' Showing your current workspace snapshot.'}
@@ -421,12 +421,12 @@ export default function DashboardOverviewPage() {
       {/* Quick workspace strip — compact nav (mock sidebar “Find New Jobs” + links) */}
       <section
         aria-label="Workspace shortcuts"
-        className="flex flex-col gap-3 rounded-sm border-[0.5px] bg-white p-3 dark:bg-slate-900 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4"
+        className="sticky top-[74px] z-20 flex flex-col gap-3 rounded-sm border-[0.5px] bg-white/95 p-3 shadow-sm backdrop-blur-sm dark:bg-slate-900/95 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4"
         style={{ borderColor: 'rgba(109,122,119,0.45)' }}
       >
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: tk.onVariant }}>
-            Workspace
+            Quick actions
           </span>
           <Link
             href="/discover"

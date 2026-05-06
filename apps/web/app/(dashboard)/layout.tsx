@@ -48,7 +48,7 @@ function NavItem({
         showUrgent && !active && 'ring-1 ring-amber-400/50 rounded-r-lg',
         active
           ? 'border-primary-green bg-white font-semibold text-primary-green shadow-sm shadow-primary-green/10 dark:bg-slate-800 dark:text-emerald-200 dark:shadow-secondary-green/15'
-          : 'border-transparent font-bold text-zinc-700 hover:bg-slate-100 hover:text-primary-green hover:shadow-sm hover:shadow-slate-300/40 dark:font-bold dark:text-white dark:hover:bg-slate-800 dark:hover:text-emerald-200 dark:hover:shadow-black/30',
+          : 'border-transparent font-medium text-zinc-700 hover:bg-slate-100 hover:text-primary-green hover:shadow-sm hover:shadow-slate-300/40 dark:font-medium dark:text-white dark:hover:bg-slate-800 dark:hover:text-emerald-200 dark:hover:shadow-black/30',
       )}
     >
       <Icon size={20} className={cn('motion-icon group-hover:scale-[1.06]', active ? 'text-secondary-green dark:text-emerald-200' : 'text-zinc-700 group-hover:text-secondary-green dark:font-bold dark:text-white dark:group-hover:text-emerald-200')} />
@@ -154,7 +154,7 @@ function DashboardLayoutInner({
   }
 
   return (
-    <div className="dashboard-chrome flex min-h-screen bg-[#f5faf8] font-bold text-zinc-700 transition-colors dark:bg-slate-950 dark:text-slate-50">
+    <div className="dashboard-chrome flex min-h-screen bg-[#f5faf8] font-medium text-zinc-700 transition-colors dark:bg-slate-950 dark:text-slate-50">
       {/* Sidebar — Candidate Hub (mockup: light rail + teal active state) */}
       <aside className="hidden w-64 flex-shrink-0 flex-col border-r border-slate-200/90 bg-slate-50/95 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/90 lg:flex">
         <div className="border-b border-slate-200 px-4 pb-5 pt-6 dark:border-slate-800">
@@ -163,7 +163,7 @@ function DashboardLayoutInner({
             <h2 className="text-base font-bold text-zinc-700 dark:text-white">Candidate Hub</h2>
             <div className="mt-1 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-secondary-green" aria-hidden />
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-700 dark:font-bold dark:text-white">Active status</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-white">Assistant online</p>
             </div>
           </div>
         </div>
