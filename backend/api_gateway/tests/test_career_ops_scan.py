@@ -13,7 +13,7 @@ from schemas.jobs import (
     CareerOpsScanRunRequest,
     CareerOpsScanRunResponse,
 )
-from services.career_ops_scan_service import run_career_ops_scan
+from services.career_ops_scan_service import list_career_ops_scan_runs, run_career_ops_scan
 
 
 @pytest.mark.asyncio
@@ -119,6 +119,50 @@ async def test_run_career_ops_scan_failure_marks_failed_and_emits_event(db_sessi
     ).scalars().all()
     assert "career_ops_scan_started" in telemetry_names
     assert "career_ops_scan_failed" in telemetry_names
+
+
+@pytest.mark.asyncio
+async def test_scan_history_persists_source_field(db_session):
+    user_id = "career_ops_user_3"
+    db_session.add(User(id=user_id, email="careerops3@example.com"))
+    db_session.add(
+        Job(
+            id="job_cos_3",
+            source="manual",
+            external_id="cos-ext-3",
+            title="ML Engineer",
+            company="Gamma",
+            location="Remote",
+            description="Role three",
+            url="https://example.com/jobs/3",
+        )
+    )
+    db_session.add(
+        JobScore(
+            user_id=user_id,
+            job_id="job_cos_3",
+            fit_score=4.2,
+            fit_reasons=["good fit"],
+            risk_flags=[],
+            dimension_scores={"tech": 4.2, "culture": 4.0, "seniority": 4.1, "comp": 4.0, "location": 4.5},
+            scored_at=datetime.now(UTC),
+        )
+    )
+    await db_session.commit()
+
+    await run_career_ops_scan(
+        session=db_session,
+        user_id=user_id,
+        payload=CareerOpsScanRunRequest(
+            source="discover_page",
+            trigger_catalog_refresh=False,
+            min_fit_threshold=4.0,
+        ),
+    )
+
+    history = await list_career_ops_scan_runs(session=db_session, user_id=user_id, limit=5)
+    assert history.runs
+    assert history.runs[0].source == "discover_page"
 
 
 def test_scan_routes_delegate_to_service(client, monkeypatch):
