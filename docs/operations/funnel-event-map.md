@@ -33,6 +33,12 @@ Primary source code: `apps/web/lib/telemetry.ts`, `apps/web/lib/api.ts`, `backen
 | `match_scoring_started` | Discover scoring state appears | `step` | Time-to-value progress instrumentation |
 | `match_scoring_eta_shown` | ETA displayed during scoring | `eta_seconds` | Scoring latency visibility and expectation mgmt |
 | `first_matches_ready` | Discover ready state reached | `duration_seconds`, `started_at`, `ready_at` | Activation success milestone; feeds activation KPI |
+| `career_ops_scan_started` | Career Ops scan initiated from Discover or refresh card | `scan_run_id`, `source`, `query`, `location`, `source_count`, `max_results`, `min_fit_threshold`, `queue_top_n` | Scan demand and operator intent before ranking |
+| `career_ops_threshold_applied` | Scan threshold filtering completed | `scan_run_id`, `min_fit_threshold`, `scored`, `kept_after_threshold` | Quality gate yield ratio (`kept/scored`) |
+| `career_ops_queue_top_n_clicked` | Queue-top-N behavior requested/applied during scan | `scan_run_id`, `queue_top_n`, `queued_to_pipeline`, `channel` | Scan-to-pipeline conversion efficiency |
+| `career_ops_scan_completed` | Scan run terminal success | `scan_run_id`, `status`, `fetched`, `scored`, `kept_after_threshold`, `queued_to_pipeline`, `duration_ms`, `min_fit_threshold` | Throughput and latency for scan loop |
+| `career_ops_scan_failed` | Scan run terminal failure | `scan_run_id`, `status`, `fetched`, `scored`, `kept_after_threshold`, `queued_to_pipeline`, `duration_ms`, `min_fit_threshold` | Reliability/error-rate monitoring for scan loop |
+| `career_ops_auto_pipeline_completed` | Scan-before-refresh completed from Match Pipeline card | `source`, `scan_run_id`, `status`, `scored`, `kept_after_threshold` | Combined automation usage and effectiveness |
 
 ---
 
@@ -59,6 +65,11 @@ Primary source code: `apps/web/lib/telemetry.ts`, `apps/web/lib/api.ts`, `backen
 5. **Activation latency panel**
    - `resume_upload_succeeded` -> `first_matches_ready`
    - Reconcile with `/v1/me/telemetry/activation-kpi`
+
+6. **Career Ops scan panel**
+   - `career_ops_scan_started` -> `career_ops_scan_completed` / `career_ops_scan_failed`
+   - Yield: `career_ops_threshold_applied` (`kept_after_threshold / scored`)
+   - Queue conversion: `career_ops_queue_top_n_clicked` (`queued_to_pipeline / queue_top_n`)
 
 ---
 

@@ -25,7 +25,6 @@ import { useJobs } from './useJobs'
 import { usePipeline } from '../pipeline/usePipeline'
 import { useJobStore } from './jobStore'
 import { applicationsApi, jobsApi, resumeApi, telemetryApi, type CareerOpsScanRunResponse } from '../../lib/api'
-import { trackEvent } from '../../lib/telemetry'
 import { resolveJobListingUrl } from './jobListingUrl'
 import { candidatePageShell, candidateTokens } from '../../lib/candidateUi'
 import {
@@ -481,6 +480,11 @@ function DiscoverPageContent() {
     telemetryApi.activationKpi,
     { revalidateOnFocus: true, dedupingInterval: 30_000 },
   )
+  const { data: careerOpsHistory, mutate: refreshCareerOpsHistory } = useSWR(
+    'career-ops-scan-history',
+    () => jobsApi.listCareerOpsScans(5),
+    { revalidateOnFocus: false, dedupingInterval: 20_000 },
+  )
   const [filterOpen, setFilterOpen] = useState(false)
   const [careerOpsRunning, setCareerOpsRunning] = useState(false)
   const [careerOpsError, setCareerOpsError] = useState<string | null>(null)
@@ -584,16 +588,12 @@ function DiscoverPageContent() {
     await refreshOnboarding()
     await refreshDashboard()
     await refreshActivationKpi()
+    await refreshCareerOpsHistory()
   }
 
   async function handleCareerOpsScan() {
     setCareerOpsRunning(true)
     setCareerOpsError(null)
-    trackEvent('career_ops_scan_started', {
-      source: 'discover_header',
-      query: searchText.trim() || null,
-      location: locationFilter.trim() || null,
-    })
     try {
       const result = await jobsApi.runCareerOpsScan({
         query: searchText.trim() || undefined,
@@ -605,17 +605,9 @@ function DiscoverPageContent() {
       })
       setCareerOpsLastRun(result)
       await handleRefresh()
-      trackEvent('career_ops_scan_completed', {
-        scan_run_id: result.scan_run_id,
-        status: result.status,
-        fetched: result.fetched,
-        scored: result.scored,
-        kept_after_threshold: result.kept_after_threshold,
-      })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not complete scan.'
       setCareerOpsError(message)
-      trackEvent('career_ops_scan_failed', { source: 'discover_header', message })
     } finally {
       setCareerOpsRunning(false)
     }
@@ -696,6 +688,19 @@ function DiscoverPageContent() {
         <div className="rounded-sm border border-secondary-green/30 bg-bg-light-green px-3 py-2 text-xs text-primary-green">
           Last scan: {careerOpsLastRun.kept_after_threshold} high-fit roles kept ({careerOpsLastRun.scored} scored,{' '}
           {careerOpsLastRun.queued_to_pipeline} queued)
+        </div>
+      ) : null}
+      {careerOpsHistory?.runs?.length ? (
+        <div className="rounded-sm border border-[#e4e5ec] bg-white dark:bg-slate-900 px-3 py-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Recent Career Ops scans</p>
+          <div className="mt-2 space-y-1">
+            {careerOpsHistory.runs.slice(0, 3).map((run) => (
+              <div key={run.scan_run_id} className="text-xs text-zinc-700">
+                <span className="font-medium">{run.status.toUpperCase()}</span> · kept {run.kept_after_threshold} / {run.scored}{' '}
+                · queued {run.queued_to_pipeline}
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
 

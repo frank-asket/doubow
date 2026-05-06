@@ -6,6 +6,7 @@ import useSWR from 'swr'
 import { Loader2, Sparkles, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import {
   ApiError,
+  jobsApi,
   jobSearchPipelineApi,
   mePreferencesApi,
   type FeedbackLearningPreferenceResponse,
@@ -61,6 +62,7 @@ export function MatchPipelineUpdateCard({
   const [running, setRunning] = useState(false)
   const [persistLearning, setPersistLearning] = useState(false)
   const [refreshCatalog, setRefreshCatalog] = useState(false)
+  const [scanBeforeRefresh, setScanBeforeRefresh] = useState(false)
   const [banner, setBanner] = useState<{ tone: 'ok' | 'err'; text: string } | null>(null)
   const [clearing, setClearing] = useState(false)
 
@@ -80,6 +82,13 @@ export function MatchPipelineUpdateCard({
     setRunning(true)
     setBanner(null)
     try {
+      if (scanBeforeRefresh) {
+        await jobsApi.runCareerOpsScan({
+          trigger_catalog_refresh: true,
+          resume_aligned_catalog: true,
+          queue_top_n: 0,
+        })
+      }
       const res = await jobSearchPipelineApi.run({
         persist_feedback_learning: persistLearning,
         trigger_catalog_refresh: refreshCatalog,
@@ -192,6 +201,20 @@ export function MatchPipelineUpdateCard({
           <span>
             <span className="font-medium">Also fetch new jobs from the web</span>
             <span className="block text-text-muted">Takes longer. Use when you want the latest listings from our sources.</span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 text-xs text-text-main">
+          <input
+            type="checkbox"
+            className="mt-0.5 rounded border-border-subtle"
+            checked={scanBeforeRefresh}
+            onChange={(e) => setScanBeforeRefresh(e.target.checked)}
+          />
+          <span>
+            <span className="font-medium">Run Career Ops scan before refresh</span>
+            <span className="block text-text-muted">
+              Triggers scan + scoring first, then runs the full profile/match/application refresh.
+            </span>
           </span>
         </label>
       </div>
