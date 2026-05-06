@@ -181,7 +181,11 @@ body {
   /* Buttons */
   .btn {
     @apply inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium
-           active:scale-[0.96] motion-reduce:active:scale-100 transition-colors duration-150 focus:outline-none focus:ring-2;
+           active:scale-[0.96] motion-reduce:active:scale-100 focus:outline-none focus:ring-2;
+    /* Same targets as transition-colors, plus transform so active:scale animates (not instant). */
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
     background: var(--surface-2);
     color: var(--foreground);
     border-color: var(--border);
