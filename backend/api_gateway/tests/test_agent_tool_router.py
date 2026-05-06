@@ -56,6 +56,27 @@ def test_plan_pipeline_runner_optional_fields(monkeypatch):
     assert out.persist_feedback_learning is False
 
 
+def test_plan_career_ops_scan_fields(monkeypatch):
+    from config import settings
+
+    monkeypatch.setattr(settings, "orchestrator_llm_tool_routing", True)
+    monkeypatch.setattr(settings, "openrouter_api_key", "sk-test")
+
+    async def fake_completion(**kwargs):
+        return (
+            '{"action":"run_career_ops_scan","limit":5,'
+            '"min_fit_threshold":4.2,"queue_top_n":6,"source":"assistant_test"}'
+        )
+
+    monkeypatch.setattr("services.agent_tool_router.chat_completion", fake_completion)
+    out = asyncio.run(plan_agent_action_from_llm("run career ops scan"))
+    assert out is not None
+    assert out.action == "run_career_ops_scan"
+    assert out.min_fit_threshold == 4.2
+    assert out.queue_top_n == 6
+    assert out.source == "assistant_test"
+
+
 def test_plan_none_action(monkeypatch):
     from config import settings
 

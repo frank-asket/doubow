@@ -24,6 +24,16 @@ AGENT_TOOLS: tuple[AgentToolSpec, ...] = (
         "(catalog Scrapling step when SCRAPLING_ENABLED).",
     ),
     AgentToolSpec(
+        "run_career_ops_scan",
+        "Run a Career Ops scan (catalog refresh + scoring + threshold gate + optional queue-top-N). "
+        "Returns scan_run_id, status, scored/kept/queued summary.",
+    ),
+    AgentToolSpec(
+        "run_career_ops_auto_pipeline",
+        "Run Career Ops scan first, then run the job-search pipeline refresh. "
+        "Returns scan_run_id and combined scan + pipeline summary.",
+    ),
+    AgentToolSpec(
         "list_pending_approvals",
         "List pending outbound drafts awaiting human approval (optional limit 1–20).",
     ),

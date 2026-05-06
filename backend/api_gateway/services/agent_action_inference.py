@@ -54,6 +54,16 @@ PREP_GENERATE_HINTS = (
     "create interview prep",
 )
 AUTOPILOT_HINTS = ("autopilot run", "batch run", "scoring run", "recent autopilot", "background run")
+CAREER_OPS_SCAN_HINTS = (
+    "career ops scan",
+    "run career ops scan",
+    "scan career ops",
+)
+CAREER_OPS_AUTO_PIPELINE_HINTS = (
+    "career ops auto pipeline",
+    "run career ops auto pipeline",
+    "career ops autopipeline",
+)
 PIPELINE_RUN_HINTS = (
     "run job search pipeline",
     "full job search pipeline",

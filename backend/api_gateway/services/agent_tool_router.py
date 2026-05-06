@@ -40,6 +40,9 @@ class _ToolPlanRaw(BaseModel):
     include_scrapling: bool | None = None
     resume_aligned_catalog: bool | None = None
     pipeline_stages: list[str] | None = None
+    min_fit_threshold: float | None = None
+    queue_top_n: int | None = None
+    source: str | None = None
 
 
 def _extract_json_object(text: str) -> str | None:
@@ -81,6 +84,9 @@ async def plan_agent_action_from_llm(user_message: str) -> AgentActionCall | Non
         "- include_scrapling: boolean or null — only for run_job_search_pipeline with catalog refresh; Scrapling step.\n"
         "- resume_aligned_catalog: boolean or null — catalog ingest option.\n"
         "- pipeline_stages: array of stage id strings or null — omit for default full pipeline.\n"
+        "- min_fit_threshold: number 0-5 or null — for run_career_ops_scan / run_career_ops_auto_pipeline.\n"
+        "- queue_top_n: integer 0-20 or null — for run_career_ops_scan / run_career_ops_auto_pipeline.\n"
+        "- source: string or null — optional source tag for career ops actions.\n"
         "Choose `none` when the user is asking for advice, explanation, or editing prose — not an account action.\n\n"
         "Tools:\n"
         f"{catalog}"
@@ -153,5 +159,11 @@ async def plan_agent_action_from_llm(user_message: str) -> AgentActionCall | Non
         call_kwargs["resume_aligned_catalog"] = plan.resume_aligned_catalog
     if plan.pipeline_stages is not None:
         call_kwargs["pipeline_stages"] = plan.pipeline_stages
+    if plan.min_fit_threshold is not None:
+        call_kwargs["min_fit_threshold"] = max(0.0, min(5.0, float(plan.min_fit_threshold)))
+    if plan.queue_top_n is not None:
+        call_kwargs["queue_top_n"] = max(0, min(20, int(plan.queue_top_n)))
+    if plan.source is not None:
+        call_kwargs["source"] = plan.source[:64]
 
     return AgentActionCall(**call_kwargs)

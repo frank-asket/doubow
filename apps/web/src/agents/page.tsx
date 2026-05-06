@@ -20,6 +20,8 @@ const AGENT_META: Record<string, { icon: string; color: string }> = {
 
 const SUGGESTED_PROMPTS = [
   'What are my best opportunities right now?',
+  '/career-ops scan',
+  '/career-ops auto-pipeline --threshold 4.0 --queue-top 5',
   'Why did a score drop recently?',
   'Draft a follow-up for my latest application',
   'What\'s stale in my pipeline?',

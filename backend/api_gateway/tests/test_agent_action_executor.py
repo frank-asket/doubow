@@ -28,6 +28,31 @@ def test_infer_pipeline_run_natural_language() -> None:
     assert action.action == "run_job_search_pipeline"
 
 
+def test_infer_career_ops_scan_slash_with_flags() -> None:
+    action = infer_action_from_message("/career-ops scan --threshold 4.0 --queue-top 5")
+    assert action is not None
+    assert action.action == "run_career_ops_scan"
+    assert action.min_fit_threshold == 4.0
+    assert action.queue_top_n == 5
+    assert action.source == "assistant_career_ops_command"
+
+
+def test_infer_career_ops_auto_pipeline_natural_language() -> None:
+    action = infer_action_from_message("please run career ops auto pipeline now")
+    assert action is not None
+    assert action.action == "run_career_ops_auto_pipeline"
+    assert action.source == "assistant_nl"
+
+
+def test_infer_career_ops_auto_pipeline_slash_with_flags() -> None:
+    action = infer_action_from_message("/career-ops auto-pipeline --threshold 4.5 --queue-top 8")
+    assert action is not None
+    assert action.action == "run_career_ops_auto_pipeline"
+    assert action.min_fit_threshold == 4.5
+    assert action.queue_top_n == 8
+    assert action.source == "assistant_career_ops_command"
+
+
 def test_infer_pipeline_summary_still_snapshot_not_runner() -> None:
     action = infer_action_from_message("pipeline summary with status mix")
     assert action is not None
@@ -215,3 +240,64 @@ async def test_execute_action_maps_approval_error_to_policy_error(monkeypatch: p
         )
     assert exc.value.action == "approve_outbound_draft"
     assert exc.value.code == "approval_not_found"
+
+
+@pytest.mark.asyncio
+async def test_execute_action_run_career_ops_scan_summary(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def _fake_scan(*, session, user_id, payload):
+        return SimpleNamespace(
+            scan_run_id="scan_123",
+            status="done",
+            scored=12,
+            kept_after_threshold=7,
+            queued_to_pipeline=3,
+        )
+
+    monkeypatch.setattr("services.agent_action_executor.run_career_ops_scan", _fake_scan)
+
+    result = await execute_action(
+        session=SimpleNamespace(),
+        user_id="usr_1",
+        call=AgentActionCall(
+            action="run_career_ops_scan",
+            min_fit_threshold=4.0,
+            queue_top_n=3,
+            source="assistant_test",
+        ),
+    )
+    assert result.action == "run_career_ops_scan"
+    assert "scan_run_id: `scan_123`" in result.response_text
+    assert "Scored: 12, kept after threshold: 7, queued: 3." in result.response_text
+
+
+@pytest.mark.asyncio
+async def test_execute_action_run_career_ops_auto_pipeline_summary(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def _fake_scan(*, session, user_id, payload):
+        return SimpleNamespace(
+            scan_run_id="scan_999",
+            status="done",
+            scored=20,
+            kept_after_threshold=9,
+            queued_to_pipeline=4,
+        )
+
+    async def _fake_run_pipeline(*, session, user_id, pipeline_stages, trigger_catalog_refresh, persist_feedback_learning, catalog_preset, include_legacy_connectors, include_scrapling, resume_aligned_catalog, settings):  # type: ignore[no-untyped-def]
+        return "pipeline refreshed"
+
+    monkeypatch.setattr("services.agent_action_executor.run_career_ops_scan", _fake_scan)
+    monkeypatch.setattr("services.agent_action_executor.run_job_search_pipeline_action", _fake_run_pipeline)
+
+    result = await execute_action(
+        session=SimpleNamespace(),
+        user_id="usr_1",
+        call=AgentActionCall(
+            action="run_career_ops_auto_pipeline",
+            min_fit_threshold=4.0,
+            queue_top_n=5,
+            source="assistant_test",
+        ),
+    )
+    assert result.action == "run_career_ops_auto_pipeline"
+    assert "scan_run_id `scan_999`" in result.response_text
+    assert "Scored: 20, kept: 9, queued: 4." in result.response_text
+    assert "pipeline refreshed" in result.response_text

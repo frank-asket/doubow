@@ -15,8 +15,10 @@ from models.job_score import JobScore
 from models.prep_session import PrepSession
 from models.resume import Resume
 from config import settings as app_settings
+from schemas.jobs import CareerOpsScanRunRequest
 from services.draft_service import ApplicationNotFoundError, create_draft_approval_for_application
 from services.jobs_service import recompute_job_scores_for_user
+from services.career_ops_scan_service import run_career_ops_scan
 from services.agent_action_approvals import (
     ApprovalActionError,
     approve_outbound_draft_action,
@@ -39,6 +41,8 @@ from services.agent_action_inference import (
     APPLICATION_HINTS,
     APPROVAL_HINTS,
     AUTOPILOT_HINTS,
+    CAREER_OPS_AUTO_PIPELINE_HINTS,
+    CAREER_OPS_SCAN_HINTS,
     DRAFT_HINTS,
     MATCH_HINTS,
     PIPELINE_HINTS,
@@ -73,6 +77,8 @@ AgentActionName = Literal[
     "approve_outbound_draft",
     "reject_outbound_draft",
     "run_job_search_pipeline",
+    "run_career_ops_scan",
+    "run_career_ops_auto_pipeline",
 ]
 
 class AgentActionCall(BaseModel):
@@ -89,6 +95,9 @@ class AgentActionCall(BaseModel):
     include_scrapling: bool = True
     resume_aligned_catalog: bool = True
     pipeline_stages: list[str] | None = None
+    min_fit_threshold: float = Field(default=0.0, ge=0.0, le=5.0)
+    queue_top_n: int = Field(default=0, ge=0, le=20)
+    source: str | None = None
 
 
 class AgentActionResult(BaseModel):
@@ -120,6 +129,26 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
             persist_feedback_learning=persist,
         )
 
+    if lower.startswith("/career-ops"):
+        rest = lower[len("/career-ops") :].strip()
+        threshold = _extract_threshold(rest)
+        queue_top = _extract_queue_top(rest)
+        source = "assistant_career_ops_command"
+        if rest.startswith("auto-pipeline"):
+            return AgentActionCall(
+                action="run_career_ops_auto_pipeline",
+                min_fit_threshold=threshold,
+                queue_top_n=queue_top,
+                source=source,
+            )
+        if rest.startswith("scan"):
+            return AgentActionCall(
+                action="run_career_ops_scan",
+                min_fit_threshold=threshold,
+                queue_top_n=queue_top,
+                source=source,
+            )
+
     if lower.startswith("/queue"):
         return AgentActionCall(
             action="queue_job_to_pipeline",
@@ -143,6 +172,18 @@ def infer_action_from_message(message: str) -> AgentActionCall | None:
             action="run_job_search_pipeline",
             trigger_catalog_refresh=trig,
             persist_feedback_learning=persist,
+        )
+
+    if any(hint in lower for hint in CAREER_OPS_AUTO_PIPELINE_HINTS):
+        return AgentActionCall(
+            action="run_career_ops_auto_pipeline",
+            source="assistant_nl",
+        )
+
+    if any(hint in lower for hint in CAREER_OPS_SCAN_HINTS):
+        return AgentActionCall(
+            action="run_career_ops_scan",
+            source="assistant_nl",
         )
 
     if lower.startswith("/pipeline") or any(hint in lower for hint in PIPELINE_HINTS):
@@ -233,6 +274,10 @@ async def execute_action(
         return await _reject_outbound_draft(session=session, user_id=user_id, call=call)
     if call.action == "run_job_search_pipeline":
         return await _run_job_search_pipeline(session=session, user_id=user_id, call=call)
+    if call.action == "run_career_ops_scan":
+        return await _run_career_ops_scan_action(session=session, user_id=user_id, call=call)
+    if call.action == "run_career_ops_auto_pipeline":
+        return await _run_career_ops_auto_pipeline_action(session=session, user_id=user_id, call=call)
     raise ValueError(f"Unknown action: {call.action}")
 
 
@@ -261,6 +306,65 @@ async def _run_job_search_pipeline(
     return AgentActionResult(action="run_job_search_pipeline", response_text=body)
 
 
+async def _run_career_ops_scan_action(
+    *, session: AsyncSession, user_id: str, call: AgentActionCall
+) -> AgentActionResult:
+    res = await run_career_ops_scan(
+        session=session,
+        user_id=user_id,
+        payload=CareerOpsScanRunRequest(
+            source=call.source or "assistant",
+            min_fit_threshold=call.min_fit_threshold,
+            queue_top_n=call.queue_top_n,
+            trigger_catalog_refresh=True,
+            resume_aligned_catalog=True,
+        ),
+    )
+    body = (
+        "Summary:\n"
+        f"- Career Ops scan completed with status `{res.status}`.\n"
+        f"- scan_run_id: `{res.scan_run_id}`.\n"
+        f"- Scored: {res.scored}, kept after threshold: {res.kept_after_threshold}, queued: {res.queued_to_pipeline}.\n"
+        "Recommended Actions:\n"
+        "- Review kept roles in Discover and queue top opportunities.\n"
+        "Next Step:\n"
+        "- Ask for top job matches or run full auto-pipeline."
+    )
+    return AgentActionResult(action="run_career_ops_scan", response_text=body)
+
+
+async def _run_career_ops_auto_pipeline_action(
+    *, session: AsyncSession, user_id: str, call: AgentActionCall
+) -> AgentActionResult:
+    scan = await run_career_ops_scan(
+        session=session,
+        user_id=user_id,
+        payload=CareerOpsScanRunRequest(
+            source=call.source or "assistant_auto_pipeline",
+            min_fit_threshold=call.min_fit_threshold,
+            queue_top_n=call.queue_top_n,
+            trigger_catalog_refresh=True,
+            resume_aligned_catalog=True,
+        ),
+    )
+    pipeline = await _run_job_search_pipeline(
+        session=session,
+        user_id=user_id,
+        call=AgentActionCall(
+            action="run_job_search_pipeline",
+            trigger_catalog_refresh=False,
+            persist_feedback_learning=call.persist_feedback_learning,
+        ),
+    )
+    body = (
+        "Summary:\n"
+        f"- Career Ops auto-pipeline scan status `{scan.status}` (scan_run_id `{scan.scan_run_id}`).\n"
+        f"- Scored: {scan.scored}, kept: {scan.kept_after_threshold}, queued: {scan.queued_to_pipeline}.\n\n"
+        f"{pipeline.response_text}"
+    )
+    return AgentActionResult(action="run_career_ops_auto_pipeline", response_text=body)
+
+
 def _extract_application_id(text: str) -> str | None:
     return extract_application_id(text)
 
@@ -275,6 +379,32 @@ def _extract_approval_id_only(text: str) -> str | None:
 
 def _infer_channel(lower_text: str) -> AgentChannel | None:
     return infer_channel(lower_text)
+
+
+def _extract_threshold(text: str) -> float:
+    import re
+
+    m = re.search(r"(?:--threshold|threshold)\s+([0-5](?:\.[0-9])?)", text)
+    if not m:
+        return 0.0
+    try:
+        value = float(m.group(1))
+    except Exception:
+        return 0.0
+    return max(0.0, min(5.0, value))
+
+
+def _extract_queue_top(text: str) -> int:
+    import re
+
+    m = re.search(r"(?:--queue-top|queue-top)\s+(\d{1,2})", text)
+    if not m:
+        return 0
+    try:
+        value = int(m.group(1))
+    except Exception:
+        return 0
+    return max(0, min(20, value))
 
 
 async def _queue_job_to_pipeline(
