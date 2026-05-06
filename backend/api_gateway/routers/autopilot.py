@@ -22,9 +22,31 @@ from services.autopilot_service import (
     list_autopilot_runs as list_autopilot_runs_service,
     run_autopilot as run_autopilot_service,
 )
+from services.rate_limit_service import (
+    RateLimitBackendUnavailableError,
+    RateLimitExceededError,
+    enforce_user_window_limit,
+)
 
 router = APIRouter(prefix="/me/autopilot", tags=["autopilot"])
 logger = logging.getLogger(__name__)
+
+
+async def _enforce_autopilot_limit(*, bucket: str, user_id: str, limit: int, window_s: int) -> None:
+    try:
+        await enforce_user_window_limit(bucket=bucket, user_id=user_id, limit=limit, window_s=window_s)
+    except RateLimitExceededError as exc:
+        headers = {"Retry-After": str(exc.retry_after_s)} if exc.retry_after_s is not None else None
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Rate limit exceeded for {bucket}. Please retry shortly.",
+            headers=headers,
+        ) from exc
+    except RateLimitBackendUnavailableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Rate limiter temporarily unavailable",
+        ) from exc
 
 
 async def _execute_autopilot_resume_task(
@@ -52,6 +74,12 @@ async def run_autopilot_route(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_authenticated_user),
 ) -> AutopilotRunResponse:
+    await _enforce_autopilot_limit(
+        bucket="autopilot_run",
+        user_id=user.id,
+        limit=settings.autopilot_run_max_requests_per_window,
+        window_s=settings.autopilot_run_window_seconds,
+    )
     try:
         response, replayed = await run_autopilot_service(
             session=session,
@@ -110,6 +138,12 @@ async def resume_autopilot_run_route(
 
     Requires a stored LangGraph checkpoint when checkpointing is enabled.
     """
+    await _enforce_autopilot_limit(
+        bucket="autopilot_resume",
+        user_id=user.id,
+        limit=settings.autopilot_resume_max_requests_per_window,
+        window_s=settings.autopilot_resume_window_seconds,
+    )
     _, reason = await validate_resume_eligibility(session=session, user_id=user.id, run_id=run_id)
     if reason:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=reason)

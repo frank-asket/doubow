@@ -13,6 +13,11 @@ from dependencies import get_authenticated_user
 from ingestion.scheduler.celery_tasks import ingest_all_sources, ingest_single_source
 from ingestion.scheduler.ingestion_engine import ALL_CONNECTORS
 from models.user import User
+from services.rate_limit_service import (
+    RateLimitBackendUnavailableError,
+    RateLimitExceededError,
+    enforce_user_window_limit,
+)
 
 router = APIRouter(prefix="/admin/ingestion", tags=["ingestion"])
 
@@ -27,6 +32,23 @@ def _require_ingestion_admin(user: User) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin ingestion access is restricted",
         )
+
+
+async def _enforce_ingestion_limit(*, bucket: str, user_id: str, limit: int, window_s: int) -> None:
+    try:
+        await enforce_user_window_limit(bucket=bucket, user_id=user_id, limit=limit, window_s=window_s)
+    except RateLimitExceededError as exc:
+        headers = {"Retry-After": str(exc.retry_after_s)} if exc.retry_after_s is not None else None
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Rate limit exceeded for {bucket}. Please retry shortly.",
+            headers=headers,
+        ) from exc
+    except RateLimitBackendUnavailableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Rate limiter temporarily unavailable",
+        ) from exc
 
 
 @router.get("/status")
@@ -96,6 +118,12 @@ async def trigger_ingestion(
     user: User = Depends(get_authenticated_user),
 ):
     _require_ingestion_admin(user)
+    await _enforce_ingestion_limit(
+        bucket="ingestion_run",
+        user_id=user.id,
+        limit=settings.ingestion_run_max_requests_per_window,
+        window_s=settings.ingestion_run_window_seconds,
+    )
     if source:
         if source not in ALL_CONNECTORS:
             raise HTTPException(status_code=422, detail=f"Unknown source '{source}'")
@@ -143,6 +171,13 @@ async def ingestion_runs(
 @router.get("/health")
 async def connector_health(user: User = Depends(get_authenticated_user)):
     _require_ingestion_admin(user)
+    await _enforce_ingestion_limit(
+        bucket="ingestion_health",
+        user_id=user.id,
+        limit=settings.ingestion_health_max_requests_per_window,
+        window_s=settings.ingestion_health_window_seconds,
+    )
+
     async def _check_one(name: str, connector_cls):
         try:
             return await connector_cls().health_check()

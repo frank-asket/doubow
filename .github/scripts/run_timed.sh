@@ -22,7 +22,9 @@ echo "[timing] ${label} start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 set +e
 timeout --foreground --kill-after=30s "${timeout_window}" "$@"
 exit_code="$?"
-set -e
+
+# Keep errexit disabled for diagnostics/cleanup so this script always exits with the wrapped command status.
+# Individual cleanup commands still use `|| true` where failure is expected/harmless.
 
 ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" > "${after_file}" || true
 echo "[timing] ${label} process snapshot AFTER:"

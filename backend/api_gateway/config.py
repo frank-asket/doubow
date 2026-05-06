@@ -120,6 +120,16 @@ class Settings(BaseSettings):
     agents_chat_max_requests_per_window: int = 30
     agents_pipeline_window_seconds: int = 60
     agents_pipeline_max_requests_per_window: int = 4
+    # Autopilot endpoints are expensive (queueing + background orchestration).
+    autopilot_run_window_seconds: int = 60
+    autopilot_run_max_requests_per_window: int = 4
+    autopilot_resume_window_seconds: int = 60
+    autopilot_resume_max_requests_per_window: int = 6
+    # Admin ingestion endpoints can trigger high-cost upstream sync work.
+    ingestion_run_window_seconds: int = 300
+    ingestion_run_max_requests_per_window: int = 2
+    ingestion_health_window_seconds: int = 60
+    ingestion_health_max_requests_per_window: int = 6
     # When True and OpenRouter is configured, classify uncaught NL into structured agent tools (agent-native routing).
     orchestrator_llm_tool_routing: bool = True
     # Blend weight for semantic score in final fit score. 0.0 disables impact.
