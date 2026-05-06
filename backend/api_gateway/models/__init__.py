@@ -1,4 +1,5 @@
 from models.application import Application
+from models.career_ops_scan_run import CareerOpsScanRun
 from models.chat_message import ChatMessage
 from models.chat_thread import ChatThread
 from models.approval import Approval
@@ -28,6 +29,7 @@ __all__ = [
     "JobScore",
     "JobDismissal",
     "Application",
+    "CareerOpsScanRun",
     "ChatThread",
     "ChatMessage",
     "Approval",

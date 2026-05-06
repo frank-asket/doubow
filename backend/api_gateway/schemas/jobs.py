@@ -183,3 +183,61 @@ class CatalogPresetIngestResponse(BaseModel):
 class JobScoresRecomputeResponse(BaseModel):
     user_id: str
     refreshed_scores: int
+
+
+class CareerOpsScanRunRequest(BaseModel):
+    query: str | None = Field(default=None, max_length=255)
+    location: str | None = Field(default=None, max_length=255)
+    sources: list[str] | None = Field(default=None, max_length=20)
+    max_results: int = Field(default=100, ge=1, le=500)
+    min_fit_threshold: float = Field(default=0.0, ge=0.0, le=5.0)
+    queue_top_n: int = Field(default=0, ge=0, le=20)
+    channel: Channel = "email"
+    trigger_catalog_refresh: bool = True
+    catalog_preset: Literal["hourly", "daily"] = "hourly"
+    include_legacy_connectors: bool = False
+    include_scrapling: bool = True
+    resume_aligned_catalog: bool = True
+
+
+class CareerOpsScanRunResponse(BaseModel):
+    scan_run_id: str
+    status: Literal["queued", "running", "done", "failed"]
+    fetched: int
+    inserted: int
+    updated: int
+    deduped: int
+    scored: int
+    kept_after_threshold: int
+    queued_to_pipeline: int
+    top_job_ids: list[str] = Field(default_factory=list)
+    duration_ms: int | None = None
+    error_code: str | None = None
+    error_detail: str | None = None
+
+
+class CareerOpsScanHistoryItem(BaseModel):
+    scan_run_id: str
+    status: Literal["queued", "running", "done", "failed"]
+    query: str | None = None
+    location: str | None = None
+    sources: list[str] = Field(default_factory=list)
+    max_results: int
+    min_fit_threshold: float
+    queue_top_n: int
+    fetched: int
+    inserted: int
+    updated: int
+    deduped: int
+    scored: int
+    kept_after_threshold: int
+    queued_to_pipeline: int
+    duration_ms: int | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    created_at: datetime
+    error_code: str | None = None
+
+
+class CareerOpsScanHistoryResponse(BaseModel):
+    runs: list[CareerOpsScanHistoryItem]

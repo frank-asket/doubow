@@ -19,6 +19,12 @@ TelemetryEventName = Literal[
     "settings_reconnect_clicked",
     "settings_contact_support_clicked",
     "billing_checkout_returned",
+    "career_ops_scan_started",
+    "career_ops_scan_completed",
+    "career_ops_scan_failed",
+    "career_ops_threshold_applied",
+    "career_ops_queue_top_n_clicked",
+    "career_ops_auto_pipeline_completed",
 ]
 
 

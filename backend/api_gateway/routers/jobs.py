@@ -12,6 +12,9 @@ from schemas.jobs import (
     AdzunaIngestRequest,
     AdzunaIngestResponse,
     AdzunaPresetIngestResponse,
+    CareerOpsScanHistoryResponse,
+    CareerOpsScanRunRequest,
+    CareerOpsScanRunResponse,
     CatalogPresetIngestResponse,
     DiscoverJobsRequest,
     DiscoverJobsResponse,
@@ -23,6 +26,7 @@ from schemas.jobs import (
     ScraplingIngestRequest,
     ScraplingIngestResponse,
 )
+from services.career_ops_scan_service import list_career_ops_scan_runs, run_career_ops_scan
 from services.adzuna_adapter import AdzunaAdapter, resolve_adzuna_scheduled_ingest_params
 from services.greenhouse_adapter import GreenhouseAdapter, resolve_greenhouse_scheduled_ingest_params
 from services.job_discovery_service import discover_upsert_jobs
@@ -58,6 +62,25 @@ async def discover_jobs_route(
 ) -> DiscoverJobsResponse:
     """Upsert jobs into the catalog (feed / connector → Postgres) and bootstrap scores for this user."""
     return await discover_upsert_jobs(session=session, user_id=user.id, payload=payload)
+
+
+@router.post("/scan/run", response_model=CareerOpsScanRunResponse)
+async def run_scan_route(
+    payload: CareerOpsScanRunRequest,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> CareerOpsScanRunResponse:
+    """Run Career Ops-style scan + score + threshold gate, optionally queueing top matches."""
+    return await run_career_ops_scan(session=session, user_id=user.id, payload=payload)
+
+
+@router.get("/scan/runs", response_model=CareerOpsScanHistoryResponse)
+async def list_scan_runs_route(
+    limit: int = Query(default=20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_authenticated_user),
+) -> CareerOpsScanHistoryResponse:
+    return await list_career_ops_scan_runs(session=session, user_id=user.id, limit=limit)
 
 
 @router.post("/providers/adzuna/ingest", response_model=AdzunaIngestResponse)

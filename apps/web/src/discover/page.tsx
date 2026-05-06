@@ -24,7 +24,8 @@ import { cn, fitClass, channelLabel, channelBadgeClass, relativeTime, scoreBarWi
 import { useJobs } from './useJobs'
 import { usePipeline } from '../pipeline/usePipeline'
 import { useJobStore } from './jobStore'
-import { applicationsApi, resumeApi, telemetryApi } from '../../lib/api'
+import { applicationsApi, jobsApi, resumeApi, telemetryApi, type CareerOpsScanRunResponse } from '../../lib/api'
+import { trackEvent } from '../../lib/telemetry'
 import { resolveJobListingUrl } from './jobListingUrl'
 import { candidatePageShell, candidateTokens } from '../../lib/candidateUi'
 import {
@@ -481,6 +482,9 @@ function DiscoverPageContent() {
     { revalidateOnFocus: true, dedupingInterval: 30_000 },
   )
   const [filterOpen, setFilterOpen] = useState(false)
+  const [careerOpsRunning, setCareerOpsRunning] = useState(false)
+  const [careerOpsError, setCareerOpsError] = useState<string | null>(null)
+  const [careerOpsLastRun, setCareerOpsLastRun] = useState<CareerOpsScanRunResponse | null>(null)
   const {
     searchText,
     setSearchText,
@@ -582,6 +586,41 @@ function DiscoverPageContent() {
     await refreshActivationKpi()
   }
 
+  async function handleCareerOpsScan() {
+    setCareerOpsRunning(true)
+    setCareerOpsError(null)
+    trackEvent('career_ops_scan_started', {
+      source: 'discover_header',
+      query: searchText.trim() || null,
+      location: locationFilter.trim() || null,
+    })
+    try {
+      const result = await jobsApi.runCareerOpsScan({
+        query: searchText.trim() || undefined,
+        location: locationFilter.trim() || undefined,
+        min_fit_threshold: Math.max(0, minFit || 0),
+        queue_top_n: 0,
+        trigger_catalog_refresh: true,
+        resume_aligned_catalog: true,
+      })
+      setCareerOpsLastRun(result)
+      await handleRefresh()
+      trackEvent('career_ops_scan_completed', {
+        scan_run_id: result.scan_run_id,
+        status: result.status,
+        fetched: result.fetched,
+        scored: result.scored,
+        kept_after_threshold: result.kept_after_threshold,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not complete scan.'
+      setCareerOpsError(message)
+      trackEvent('career_ops_scan_failed', { source: 'discover_header', message })
+    } finally {
+      setCareerOpsRunning(false)
+    }
+  }
+
   return (
     <div className={candidatePageShell}>
       <DashboardPageHeader
@@ -628,6 +667,16 @@ function DiscoverPageContent() {
               </motion.span>
               Refresh
             </motion.button>
+            <motion.button
+              type="button"
+              onClick={() => void handleCareerOpsScan()}
+              disabled={careerOpsRunning}
+              {...microInteractionMotion}
+              className="inline-flex items-center gap-1.5 rounded-sm border border-secondary-green/30 bg-bg-light-green px-3 py-2 text-[14px] font-medium text-primary-green shadow-sm hover:bg-highlight-green disabled:opacity-60"
+            >
+              <Sparkles size={13} aria-hidden />
+              {careerOpsRunning ? 'Scanning…' : 'Career Ops scan'}
+            </motion.button>
           </>
         }
       />
@@ -637,6 +686,18 @@ function DiscoverPageContent() {
           await handleRefresh()
         }}
       />
+
+      {careerOpsError ? (
+        <div className="rounded-sm border border-primary-orange/35 bg-highlight-orange px-3 py-2 text-xs text-primary-orange">
+          Career Ops scan failed: {careerOpsError}
+        </div>
+      ) : null}
+      {careerOpsLastRun ? (
+        <div className="rounded-sm border border-secondary-green/30 bg-bg-light-green px-3 py-2 text-xs text-primary-green">
+          Last scan: {careerOpsLastRun.kept_after_threshold} high-fit roles kept ({careerOpsLastRun.scored} scored,{' '}
+          {careerOpsLastRun.queued_to_pipeline} queued)
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-xl">

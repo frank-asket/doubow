@@ -94,6 +94,64 @@ export const dashboardApi = {
 
 // ─── Jobs ──────────────────────────────────────────────────────────────────
 
+export type CareerOpsScanRunRequest = {
+  query?: string
+  location?: string
+  sources?: string[]
+  max_results?: number
+  min_fit_threshold?: number
+  queue_top_n?: number
+  channel?: 'email' | 'linkedin' | 'company_site'
+  trigger_catalog_refresh?: boolean
+  catalog_preset?: 'hourly' | 'daily'
+  include_legacy_connectors?: boolean
+  include_scrapling?: boolean
+  resume_aligned_catalog?: boolean
+}
+
+export type CareerOpsScanRunResponse = {
+  scan_run_id: string
+  status: 'queued' | 'running' | 'done' | 'failed'
+  fetched: number
+  inserted: number
+  updated: number
+  deduped: number
+  scored: number
+  kept_after_threshold: number
+  queued_to_pipeline: number
+  top_job_ids: string[]
+  duration_ms: number | null
+  error_code?: string | null
+  error_detail?: string | null
+}
+
+export type CareerOpsScanHistoryItem = {
+  scan_run_id: string
+  status: 'queued' | 'running' | 'done' | 'failed'
+  query?: string | null
+  location?: string | null
+  sources: string[]
+  max_results: number
+  min_fit_threshold: number
+  queue_top_n: number
+  fetched: number
+  inserted: number
+  updated: number
+  deduped: number
+  scored: number
+  kept_after_threshold: number
+  queued_to_pipeline: number
+  duration_ms: number | null
+  started_at?: string | null
+  completed_at?: string | null
+  created_at: string
+  error_code?: string | null
+}
+
+export type CareerOpsScanHistoryResponse = {
+  runs: CareerOpsScanHistoryItem[]
+}
+
 export const jobsApi = {
   list: (params: { min_fit?: number; location?: string; page?: number; has_salary?: boolean } = {}) => {
     const q = new URLSearchParams()
@@ -110,6 +168,13 @@ export const jobsApi = {
       method: 'POST',
       body: JSON.stringify({ jobs }),
     }),
+  runCareerOpsScan: (body: CareerOpsScanRunRequest) =>
+    request<CareerOpsScanRunResponse>('/v1/jobs/scan/run', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  listCareerOpsScans: (limit: number = 20) =>
+    request<CareerOpsScanHistoryResponse>(`/v1/jobs/scan/runs?limit=${Math.max(1, Math.min(100, limit))}`),
 }
 
 // ─── Applications ──────────────────────────────────────────────────────────
@@ -257,6 +322,12 @@ type TelemetryEventName =
   | 'settings_reconnect_clicked'
   | 'settings_contact_support_clicked'
   | 'billing_checkout_returned'
+  | 'career_ops_scan_started'
+  | 'career_ops_scan_completed'
+  | 'career_ops_scan_failed'
+  | 'career_ops_threshold_applied'
+  | 'career_ops_queue_top_n_clicked'
+  | 'career_ops_auto_pipeline_completed'
 
 export const telemetryApi = {
   track: (event_name: TelemetryEventName, properties: Record<string, unknown> = {}, occurred_at?: string) =>

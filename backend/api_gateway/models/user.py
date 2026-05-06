@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.session import Base
 
 if TYPE_CHECKING:
+    from models.career_ops_scan_run import CareerOpsScanRun
     from models.google_oauth_credential import GoogleOAuthCredential
     from models.linkedin_oauth_credential import LinkedInOAuthCredential
     from models.chat_thread import ChatThread
@@ -62,6 +63,9 @@ class User(Base):
     )
     telemetry_events: Mapped[list["TelemetryEvent"]] = relationship(
         "TelemetryEvent", back_populates="user", cascade="all, delete-orphan"
+    )
+    career_ops_scan_runs: Mapped[list["CareerOpsScanRun"]] = relationship(
+        "CareerOpsScanRun", cascade="all, delete-orphan"
     )
     google_oauth: Mapped["GoogleOAuthCredential | None"] = relationship(
         "GoogleOAuthCredential",
