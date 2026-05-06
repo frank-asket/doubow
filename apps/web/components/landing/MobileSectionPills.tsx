@@ -15,29 +15,44 @@ export default function MobileSectionPills() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const nodes = SECTIONS.map(({ id }) => document.getElementById(id)).filter(
-      (node): node is HTMLElement => node != null,
-    )
-    if (nodes.length === 0) return
+    const mobileQuery = window.matchMedia('(max-width: 767px)')
+    let observer: IntersectionObserver | null = null
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-        if (visible[0]?.target?.id) {
-          setActiveId(visible[0].target.id)
-        }
-      },
-      {
-        // Accounts for fixed header + mobile pill row.
-        rootMargin: '-130px 0px -55% 0px',
-        threshold: [0.2, 0.35, 0.5, 0.7],
-      },
-    )
+    const setupObserver = () => {
+      observer?.disconnect()
+      observer = null
+      if (!mobileQuery.matches) return
 
-    nodes.forEach((node) => observer.observe(node))
-    return () => observer.disconnect()
+      const nodes = SECTIONS.map(({ id }) => document.getElementById(id)).filter(
+        (node): node is HTMLElement => node != null,
+      )
+      if (nodes.length === 0) return
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+          if (visible[0]?.target?.id) {
+            setActiveId(visible[0].target.id)
+          }
+        },
+        {
+          // Accounts for fixed header + mobile pill row.
+          rootMargin: '-130px 0px -55% 0px',
+          threshold: [0.2, 0.35, 0.5, 0.7],
+        },
+      )
+
+      nodes.forEach((node) => observer?.observe(node))
+    }
+
+    setupObserver()
+    mobileQuery.addEventListener('change', setupObserver)
+    return () => {
+      mobileQuery.removeEventListener('change', setupObserver)
+      observer?.disconnect()
+    }
   }, [])
 
   return (
