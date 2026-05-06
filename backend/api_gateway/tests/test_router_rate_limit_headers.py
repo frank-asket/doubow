@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from db.session import get_session
 from dependencies import get_authenticated_user
 from models.user import User
+from routers import agents as agents_router
 from routers import autopilot as autopilot_router
 from routers import ingestion as ingestion_router
 from services.rate_limit_service import RateLimitBackendUnavailableError
@@ -29,8 +30,15 @@ async def _override_authenticated_user() -> User:
     return User(id="user_test_123", email="test@example.com", name="Test User", plan="free")
 
 
-def _build_test_client(*, include_autopilot: bool = False, include_ingestion: bool = False) -> TestClient:
+def _build_test_client(
+    *,
+    include_agents: bool = False,
+    include_autopilot: bool = False,
+    include_ingestion: bool = False,
+) -> TestClient:
     app = FastAPI()
+    if include_agents:
+        app.include_router(agents_router.router, prefix="/v1")
     if include_autopilot:
         app.include_router(autopilot_router.router, prefix="/v1")
     if include_ingestion:
@@ -121,6 +129,46 @@ def test_ingestion_routes_return_503_when_rate_limit_backend_unavailable(monkeyp
 
     with _build_test_client(include_ingestion=True) as client:
         response = getattr(client, method)(path)
+
+    assert response.status_code == 503
+    assert response.headers.get("Retry-After") is None
+
+
+@pytest.mark.parametrize(
+    ("path", "payload"),
+    [
+        ("/v1/agents/chat", {"message": "hello"}),
+        ("/v1/agents/job-search-pipeline/run", {}),
+    ],
+)
+def test_agents_routes_return_429_with_retry_after_when_limited(monkeypatch, path, payload):
+    async def _raise_limited(**_kwargs):
+        raise RateLimitExceededError(bucket="agents_test", retry_after_s=11)
+
+    monkeypatch.setattr(agents_router, "enforce_user_window_limit", _raise_limited)
+
+    with _build_test_client(include_agents=True) as client:
+        response = client.post(path, json=payload)
+
+    assert response.status_code == 429
+    assert response.headers.get("Retry-After") == "11"
+
+
+@pytest.mark.parametrize(
+    ("path", "payload"),
+    [
+        ("/v1/agents/chat", {"message": "hello"}),
+        ("/v1/agents/job-search-pipeline/run", {}),
+    ],
+)
+def test_agents_routes_return_503_when_rate_limit_backend_unavailable(monkeypatch, path, payload):
+    async def _raise_unavailable(**_kwargs):
+        raise RateLimitBackendUnavailableError("backend unavailable")
+
+    monkeypatch.setattr(agents_router, "enforce_user_window_limit", _raise_unavailable)
+
+    with _build_test_client(include_agents=True) as client:
+        response = client.post(path, json=payload)
 
     assert response.status_code == 503
     assert response.headers.get("Retry-After") is None

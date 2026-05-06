@@ -193,6 +193,31 @@ Safe diagnostics endpoint:
 
 Prometheus (`GET /metrics`): assistant chat emits `doubow_assistant_tool_routing_total{phase=...}` (e.g. `keyword_match`, `llm_plan_hit`, `llm_plan_none`, `llm_skipped_no_key`) and `doubow_assistant_action_total{action=...,result=...}` (`success`, `policy_error`, `error`) for structured tool parity visibility.
 
+## Redis rate-limit controls
+
+The API uses Redis-backed sliding-window throttles for expensive endpoints. Values below are environment variables in `backend/.env` (or repo-root `.env` when running the gateway directly).
+
+- `RATE_LIMIT_REDIS_PREFIX` (default: `ratelimit`)
+- `RATE_LIMIT_FAIL_CLOSED` (default: `false`; when `true`, Redis limiter backend errors return `503` instead of bypassing limits)
+
+Agents:
+- `AGENTS_CHAT_WINDOW_SECONDS` (default: `60`)
+- `AGENTS_CHAT_MAX_REQUESTS_PER_WINDOW` (default: `30`)
+- `AGENTS_PIPELINE_WINDOW_SECONDS` (default: `60`)
+- `AGENTS_PIPELINE_MAX_REQUESTS_PER_WINDOW` (default: `4`)
+
+Autopilot:
+- `AUTOPILOT_RUN_WINDOW_SECONDS` (default: `60`)
+- `AUTOPILOT_RUN_MAX_REQUESTS_PER_WINDOW` (default: `4`)
+- `AUTOPILOT_RESUME_WINDOW_SECONDS` (default: `60`)
+- `AUTOPILOT_RESUME_MAX_REQUESTS_PER_WINDOW` (default: `6`)
+
+Admin ingestion:
+- `INGESTION_RUN_WINDOW_SECONDS` (default: `300`)
+- `INGESTION_RUN_MAX_REQUESTS_PER_WINDOW` (default: `2`)
+- `INGESTION_HEALTH_WINDOW_SECONDS` (default: `60`)
+- `INGESTION_HEALTH_MAX_REQUESTS_PER_WINDOW` (default: `6`)
+
 ## Provider ingestion (Adzuna + Greenhouse)
 
 Protected endpoint:
