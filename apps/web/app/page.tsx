@@ -122,7 +122,7 @@ export default function RootPage() {
           </div>
           <div className="flex items-center gap-4">
             <Link href={"/auth/sign-in" as Route} className="hidden px-4 py-2 text-[15px] font-medium text-[#45464d] transition-colors hover:text-primary-green sm:block">Sign In</Link>
-            <Link href={"/auth/sign-up" as Route} className="rounded-lg bg-primary-green px-6 py-2.5 text-[15px] font-semibold text-white transition-all hover:bg-primary-green-hover hover:shadow-md">Get Started</Link>
+            <Link href={"/auth/sign-up" as Route} className="rounded-lg bg-primary-green px-6 py-2.5 text-[15px] font-semibold text-white shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover hover:shadow-md">Get Started</Link>
           </div>
         </nav>
         <MobileSectionPills />
@@ -139,10 +139,10 @@ export default function RootPage() {
             <div className="mx-auto mb-16 max-w-3xl text-center motion-safe:animate-landing-rise motion-reduce:animate-none">
               <span className="mb-6 inline-block rounded-full bg-[#e1e0ff] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#2f2ebe]">AI-DRIVEN CAREER CO-PILOT</span>
               <h1 className="font-display mb-6 text-[clamp(2.5rem,5vw,3rem)] font-bold leading-[1.18] tracking-[-0.02em] text-[#000000]">A calmer way to run your job search. <span className="text-primary-green">Focus only on roles worth your time.</span></h1>
-              <p className="mb-10 text-[18px] leading-[1.6] text-[#45464d]">Doubow Assistant finds high-fit roles, tailors your materials, and keeps your pipeline moving in one workspace. You stay in control of every outbound action.</p>
+              <p className="mb-10 text-pretty text-[18px] leading-[1.6] text-[#45464d]">Doubow Assistant finds high-fit roles, tailors your materials, and keeps your pipeline moving in one workspace. You stay in control of every outbound action.</p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Link href={"/auth/sign-up" as Route} className="inline-flex h-14 w-full items-center justify-center rounded-[8px] bg-primary-green px-8 text-center text-[15px] font-semibold text-white shadow-lg transition-all hover:bg-primary-green-hover hover:shadow-xl sm:w-auto">Start Free and See Your Matches</Link>
-                <a href="#how-it-works" className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[8px] border border-[#c6c6cd] bg-white px-8 text-center text-[15px] font-semibold text-[#191c1e] transition-all hover:bg-[#f2f4f6] sm:w-auto">
+                <Link href={"/auth/sign-up" as Route} className="inline-flex h-14 w-full items-center justify-center rounded-[8px] bg-primary-green px-8 text-center text-[15px] font-semibold text-white shadow-lg transition-[background-color,box-shadow,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover hover:shadow-xl sm:w-auto">Start Free and See Your Matches</Link>
+                <a href="#how-it-works" className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[8px] border border-[#c6c6cd] bg-white px-8 text-center text-[15px] font-semibold text-[#191c1e] transition-[background-color,box-shadow,transform,border-color] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-[#f2f4f6] sm:w-auto">
                   <CirclePlay className="h-5 w-5" />
                   See how it works
                 </a>
@@ -171,7 +171,7 @@ export default function RootPage() {
               </div>
             </div>
 
-            <div className="relative mx-auto max-w-5xl overflow-hidden rounded-xl border border-[#c6c6cd] bg-white shadow-2xl shadow-[#7073ff]/15 transition-transform duration-300 hover:-translate-y-0.5 motion-safe:animate-landing-rise-delayed motion-reduce:animate-none">
+            <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-[#c6c6cd]/80 bg-white shadow-[0_24px_48px_-12px_rgba(112,115,255,0.18),0_8px_16px_-8px_rgba(0,0,0,0.08)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_28px_56px_-14px_rgba(112,115,255,0.22),0_10px_20px_-10px_rgba(0,0,0,0.1)] motion-safe:animate-landing-rise-delayed motion-reduce:animate-none">
               <div className="flex items-center justify-between border-b border-[#c6c6cd] bg-[#e6e8ea] px-4 py-3">
                 <div className="flex gap-2">
                   <div className="h-3 w-3 rounded-full bg-[#ffdad6]" />
@@ -182,17 +182,17 @@ export default function RootPage() {
                 <div className="w-12" />
               </div>
               <div className="grid gap-4 p-6 md:grid-cols-3">
-                <div className="rounded-lg border border-[#c6c6cd] bg-[#f2f4f6] p-4 transition-all duration-200 hover:border-secondary-green/50 hover:shadow-sm">
+                <div className="rounded-xl border border-[#c6c6cd]/70 bg-[#f2f4f6] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:border-secondary-green/45 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_-4px_rgba(0,0,0,0.06)]">
                   <p className="text-xs uppercase tracking-wider text-[#45464d]">High-fit roles found</p>
-                  <p className="mt-2 text-2xl font-bold text-[#191c1e]">24</p>
+                  <p className="mt-2 text-2xl font-bold tabular-nums text-[#191c1e]">24</p>
                 </div>
-                <div className="rounded-lg border border-[#c6c6cd] bg-[#f2f4f6] p-4 transition-all duration-200 hover:border-secondary-green/50 hover:shadow-sm">
+                <div className="rounded-xl border border-[#c6c6cd]/70 bg-[#f2f4f6] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:border-secondary-green/45 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_-4px_rgba(0,0,0,0.06)]">
                   <p className="text-xs uppercase tracking-wider text-[#45464d]">Interview pipeline</p>
-                  <p className="mt-2 text-2xl font-bold text-[#191c1e]">8 active</p>
+                  <p className="mt-2 text-2xl font-bold tabular-nums text-[#191c1e]">8 active</p>
                 </div>
-                <div className="rounded-lg border border-[#c6c6cd] bg-[#f2f4f6] p-4 transition-all duration-200 hover:border-secondary-green/50 hover:shadow-sm">
+                <div className="rounded-xl border border-[#c6c6cd]/70 bg-[#f2f4f6] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:border-secondary-green/45 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_-4px_rgba(0,0,0,0.06)]">
                   <p className="text-xs uppercase tracking-wider text-[#45464d]">Average fit score</p>
-                  <p className="mt-2 text-2xl font-bold text-[#191c1e]">4.3/5</p>
+                  <p className="mt-2 text-2xl font-bold tabular-nums text-[#191c1e]">4.3/5</p>
                 </div>
               </div>
             </div>
@@ -232,10 +232,10 @@ export default function RootPage() {
               {capabilityCards.map(([Icon, title, body, p1, p2], idx) => (
                 <article
                   key={title}
-                  className="group flex h-full flex-col rounded-xl border border-[#c6c6cd] bg-white p-8 opacity-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-secondary-green/50 hover:shadow-lg motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+                  className="group flex h-full flex-col rounded-2xl border border-[#c6c6cd]/85 bg-white p-8 opacity-0 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.06)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-secondary-green/40 hover:shadow-[0_2px_4px_rgba(0,0,0,0.04),0_16px_32px_-14px_rgba(0,0,0,0.1)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
                   style={staggerStyle(idx, 70)}
                 >
-                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-secondary-green/30 text-primary-green transition-transform group-hover:scale-110">
+                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-[10px] bg-secondary-green/30 text-primary-green transition-transform duration-300 ease-out group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#f2f4f6] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-[#45464d]">
@@ -268,7 +268,7 @@ export default function RootPage() {
               {audienceSegments.map((segment, idx) => (
                 <article
                   key={segment.id}
-                  className="flex h-full flex-col rounded-xl border border-[#c6c6cd] bg-[#f7f9fb] p-6 opacity-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-secondary-green/50 hover:shadow-md motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+                  className="flex h-full flex-col rounded-2xl border border-[#c6c6cd]/85 bg-[#f7f9fb] p-6 opacity-0 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_6px_16px_-8px_rgba(0,0,0,0.05)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-secondary-green/40 hover:shadow-[0_2px_6px_rgba(0,0,0,0.05),0_12px_28px_-12px_rgba(0,0,0,0.08)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
                   style={staggerStyle(idx, 60)}
                 >
                   <span className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#e1e0ff] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#2f2ebe]">
@@ -286,7 +286,7 @@ export default function RootPage() {
                   </p>
                   <Link
                     href={"/auth/sign-up" as Route}
-                    className="mt-auto inline-flex h-11 items-center justify-center rounded-[8px] bg-primary-green px-4 text-[15px] font-semibold text-white transition-colors hover:bg-primary-green-hover"
+                    className="mt-auto inline-flex h-11 min-h-11 items-center justify-center rounded-[8px] bg-primary-green px-4 text-[15px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover"
                   >
                     {segment.cta}
                   </Link>
@@ -303,25 +303,25 @@ export default function RootPage() {
               <h2 className="font-display mb-6 text-[36px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#000000]">Built for real job seekers, not generic AI chat</h2>
               <p className="mb-8 text-[18px] leading-[1.6] text-[#45464d]">Doubow Assistant is purpose-built for job search: one place for roles, your pipeline, résumé, drafts, and interview prep — organized so follow-ups and tasks don&apos;t slip through the cracks.</p>
               <div className="space-y-5 text-sm text-[#191c1e]">
-                <div className="rounded-xl border border-transparent p-4 opacity-0 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#c6c6cd] hover:bg-white motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(0, 80)}><strong className="inline-flex items-center gap-2"><GitBranch className="h-4 w-4 text-primary-green" /> Smarter role matching</strong><p className="mt-1 text-[#45464d]">Looks at context, level, and fit — not only keywords in your résumé.</p></div>
-                <div className="rounded-xl border border-transparent p-4 opacity-0 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#c6c6cd] hover:bg-white motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(1, 80)}><strong className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary-green" /> Privacy-First Data Vault</strong><p className="mt-1 text-[#45464d]">Encrypted storage with strict permissions and explicit user approval controls.</p></div>
-                <div className="rounded-xl border border-transparent p-4 opacity-0 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#c6c6cd] hover:bg-white motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(2, 80)}><strong className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary-green" /> You approve every outreach</strong><p className="mt-1 text-[#45464d]">Emails and sends only go out after you review and confirm.</p></div>
+                <div className="rounded-xl border border-transparent p-4 opacity-0 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:border-[#c6c6cd]/90 hover:bg-white hover:shadow-[0_4px_14px_-6px_rgba(0,0,0,0.08)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(0, 80)}><strong className="inline-flex items-center gap-2"><GitBranch className="h-4 w-4 shrink-0 text-primary-green" /> Smarter role matching</strong><p className="mt-1 text-pretty text-[#45464d]">Looks at context, level, and fit — not only keywords in your résumé.</p></div>
+                <div className="rounded-xl border border-transparent p-4 opacity-0 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:border-[#c6c6cd]/90 hover:bg-white hover:shadow-[0_4px_14px_-6px_rgba(0,0,0,0.08)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(1, 80)}><strong className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-primary-green" /> Privacy-First Data Vault</strong><p className="mt-1 text-pretty text-[#45464d]">Encrypted storage with strict permissions and explicit user approval controls.</p></div>
+                <div className="rounded-xl border border-transparent p-4 opacity-0 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:border-[#c6c6cd]/90 hover:bg-white hover:shadow-[0_4px_14px_-6px_rgba(0,0,0,0.08)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(2, 80)}><strong className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 shrink-0 text-primary-green" /> You approve every outreach</strong><p className="mt-1 text-pretty text-[#45464d]">Emails and sends only go out after you review and confirm.</p></div>
               </div>
             </div>
             <div className="relative rounded-3xl border border-[#c6c6cd] bg-white p-8 shadow-xl transition-transform duration-300 hover:-translate-y-1">
               <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary-green/10 blur-2xl" />
               <div className="absolute -bottom-8 -left-6 h-28 w-28 rounded-full bg-[#565e74]/10 blur-3xl" />
               <div className="space-y-4 text-sm">
-                <div className="flex items-center justify-between rounded-lg border border-[#c6c6cd]/40 bg-[#f2f4f6] p-4 opacity-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(0, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 items-center justify-center rounded bg-primary-green text-[10px] font-bold text-white">1</div> Assistant · Scanning boards & LinkedIn…</span><span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">ACTIVE</span></div>
-                <div className="flex items-center justify-between rounded-lg border border-[#c6c6cd]/40 bg-[#f2f4f6] p-4 opacity-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(1, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 items-center justify-center rounded bg-[#000000] text-[10px] font-bold text-white">2</div> Evaluating a posted role against your profile</span><span className="rounded-full bg-highlight-green px-2 py-0.5 text-[10px] font-bold text-primary-green">SCORING</span></div>
-                <div className="flex items-center justify-between rounded-lg border border-[#c6c6cd]/40 bg-[#f2f4f6] p-4 opacity-0 transition-all duration-200 hover:-translate-y-0.5 hover:opacity-100 hover:shadow-sm motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(2, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 items-center justify-center rounded bg-slate-400 text-[10px] font-bold text-white">3</div> Drafting tailored resume…</span><span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">QUEUED</span></div>
+                <div className="flex items-center justify-between rounded-xl border border-[#c6c6cd]/35 bg-[#f2f4f6] p-4 opacity-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] transition-[transform,box-shadow,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_12px_-6px_rgba(0,0,0,0.06)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(0, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-green text-[10px] font-bold tabular-nums text-white">1</div> Assistant · Scanning boards & LinkedIn…</span><span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">ACTIVE</span></div>
+                <div className="flex items-center justify-between rounded-xl border border-[#c6c6cd]/35 bg-[#f2f4f6] p-4 opacity-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] transition-[transform,box-shadow,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_12px_-6px_rgba(0,0,0,0.06)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(1, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#000000] text-[10px] font-bold tabular-nums text-white">2</div> Evaluating a posted role against your profile</span><span className="rounded-full bg-highlight-green px-2 py-0.5 text-[10px] font-bold text-primary-green">SCORING</span></div>
+                <div className="flex items-center justify-between rounded-xl border border-[#c6c6cd]/35 bg-[#f2f4f6] p-4 opacity-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] transition-[transform,box-shadow,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:opacity-100 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_12px_-6px_rgba(0,0,0,0.06)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(2, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-400 text-[10px] font-bold tabular-nums text-white">3</div> Drafting tailored resume…</span><span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">QUEUED</span></div>
               </div>
               <div className="mt-8 border-t border-[#c6c6cd] pt-6">
                 <p className="text-xs font-bold uppercase tracking-widest text-[#45464d]">User approval required</p>
                 <p className="mt-1 inline-flex items-center gap-2 font-semibold text-[#191c1e]"><Fingerprint className="h-4 w-4 text-primary-green" /> Approve outbound draft before it sends?</p>
                 <div className="mt-4 flex gap-2">
-                  <button className="flex h-11 flex-1 items-center justify-center rounded-[8px] bg-primary-green text-[15px] font-semibold text-white transition-colors hover:bg-primary-green-hover">Approve</button>
-                  <button className="flex h-11 flex-1 items-center justify-center rounded-[8px] border border-[#c6c6cd] bg-white text-[15px] font-semibold text-[#191c1e] transition-colors hover:bg-[#f2f4f6]">Edit Draft</button>
+                  <button type="button" className="flex h-11 min-h-11 flex-1 items-center justify-center rounded-[8px] bg-primary-green text-[15px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover">Approve</button>
+                  <button type="button" className="flex h-11 min-h-11 flex-1 items-center justify-center rounded-[8px] border border-[#c6c6cd] bg-white text-[15px] font-semibold text-[#191c1e] transition-[background-color,border-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-[#f2f4f6]">Edit Draft</button>
                 </div>
               </div>
             </div>
@@ -368,7 +368,7 @@ export default function RootPage() {
               {faqs.map(([q, a], idx) => (
                 <details
                   key={q}
-                  className="group rounded-xl border border-[#c6c6cd] bg-white p-5 opacity-0 transition-all duration-200 hover:border-secondary-green/50 motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+                  className="group rounded-xl border border-[#c6c6cd]/90 bg-white p-5 opacity-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-[border-color,box-shadow] duration-200 ease-out hover:border-secondary-green/45 hover:shadow-[0_4px_14px_-6px_rgba(0,0,0,0.07)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
                   style={staggerStyle(idx, 50)}
                 >
                   <summary className="flex cursor-pointer list-none items-start justify-between gap-3 font-semibold text-[#191c1e]">{q}<ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 transition-transform duration-300 group-open:rotate-180" /></summary>
@@ -389,7 +389,7 @@ export default function RootPage() {
                 </div>
                 <form className="w-full max-w-sm space-y-3" action="mailto:hello@doubow.com" method="post">
                   <input type="email" placeholder="Enter your email" className="w-full rounded-lg border border-[#c6c6cd] px-4 py-3 text-sm outline-none transition focus:border-primary-green focus:ring-2 focus:ring-primary-green/20" />
-                  <button type="submit" className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-primary-green px-6 text-[15px] font-semibold text-white transition-colors hover:bg-primary-green-hover">Subscribe <ArrowRight className="h-4 w-4" /></button>
+                  <button type="submit" className="inline-flex h-11 min-h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-primary-green px-6 text-[15px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover">Subscribe <ArrowRight className="h-4 w-4 shrink-0" /></button>
                 </form>
               </div>
             </div>
@@ -422,8 +422,8 @@ export default function RootPage() {
               <h2 className="font-display relative z-10 text-[36px] font-semibold leading-[1.2] tracking-[-0.01em]">Ready to stop guessing and start landing better roles?</h2>
               <p className="relative z-10 mx-auto mt-5 max-w-2xl text-[18px] leading-[1.6] text-[#7c839b]">Create your profile, get your first high-fit matches, and review AI-tailored drafts in minutes.</p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Link href={"/auth/sign-up" as Route} className="relative z-10 inline-flex h-14 items-center justify-center rounded-[8px] bg-primary-green px-10 text-[15px] font-semibold text-white transition-colors hover:bg-primary-green-hover">Get Started for Free</Link>
-                <a href="mailto:sales@doubow.com" className="relative z-10 inline-flex h-14 items-center justify-center rounded-[8px] border border-white/20 px-10 text-[15px] font-semibold text-white transition-colors hover:bg-white/10">Contact sales</a>
+                <Link href={"/auth/sign-up" as Route} className="relative z-10 inline-flex h-14 min-h-14 items-center justify-center rounded-[8px] bg-primary-green px-10 text-[15px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover">Get Started for Free</Link>
+                <a href="mailto:sales@doubow.com" className="relative z-10 inline-flex h-14 min-h-14 items-center justify-center rounded-[8px] border border-white/20 px-10 text-[15px] font-semibold text-white transition-[background-color,border-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-white/10">Contact sales</a>
               </div>
             </div>
           </div>

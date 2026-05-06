@@ -835,7 +835,7 @@ export default function DashboardOverviewPage() {
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: tk.surfaceHigh }}>
               <div
-                className="h-full rounded-full transition-all"
+                className="h-full rounded-full transition-[width] duration-500 ease-out"
                 style={{
                   width: avgFitPct != null ? `${avgFitPct}%` : '0%',
                   backgroundColor: tk.primary,

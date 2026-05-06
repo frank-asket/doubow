@@ -44,7 +44,7 @@ function NavItem({
     <Link
       href={href}
       className={cn(
-        'group motion-nav flex items-center gap-3 border-l-[3px] px-3 py-2.5 text-[14px] hover:-translate-y-[1px]',
+        'group motion-nav flex min-h-10 items-center gap-3 border-l-[3px] px-3 py-2.5 text-[14px] hover:-translate-y-[1px] active:scale-[0.96] motion-reduce:active:scale-100',
         showUrgent && !active && 'ring-1 ring-amber-400/50 rounded-r-lg',
         active
           ? 'border-primary-green bg-white font-semibold text-primary-green shadow-sm shadow-primary-green/10 dark:bg-slate-800 dark:text-emerald-200 dark:shadow-secondary-green/15'
@@ -234,7 +234,7 @@ function DashboardLayoutInner({
               type="button"
               title="Sign out"
               aria-label="Sign out"
-              className="rounded p-1 font-bold text-zinc-700 hover:bg-slate-200 hover:text-zinc-700 dark:font-bold dark:text-white dark:hover:bg-slate-800 dark:hover:text-white"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg font-bold text-zinc-700 transition-[background-color,transform] duration-150 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-slate-200 hover:text-zinc-700 dark:font-bold dark:text-white dark:hover:bg-slate-800 dark:hover:text-white"
               onClick={onSignOut}
             >
               <LogOut size={15} />
