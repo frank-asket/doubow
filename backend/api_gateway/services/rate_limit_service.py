@@ -1,18 +1,39 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import logging
 
 from config import settings
 
 logger = logging.getLogger(__name__)
 
-_REDIS_LUA_INCR_WITH_EXPIRE = """
-local count = redis.call('INCR', KEYS[1])
-if count == 1 then
-  redis.call('EXPIRE', KEYS[1], ARGV[1])
+_REDIS_LUA_SLIDING_WINDOW = """
+local zset_key = KEYS[1]
+local seq_key = KEYS[2]
+local window_ms = tonumber(ARGV[1])
+local limit = tonumber(ARGV[2])
+
+local now = redis.call('TIME')
+local now_ms = now[1] * 1000 + math.floor(now[2] / 1000)
+local min_score = now_ms - window_ms
+
+redis.call('ZREMRANGEBYSCORE', zset_key, '-inf', min_score)
+local count = redis.call('ZCARD', zset_key)
+if count >= limit then
+  local oldest = redis.call('ZRANGE', zset_key, 0, 0, 'WITHSCORES')
+  local oldest_score = tonumber(oldest[2]) or now_ms
+  return {0, oldest_score, now_ms}
 end
-return count
+
+local seq = redis.call('INCR', seq_key)
+local member = tostring(now_ms) .. '-' .. tostring(seq)
+redis.call('ZADD', zset_key, now_ms, member)
+
+local ttl_ms = window_ms + 1000
+redis.call('PEXPIRE', zset_key, ttl_ms)
+redis.call('PEXPIRE', seq_key, ttl_ms)
+return {1, -1, now_ms}
 """
 
 _redis_client = None
@@ -33,6 +54,10 @@ class RateLimitBackendUnavailableError(RuntimeError):
 def _bucket_key(*, bucket: str, user_id: str) -> str:
     prefix = (settings.rate_limit_redis_prefix or "ratelimit").strip() or "ratelimit"
     return f"{prefix}:{bucket}:{user_id}"
+
+
+def _bucket_seq_key(*, bucket: str, user_id: str) -> str:
+    return f"{_bucket_key(bucket=bucket, user_id=user_id)}:seq"
 
 
 async def _get_redis_client():
@@ -68,13 +93,24 @@ async def enforce_user_window_limit(*, bucket: str, user_id: str, limit: int, wi
     if limit <= 0 or window_s <= 0:
         return
     key = _bucket_key(bucket=bucket, user_id=user_id)
+    seq_key = _bucket_seq_key(bucket=bucket, user_id=user_id)
     try:
         client = await _get_redis_client()
-        count = int(await client.eval(_REDIS_LUA_INCR_WITH_EXPIRE, 1, key, window_s))
-        if count <= limit:
+        result = await client.eval(
+            _REDIS_LUA_SLIDING_WINDOW,
+            2,
+            key,
+            seq_key,
+            int(window_s * 1000),
+            int(limit),
+        )
+        allowed = bool(int(result[0]))
+        if allowed:
             return
-        ttl = await client.ttl(key)
-        retry_after = int(ttl) if isinstance(ttl, int) and ttl > 0 else None
+        oldest_ms = int(result[1])
+        now_ms = int(result[2])
+        retry_after_ms = max(0, oldest_ms + int(window_s * 1000) - now_ms)
+        retry_after = max(1, math.ceil(retry_after_ms / 1000)) if retry_after_ms > 0 else 1
         raise RateLimitExceededError(bucket=bucket, retry_after_s=retry_after)
     except RateLimitExceededError:
         raise
