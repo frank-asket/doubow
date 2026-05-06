@@ -34,6 +34,7 @@ async def run_career_ops_scan(
     run = CareerOpsScanRun(
         user_id=user_id,
         status="running",
+        source=payload.source,
         query=payload.query,
         location=payload.location,
         sources_json=payload.sources or [],
@@ -213,6 +214,7 @@ async def list_career_ops_scan_runs(
             CareerOpsScanHistoryItem(
                 scan_run_id=row.id,
                 status=row.status,  # type: ignore[arg-type]
+                source=row.source,
                 query=row.query,
                 location=row.location,
                 sources=list(row.sources_json or []),

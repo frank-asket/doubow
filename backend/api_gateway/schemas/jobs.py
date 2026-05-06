@@ -220,6 +220,7 @@ class CareerOpsScanRunResponse(BaseModel):
 class CareerOpsScanHistoryItem(BaseModel):
     scan_run_id: str
     status: Literal["queued", "running", "done", "failed"]
+    source: str | None = None
     query: str | None = None
     location: str | None = None
     sources: list[str] = Field(default_factory=list)

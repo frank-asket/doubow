@@ -129,6 +129,7 @@ export type CareerOpsScanRunResponse = {
 export type CareerOpsScanHistoryItem = {
   scan_run_id: string
   status: 'queued' | 'running' | 'done' | 'failed'
+  source?: string | null
   query?: string | null
   location?: string | null
   sources: string[]

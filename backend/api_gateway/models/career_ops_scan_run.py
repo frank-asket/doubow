@@ -18,6 +18,7 @@ class CareerOpsScanRun(Base):
     user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id", ondelete="CASCADE"), index=True)
     status: Mapped[str] = mapped_column(String(16), index=True, default="queued")
 
+    source: Mapped[str | None] = mapped_column(String(64), nullable=True)
     query: Mapped[str | None] = mapped_column(String(255), nullable=True)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     sources_json: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
