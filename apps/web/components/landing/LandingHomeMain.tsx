@@ -1,0 +1,345 @@
+import Link from 'next/link'
+import type { Route } from 'next'
+import {
+  ArrowRight,
+  AtSign,
+  CheckCircle2,
+  ChevronDown,
+  CirclePlay,
+  Fingerprint,
+  GitBranch,
+  Globe,
+  Quote,
+  ShieldCheck,
+  Sparkles,
+  Target,
+} from 'lucide-react'
+import { Pricing as LegacyPricing } from '@/components/landing/Pricing'
+import {
+  audienceSegments,
+  capabilityCards,
+  faqs,
+  heroSignals,
+  landingCurrentYear,
+  metrics,
+  staggerStyle,
+  workflowSteps,
+} from '@/components/landing/landingHomeData'
+
+export default function LandingHomeMain() {
+  const currentYear = landingCurrentYear()
+
+  return (
+    <>
+      <section className="relative overflow-hidden pb-[96px] pt-[80px]">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-16 top-16 h-64 w-64 rounded-full bg-secondary-green/25 blur-3xl motion-safe:animate-pulse" />
+          <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-[#8f95ff]/20 blur-3xl motion-safe:animate-pulse" />
+          <div className="absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary-green/10 blur-3xl" />
+        </div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-16 max-w-3xl text-center motion-safe:animate-landing-rise motion-reduce:animate-none">
+            <span className="mb-6 inline-block rounded-full bg-[#e1e0ff] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#2f2ebe]">AI-DRIVEN CAREER CO-PILOT</span>
+            <h1 className="font-display mb-6 text-[clamp(2.5rem,5vw,3rem)] font-bold leading-[1.18] tracking-[-0.02em] text-[#000000]">A calmer way to run your job search. <span className="text-primary-green">Focus only on roles worth your time.</span></h1>
+            <p className="mb-10 text-pretty text-[18px] leading-[1.6] text-[#45464d]">Doubow Assistant finds high-fit roles, tailors your materials, and keeps your pipeline moving in one workspace. You stay in control of every outbound action.</p>
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link href={"/auth/sign-up" as Route} className="inline-flex h-14 w-full items-center justify-center rounded-[8px] bg-primary-green px-8 text-center text-[15px] font-semibold text-white shadow-lg transition-[background-color,box-shadow,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover hover:shadow-xl sm:w-auto">Start Free and See Your Matches</Link>
+              <a href="#how-it-works" className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[8px] border border-[#c6c6cd] bg-white px-8 text-center text-[15px] font-semibold text-[#191c1e] transition-[background-color,box-shadow,transform,border-color] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-[#f2f4f6] sm:w-auto">
+                <CirclePlay className="h-5 w-5 shrink-0" />
+                See how it works
+              </a>
+            </div>
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
+              {heroSignals.map(([Icon, label], idx) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-2 rounded-full border border-[#c6c6cd] bg-white/85 px-3 py-1.5 text-[12px] font-medium leading-none text-[#45464d] opacity-0 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+                  style={staggerStyle(idx, 140)}
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0 text-primary-green" />
+                  {label}
+                </span>
+              ))}
+            </div>
+            <p className="mx-auto mt-8 max-w-xl text-pretty text-center text-[13px] leading-relaxed text-[#45464d]/85">
+              Human approval before every send · One workspace from discovery to interview · Built for active candidates
+            </p>
+          </div>
+
+          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-[#c6c6cd]/80 bg-white shadow-[0_24px_48px_-12px_rgba(112,115,255,0.18),0_8px_16px_-8px_rgba(0,0,0,0.08)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_28px_56px_-14px_rgba(112,115,255,0.22),0_10px_20px_-10px_rgba(0,0,0,0.1)] motion-safe:animate-landing-rise-delayed motion-reduce:animate-none">
+            <div className="flex items-center justify-between border-b border-[#c6c6cd] bg-[#e6e8ea] px-4 py-3">
+              <div className="flex gap-2">
+                <div className="h-3 w-3 rounded-full bg-[#ffdad6]" />
+                <div className="h-3 w-3 rounded-full bg-secondary-green/50" />
+                <div className="h-3 w-3 rounded-full bg-[#7c839b]/50" />
+              </div>
+              <div className="rounded bg-white/80 px-4 py-1 text-xs text-[#45464d]">doubow.ai/dashboard/overview</div>
+              <div className="w-12" />
+            </div>
+            <div className="grid gap-4 p-6 md:grid-cols-3">
+              <div className="rounded-xl border border-[#c6c6cd]/70 bg-[#f2f4f6] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:border-secondary-green/45 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_-4px_rgba(0,0,0,0.06)]">
+                <p className="text-xs uppercase tracking-wider text-[#45464d]">High-fit roles found</p>
+                <p className="mt-2 text-2xl font-bold tabular-nums text-[#191c1e]">24</p>
+              </div>
+              <div className="rounded-xl border border-[#c6c6cd]/70 bg-[#f2f4f6] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:border-secondary-green/45 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_-4px_rgba(0,0,0,0.06)]">
+                <p className="text-xs uppercase tracking-wider text-[#45464d]">Interview pipeline</p>
+                <p className="mt-2 text-2xl font-bold tabular-nums text-[#191c1e]">8 active</p>
+              </div>
+              <div className="rounded-xl border border-[#c6c6cd]/70 bg-[#f2f4f6] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:border-secondary-green/45 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_-4px_rgba(0,0,0,0.06)]">
+                <p className="text-xs uppercase tracking-wider text-[#45464d]">Average fit score</p>
+                <p className="mt-2 text-2xl font-bold tabular-nums text-[#191c1e]">4.3/5</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-[#c6c6cd]/40 bg-[#f2f4f6] py-[80px]">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 text-center sm:px-6 md:grid-cols-3 lg:px-8">
+          {metrics.map(([Icon, metric, title, sub], idx) => (
+            <div
+              key={title}
+              className="flex h-full flex-col items-center rounded-2xl border border-[#c6c6cd]/30 bg-white p-6 text-center opacity-0 shadow-sm motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+              style={staggerStyle(idx, 40)}
+            >
+              <div className="mx-auto mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-secondary-green/30 text-primary-green">
+                <Icon className="h-4 w-4" />
+              </div>
+              <div className="font-display text-[48px] leading-[1.2] tracking-[-0.02em] text-primary-green">{metric}</div>
+              <div className="mt-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#45464d]">{title}</div>
+              <p className="mt-2 text-[14px] leading-[1.45] text-[#45464d]/80">{sub}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="solutions" className="py-[80px]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-14 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#c6c6cd] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-primary-green">
+              <Sparkles className="h-3.5 w-3.5 shrink-0" />
+              Doubow Assistant
+            </span>
+            <h2 className="font-display text-[36px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#000000]">How Doubow solves your search bottlenecks</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-pretty text-[16px] leading-[1.5] text-[#45464d]">One Assistant and one workspace cover discovery through negotiation—so you move faster without juggling separate tools or chats.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {capabilityCards.map(([Icon, title, body, p1, p2], idx) => (
+              <article
+                key={title}
+                className="group flex h-full flex-col rounded-2xl border border-[#c6c6cd]/85 bg-white p-8 opacity-0 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.06)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-secondary-green/40 hover:shadow-[0_2px_4px_rgba(0,0,0,0.04),0_16px_32px_-14px_rgba(0,0,0,0.1)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+                style={staggerStyle(idx, 70)}
+              >
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-[10px] bg-secondary-green/30 text-primary-green transition-transform duration-300 ease-out group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#f2f4f6] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-[#45464d]">
+                  {String(idx + 1).padStart(2, '0')} · Capability
+                </div>
+                <h3 className="mb-3 text-[24px] font-semibold leading-[1.3] text-[#000000]">{title}</h3>
+                <p className="mb-6 text-pretty text-[16px] leading-[1.5] text-[#45464d]">{body}</p>
+                <ul className="mt-auto space-y-3 text-[14px] leading-[1.4] text-[#191c1e]">
+                  <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-green" /> <span>{p1}</span></li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-green" /> <span>{p2}</span></li>
+                </ul>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-[#c6c6cd]/40 bg-white py-[80px]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#c6c6cd] bg-[#f7f9fb] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-[#2f2ebe]">
+              <Target className="h-3.5 w-3.5 shrink-0" />
+              Audience Fit
+            </span>
+            <h2 className="font-display text-[36px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#000000]">Messaging built for your career stage</h2>
+            <p className="mx-auto mt-4 max-w-3xl text-pretty text-[16px] leading-[1.5] text-[#45464d]">Whether you are breaking in, stepping up, or targeting executive leadership, Doubow adapts the workflow to your goals.</p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {audienceSegments.map((segment, idx) => (
+              <article
+                key={segment.id}
+                className="flex h-full flex-col rounded-2xl border border-[#c6c6cd]/85 bg-[#f7f9fb] p-6 opacity-0 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_6px_16px_-8px_rgba(0,0,0,0.05)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-secondary-green/40 hover:shadow-[0_2px_6px_rgba(0,0,0,0.05),0_12px_28px_-12px_rgba(0,0,0,0.08)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+                style={staggerStyle(idx, 60)}
+              >
+                <span className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#e1e0ff] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#2f2ebe]">
+                  <segment.icon className="h-3.5 w-3.5 shrink-0" />
+                  {segment.label}
+                </span>
+                <h3 className="text-[24px] font-semibold leading-[1.3] text-[#000000]">{segment.headline}</h3>
+                <p className="mt-4 text-pretty text-[15px] leading-[1.55] text-[#45464d]">
+                  <span className="font-semibold text-[#191c1e]">The problem: </span>
+                  {segment.pain}
+                </p>
+                <p className="mt-3 text-pretty text-[15px] leading-[1.55] text-[#45464d]">
+                  <span className="font-semibold text-[#191c1e]">How Doubow helps: </span>
+                  {segment.outcome}
+                </p>
+                <Link
+                  href={"/auth/sign-up" as Route}
+                  className="mt-auto inline-flex h-11 min-h-11 items-center justify-center rounded-[8px] bg-primary-green px-4 text-[15px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover"
+                >
+                  {segment.cta}
+                </Link>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="how-it-works" className="bg-[#f7f9fb] py-[80px]">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
+          <div>
+            <span className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-primary-green">HOW IT WORKS</span>
+            <h2 className="font-display mb-6 text-[36px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#000000]">Built for real job seekers, not generic AI chat</h2>
+            <p className="mb-8 text-pretty text-[18px] leading-[1.6] text-[#45464d]">Doubow Assistant is purpose-built for job search: one place for roles, your pipeline, résumé, drafts, and interview prep — organized so follow-ups and tasks don&apos;t slip through the cracks.</p>
+            <div className="space-y-5 text-sm text-[#191c1e]">
+              <div className="rounded-xl border border-transparent p-4 opacity-0 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:border-[#c6c6cd]/90 hover:bg-white hover:shadow-[0_4px_14px_-6px_rgba(0,0,0,0.08)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(0, 80)}><strong className="inline-flex items-center gap-2"><GitBranch className="h-4 w-4 shrink-0 text-primary-green" /> Smarter role matching</strong><p className="mt-1 text-pretty text-[#45464d]">Looks at context, level, and fit — not only keywords in your résumé.</p></div>
+              <div className="rounded-xl border border-transparent p-4 opacity-0 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:border-[#c6c6cd]/90 hover:bg-white hover:shadow-[0_4px_14px_-6px_rgba(0,0,0,0.08)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(1, 80)}><strong className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-primary-green" /> Privacy-First Data Vault</strong><p className="mt-1 text-pretty text-[#45464d]">Encrypted storage with strict permissions and explicit user approval controls.</p></div>
+              <div className="rounded-xl border border-transparent p-4 opacity-0 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:border-[#c6c6cd]/90 hover:bg-white hover:shadow-[0_4px_14px_-6px_rgba(0,0,0,0.08)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(2, 80)}><strong className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 shrink-0 text-primary-green" /> You approve every outreach</strong><p className="mt-1 text-pretty text-[#45464d]">Emails and sends only go out after you review and confirm.</p></div>
+            </div>
+          </div>
+          <div className="relative rounded-3xl border border-[#c6c6cd] bg-white p-8 shadow-xl transition-transform duration-300 hover:-translate-y-1">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary-green/10 blur-2xl" />
+            <div className="absolute -bottom-8 -left-6 h-28 w-28 rounded-full bg-[#565e74]/10 blur-3xl" />
+            <div className="space-y-4 text-sm">
+              <div className="flex items-center justify-between rounded-xl border border-[#c6c6cd]/35 bg-[#f2f4f6] p-4 opacity-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] transition-[transform,box-shadow,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_12px_-6px_rgba(0,0,0,0.06)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(0, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-green text-[10px] font-bold tabular-nums text-white">1</div> Assistant · Scanning boards & LinkedIn…</span><span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">ACTIVE</span></div>
+              <div className="flex items-center justify-between rounded-xl border border-[#c6c6cd]/35 bg-[#f2f4f6] p-4 opacity-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] transition-[transform,box-shadow,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_12px_-6px_rgba(0,0,0,0.06)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(1, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#000000] text-[10px] font-bold tabular-nums text-white">2</div> Evaluating a posted role against your profile</span><span className="rounded-full bg-highlight-green px-2 py-0.5 text-[10px] font-bold text-primary-green">SCORING</span></div>
+              <div className="flex items-center justify-between rounded-xl border border-[#c6c6cd]/35 bg-[#f2f4f6] p-4 opacity-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] transition-[transform,box-shadow,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:opacity-100 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_12px_-6px_rgba(0,0,0,0.06)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100" style={staggerStyle(2, 90)}><span className="inline-flex items-center gap-2"><div className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-400 text-[10px] font-bold tabular-nums text-white">3</div> Drafting tailored resume…</span><span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">QUEUED</span></div>
+            </div>
+            <div className="mt-8 border-t border-[#c6c6cd] pt-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#45464d]">User approval required</p>
+              <p className="mt-1 inline-flex items-center gap-2 font-semibold text-[#191c1e]"><Fingerprint className="h-4 w-4 shrink-0 text-primary-green" /> Approve outbound draft before it sends?</p>
+              <div className="mt-4 flex gap-2">
+                <button type="button" className="flex h-11 min-h-11 flex-1 items-center justify-center rounded-[8px] bg-primary-green text-[15px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover">Approve</button>
+                <button type="button" className="flex h-11 min-h-11 flex-1 items-center justify-center rounded-[8px] border border-[#c6c6cd] bg-white text-[15px] font-semibold text-[#191c1e] transition-[background-color,border-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-[#f2f4f6]">Edit Draft</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="overflow-hidden bg-[#131b2e] py-[80px] text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-20 text-center">
+            <h2 className="font-display text-[36px] font-semibold leading-[1.2] tracking-[-0.01em]">From overwhelm to a clear weekly plan</h2>
+            <p className="mx-auto mt-4 max-w-xl text-pretty text-[16px] leading-[1.5] text-slate-300">Doubow turns chaotic job search into a repeatable system you can run confidently.</p>
+          </div>
+          <div className="relative grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
+            <div className="pointer-events-none absolute left-0 right-0 top-8 hidden h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent lg:block" />
+            {workflowSteps.map(({ id, icon: StepIcon, title, body }, idx) => (
+              <div
+                key={id}
+                className="flex flex-col items-center text-center opacity-0 motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+                style={staggerStyle(idx, 70)}
+              >
+                <div className="relative mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-slate-700 bg-slate-800 shadow-lg shadow-black/20">
+                  <StepIcon className="h-6 w-6 text-secondary-green" />
+                  <span className="absolute -right-1 -top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-green text-xs font-bold tabular-nums text-white">{idx + 1}</span>
+                </div>
+                <h4 className="text-lg font-semibold">{title}</h4>
+                <p className="mt-2 text-pretty text-sm text-slate-400">{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <LegacyPricing />
+
+      <section id="faq" className="bg-white py-[80px]">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <h2 className="font-display text-[36px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#000000]">Frequently Asked Questions</h2>
+            <p className="mt-4 text-pretty text-[#45464d]">Quick answers about trust, control, and how Doubow fits into your search.</p>
+          </div>
+          <div className="space-y-4">
+            {faqs.map(([q, a], idx) => (
+              <details
+                key={q}
+                className="group rounded-xl border border-[#c6c6cd]/90 bg-white p-5 opacity-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-[border-color,box-shadow] duration-200 ease-out hover:border-secondary-green/45 hover:shadow-[0_4px_14px_-6px_rgba(0,0,0,0.07)] motion-safe:animate-landing-rise motion-reduce:animate-none motion-reduce:opacity-100"
+                style={staggerStyle(idx, 50)}
+              >
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 font-semibold text-[#191c1e]">{q}<ChevronDown className="mt-0.5 h-4 w-4 shrink-0 transition-transform duration-300 group-open:rotate-180" /></summary>
+                <p className="mt-3 text-pretty text-sm leading-[1.55] text-[#45464d]">{a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-[#c6c6cd]/40 bg-white py-[80px]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl bg-secondary-green/20 p-10 md:p-16">
+            <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+              <div className="max-w-md">
+                <h3 className="text-[24px] font-semibold leading-[1.3] text-[#000000]">Get Weekly Career Insights</h3>
+                <p className="mt-3 text-pretty text-[#45464d]">Get practical job-search playbooks, hiring trend breakdowns, and proven tactics you can use immediately.</p>
+              </div>
+              <form className="w-full max-w-sm space-y-3" action="mailto:hello@doubow.com" method="post">
+                <input type="email" placeholder="Enter your email" className="w-full rounded-lg border border-[#c6c6cd] px-4 py-3 text-sm outline-none transition-[border-color,box-shadow] duration-150 focus:border-primary-green focus:ring-2 focus:ring-primary-green/20" />
+                <button type="submit" className="inline-flex h-11 min-h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-primary-green px-6 text-[15px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover">Subscribe <ArrowRight className="h-4 w-4 shrink-0" /></button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-[#c6c6cd] py-[80px]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <p className="mb-10 text-center text-[12px] font-semibold uppercase tracking-[0.05em] text-[#45464d]">Built for modern job seekers</p>
+          <div className="flex flex-wrap justify-center gap-3 text-sm font-semibold tracking-wide text-[#45464d]/80">
+            <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Career changers</span>
+            <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Operators</span>
+            <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Product builders</span>
+            <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Engineering leaders</span>
+            <span className="rounded-full border border-[#c6c6cd] bg-white px-4 py-1.5">Executive candidates</span>
+          </div>
+          <div className="mx-auto mt-20 max-w-4xl rounded-2xl bg-[#eceef0] p-10 md:p-12">
+            <Quote className="h-10 w-10 text-primary-green/35" />
+            <p className="mt-5 text-pretty text-[24px] italic leading-[1.35] text-[#191c1e]">&quot;Early users tell us the biggest win is clarity: less time juggling tools, more time making strong application decisions.&quot;</p>
+            <p className="mt-5 text-sm font-semibold text-[#191c1e]">Doubow product research, 2026</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-[80px]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-3xl bg-[#131b2e] p-12 text-center text-white md:p-20">
+            <div className="absolute right-0 top-0 h-full w-1/3 translate-x-1/2 skew-x-12 bg-secondary-green/10" />
+            <div className="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-secondary-green/15 blur-2xl" />
+            <h2 className="font-display relative z-10 text-[36px] font-semibold leading-[1.2] tracking-[-0.01em]">Ready to stop guessing and start landing better roles?</h2>
+            <p className="relative z-10 mx-auto mt-5 max-w-2xl text-pretty text-[18px] leading-[1.6] text-[#7c839b]">Create your profile, get your first high-fit matches, and review AI-tailored drafts in minutes.</p>
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link href={"/auth/sign-up" as Route} className="relative z-10 inline-flex h-14 min-h-14 items-center justify-center rounded-[8px] bg-primary-green px-10 text-[15px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-primary-green-hover">Get Started for Free</Link>
+              <a href="mailto:sales@doubow.com" className="relative z-10 inline-flex h-14 min-h-14 items-center justify-center rounded-[8px] border border-white/20 px-10 text-[15px] font-semibold text-white transition-[background-color,border-color,transform] duration-200 ease-out active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-white/10">Contact sales</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-[#c6c6cd] bg-slate-50 pb-8 pt-16 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 sm:px-6 md:grid-cols-4 lg:grid-cols-5 lg:px-8">
+          <div className="col-span-2 lg:col-span-1">
+            <span className="mb-4 block text-lg font-bold text-slate-900 dark:text-white">Doubow</span>
+            <p className="text-pretty text-sm text-slate-500 dark:text-slate-400">Precision in Career Growth. One Assistant that works with you across discovery, applications, and prep—without the noise of generic chat.</p>
+            <div className="mt-4 flex gap-3 text-slate-400 dark:text-slate-500">
+              <Globe className="h-4 w-4" aria-hidden />
+              <AtSign className="h-4 w-4" aria-hidden />
+            </div>
+          </div>
+          <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Product</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li><a href="#solutions" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Features</a></li><li><a href="#pricing" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Pricing</a></li><li><Link href={"/resume" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Resume AI</Link></li></ul></div>
+          <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Company</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li><a href="#how-it-works" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">About</a></li><li><a href="mailto:careers@doubow.com" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Careers</a></li><li><a href="mailto:support@doubow.com" className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Contact</a></li></ul></div>
+          <div><h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.05em] text-slate-700 dark:text-slate-200">Legal</h4><ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400"><li><Link href={"/privacy" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Privacy Policy</Link></li><li><Link href={"/terms" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Terms of Service</Link></li><li><Link href={"/privacy" as Route} className="transition-colors hover:text-slate-900 dark:hover:text-slate-200">Security</Link></li></ul></div>
+        </div>
+        <div className="mx-auto mt-14 max-w-7xl border-t border-slate-200 px-4 pt-8 sm:px-6 lg:px-8 dark:border-slate-800">
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400">© {currentYear} Doubow AI. Precision in Career Growth.</p>
+        </div>
+      </footer>
+    </>
+  )
+}
