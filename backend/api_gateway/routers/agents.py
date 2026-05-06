@@ -1,8 +1,6 @@
 import asyncio
-from collections import defaultdict, deque
 import json
 import logging
-from time import monotonic
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
@@ -38,30 +36,36 @@ from services.agent_tools_catalog import AGENT_TOOLS
 from services.llm_prompts import ORCHESTRATOR_SYSTEM, normalize_orchestrator_response_with_meta
 from services.metrics import observe_assistant_action, observe_assistant_tool_routing, observe_llm_output_quality
 from services.openrouter import stream_chat_completion_chunks
+from services.rate_limit_service import (
+    RateLimitBackendUnavailableError,
+    RateLimitExceededError,
+    enforce_user_window_limit,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agents", tags=["agents"])
-_RATE_LIMIT_WINDOWS: dict[tuple[str, str], deque[float]] = defaultdict(deque)
-_RATE_LIMIT_LOCK = asyncio.Lock()
 
-
-async def _enforce_user_window_limit(*, bucket: str, user_id: str, limit: int, window_s: int) -> None:
-    if limit <= 0 or window_s <= 0:
-        return
-    key = (bucket, user_id)
-    now = monotonic()
-    cutoff = now - float(window_s)
-    async with _RATE_LIMIT_LOCK:
-        q = _RATE_LIMIT_WINDOWS[key]
-        while q and q[0] < cutoff:
-            q.popleft()
-        if len(q) >= limit:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Rate limit exceeded for {bucket}. Please retry shortly.",
-            )
-        q.append(now)
+async def _enforce_agents_limit(*, bucket: str, user_id: str, limit: int, window_s: int) -> None:
+    try:
+        await enforce_user_window_limit(
+            bucket=bucket,
+            user_id=user_id,
+            limit=limit,
+            window_s=window_s,
+        )
+    except RateLimitExceededError as exc:
+        headers = {"Retry-After": str(exc.retry_after_s)} if exc.retry_after_s is not None else None
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Rate limit exceeded for {bucket}. Please retry shortly.",
+            headers=headers,
+        ) from exc
+    except RateLimitBackendUnavailableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Rate limiter temporarily unavailable",
+        ) from exc
 
 
 @router.post(
@@ -79,7 +83,7 @@ async def run_job_search_pipeline(
 
     Set ``trigger_catalog_refresh`` to run the full catalog ingest (slow; requires provider keys).
     """
-    await _enforce_user_window_limit(
+    await _enforce_agents_limit(
         bucket="agents_pipeline_run",
         user_id=user.id,
         limit=settings.agents_pipeline_max_requests_per_window,
@@ -134,7 +138,7 @@ async def orchestrator_chat(
     user: User = Depends(get_authenticated_user),
 ) -> StreamingResponse:
     """SSE stream compatible with ``streamOrchestratorChat`` in the web client (OpenRouter)."""
-    await _enforce_user_window_limit(
+    await _enforce_agents_limit(
         bucket="agents_chat",
         user_id=user.id,
         limit=settings.agents_chat_max_requests_per_window,

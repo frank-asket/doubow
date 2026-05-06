@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     api_docs_enabled: bool | None = None
     database_url: str = "postgresql+asyncpg://doubow:doubow@localhost:5433/doubow"
     redis_url: str = "redis://localhost:6379"
+    # Shared rate-limit key prefix (Redis-backed window limits).
+    rate_limit_redis_prefix: str = "ratelimit"
+    # If true, Redis limiter backend errors fail closed with 503 instead of bypassing limiter.
+    rate_limit_fail_closed: bool = False
     # Background durability switches:
     # - In production, default is Celery for critical workflows unless explicitly overridden.
     # - In non-production, defaults remain in-process for faster local iteration.

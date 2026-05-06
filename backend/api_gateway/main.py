@@ -29,6 +29,7 @@ from routers import (
     users,
     webhooks,
 )
+from services.rate_limit_service import close_rate_limit_client
 from services.observability import setup_observability
 from services.metrics import metrics_middleware, metrics_response
 
@@ -46,7 +47,10 @@ async def lifespan(_: FastAPI):
         "celery" if settings.use_celery_for_autopilot_effective() else "inprocess",
         settings.allow_inprocess_background_in_production,
     )
-    yield
+    try:
+        yield
+    finally:
+        await close_rate_limit_client()
 
 
 app = FastAPI(
