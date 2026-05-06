@@ -384,7 +384,7 @@ def _infer_channel(lower_text: str) -> AgentChannel | None:
 def _extract_threshold(text: str) -> float:
     import re
 
-    m = re.search(r"(?:--threshold|threshold)\s+([0-5](?:\.[0-9])?)", text)
+    m = re.search(r"(?:--threshold|threshold)\s+([0-5](?:\.[0-9]+)?)", text)
     if not m:
         return 0.0
     try:

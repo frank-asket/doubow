@@ -89,7 +89,8 @@ async def run_career_ops_scan(
             run.source_mix_json = {p.provider: p.model_dump() for p in ingest.providers}
             run.fetched = int(ingest.created) + int(ingest.updated) + int(ingest.deduped)
 
-        run.scored = int(await recompute_job_scores_for_user(session, user_id))
+        recomputed = await recompute_job_scores_for_user(session, user_id)
+        run.scored = int(recomputed or 0)
         top_rows = (
             await session.execute(
                 select(JobScore.job_id, JobScore.fit_score)

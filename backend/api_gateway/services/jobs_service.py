@@ -168,7 +168,7 @@ async def _sync_template_scores_for_user(
     stmt = select(Job).where(Job.score_template.isnot(None))
     jobs_with_templates = (await session.execute(stmt)).scalars().all()
     if not jobs_with_templates:
-        return
+        return 0
 
     catalog_ids = [j.id for j in jobs_with_templates]
     dismissed_rows = (

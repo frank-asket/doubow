@@ -53,6 +53,14 @@ def test_infer_career_ops_auto_pipeline_slash_with_flags() -> None:
     assert action.source == "assistant_career_ops_command"
 
 
+def test_infer_career_ops_scan_slash_with_multi_decimal_threshold() -> None:
+    action = infer_action_from_message("/career-ops scan --threshold 3.14 --queue-top 2")
+    assert action is not None
+    assert action.action == "run_career_ops_scan"
+    assert action.min_fit_threshold == pytest.approx(3.14)
+    assert action.queue_top_n == 2
+
+
 def test_infer_pipeline_summary_still_snapshot_not_runner() -> None:
     action = infer_action_from_message("pipeline summary with status mix")
     assert action is not None
