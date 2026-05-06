@@ -20,6 +20,8 @@ class Settings(BaseSettings):
 
     app_name: str = "Doubow API"
     environment: str = "development"
+    # API docs are enabled by default outside production. Override with API_DOCS_ENABLED.
+    api_docs_enabled: bool | None = None
     database_url: str = "postgresql+asyncpg://doubow:doubow@localhost:5433/doubow"
     redis_url: str = "redis://localhost:6379"
     # Background durability switches:
@@ -108,6 +110,12 @@ class Settings(BaseSettings):
     # Orchestrator chat: recent transcript bounds (tail of thread for LLM context).
     orchestrator_chat_transcript_max_messages: int = 24
     orchestrator_chat_transcript_max_chars: int = 12000
+    # Per-process in-memory throttle windows for expensive agent endpoints.
+    # These are best-effort guards; global hard limits should still be enforced at the edge/API gateway.
+    agents_chat_window_seconds: int = 60
+    agents_chat_max_requests_per_window: int = 30
+    agents_pipeline_window_seconds: int = 60
+    agents_pipeline_max_requests_per_window: int = 4
     # When True and OpenRouter is configured, classify uncaught NL into structured agent tools (agent-native routing).
     orchestrator_llm_tool_routing: bool = True
     # Blend weight for semantic score in final fit score. 0.0 disables impact.
@@ -273,6 +281,11 @@ class Settings(BaseSettings):
         if self.use_celery_for_autopilot is not None:
             return self.use_celery_for_autopilot
         return self.environment.lower() == "production"
+
+    def api_docs_enabled_effective(self) -> bool:
+        if self.api_docs_enabled is not None:
+            return self.api_docs_enabled
+        return self.environment.lower() != "production"
 
 
 settings = Settings()

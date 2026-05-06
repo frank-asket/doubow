@@ -37,12 +37,15 @@ export default clerkMiddleware(async (auth, req) => {
   // Defense-in-depth: never run auth on Next internals or static assets.
   if (isNextOrStaticAsset(req.nextUrl.pathname)) return
 
-  // Playwright sets both; Edge middleware must read NEXT_PUBLIC_* (inlined at build) — E2E_BYPASS_AUTH alone is often absent in prod Edge.
+  // Never permit auth bypass in production deployments.
+  // Playwright sets both vars in local/test flows; Edge middleware reads NEXT_PUBLIC_* values.
   if (
-    process.env.E2E_BYPASS_AUTH === '1' ||
-    process.env.NEXT_PUBLIC_E2E_BYPASS_AUTH === '1'
-  )
+    process.env.NODE_ENV !== 'production' &&
+    (process.env.E2E_BYPASS_AUTH === '1' ||
+      process.env.NEXT_PUBLIC_E2E_BYPASS_AUTH === '1')
+  ) {
     return
+  }
   const { userId } = await auth()
 
   // Signed-in users use the app only; marketing landing is for signed-out visitors.

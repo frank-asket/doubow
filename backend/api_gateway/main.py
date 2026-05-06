@@ -53,9 +53,9 @@ app = FastAPI(
     title=settings.app_name,
     version="0.2.0",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    docs_url="/docs" if settings.api_docs_enabled_effective() else None,
+    redoc_url="/redoc" if settings.api_docs_enabled_effective() else None,
+    openapi_url="/openapi.json" if settings.api_docs_enabled_effective() else None,
 )
 app.middleware("http")(metrics_middleware)
 limiter = Limiter(key_func=rate_limit_key, default_limits=["240/minute"])

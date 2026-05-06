@@ -1,6 +1,8 @@
 import asyncio
+from collections import defaultdict, deque
 import json
 import logging
+from time import monotonic
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
@@ -40,6 +42,26 @@ from services.openrouter import stream_chat_completion_chunks
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agents", tags=["agents"])
+_RATE_LIMIT_WINDOWS: dict[tuple[str, str], deque[float]] = defaultdict(deque)
+_RATE_LIMIT_LOCK = asyncio.Lock()
+
+
+async def _enforce_user_window_limit(*, bucket: str, user_id: str, limit: int, window_s: int) -> None:
+    if limit <= 0 or window_s <= 0:
+        return
+    key = (bucket, user_id)
+    now = monotonic()
+    cutoff = now - float(window_s)
+    async with _RATE_LIMIT_LOCK:
+        q = _RATE_LIMIT_WINDOWS[key]
+        while q and q[0] < cutoff:
+            q.popleft()
+        if len(q) >= limit:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Rate limit exceeded for {bucket}. Please retry shortly.",
+            )
+        q.append(now)
 
 
 @router.post(
@@ -57,6 +79,12 @@ async def run_job_search_pipeline(
 
     Set ``trigger_catalog_refresh`` to run the full catalog ingest (slow; requires provider keys).
     """
+    await _enforce_user_window_limit(
+        bucket="agents_pipeline_run",
+        user_id=user.id,
+        limit=settings.agents_pipeline_max_requests_per_window,
+        window_s=settings.agents_pipeline_window_seconds,
+    )
     return await job_search_pipeline_coordinator.run(
         session=session,
         settings=settings,
@@ -106,6 +134,12 @@ async def orchestrator_chat(
     user: User = Depends(get_authenticated_user),
 ) -> StreamingResponse:
     """SSE stream compatible with ``streamOrchestratorChat`` in the web client (OpenRouter)."""
+    await _enforce_user_window_limit(
+        bucket="agents_chat",
+        user_id=user.id,
+        limit=settings.agents_chat_max_requests_per_window,
+        window_s=settings.agents_chat_window_seconds,
+    )
 
     logger.debug(
         "orchestrator_chat user=%s message_chars=%s request_id=%s",
