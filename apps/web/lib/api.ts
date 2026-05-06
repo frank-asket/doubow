@@ -95,6 +95,7 @@ export const dashboardApi = {
 // ─── Jobs ──────────────────────────────────────────────────────────────────
 
 export type CareerOpsScanRunRequest = {
+  source?: string
   query?: string
   location?: string
   sources?: string[]

@@ -84,6 +84,7 @@ export function MatchPipelineUpdateCard({
     try {
       if (scanBeforeRefresh) {
         await jobsApi.runCareerOpsScan({
+          source: 'match_pipeline_update_card',
           trigger_catalog_refresh: true,
           resume_aligned_catalog: true,
           queue_top_n: 0,

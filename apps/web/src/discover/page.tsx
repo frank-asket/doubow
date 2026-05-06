@@ -596,6 +596,7 @@ function DiscoverPageContent() {
     setCareerOpsError(null)
     try {
       const result = await jobsApi.runCareerOpsScan({
+        source: 'discover_page',
         query: searchText.trim() || undefined,
         location: locationFilter.trim() || undefined,
         min_fit_threshold: Math.max(0, minFit || 0),

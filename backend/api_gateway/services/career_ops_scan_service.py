@@ -52,6 +52,9 @@ async def run_career_ops_scan(
             event_name="career_ops_scan_started",
             properties={
                 "scan_run_id": run.id,
+                "source": payload.source,
+                "query": payload.query,
+                "location": payload.location,
                 "source_count": len(payload.sources or []),
                 "max_results": payload.max_results,
                 "min_fit_threshold": payload.min_fit_threshold,
@@ -160,6 +163,9 @@ async def run_career_ops_scan(
             properties={
                 "scan_run_id": run.id,
                 "status": run.status,
+                "source": payload.source,
+                "query": payload.query,
+                "location": payload.location,
                 "source_count": len(payload.sources or []),
                 "fetched": int(run.fetched or 0),
                 "scored": int(run.scored or 0),

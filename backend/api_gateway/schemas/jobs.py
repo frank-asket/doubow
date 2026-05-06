@@ -186,6 +186,7 @@ class JobScoresRecomputeResponse(BaseModel):
 
 
 class CareerOpsScanRunRequest(BaseModel):
+    source: str | None = Field(default=None, max_length=64)
     query: str | None = Field(default=None, max_length=255)
     location: str | None = Field(default=None, max_length=255)
     sources: list[str] | None = Field(default=None, max_length=20)
