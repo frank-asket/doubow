@@ -65,7 +65,7 @@ class User(Base):
         "TelemetryEvent", back_populates="user", cascade="all, delete-orphan"
     )
     career_ops_scan_runs: Mapped[list["CareerOpsScanRun"]] = relationship(
-        "CareerOpsScanRun", cascade="all, delete-orphan"
+        "CareerOpsScanRun", back_populates="user", cascade="all, delete-orphan"
     )
     google_oauth: Mapped["GoogleOAuthCredential | None"] = relationship(
         "GoogleOAuthCredential",
