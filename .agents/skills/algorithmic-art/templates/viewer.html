@@ -451,7 +451,15 @@
             colorPalette: ['#d97757', '#6a9bcc', '#788c5d']
         };
 
-        let defaultParams = {...params}; // Store defaults for reset
+        /** Snapshot params for reset; copies colorPalette so UI color edits do not mutate defaults. */
+        function cloneParams(src) {
+            return {
+                ...src,
+                colorPalette: [...src.colorPalette],
+            };
+        }
+
+        let defaultParams = cloneParams(params);
 
         // ═══════════════════════════════════════════════════════════════════════
         // P5.JS GENERATIVE ART ALGORITHM - REPLACE WITH YOUR VISION
@@ -503,7 +511,7 @@
                     const index = x + y * cols;
                     const nx = x * params.noiseScale * 4;
                     const ny = y * params.noiseScale * 4;
-                    const angle = noise(nx, ny) * TWO_PI * 2;
+                    const angle = noise(nx, ny) * TWO_PI;
                     const v = p5.Vector.fromAngle(angle);
                     v.setMag(1);
                     flowField[index] = v;
@@ -668,7 +676,7 @@
         }
 
         function resetParameters() {
-            params = {...defaultParams};
+            params = cloneParams(defaultParams);
             
             // Update UI elements
             document.getElementById('particleCount').value = params.particleCount;
