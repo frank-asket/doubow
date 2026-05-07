@@ -55,7 +55,10 @@ pkill -f "python -m alembic" || true
 step_end="$(date +%s)"
 echo "[timing] ${label} end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((step_end-step_start))s)"
 if [[ "${exit_code}" -eq 124 ]]; then
-  echo "[timing] ${label} command timed out after ${timeout_window}"
+  echo "[timing] ${label} command timed out after ${timeout_window} (GNU timeout exit 124)"
+fi
+if [[ "${exit_code}" -eq 143 ]]; then
+  echo "[timing] ${label} exit 143 (128+15: SIGTERM). Often: runner/job cancellation, or the wrapped command exited after SIGTERM (e.g. pytest). If elapsed ~= ${timeout_window}, check run_timed budget; otherwise check Actions concurrency/cancel or OOM."
 fi
 
 rm -f "${before_file}" "${after_file}"

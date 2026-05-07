@@ -75,7 +75,7 @@ jobs:
           STEP_START="$(date +%s)"
           echo "[timing] install deps start: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           python -m pip install --upgrade pip
-          pip install -r backend/api_gateway/requirements.txt psycopg2-binary pytest pytest-asyncio httpx aiosqlite
+          pip install -r backend/api_gateway/requirements.txt psycopg2-binary pytest pytest-asyncio pytest-timeout httpx aiosqlite
           STEP_END="$(date +%s)"
           echo "[timing] install deps end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((STEP_END-STEP_START))s)"
       - name: Verify Alembic migration chain compiles (offline SQL)
@@ -101,16 +101,31 @@ jobs:
           python -m alembic -c backend/api_gateway/alembic.ini upgrade head
           STEP_END="$(date +%s)"
           echo "[timing] alembic online end: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (elapsed=$((STEP_END-STEP_START))s)"
+      - name: Resource snapshot (before backend tests)
+        run: |
+          echo "::group::Disk"
+          df -h
+          echo "::endgroup::"
+          echo "::group::Memory"
+          free -h || true
+          echo "::endgroup::"
+          echo "::group::CPU"
+          nproc
+          uname -a
+          echo "::endgroup::"
       - name: Run backend test suite
         env:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
+          # Per-test ceiling so a single hung test fails fast instead of burning the whole run_timed budget.
+          PYTEST_ADDOPTS: --timeout=300 --timeout_method=thread
         run: |
-          bash .github/scripts/run_timed.sh "backend tests" "40m" python -m pytest -q backend/api_gateway/tests
+          bash .github/scripts/run_timed.sh "backend tests" "45m" python -m pytest -q backend/api_gateway/tests
       - name: Run durability and ops readiness guardrails
         env:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
+          PYTEST_ADDOPTS: --timeout=300 --timeout_method=thread
         run: |
           bash .github/scripts/run_timed.sh "durability guardrails" "12m" python -m pytest -q \
             backend/api_gateway/tests/test_background_durability_guardrails.py \
@@ -121,14 +136,29 @@ jobs:
         env:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
+          PYTEST_ADDOPTS: --timeout=300 --timeout_method=thread
         run: |
           bash .github/scripts/run_timed.sh "resume integration" "12m" python -m pytest -q backend/api_gateway/tests/integration/test_resume_langchain_integration.py
       - name: Run migrated schema parity guardrail
         env:
           PYTHONPATH: backend/api_gateway
           CI_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/doubow_ci
+          PYTEST_ADDOPTS: --timeout=300 --timeout_method=thread
         run: |
           bash .github/scripts/run_timed.sh "schema parity" "12m" python -m pytest -q backend/api_gateway/tests/integration/test_ci_postgres_schema.py
+      - name: Resource snapshot and process list (on failure)
+        if: failure()
+        run: |
+          echo "::group::Disk (failure)"
+          df -h
+          echo "::endgroup::"
+          echo "::group::Memory (failure)"
+          free -h || true
+          echo "::endgroup::"
+          echo "::group::Python-related processes (failure)"
+          ps -eo pid,ppid,etime,cmd | rg -i "python|pytest|alembic|postgres" || true
+          echo "::endgroup::"
+          echo "Note: Postgres service logs often show a normal fast shutdown when the job ends or the runner tears down containers; that is not necessarily an OOM or test crash."
       - name: List lingering backend processes
         if: always()
         run: |
